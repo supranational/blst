@@ -7,6 +7,15 @@ license = "Apache-2.0"
 description = "Bindings for blst BLS12-381 library"
 repository = "https://github.com/supranational/blst"
 readme = "README.md"
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+    "README.md",
+    "rustfmt.toml",
+    "blst/src/*.c",
+    "blst/src/asm/*.pl",
+    "blst/bindings/blst.h",
+]
 
 [build-dependencies]
 #cc = "1.0.54"

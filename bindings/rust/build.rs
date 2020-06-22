@@ -2,8 +2,8 @@ extern crate bindgen;
 extern crate cc;
 
 use std::env;
-use std::path::PathBuf;
 use std::path::Path;
+use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
@@ -26,7 +26,13 @@ fn main() {
 
     let blst_base_dir = match env::var("BLST_SRC_DIR") {
         Ok(val) => val,
-        Err(_) => "../..".to_string(),
+        Err(_) => {
+            if Path::new("blst").exists() {
+                "blst".to_string()
+            } else {
+                "../..".to_string()
+            }
+        }
     };
     println!("Using blst source directory {:?}", blst_base_dir);
 
@@ -36,12 +42,12 @@ fn main() {
 
     for a in asm_to_build.iter() {
         let dest_path = Path::new(&out_dir).join(a).with_extension("s");
-        let src_path  = Path::new(&perl_src_dir)
-            .join(a).with_extension("pl");
+        let src_path = Path::new(&perl_src_dir).join(a).with_extension("pl");
 
         Command::new(&src_path)
             .args(&[">", dest_path.to_str().unwrap()])
-            .status().unwrap();
+            .status()
+            .unwrap();
 
         file_vec.push(dest_path);
     }
@@ -54,7 +60,7 @@ fn main() {
     // modify 'opt-level' in [profile.release] in Cargo.toml.
     cc::Build::new()
         .flag("-march=native")
-        .flag_if_supported("-mno-avx")  // avoid costly transitions
+        .flag_if_supported("-mno-avx") // avoid costly transitions
         .flag_if_supported("-Wno-unused-command-line-argument")
         .files(&file_vec)
         .compile("libblst.a");

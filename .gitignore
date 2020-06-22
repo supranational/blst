@@ -60,3 +60,4 @@ dkms.conf
 # Rust build 
 Cargo.lock
 bindings/rust/target
+bindings/rust/blst
