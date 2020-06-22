@@ -1,4 +1,4 @@
-# blst
+# blst [![Crates.io](https://img.shields.io/crates/v/blst.svg)](https://crates.io/crates/blst)
 
 The `blst` crate provides a rust interface to the blst BLS12-381 signature library.
 

@@ -39,3 +39,6 @@ harness = false
 
 [profile.release]
 #opt-level = 3
+
+[badges]
+maintenance = { status = "actively-developed" }
