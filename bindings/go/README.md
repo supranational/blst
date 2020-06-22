@@ -20,18 +20,18 @@ There are two primary modes of operation that can be chosen based on type defini
 
 For minimal-pubkey-size operations:
 ```
-type PublicKey = P1Affine
-type Signature = P2Affine
-type AggregateSignature = P2Aggregate
-type AggregatePublicKey = P1Aggregate
+type PublicKey = blst.P1Affine
+type Signature = blst.P2Affine
+type AggregateSignature = blst.P2Aggregate
+type AggregatePublicKey = blst.P1Aggregate
 ```
 
 For minimal-signature-size operations:
 ```
-type PublicKey = P2Affine
-type Signature = P1Affine
-type AggregateSignature = P1Aggregate
-type AggregatePublicKey = P2Aggregate
+type PublicKey = blst.P2Affine
+type Signature = blst.P1Affine
+type AggregateSignature = blst.P1Aggregate
+type AggregatePublicKey = blst.P2Aggregate
 ```
 
 TODO - structures and possibly methods
@@ -39,8 +39,8 @@ TODO - structures and possibly methods
 A simple example for generating a key, signing a message, and verifying the message:
 ```
 var ikm [32]byte
-_, _ := rand.Read(ikm[:])
-sk := KeyGen(ikm[:])
+_, _ = rand.Read(ikm[:])
+sk := blst.KeyGen(ikm[:])
 pk := new(PublicKey).From(sk)
 
 var dst = []byte("BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_")
@@ -48,7 +48,7 @@ msg := []byte("hello foo")
 sig := new(Signature).Sign(sk, msg, dst)
 
 if !sig.Verify(pk, msg, dst) {
-    t.Errorf("verify sig0")
+		fmt.Println("ERROR: verify sig")
 }
 ```
 
