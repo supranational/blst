@@ -551,6 +551,7 @@ macro_rules! sig_variant_impl {
         }
 
         impl Signature {
+            // TODO - why does expect *const PublicKey?
             pub fn verify(
                 &self,
                 msg: &[u8],
@@ -558,19 +559,12 @@ macro_rules! sig_variant_impl {
                 aug: &[u8],
                 pk: *const PublicKey,
             ) -> BLST_ERROR {
-                unsafe {
-                    $verify(
-                        &(*pk).point,
-                        &self.point,
-                        true,
-                        msg.as_ptr(),
-                        msg.len(),
-                        dst.as_ptr(),
-                        dst.len(),
-                        aug.as_ptr(),
-                        aug.len(),
-                    )
-                }
+                let aug_msg = [aug, msg].concat();
+                self.aggregate_verify(
+                    &[aug_msg.as_slice()],
+                    dst,
+                    &[&unsafe { *pk }],
+                )
             }
 
             pub fn aggregate_verify(
@@ -674,19 +668,7 @@ macro_rules! sig_variant_impl {
             ) -> BLST_ERROR {
                 let agg_pk = AggregatePublicKey::aggregate(pks);
                 let pk = agg_pk.to_public_key();
-                unsafe {
-                    $verify(
-                        &pk.point,
-                        &self.point,
-                        true,
-                        msg.as_ptr(),
-                        msg.len(),
-                        dst.as_ptr(),
-                        dst.len(),
-                        [].as_ptr(),
-                        0,
-                    )
-                }
+                self.aggregate_verify(&[msg], dst, &[&pk])
             }
 
             pub fn fast_aggregate_verify_pre_aggregated(
@@ -695,19 +677,7 @@ macro_rules! sig_variant_impl {
                 dst: &[u8],
                 pk: &PublicKey,
             ) -> BLST_ERROR {
-                unsafe {
-                    $verify(
-                        &pk.point,
-                        &self.point,
-                        true,
-                        msg.as_ptr(),
-                        msg.len(),
-                        dst.as_ptr(),
-                        dst.len(),
-                        [].as_ptr(),
-                        0,
-                    )
-                }
+                self.aggregate_verify(&[msg], dst, &[pk])
             }
 
             // https://ethresear.ch/t/fast-verification-of-multiple-bls-signatures/5407
