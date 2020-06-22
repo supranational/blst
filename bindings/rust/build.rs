@@ -24,9 +24,19 @@ fn main() {
 
     let out_dir = env::var_os("OUT_DIR").unwrap();
 
+    let blst_base_dir = match env::var("BLST_SRC_DIR") {
+        Ok(val) => val,
+        Err(_) => "../..".to_string(),
+    };
+    println!("Using blst source directory {:?}", blst_base_dir);
+
+    let perl_src_dir = blst_base_dir.clone() + "/src/asm/";
+    let c_src_dir = blst_base_dir.clone() + "/src/";
+    let binding_src_dir = blst_base_dir + "/bindings/";
+
     for a in asm_to_build.iter() {
         let dest_path = Path::new(&out_dir).join(a).with_extension("s");
-        let src_path  = Path::new("../../src/asm/")
+        let src_path  = Path::new(&perl_src_dir)
             .join(a).with_extension("pl");
 
         Command::new(&src_path)
@@ -36,7 +46,7 @@ fn main() {
         file_vec.push(dest_path);
     }
 
-    file_vec.push(Path::new("../../src/").join("server.c"));
+    file_vec.push(Path::new(&c_src_dir).join("server.c"));
 
     // Set CC environment variable to choose alternative C compiler.
     // Optimization level depends on whether or not --release is passed
@@ -50,7 +60,7 @@ fn main() {
         .compile("libblst.a");
 
     let bindings = bindgen::Builder::default()
-        .header("../blst.h")
+        .header(binding_src_dir + "blst.h")
         .opaque_type("blst_pairing")
         .size_t_is_usize(true)
         .rustified_enum("BLST_ERROR")
