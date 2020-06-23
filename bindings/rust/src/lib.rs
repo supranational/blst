@@ -208,46 +208,6 @@ pub fn print_bytes(bytes: &[u8], name: &str) {
     println!();
 }
 
-/*
-macro_rules! miller_pk_in_p1 {
-    (
-        $out:expr,
-        $p2:expr,
-        $p1:expr
-    ) => {
-        blst_miller_loop($out, $p2, $p1);
-    };
-}
-
-macro_rules! miller_const_pk_in_p1 {
-    (
-        $out:expr,
-        $p:expr
-    ) => {
-        blst_miller_loop($out, $p, &BLS12_381_NEG_G1);
-    };
-}
-
-macro_rules! miller_pk_in_p2 {
-    (
-        $out:expr,
-        $p2:expr,
-        $p1:expr
-    ) => {
-        blst_miller_loop($out, $p1, $p2);
-    };
-}
-
-macro_rules! miller_const_pk_in_p2 {
-    (
-        $out:expr,
-        $p:expr
-    ) => {
-        blst_miller_loop($out, &BLS12_381_NEG_G2, $p);
-    };
-}
-*/
-
 macro_rules! sig_variant_impl {
     (
         $name:expr,
@@ -283,10 +243,6 @@ macro_rules! sig_variant_impl {
         $pk_add_or_dbl_aff:ident,
         $sig_add_or_dbl:ident,
         $sig_add_or_dbl_aff:ident,
-        $pk_mul:ident,
-        $sig_mul:ident,
-        $ml_mac:ident,
-        $ml_const_mac:ident
     ) => {
         /// Secret Key
         #[derive(Debug, Clone)]
@@ -1375,10 +1331,6 @@ pub mod min_pk {
         blst_p1_add_or_double_affine,
         blst_p2_add_or_double,
         blst_p2_add_or_double_affine,
-        blst_p1_mult_w5,
-        blst_p2_mult_w5,
-        miller_pk_in_p1,
-        miller_const_pk_in_p1
     );
 }
 
@@ -1419,9 +1371,5 @@ pub mod min_sig {
         blst_p2_add_or_double_affine,
         blst_p1_add_or_double,
         blst_p1_add_or_double_affine,
-        blst_p2_mult_w5,
-        blst_p1_mult_w5,
-        miller_pk_in_p2,
-        miller_const_pk_in_p2
     );
 }
