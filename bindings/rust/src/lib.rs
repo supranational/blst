@@ -112,6 +112,59 @@ impl Pairing {
         }
     }
 
+    pub fn mul_n_aggregate(
+        &mut self,
+        pk: &dyn Any,
+        sig: &dyn Any,
+        hash: &dyn Any,
+        scalar: &[limb_t],
+        nbits: usize,
+    ) -> BLST_ERROR {
+        if pk.is::<blst_p1_affine>() {
+            unsafe {
+                blst_pairing_mul_n_aggregate_pk_in_g1(
+                    self.ctx(),
+                    match pk.downcast_ref::<blst_p1_affine>() {
+                        Some(pk) => pk,
+                        None => ptr::null(),
+                    },
+                    match sig.downcast_ref::<blst_p2_affine>() {
+                        Some(sig) => sig,
+                        None => ptr::null(),
+                    },
+                    match hash.downcast_ref::<blst_p2_affine>() {
+                        Some(hash) => hash,
+                        None => ptr::null(),
+                    },
+                    scalar.as_ptr(),
+                    nbits,
+                )
+            }
+        } else if pk.is::<blst_p2_affine>() {
+            unsafe {
+                blst_pairing_mul_n_aggregate_pk_in_g2(
+                    self.ctx(),
+                    match pk.downcast_ref::<blst_p2_affine>() {
+                        Some(pk) => pk,
+                        None => ptr::null(),
+                    },
+                    match sig.downcast_ref::<blst_p1_affine>() {
+                        Some(sig) => sig,
+                        None => ptr::null(),
+                    },
+                    match hash.downcast_ref::<blst_p1_affine>() {
+                        Some(hash) => hash,
+                        None => ptr::null(),
+                    },
+                    scalar.as_ptr(),
+                    nbits,
+                )
+            }
+        } else {
+            panic!("whaaaa?")
+        }
+    }
+
     pub fn aggregated(gtsig: &mut blst_fp12, sig: &dyn Any) {
         if sig.is::<blst_p1_affine>() {
             unsafe {
@@ -140,7 +193,7 @@ impl Pairing {
         unsafe { blst_pairing_merge(self.ctx(), ctx1.const_ctx()) }
     }
 
-    pub fn finalverify(&self, gtsig: &blst_fp12) -> bool {
+    pub fn finalverify(&self, gtsig: *const blst_fp12) -> bool {
         unsafe { blst_pairing_finalverify(self.const_ctx(), gtsig) }
     }
 }
@@ -155,6 +208,7 @@ pub fn print_bytes(bytes: &[u8], name: &str) {
     println!();
 }
 
+/*
 macro_rules! miller_pk_in_p1 {
     (
         $out:expr,
@@ -192,6 +246,7 @@ macro_rules! miller_const_pk_in_p2 {
         blst_miller_loop($out, &BLS12_381_NEG_G2, $p);
     };
 }
+*/
 
 macro_rules! sig_variant_impl {
     (
@@ -233,8 +288,6 @@ macro_rules! sig_variant_impl {
         $ml_mac:ident,
         $ml_const_mac:ident
     ) => {
-        use rayon::prelude::*;
-
         /// Secret Key
         #[derive(Debug, Clone)]
         pub struct SecretKey {
@@ -689,101 +742,127 @@ macro_rules! sig_variant_impl {
                 rands: &[blst_scalar],
                 rand_bits: usize,
             ) -> BLST_ERROR {
-                let mut c1 = std::mem::MaybeUninit::<blst_fp12>::uninit();
-                let mut cur_ml = std::mem::MaybeUninit::<blst_fp12>::uninit();
-                unsafe {
-                    let mut agg_sig =
-                        std::mem::MaybeUninit::<$sig>::zeroed().assume_init();
-                    let mut agg_sig_aff =
-                        std::mem::MaybeUninit::<$sig_aff>::zeroed()
-                            .assume_init();
-                    let c1s = pks
-                        .par_iter()
-                        .zip(msgs.par_iter())
-                        .zip(sigs.par_iter())
-                        .zip(rands.par_iter())
-                        .map(|(((p, m), s), r)| {
-                            let mut q_i =
-                                std::mem::MaybeUninit::<$sig>::uninit();
-                            let mut q_i_aff =
-                                std::mem::MaybeUninit::<$sig_aff>::uninit();
-                            let mut c1_pi =
-                                std::mem::MaybeUninit::<blst_fp12>::uninit();
-                            let mut r_pk =
-                                std::mem::MaybeUninit::<$pk>::uninit();
-                            let mut r_pk_aff =
-                                std::mem::MaybeUninit::<$pk_aff>::uninit();
-                            let mut r_sig =
-                                std::mem::MaybeUninit::<$sig>::uninit();
-                            let mut s_jac =
-                                std::mem::MaybeUninit::<$sig>::uninit();
-                            let mut p_jac =
-                                std::mem::MaybeUninit::<$pk>::uninit();
-                            let mut agg_sig_i =
-                                std::mem::MaybeUninit::<$sig>::zeroed()
-                                    .assume_init();
+                let n_elems = pks.len();
+                if msgs.len() != n_elems
+                    || sigs.len() != n_elems
+                    || rands.len() != n_elems
+                {
+                    return BLST_ERROR::BLST_VERIFY_FAIL;
+                }
 
-                            $hash_or_encode_to(
-                                q_i.as_mut_ptr(),
-                                m.as_ptr(),
-                                m.len(),
-                                dst.as_ptr(),
-                                dst.len(),
-                                [].as_ptr(),
-                                0,
-                            );
-                            $sig_to_aff(q_i_aff.as_mut_ptr(), q_i.as_ptr());
-                            $pk_from_aff(p_jac.as_mut_ptr(), &p.point);
-                            $pk_mul(
-                                r_pk.as_mut_ptr(),
-                                p_jac.as_ptr(),
-                                r,
+                // TODO - check msg uniqueness?
+                // TODO - since already in object form, any need to subgroup check?
+
+                let pool = da_pool();
+                let (tx, rx) = channel();
+                let counter = Arc::new(AtomicUsize::new(0));
+                let valid = Arc::new(AtomicBool::new(true));
+
+                // Bypass 'lifetime limitations by brute force. It works,
+                // because we explicitly join the threads...
+                let raw_pks = unsafe {
+                    transmute::<*const &PublicKey, usize>(pks.as_ptr())
+                };
+                let raw_sigs = unsafe {
+                    transmute::<*const &Signature, usize>(sigs.as_ptr())
+                };
+                let raw_rands = unsafe {
+                    transmute::<*const blst_scalar, usize>(rands.as_ptr())
+                };
+                let raw_msgs =
+                    unsafe { transmute::<*const &[u8], usize>(msgs.as_ptr()) };
+                let dst =
+                    unsafe { slice::from_raw_parts(dst.as_ptr(), dst.len()) };
+
+                let n_workers = std::cmp::min(pool.max_count(), n_elems);
+                for _ in 0..n_workers {
+                    let tx = tx.clone();
+                    let counter = counter.clone();
+                    let valid = valid.clone();
+
+                    pool.execute(move || {
+                        let mut pairing = Pairing::new();
+                        let mut hash = unsafe {
+                            MaybeUninit::<$sig_aff>::uninit().assume_init()
+                        };
+                        // reconstruct input slices...
+                        let rands = unsafe {
+                            slice::from_raw_parts(
+                                transmute::<usize, *const blst_scalar>(
+                                    raw_rands,
+                                ),
+                                n_elems,
+                            )
+                        };
+                        let msgs = unsafe {
+                            slice::from_raw_parts(
+                                transmute::<usize, *const &[u8]>(raw_msgs),
+                                n_elems,
+                            )
+                        };
+                        let sigs = unsafe {
+                            slice::from_raw_parts(
+                                transmute::<usize, *const &Signature>(raw_sigs),
+                                n_elems,
+                            )
+                        };
+                        let pks = unsafe {
+                            slice::from_raw_parts(
+                                transmute::<usize, *const &PublicKey>(raw_pks),
+                                n_elems,
+                            )
+                        };
+
+                        // TODO - engage multi-point mul-n-add for larger
+                        // amount of inputs...
+                        while valid.load(Ordering::Relaxed) {
+                            let work = counter.fetch_add(1, Ordering::Relaxed);
+                            if work >= n_elems {
+                                break;
+                            }
+
+                            unsafe {
+                                let mut p = MaybeUninit::<$sig>::uninit();
+                                $hash_or_encode_to(
+                                    p.as_mut_ptr(),
+                                    msgs[work].as_ptr(),
+                                    msgs[work].len(),
+                                    dst.as_ptr(),
+                                    dst.len(),
+                                    [].as_ptr(),
+                                    0,
+                                );
+                                $sig_to_aff(&mut hash, p.as_ptr());
+                            };
+                            if pairing.mul_n_aggregate(
+                                &pks[work].point,
+                                &sigs[work].point,
+                                &hash,
+                                &rands[work].l,
                                 rand_bits,
-                            );
-                            $pk_to_aff(r_pk_aff.as_mut_ptr(), r_pk.as_ptr());
-                            $sig_from_aff(s_jac.as_mut_ptr(), &s.point);
-                            $sig_mul(
-                                r_sig.as_mut_ptr(),
-                                s_jac.as_ptr(),
-                                r,
-                                rand_bits,
-                            );
+                            ) != BLST_ERROR::BLST_SUCCESS
+                            {
+                                valid.store(false, Ordering::Relaxed);
+                                break;
+                            }
+                        }
+                        if valid.load(Ordering::Relaxed) {
+                            pairing.commit();
+                        }
+                        tx.send(pairing).expect("disaster");
+                    });
+                }
 
-                            $sig_add_or_dbl(
-                                &mut agg_sig_i,
-                                &agg_sig_i,
-                                r_sig.as_ptr(),
-                            );
+                let mut acc = rx.recv().unwrap();
+                for _ in 1..n_workers {
+                    acc.merge(&rx.recv().unwrap());
+                }
 
-                            $ml_mac!(
-                                c1_pi.as_mut_ptr(),
-                                q_i_aff.as_ptr(),
-                                r_pk_aff.as_ptr()
-                            );
-                            (c1_pi.assume_init(), agg_sig_i)
-                        })
-                        .collect::<Vec<(_, _)>>();
-
-                    blst_fp12_mul(c1.as_mut_ptr(), &c1s[0].0, &c1s[1].0);
-                    $sig_add_or_dbl(&mut agg_sig, &c1s[0].1, &c1s[1].1);
-                    for (c, agg) in c1s.iter().skip(2) {
-                        blst_fp12_mul(c1.as_mut_ptr(), c1.as_ptr(), c);
-                        $sig_add_or_dbl(&mut agg_sig, &agg_sig, agg);
-                    }
-                    $sig_to_aff(&mut agg_sig_aff, &agg_sig);
-                    $ml_const_mac!(cur_ml.as_mut_ptr(), &agg_sig_aff);
-                    blst_fp12_mul(
-                        c1.as_mut_ptr(),
-                        c1.as_ptr(),
-                        cur_ml.as_ptr(),
-                    );
-                    blst_fp12_conjugate(c1.as_mut_ptr());
-                    blst_final_exp(c1.as_mut_ptr(), c1.as_ptr());
-                    let result = blst_fp12_is_one(c1.as_ptr());
-                    if result == false {
-                        return BLST_ERROR::BLST_VERIFY_FAIL;
-                    }
+                if valid.load(Ordering::Relaxed) && acc.finalverify(ptr::null())
+                {
                     BLST_ERROR::BLST_SUCCESS
+                } else {
+                    BLST_ERROR::BLST_VERIFY_FAIL
                 }
             }
 
