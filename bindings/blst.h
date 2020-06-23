@@ -269,6 +269,12 @@ BLST_ERROR blst_pairing_aggregate_pk_in_g2(blst_pairing *ctx,
                                            size_t DST_len DEFNULL,
                                            const byte *aug DEFNULL,
                                            size_t aug_len DEFNULL);
+BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g2(blst_pairing *ctx,
+                                                 const blst_p2_affine *PK,
+                                                 const blst_p1_affine *sig,
+                                                 const blst_p1_affine *hash,
+                                                 const limb_t *scalar,
+                                                 size_t nbits);
 BLST_ERROR blst_pairing_aggregate_pk_in_g1(blst_pairing *ctx,
                                            const blst_p1_affine *PK,
                                            const blst_p2_affine *signature,
@@ -278,6 +284,12 @@ BLST_ERROR blst_pairing_aggregate_pk_in_g1(blst_pairing *ctx,
                                            size_t DST_len DEFNULL,
                                            const byte *aug DEFNULL,
                                            size_t aug_len DEFNULL);
+BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g1(blst_pairing *ctx,
+                                                 const blst_p1_affine *PK,
+                                                 const blst_p2_affine *sig,
+                                                 const blst_p2_affine *hash,
+                                                 const limb_t *scalar,
+                                                 size_t nbits);
 BLST_ERROR blst_pairing_merge(blst_pairing *ctx, const blst_pairing *ctx1);
 bool blst_pairing_finalverify(const blst_pairing *ctx,
                               const blst_fp12 *gtsig DEFNULL);
