@@ -63,7 +63,7 @@ void blst_pairing_init(PAIRING *ctx)
 
 static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
                                              const POINTonE2_affine *PK,
-                                             const POINTonE1 *signature,
+                                             const POINTonE1_affine *sig,
                                              int hash_or_encode,
                                              const void *msg, size_t msg_len,
                                              const void *DST, size_t DST_len,
@@ -74,16 +74,16 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
 
     ctx->min_sig_or_pk |= AGGR_MIN_SIG;
 
-    if (signature != NULL) {
-        if (!POINTonE1_in_G1(signature))
+    if (sig != NULL) {
+        if (!POINTonE1_in_G1((const POINTonE1 *)sig))
             return BLST_POINT_NOT_IN_GROUP;
 
         if (ctx->min_sig_or_pk & AGGR_SIGN_SET) {
             POINTonE1_dadd_affine(&ctx->AggrSign.e1, &ctx->AggrSign.e1,
-                                                     signature);
+                                                     (const POINTonE1 *)sig);
         } else {
             ctx->min_sig_or_pk |= AGGR_SIGN_SET;
-	    FROM_AFFINE(&ctx->AggrSign.e1, signature);
+            FROM_AFFINE(&ctx->AggrSign.e1, sig);
         }
     }
 
@@ -120,7 +120,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
 
 BLST_ERROR blst_pairing_aggregate_pk_in_g2(PAIRING *ctx,
                                            const POINTonE2_affine *PK,
-                                           const POINTonE1 *signature,
+                                           const POINTonE1_affine *signature,
                                            int hash_or_encode,
                                            const void *msg, size_t msg_len,
                                            const void *DST, size_t DST_len,
@@ -131,7 +131,7 @@ BLST_ERROR blst_pairing_aggregate_pk_in_g2(PAIRING *ctx,
 
 static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
                                              const POINTonE1_affine *PK,
-                                             const POINTonE2 *signature,
+                                             const POINTonE2_affine *sig,
                                              int hash_or_encode,
                                              const void *msg, size_t msg_len,
                                              const void *DST, size_t DST_len,
@@ -142,21 +142,21 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
 
     ctx->min_sig_or_pk |= AGGR_MIN_PK;
 
-    if (signature != NULL) {
-        if (!POINTonE2_in_G2(signature))
+    if (sig != NULL) {
+        if (!POINTonE2_in_G2((const POINTonE2 *)sig))
             return BLST_POINT_NOT_IN_GROUP;
 
         if (ctx->min_sig_or_pk & AGGR_SIGN_SET) {
             POINTonE2_dadd_affine(&ctx->AggrSign.e2, &ctx->AggrSign.e2,
-                                                     signature);
+                                                     (const POINTonE2 *)sig);
         } else {
             ctx->min_sig_or_pk |= AGGR_SIGN_SET;
-	    FROM_AFFINE(&ctx->AggrSign.e2, signature);
+            FROM_AFFINE(&ctx->AggrSign.e2, (const POINTonE2 *)sig);
         }
     }
 
     if (PK != NULL) {
-	size_t n;
+        size_t n;
         POINTonE2 H[1];
 
         if (hash_or_encode)
@@ -188,7 +188,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
 
 BLST_ERROR blst_pairing_aggregate_pk_in_g1(PAIRING *ctx,
                                            const POINTonE1_affine *PK,
-                                           const POINTonE2 *signature,
+                                           const POINTonE2_affine *signature,
                                            int hash_or_encode,
                                            const void *msg, size_t msg_len,
                                            const void *DST, size_t DST_len,
@@ -196,6 +196,142 @@ BLST_ERROR blst_pairing_aggregate_pk_in_g1(PAIRING *ctx,
 {   return PAIRING_Aggregate_PK_in_G1(ctx, PK, signature, hash_or_encode,
                                       msg, msg_len, DST, DST_len, aug, aug_len);
 }
+
+static BLST_ERROR PAIRING_Mul_n_Aggregate_PK_in_G2(PAIRING *ctx,
+                                                   const POINTonE2_affine *PK,
+                                                   const POINTonE1_affine *sig,
+                                                   const POINTonE1_affine *hash,
+                                                   const limb_t *scalar,
+                                                   size_t nbits)
+{
+    if (ctx->min_sig_or_pk & AGGR_MIN_PK)
+        return BLST_AGGR_TYPE_MISMATCH;
+
+    ctx->min_sig_or_pk |= AGGR_MIN_SIG;
+
+    if (sig != NULL) {
+        if (!POINTonE1_in_G1((const POINTonE1 *)sig))
+            return BLST_POINT_NOT_IN_GROUP;
+
+        if (ctx->min_sig_or_pk & AGGR_SIGN_SET) {
+            POINTonE1 P[1];
+
+            FROM_AFFINE(P, sig);
+            POINTonE1_mult_w5(P, P, scalar, nbits);
+            POINTonE1_dadd(&ctx->AggrSign.e1, &ctx->AggrSign.e1, P, NULL);
+        } else {
+            POINTonE1 *P = &ctx->AggrSign.e1;
+
+            ctx->min_sig_or_pk |= AGGR_SIGN_SET;
+            FROM_AFFINE(P, sig);
+            POINTonE1_mult_w5(P, P, scalar, nbits);
+        }
+    }
+
+    if (PK != NULL) {
+        size_t n;
+        POINTonE1 H[1];
+
+        FROM_AFFINE(H, hash);
+        POINTonE1_mult_w5(H, H, scalar, nbits);
+        POINTonE1_from_Jacobian(H, H);
+
+        n = ctx->nelems;
+        vec_copy(ctx->Q + n, PK, sizeof(POINTonE2_affine));
+        vec_copy(ctx->P + n, H, sizeof(POINTonE1_affine));
+        if (++n == N_MAX) {
+            if (ctx->min_sig_or_pk & AGGR_GT_SET) {
+                vec384fp12 GT;
+                miller_loop_n(GT, ctx->Q, ctx->P, n);
+                mul_fp12(ctx->GT, ctx->GT, GT);
+            } else {
+                miller_loop_n(ctx->GT, ctx->Q, ctx->P, n);
+                ctx->min_sig_or_pk |= AGGR_GT_SET;
+            }
+            n = 0;
+        }
+        ctx->nelems = n;
+    }
+
+    return BLST_SUCCESS;
+}
+
+BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g2(PAIRING *ctx,
+                                                 const POINTonE2_affine *PK,
+                                                 const POINTonE1_affine *sig,
+                                                 const POINTonE1_affine *hash,
+                                                 const limb_t *scalar,
+                                                 size_t nbits)
+{   return PAIRING_Mul_n_Aggregate_PK_in_G2(ctx, PK, sig, hash,
+                                            scalar, nbits);   }
+
+static BLST_ERROR PAIRING_Mul_n_Aggregate_PK_in_G1(PAIRING *ctx,
+                                                   const POINTonE1_affine *PK,
+                                                   const POINTonE2_affine *sig,
+                                                   const POINTonE2_affine *hash,
+                                                   const limb_t *scalar,
+                                                   size_t nbits)
+{
+    if (ctx->min_sig_or_pk & AGGR_MIN_SIG)
+        return BLST_AGGR_TYPE_MISMATCH;
+
+    ctx->min_sig_or_pk |= AGGR_MIN_PK;
+
+    if (sig != NULL) {
+        if (!POINTonE2_in_G2((const POINTonE2 *)sig))
+            return BLST_POINT_NOT_IN_GROUP;
+
+        if (ctx->min_sig_or_pk & AGGR_SIGN_SET) {
+            POINTonE2 P[1];
+
+            FROM_AFFINE(P, sig);
+            POINTonE2_mult_w5(P, P, scalar, nbits);
+            POINTonE2_dadd(&ctx->AggrSign.e2, &ctx->AggrSign.e2, P, NULL);
+        } else {
+            POINTonE2 *P = &ctx->AggrSign.e2;
+
+            ctx->min_sig_or_pk |= AGGR_SIGN_SET;
+            FROM_AFFINE(P, sig);
+            POINTonE2_mult_w5(P, P, scalar, nbits);
+        }
+    }
+
+    if (PK != NULL) {
+        size_t n;
+        POINTonE1 pk[1];
+
+        FROM_AFFINE(pk, PK);
+        POINTonE1_mult_w5(pk, pk, scalar, nbits);
+        POINTonE1_from_Jacobian(pk, pk);
+
+        n = ctx->nelems;
+        vec_copy(ctx->Q + n, hash, sizeof(POINTonE2_affine));
+        vec_copy(ctx->P + n, pk, sizeof(POINTonE1_affine));
+        if (++n == N_MAX) {
+            if (ctx->min_sig_or_pk & AGGR_GT_SET) {
+                vec384fp12 GT;
+                miller_loop_n(GT, ctx->Q, ctx->P, n);
+                mul_fp12(ctx->GT, ctx->GT, GT);
+            } else {
+                miller_loop_n(ctx->GT, ctx->Q, ctx->P, n);
+                ctx->min_sig_or_pk |= AGGR_GT_SET;
+            }
+            n = 0;
+        }
+        ctx->nelems = n;
+    }
+
+    return BLST_SUCCESS;
+}
+
+BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g1(PAIRING *ctx,
+                                                 const POINTonE1_affine *PK,
+                                                 const POINTonE2_affine *sig,
+                                                 const POINTonE2_affine *hash,
+                                                 const limb_t *scalar,
+                                                 size_t nbits)
+{   return PAIRING_Mul_n_Aggregate_PK_in_G1(ctx, PK, sig, hash,
+                                            scalar, nbits);   }
 
 static void PAIRING_Commit(PAIRING *ctx)
 {
@@ -389,7 +525,7 @@ void blst_aggregated_in_g2(vec384fp12 ret, const POINTonE2_affine *sig)
 {   miller_loop_n(ret, sig, (const POINTonE1_affine *)&BLS12_381_G1, 1);   }
 
 BLST_ERROR blst_core_verify_pk_in_g1(const POINTonE1_affine *pk,
-                                     const POINTonE2 *signature,
+                                     const POINTonE2_affine *signature,
                                      int hash_or_encode,
                                      const void *msg, size_t msg_len,
                                      const void *DST, size_t DST_len,
@@ -412,7 +548,7 @@ BLST_ERROR blst_core_verify_pk_in_g1(const POINTonE1_affine *pk,
 }
 
 BLST_ERROR blst_core_verify_pk_in_g2(const POINTonE2_affine *pk,
-                                     const POINTonE1 *signature,
+                                     const POINTonE1_affine *signature,
                                      int hash_or_encode,
                                      const void *msg, size_t msg_len,
                                      const void *DST, size_t DST_len,
