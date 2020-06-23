@@ -294,12 +294,16 @@ static BLST_ERROR POINTonE2_Uncompress(POINTonE2_affine *out,
     unsigned char info = in[0] & 0xe0;
     limb_t sgn0_pty;
 
-    if ((in[0] & 0x80) == 0)    /* compressed bit */
+    if ((info & 0x80) == 0)     /* compressed bit */
         return BLST_BAD_ENCODING;
 
-    if (in[0] & 0x40) {         /* infinity bit */
+    if (info & 0x40) {          /* infinity bit */
+        limb_t inf;
+        vec_copy(out, in, 96);
+        *(unsigned char *)out &= ~0xc0;
+        inf = vec_is_zero(out, 96);
         vec_zero(out, sizeof(*out));
-        return BLST_SUCCESS;
+        return inf ? BLST_SUCCESS : BLST_BAD_ENCODING;
     }
 
     sgn0_pty = POINTonE2_Uncompress_BE(out, in);
@@ -307,8 +311,8 @@ static BLST_ERROR POINTonE2_Uncompress(POINTonE2_affine *out,
     if (sgn0_pty > 3)
         return (BLST_ERROR)(0 - sgn0_pty); /* POINT_NOT_ON_CURVE */
 
-    sgn0_pty ^= (info >> 4) & 2;
-    sgn0_pty >>= 1;
+    sgn0_pty >>= 1; /* skip over parity bit */
+    sgn0_pty ^= (info & 0x20) >> 5;
     cneg_fp2(out->Y, out->Y, sgn0_pty);
 
     return BLST_SUCCESS;
@@ -343,9 +347,16 @@ int blst_p2_deserialize(POINTonE2_affine *out, const unsigned char in[192])
     if (in[0] & 0x80)           /* compressed bit */
         return POINTonE2_Uncompress(out, in);
 
+    if (in[0] & 0x20)           /* sign bit */
+        return BLST_BAD_ENCODING;
+
     if (in[0] & 0x40) {         /* infinity bit */
+        limb_t inf;
+        vec_copy(out, in, 192);
+        *(unsigned char *)out &= ~0x40;
+        inf = vec_is_zero(out, 192);
         vec_zero(out, sizeof(*out));
-        return BLST_SUCCESS;
+        return inf ? BLST_SUCCESS : BLST_BAD_ENCODING;
     }
 
     POINTonE2_Deserialize_BE(out, in);
