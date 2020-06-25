@@ -6,7 +6,9 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 
-fn main() {
+#[cfg(target_os = "linux")]
+// Compiles assembly using Pearl on linux OS.
+fn build_linux() {
     // TODO - could ls directory and find all files
     let asm_to_build = [
         "add_mod_256-x86_64",
@@ -78,4 +80,25 @@ fn main() {
     bindings
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
+}
+
+#[cfg(target_os = "windows")]
+fn build_windows() {
+    unimplemented!();
+}
+
+#[cfg(target_os = "macos")]
+fn build_macos() {
+    unimplemented!();
+}
+
+fn main() {
+    #[cfg(target_os = "linux")]
+    build_linux();
+
+    #[cfg(target_os = "windows")]
+    build_windows();
+
+    #[cfg(target_os = "macos")]
+    build_macos();
 }
