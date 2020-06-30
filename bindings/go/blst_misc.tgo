@@ -61,6 +61,22 @@ func (fp *Fp) ToLEndian() []byte {
 	return arr[:]
 }
 
+func (fr *Scalar) FromLEndian(arr []byte) *Scalar {
+	if len(arr) != BLST_SCALAR_BYTES {
+		return nil
+	}
+	C.blst_scalar_from_lendian(fr, (*C.byte)(&arr[0]))
+	return fr
+}
+
+func (fp *Fp) FromLEndian(arr []byte) *Fp {
+	if len(arr) != BLST_FP_BYTES {
+		return nil
+	}
+	C.blst_fp_from_lendian(fp, (*C.byte)(&arr[0]))
+	return fp
+}
+
 //
 // BEndian
 //
@@ -77,6 +93,22 @@ func (fp *Fp) ToBEndian() []byte {
 	return arr[:]
 }
 
+func (fr *Scalar) FromBEndian(arr []byte) *Scalar {
+	if len(arr) != BLST_SCALAR_BYTES {
+		return nil
+	}
+	C.blst_scalar_from_bendian(fr, (*C.byte)(&arr[0]))
+	return fr
+}
+
+func (fp *Fp) FromBEndian(arr []byte) *Fp {
+	if len(arr) != BLST_FP_BYTES {
+		return nil
+	}
+	C.blst_fp_from_bendian(fp, (*C.byte)(&arr[0]))
+	return fp
+}
+
 //
 // Printing
 //
@@ -90,13 +122,18 @@ func (s *Scalar) Print(name string) {
 	PrintBytes(arr[:], name)
 }
 
+func (p *P1Affine) Print(name string) {
+	fmt.Printf("%s:\n", name)
+	arr := p.x.ToBEndian()
+	PrintBytes(arr, "  x")
+	arr = p.y.ToBEndian()
+	PrintBytes(arr, "  y")
+}
+
 func (p *P1) Print(name string) {
 	fmt.Printf("%s:\n", name)
 	aff := p.ToAffine()
-	arr := aff.x.ToBEndian()
-	PrintBytes(arr, "  x")
-	arr = aff.y.ToBEndian()
-	PrintBytes(arr, "  y")
+	aff.Print(name)
 }
 
 func (f *Fp2) Print(name string) {
@@ -107,11 +144,16 @@ func (f *Fp2) Print(name string) {
 	PrintBytes(arr, "    1")
 }
 
+func (p *P2Affine) Print(name string) {
+	fmt.Printf("%s:\n", name)
+	p.x.Print("  x")
+	p.y.Print("  y")
+}
+
 func (p *P2) Print(name string) {
 	fmt.Printf("%s:\n", name)
 	aff := p.ToAffine()
-	aff.x.Print("  x")
-	aff.y.Print("  y")
+	aff.Print(name)
 }
 
 //

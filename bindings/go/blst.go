@@ -1075,6 +1075,17 @@ func (p *P1) ToAffine() *P1Affine {
 func HashToG1(msg []byte, dst []byte, optional ...[]byte) *P1 {
 	var q P1
 
+	// Handle zero length message
+	var msgC *C.byte
+	if len(msg) > 0 {
+		msgC = (*C.byte)(&msg[0])
+	}
+
+	var dstC *C.byte
+	if len(dst) > 0 {
+		dstC = (*C.byte)(&dst[0])
+	}
+
 	var aug []byte
 	var uaug *C.byte
 	if len(optional) > 0 {
@@ -1085,14 +1096,25 @@ func HashToG1(msg []byte, dst []byte, optional ...[]byte) *P1 {
 	}
 
 	C.blst_hash_to_g1(&q,
-		(*C.byte)(&msg[0]), C.size_t(len(msg)),
-		(*C.byte)(&dst[0]), C.size_t(len(dst)),
+		msgC, C.size_t(len(msg)),
+		dstC, C.size_t(len(dst)),
 		uaug, C.size_t(len(aug)))
 	return &q
 }
 
 func EncodeToG1(msg []byte, dst []byte, optional ...[]byte) *P1 {
 	var q P1
+
+	// Handle zero length message
+	var msgC *C.byte
+	if len(msg) > 0 {
+		msgC = (*C.byte)(&msg[0])
+	}
+
+	var dstC *C.byte
+	if len(dst) > 0 {
+		dstC = (*C.byte)(&dst[0])
+	}
 
 	var aug []byte
 	var uaug *C.byte
@@ -1104,8 +1126,8 @@ func EncodeToG1(msg []byte, dst []byte, optional ...[]byte) *P1 {
 	}
 
 	C.blst_encode_to_g1(&q,
-		(*C.byte)(&msg[0]), C.size_t(len(msg)),
-		(*C.byte)(&dst[0]), C.size_t(len(dst)),
+		msgC, C.size_t(len(msg)),
+		dstC, C.size_t(len(dst)),
 		uaug, C.size_t(len(aug)))
 	return &q
 }
@@ -1196,6 +1218,17 @@ func (p *P2) ToAffine() *P2Affine {
 func HashToG2(msg []byte, dst []byte, optional ...[]byte) *P2 {
 	var q P2
 
+	// Handle zero length message
+	var msgC *C.byte
+	if len(msg) > 0 {
+		msgC = (*C.byte)(&msg[0])
+	}
+
+	var dstC *C.byte
+	if len(dst) > 0 {
+		dstC = (*C.byte)(&dst[0])
+	}
+
 	var aug []byte
 	var uaug *C.byte
 	if len(optional) > 0 {
@@ -1206,14 +1239,25 @@ func HashToG2(msg []byte, dst []byte, optional ...[]byte) *P2 {
 	}
 
 	C.blst_hash_to_g2(&q,
-		(*C.byte)(&msg[0]), C.size_t(len(msg)),
-		(*C.byte)(&dst[0]), C.size_t(len(dst)),
+		msgC, C.size_t(len(msg)),
+		dstC, C.size_t(len(dst)),
 		uaug, C.size_t(len(aug)))
 	return &q
 }
 
 func EncodeToG2(msg []byte, dst []byte, optional ...[]byte) *P2 {
 	var q P2
+
+	// Handle zero length message
+	var msgC *C.byte
+	if len(msg) > 0 {
+		msgC = (*C.byte)(&msg[0])
+	}
+
+	var dstC *C.byte
+	if len(dst) > 0 {
+		dstC = (*C.byte)(&dst[0])
+	}
 
 	var aug []byte
 	var uaug *C.byte
@@ -1225,8 +1269,8 @@ func EncodeToG2(msg []byte, dst []byte, optional ...[]byte) *P2 {
 	}
 
 	C.blst_encode_to_g2(&q,
-		(*C.byte)(&msg[0]), C.size_t(len(msg)),
-		(*C.byte)(&dst[0]), C.size_t(len(dst)),
+		msgC, C.size_t(len(msg)),
+		dstC, C.size_t(len(dst)),
 		uaug, C.size_t(len(aug)))
 	return &q
 }
@@ -1289,6 +1333,22 @@ func (fp *Fp) ToLEndian() []byte {
 	return arr[:]
 }
 
+func (fr *Scalar) FromLEndian(arr []byte) *Scalar {
+	if len(arr) != BLST_SCALAR_BYTES {
+		return nil
+	}
+	C.blst_scalar_from_lendian(fr, (*C.byte)(&arr[0]))
+	return fr
+}
+
+func (fp *Fp) FromLEndian(arr []byte) *Fp {
+	if len(arr) != BLST_FP_BYTES {
+		return nil
+	}
+	C.blst_fp_from_lendian(fp, (*C.byte)(&arr[0]))
+	return fp
+}
+
 //
 // BEndian
 //
@@ -1305,6 +1365,22 @@ func (fp *Fp) ToBEndian() []byte {
 	return arr[:]
 }
 
+func (fr *Scalar) FromBEndian(arr []byte) *Scalar {
+	if len(arr) != BLST_SCALAR_BYTES {
+		return nil
+	}
+	C.blst_scalar_from_bendian(fr, (*C.byte)(&arr[0]))
+	return fr
+}
+
+func (fp *Fp) FromBEndian(arr []byte) *Fp {
+	if len(arr) != BLST_FP_BYTES {
+		return nil
+	}
+	C.blst_fp_from_bendian(fp, (*C.byte)(&arr[0]))
+	return fp
+}
+
 //
 // Printing
 //
@@ -1318,13 +1394,18 @@ func (s *Scalar) Print(name string) {
 	PrintBytes(arr[:], name)
 }
 
+func (p *P1Affine) Print(name string) {
+	fmt.Printf("%s:\n", name)
+	arr := p.x.ToBEndian()
+	PrintBytes(arr, "  x")
+	arr = p.y.ToBEndian()
+	PrintBytes(arr, "  y")
+}
+
 func (p *P1) Print(name string) {
 	fmt.Printf("%s:\n", name)
 	aff := p.ToAffine()
-	arr := aff.x.ToBEndian()
-	PrintBytes(arr, "  x")
-	arr = aff.y.ToBEndian()
-	PrintBytes(arr, "  y")
+	aff.Print(name)
 }
 
 func (f *Fp2) Print(name string) {
@@ -1335,11 +1416,16 @@ func (f *Fp2) Print(name string) {
 	PrintBytes(arr, "    1")
 }
 
+func (p *P2Affine) Print(name string) {
+	fmt.Printf("%s:\n", name)
+	p.x.Print("  x")
+	p.y.Print("  y")
+}
+
 func (p *P2) Print(name string) {
 	fmt.Printf("%s:\n", name)
 	aff := p.ToAffine()
-	aff.x.Print("  x")
-	aff.y.Print("  y")
+	aff.Print(name)
 }
 
 //
