@@ -1,0 +1,43 @@
+branches:
+    only:
+      - /.*/
+
+language: rust
+
+git:
+    quiet: true
+
+os:
+    - linux
+    #- osx
+    #- windows
+
+before_script:
+    - env
+
+script:
+    - if [ "x$TRAVIS_LANGUAGE" = "xrust" ]; then
+          (cd bindings/rust; cargo test)
+      fi
+    - (cd bindings/go; go test)
+
+matrix:
+    include:
+      - os: linux
+        language: rust
+      - os: osx
+        language: go
+      - os: windows
+        language: go
+
+notifications:
+    email: false
+
+before_cache:
+    - rm -rf "$TRAVIS_HOME/.cargo/registry/src"
+
+cache:
+    cargo: true
+    directories:
+      - bindings/rust/target
+
