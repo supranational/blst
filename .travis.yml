@@ -19,7 +19,7 @@ script:
     - if [ "x$TRAVIS_LANGUAGE" = "xrust" ]; then
           (cd bindings/rust; cargo test)
       fi
-    - (cd bindings/go; go test)
+    - (cd bindings/go; go test -test.v)
 
 matrix:
     include:
