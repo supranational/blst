@@ -22,8 +22,11 @@ typedef struct {
     size_t off;
 } SHA256_CTX;
 
-#ifdef __SHA__                  /* -msha */
+#if (defined(__x86_64__) || defined(__x86_64) || defined(_M_X64)) && \
+     defined(__SHA__)   /* -msha */
 # define sha256_block_data_order sha256_block_data_order_shaext
+#elif defined(__aarch64__) && defined(__ARM_FEATURE_CRYPTO)
+# define sha256_block_data_order sha256_block_armv8
 #endif
 void sha256_block_data_order(unsigned int *h, const void *inp, size_t blocks);
 
