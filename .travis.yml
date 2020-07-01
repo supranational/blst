@@ -9,8 +9,12 @@ git:
 
 os:
     - linux
-    #- osx
+    - osx
     #- windows
+
+arch:
+    - amd64
+    - arm64
 
 before_script:
     - env
