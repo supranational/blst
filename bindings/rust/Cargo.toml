@@ -14,6 +14,7 @@ include = [
     "rustfmt.toml",
     "blst/src/*.c",
     "blst/src/*.h",
+    "blst/build/**",
     "blst/src/asm/*.pl",
     "blst/bindings/blst.h",
     "blst/bindings/blst_aux.h",
