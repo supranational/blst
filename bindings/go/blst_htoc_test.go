@@ -68,7 +68,7 @@ func TestG1HashToCurve(t *testing.T) {
 		p1Hashed := HashToG1(msg, dst).ToAffine()
 
 		if !p1Hashed.Equals(p1Expected) {
-			t.Errorf("hashed == expected")
+			t.Errorf("hashed != expected")
 		}
 	}
 }
@@ -139,7 +139,7 @@ func TestG2HashToCurve(t *testing.T) {
 		p2Hashed := HashToG2(msg, dst).ToAffine()
 
 		if !p2Hashed.Equals(p2Expected) {
-			t.Errorf("hashed == expected")
+			t.Errorf("hashed != expected")
 		}
 	}
 }
