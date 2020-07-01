@@ -25,6 +25,9 @@ matrix:
     include:
       - os: linux
         language: rust
+      - os: linux
+        arch: arm64
+        language: go
       - os: osx
         language: go
       - os: windows
