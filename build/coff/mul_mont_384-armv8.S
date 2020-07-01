@@ -1199,7 +1199,7 @@ __mul_by_1_mont_384:
 	mul	x22,x8,x26
 	mul	x23,x9,x26
 	mul	x24,x10,x26
-	subs	xzr,x19,#1		// adds	x19,x19,x11
+	subs	xzr,x11,#1		// adds	x19,x19,x11
 	umulh	x11,x5,x26
 	adcs	x20,x20,x12
 	umulh	x12,x6,x26
@@ -1226,7 +1226,7 @@ __mul_by_1_mont_384:
 	mul	x22,x8,x26
 	mul	x23,x9,x26
 	mul	x24,x10,x26
-	subs	xzr,x19,#1		// adds	x19,x19,x11
+	subs	xzr,x11,#1		// adds	x19,x19,x11
 	umulh	x11,x5,x26
 	adcs	x20,x20,x12
 	umulh	x12,x6,x26
@@ -1253,7 +1253,7 @@ __mul_by_1_mont_384:
 	mul	x22,x8,x26
 	mul	x23,x9,x26
 	mul	x24,x10,x26
-	subs	xzr,x19,#1		// adds	x19,x19,x11
+	subs	xzr,x11,#1		// adds	x19,x19,x11
 	umulh	x11,x5,x26
 	adcs	x20,x20,x12
 	umulh	x12,x6,x26
@@ -1280,7 +1280,7 @@ __mul_by_1_mont_384:
 	mul	x22,x8,x26
 	mul	x23,x9,x26
 	mul	x24,x10,x26
-	subs	xzr,x19,#1		// adds	x19,x19,x11
+	subs	xzr,x11,#1		// adds	x19,x19,x11
 	umulh	x11,x5,x26
 	adcs	x20,x20,x12
 	umulh	x12,x6,x26
@@ -1307,7 +1307,7 @@ __mul_by_1_mont_384:
 	mul	x22,x8,x26
 	mul	x23,x9,x26
 	mul	x24,x10,x26
-	subs	xzr,x19,#1		// adds	x19,x19,x11
+	subs	xzr,x11,#1		// adds	x19,x19,x11
 	umulh	x11,x5,x26
 	adcs	x20,x20,x12
 	umulh	x12,x6,x26
@@ -1334,7 +1334,7 @@ __mul_by_1_mont_384:
 	mul	x22,x8,x26
 	mul	x23,x9,x26
 	mul	x24,x10,x26
-	subs	xzr,x19,#1		// adds	x19,x19,x11
+	subs	xzr,x11,#1		// adds	x19,x19,x11
 	umulh	x11,x5,x26
 	adcs	x20,x20,x12
 	umulh	x12,x6,x26
