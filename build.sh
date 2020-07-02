@@ -13,11 +13,17 @@
 # In addition script recognizes -shared flag and creates shared library
 # alongside libblst.lib.
 
-TOP=`dirname $0`/src
+TOP=`dirname $0`
 
 CC=${CC:-cc}
-# if -Werror stands in a way, bypass with -Wno-error on command line
-CFLAGS=${CFLAGS:--O -march=native -mno-avx -fPIC -Wall -Wextra -Werror}
+if [ "x$CFLAGS" = "x" ]; then
+    CFLAGS="-march=native"
+    if ${CC} ${CFLAGS} -dM -E -x c /dev/null | grep __AVX__ > /dev/null; then
+        CFLAGS="${CFLAGS} -mno-avx"
+    fi
+    # if -Werror stands in the way, bypass with -Wno-error on command line
+    CFLAGS="${CFLAGS} -O -fPIC -Wall -Wextra -Werror"
+fi
 PERL=${PERL:-perl}
 
 case `uname -s` in
@@ -27,7 +33,7 @@ case `uname -s` in
     *)		flavour=elf;;
 esac
 
-unset share
+unset shared
 while [ "x$1" != "x" ]; do
     case $1 in
         -shared)    shared=1;;
@@ -40,15 +46,8 @@ done
 rm -f libblst.a
 trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o' 0
 
-(set -x; ${CC} ${CFLAGS} -c ${TOP}/server.c)
-
-for pl in ${TOP}/asm/*-x86_64.pl; do
-    s=`basename $pl .pl`.s
-    ${PERL} $pl $flavour > $s
-    (set -x; ${CC} ${CFLAGS} -c $s)
-    rm -f $s
-done
-
+(set -x; ${CC} ${CFLAGS} -c ${TOP}/src/server.c)
+(set -x; ${CC} ${CFLAGS} -c ${TOP}/build/assembly.S)
 (set -x; ${AR:-ar} rc libblst.a *.o)
 
 if [ $shared ]; then
