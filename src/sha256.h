@@ -57,7 +57,7 @@ static void sha256_update(SHA256_CTX *ctx, const void *_inp, size_t len)
 
     ctx->N += len;
 
-    if ((n = ctx->off)) {
+    if ((n = ctx->off) != 0) {
         size_t rem = sizeof(ctx->buf) - n;
 
         if (rem > len) {

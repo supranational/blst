@@ -88,7 +88,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
     }
 
     if (PK != NULL) {
-        size_t n;
+        unsigned int n;
         POINTonE1 H[1];
 
         if (hash_or_encode)
@@ -156,7 +156,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
     }
 
     if (PK != NULL) {
-        size_t n;
+        unsigned int n;
         POINTonE2 H[1];
 
         if (hash_or_encode)
@@ -229,7 +229,7 @@ static BLST_ERROR PAIRING_Mul_n_Aggregate_PK_in_G2(PAIRING *ctx,
     }
 
     if (PK != NULL) {
-        size_t n;
+        unsigned int n;
         POINTonE1 H[1];
 
         FROM_AFFINE(H, hash);
@@ -297,7 +297,7 @@ static BLST_ERROR PAIRING_Mul_n_Aggregate_PK_in_G1(PAIRING *ctx,
     }
 
     if (PK != NULL) {
-        size_t n;
+        unsigned int n;
         POINTonE1 pk[1];
 
         FROM_AFFINE(pk, PK);
@@ -335,9 +335,9 @@ BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g1(PAIRING *ctx,
 
 static void PAIRING_Commit(PAIRING *ctx)
 {
-    size_t n;
+    unsigned int n;
 
-    if ((n = ctx->nelems)) {
+    if ((n = ctx->nelems) != 0) {
         if (ctx->min_sig_or_pk & AGGR_GT_SET) {
             vec384fp12 GT;
             miller_loop_n(GT, ctx->Q, ctx->P, n);

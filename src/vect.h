@@ -348,9 +348,11 @@ static inline void le_bytes_from_limbs(unsigned char *out, const limb_t *in,
 # pragma warning(disable:556)
 #elif defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wpedantic"
-# if __GNUC__>=9
+# if __GNUC__>=8
 # pragma GCC diagnostic ignored "-Wrestrict"
 # endif
+#elif defined(_MSC_VER)
+# pragma warning(disable: 4127 4189)
 #endif
 
 #include <stdlib.h>
