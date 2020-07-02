@@ -2,7 +2,9 @@ branches:
     only:
       - /.*/
 
-language: rust
+language:
+    - rust
+    - go
 
 git:
     quiet: true
@@ -23,15 +25,9 @@ script:
     - if [ "x$TRAVIS_LANGUAGE" = "xrust" ]; then
           (cd bindings/rust; cargo test)
       fi
-    - if [ "x$TRAVIS_CPU_ARCH" != "xarm64" -o "x$TRAVIS_LANGUAGE" = "xgo" ]; then
+    - if [ "x$TRAVIS_LANGUAGE" = "xgo" ]; then
           (cd bindings/go; go test -test.v)
       fi
-
-matrix:
-    include:
-      - os: linux
-        arch: arm64
-        language: go
 
 notifications:
     email: false
