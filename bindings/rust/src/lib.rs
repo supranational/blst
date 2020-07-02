@@ -23,7 +23,7 @@ fn da_pool() -> ThreadPool {
     unsafe { (*POOL).lock().unwrap().clone() }
 }
 
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+include!("bindings.rs");
 
 impl blst_fp12 {
     pub fn new() -> Self {
@@ -785,7 +785,7 @@ macro_rules! sig_variant_impl {
                                     msgs[work].len(),
                                     dst.as_ptr(),
                                     dst.len(),
-                                    [].as_ptr(),
+                                    ptr::null(),
                                     0,
                                 );
                                 $sig_to_aff(&mut hash, p.as_ptr());

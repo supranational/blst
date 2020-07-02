@@ -21,9 +21,8 @@ include = [
 ]
 
 [build-dependencies]
-#cc = "1.0.54"
 cc = "1.0"
-bindgen = "0.54.0"
+glob = ""
 
 [dependencies]
 threadpool = "^1.8.1"

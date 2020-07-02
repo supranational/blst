@@ -18,3 +18,10 @@ for pl in ../src/asm/*-armv8.pl; do
     (set -x; ${PERL:-perl} $pl coff64 > coff/$s)
     (set -x; ${PERL:-perl} $pl ios64 > mach-o/$s)
 done
+( cd ../bindings; set -x;
+  # install with 'cargo install bindgen'
+  bindgen --opaque-type blst_pairing \
+          --size_t-is-usize \
+          --rustified-enum BLST.\* \
+    blst.h > rust/src/bindings.rs
+)

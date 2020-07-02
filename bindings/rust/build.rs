@@ -1,9 +1,31 @@
-extern crate bindgen;
 extern crate cc;
 
 use std::env;
 use std::path::Path;
 use std::path::PathBuf;
+
+#[cfg(all(target_env = "msvc", target_arch = "x86_64"))]
+fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &str) {
+    let files = glob::glob(&(base_dir.to_owned() + "win64/*-x86_64.asm"))
+        .expect("disaster");
+    for file in files {
+        file_vec.push(file.unwrap());
+    }
+}
+
+#[cfg(all(target_env = "msvc", target_arch = "aarch64"))]
+fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &str) {
+    let files = glob::glob(&(base_dir.to_owned() + "win64/*-armv8.asm"))
+        .expect("disaster");
+    for file in files {
+        file_vec.push(file.unwrap());
+    }
+}
+
+#[cfg(all(target_pointer_width = "64", not(target_env = "msvc")))]
+fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &str) {
+    file_vec.push(Path::new(base_dir).join("assembly.S"))
+}
 
 fn main() {
     let mut file_vec = Vec::new();
@@ -24,22 +46,23 @@ fn main() {
 
     let c_src_dir = blst_base_dir.clone() + "/src/";
     let build_dir = blst_base_dir.clone() + "/build/";
-    let binding_src_dir = blst_base_dir + "/bindings/";
 
     file_vec.push(Path::new(&c_src_dir).join("server.c"));
-    file_vec.push(Path::new(&build_dir).join("assembly.S"));
+    assembly(&mut file_vec, &build_dir);
 
     // Set CC environment variable to choose alternative C compiler.
     // Optimization level depends on whether or not --release is passed
     // or implied. If default "release" level of 3 is deemed unsuitable,
     // modify 'opt-level' in [profile.release] in Cargo.toml.
     cc::Build::new()
-        .flag("-march=native")
+        .flag_if_supported("-march=native")
         .flag_if_supported("-mno-avx") // avoid costly transitions
         .flag_if_supported("-Wno-unused-command-line-argument")
         .files(&file_vec)
         .compile("libblst.a");
 
+    /*
+    let binding_src_dir = blst_base_dir + "/bindings/";
     let bindings = bindgen::Builder::default()
         .header(binding_src_dir + "blst.h")
         .opaque_type("blst_pairing")
@@ -53,4 +76,5 @@ fn main() {
     bindings
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
+    */
 }
