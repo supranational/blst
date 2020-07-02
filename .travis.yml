@@ -2,9 +2,7 @@ branches:
     only:
       - /.*/
 
-language:
-    - rust
-    - go
+language: rust
 
 git:
     quiet: true
@@ -25,9 +23,18 @@ script:
     - if [ "x$TRAVIS_LANGUAGE" = "xrust" ]; then
           (cd bindings/rust; cargo test)
       fi
-    - if [ "x$TRAVIS_LANGUAGE" = "xgo" ]; then
+    - if which go > /dev/null; then
           (cd bindings/go; go test -test.v)
       fi
+
+matrix:
+    include:
+      - os: linux
+        arch: arm64
+        language: go
+      - os: windows
+        language: go
+
 
 notifications:
     email: false
