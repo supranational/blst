@@ -10,7 +10,7 @@ git:
 os:
     - linux
     - osx
-    #- windows
+    - windows
 
 arch:
     - amd64
@@ -31,8 +31,6 @@ matrix:
     include:
       - os: linux
         arch: arm64
-        language: go
-      - os: windows
         language: go
 
 notifications:
