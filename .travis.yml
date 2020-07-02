@@ -21,6 +21,10 @@ before_script:
 
 script:
     - if [ "x$TRAVIS_LANGUAGE" = "xrust" ]; then
+          if [ "x$TRAVIS_OS_NAME" = "xwindows" ]; then
+              rustup toolchain add stable-x86_64-pc-windows-msvc;
+              rustup set default-host x86_64-pc-windows-msvc;
+          fi;
           (cd bindings/rust; cargo test)
       fi
     - if which go > /dev/null; then
