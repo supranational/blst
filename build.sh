@@ -16,14 +16,8 @@
 TOP=`dirname $0`
 
 CC=${CC:-cc}
-if [ "x$CFLAGS" = "x" ]; then
-    CFLAGS="-march=native"
-    if ${CC} ${CFLAGS} -dM -E -x c /dev/null | grep __AVX__ > /dev/null; then
-        CFLAGS="${CFLAGS} -mno-avx"
-    fi
-    # if -Werror stands in the way, bypass with -Wno-error on command line
-    CFLAGS="${CFLAGS} -O -fPIC -Wall -Wextra -Werror"
-fi
+# if -Werror stands in the way, bypass with -Wno-error on command line
+CFLAGS=${CFLAGS:--O -march=native -fPIC -Wall -Wextra -Werror}
 PERL=${PERL:-perl}
 
 case `uname -s` in
@@ -42,6 +36,10 @@ while [ "x$1" != "x" ]; do
     esac
     shift
 done
+
+if ${CC} ${CFLAGS} -dM -E -x c /dev/null | grep __AVX__ > /dev/null; then
+    CFLAGS="${CFLAGS} -mno-avx"
+fi
 
 rm -f libblst.a
 trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o' 0
