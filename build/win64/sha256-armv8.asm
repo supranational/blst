@@ -17,7 +17,7 @@
 
 	AREA	|.text|,CODE,ALIGN=8,ARM64
 
-.align	6
+	ALIGN	64
 
 |$LK256|
 	DCDU	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5
@@ -40,10 +40,10 @@
 
 	DCB	"SHA256 block transform for ARMv8, CRYPTOGAMS by @dot-asm",0
 	ALIGN	4
-.align	2
+	ALIGN	4
 
 	EXPORT	|sha256_block_armv8|[FUNC]
-.align	6
+	ALIGN	64
 |sha256_block_armv8| PROC
 |$Lv8_entry|
 	stp	x29,x30,[sp,#-16]!
@@ -182,7 +182,7 @@
 	ENDP
 
 	EXPORT	|sha256_block_data_order|[FUNC]
-.align	4
+	ALIGN	16
 |sha256_block_data_order| PROC
 	stp	x29, x30, [sp, #-16]!
 	mov	x29, sp
@@ -222,7 +222,7 @@
 	mov	w15,wzr
 	b	|$L_00_48|
 
-.align	4
+	ALIGN	16
 |$L_00_48|
 	ext8	v4.16b,v0.16b,v1.16b,#4
 	add	w10,w10,w12
@@ -1026,7 +1026,7 @@
 
 
 	EXPORT	|sha256_emit|[FUNC]
-.align	4
+	ALIGN	16
 |sha256_emit| PROC
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
@@ -1054,7 +1054,7 @@
 
 
 	EXPORT	|sha256_bcopy|[FUNC]
-.align	4
+	ALIGN	16
 |sha256_bcopy| PROC
 |$Loop_bcopy|
 	ldrb	w3,[x1],#1
@@ -1067,7 +1067,7 @@
 
 
 	EXPORT	|sha256_hcopy|[FUNC]
-.align	4
+	ALIGN	16
 |sha256_hcopy| PROC
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]

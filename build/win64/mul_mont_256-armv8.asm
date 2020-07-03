@@ -3,7 +3,7 @@
 
 
 	EXPORT	|mul_mont_sparse_256|[FUNC]
-.align	5
+	ALIGN	32
 |mul_mont_sparse_256| PROC
 	stp	x29,x30,[sp,#-64]!
 	add	x29,sp,#0
@@ -194,7 +194,7 @@
 
 
 	EXPORT	|sqr_mont_sparse_256|[FUNC]
-.align	5
+	ALIGN	32
 |sqr_mont_sparse_256| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -303,7 +303,7 @@
 
 
 	EXPORT	|from_mont_256|[FUNC]
-.align	5
+	ALIGN	32
 |from_mont_256| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-16]!
@@ -337,7 +337,7 @@
 
 
 	EXPORT	|redc_mont_256|[FUNC]
-.align	5
+	ALIGN	32
 |redc_mont_256| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-16]!
@@ -379,7 +379,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__mul_by_1_mont_256| PROC
 	mul	x3,x4,x10
 	ldp	x5,x6,[x2]

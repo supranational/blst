@@ -3,7 +3,7 @@
 
 
 	EXPORT	|add_mod_256|[FUNC]
-.align	5
+	ALIGN	32
 |add_mod_256| PROC
 	ldp	x8,x9,[x1]
 	ldp	x12,x13,[x2]
@@ -37,7 +37,7 @@
 
 
 	EXPORT	|mul_by_3_mod_256|[FUNC]
-.align	5
+	ALIGN	32
 |mul_by_3_mod_256| PROC
 	ldp	x12,x13,[x1]
 	ldp	x14,x15,[x1,#16]
@@ -86,7 +86,7 @@
 
 
 	EXPORT	|lshift_mod_256|[FUNC]
-.align	5
+	ALIGN	32
 |lshift_mod_256| PROC
 	ldp	x8,x9,[x1]
 	ldp	x10,x11,[x1,#16]
@@ -124,7 +124,7 @@
 
 
 	EXPORT	|rshift_mod_256|[FUNC]
-.align	5
+	ALIGN	32
 |rshift_mod_256| PROC
 	ldp	x8,x9,[x1]
 	ldp	x10,x11,[x1,#16]
@@ -163,7 +163,7 @@
 
 
 	EXPORT	|cneg_mod_256|[FUNC]
-.align	5
+	ALIGN	32
 |cneg_mod_256| PROC
 	ldp	x8,x9,[x1]
 	ldp	x4,x5,[x3]
@@ -195,7 +195,7 @@
 
 
 	EXPORT	|sub_mod_256|[FUNC]
-.align	5
+	ALIGN	32
 |sub_mod_256| PROC
 	ldp	x8,x9,[x1]
 	ldp	x12,x13,[x2]

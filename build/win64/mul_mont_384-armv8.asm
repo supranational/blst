@@ -2,7 +2,7 @@
 
 
 	EXPORT	|add_mod_384x384|[FUNC]
-.align	5
+	ALIGN	32
 |add_mod_384x384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-64]!
@@ -27,7 +27,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__add_mod_384x384| PROC
 	ldp	x11,  x12,  [x1]
 	ldp	x19,x20,[x2]
@@ -83,7 +83,7 @@
 
 
 	EXPORT	|sub_mod_384x384|[FUNC]
-.align	5
+	ALIGN	32
 |sub_mod_384x384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-64]!
@@ -108,7 +108,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__sub_mod_384x384| PROC
 	ldp	x11,  x12,  [x1]
 	ldp	x19,x20,[x2]
@@ -161,7 +161,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__add_mod_384| PROC
 	ldp	x11,  x12,  [x1]
 	ldp	x19,x20,[x2]
@@ -199,7 +199,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__sub_mod_384| PROC
 	ldp	x11,  x12,  [x1]
 	ldp	x19,x20,[x2]
@@ -237,7 +237,7 @@
 
 
 	EXPORT	|mul_mont_384x|[FUNC]
-.align	5
+	ALIGN	32
 |mul_mont_384x| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -319,7 +319,7 @@
 
 
 	EXPORT	|sqr_mont_384x|[FUNC]
-.align	5
+	ALIGN	32
 |sqr_mont_384x| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -404,7 +404,7 @@
 
 
 	EXPORT	|mul_mont_384|[FUNC]
-.align	5
+	ALIGN	32
 |mul_mont_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -443,7 +443,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__mul_mont_384| PROC
 	mul	x19,x11,x17
 	mul	x20,x12,x17
@@ -817,7 +817,7 @@
 
 
 	EXPORT	|sqr_mont_384|[FUNC]
-.align	5
+	ALIGN	32
 |sqr_mont_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -863,7 +863,7 @@
 
 
 	EXPORT	|sqr_n_mul_mont_383|[FUNC]
-.align	5
+	ALIGN	32
 |sqr_n_mul_mont_383| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -925,7 +925,7 @@
 	ret
 	ENDP
 
-.align	5
+	ALIGN	32
 |__sqr_384| PROC
 	mul	x19,x12,x11
 	mul	x20,x13,x11
@@ -1040,7 +1040,7 @@
 
 
 	EXPORT	|sqr_384|[FUNC]
-.align	5
+	ALIGN	32
 |sqr_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -1071,7 +1071,7 @@
 
 
 	EXPORT	|redc_mont_384|[FUNC]
-.align	5
+	ALIGN	32
 |redc_mont_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -1104,7 +1104,7 @@
 
 
 	EXPORT	|from_mont_384|[FUNC]
-.align	5
+	ALIGN	32
 |from_mont_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -1152,7 +1152,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__mul_by_1_mont_384| PROC
 	ldp	x11,x12,[x1]
 	ldp	x13,x14,[x1,#16]
@@ -1324,7 +1324,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__redc_tail_mont_384| PROC
 	ldp	x19,x20,[x1,#48]
 	ldp	x21,x22,[x1,#64]
@@ -1363,7 +1363,7 @@
 
 
 	EXPORT	|mul_384|[FUNC]
-.align	5
+	ALIGN	32
 |mul_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -1388,7 +1388,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__mul_384| PROC
 	ldp	x11,x12,[x1]
 	ldr	x17,        [x2]
@@ -1567,7 +1567,7 @@
 
 
 	EXPORT	|mul_382x|[FUNC]
-.align	5
+	ALIGN	32
 |mul_382x| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -1658,7 +1658,7 @@
 
 
 	EXPORT	|sqr_382x|[FUNC]
-.align	5
+	ALIGN	32
 |sqr_382x| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -1758,7 +1758,7 @@
 
 
 	EXPORT	|sqr_mont_382x|[FUNC]
-.align	5
+	ALIGN	32
 |sqr_mont_382x| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -1880,7 +1880,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__mul_mont_383_nonred| PROC
 	mul	x19,x11,x17
 	mul	x20,x12,x17
@@ -2222,7 +2222,7 @@
 
 
 	EXPORT	|sgn0_pty_mont_384|[FUNC]
-.align	5
+	ALIGN	32
 |sgn0_pty_mont_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
@@ -2276,7 +2276,7 @@
 
 
 	EXPORT	|sgn0_pty_mont_384x|[FUNC]
-.align	5
+	ALIGN	32
 |sgn0_pty_mont_384x| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-128]!
