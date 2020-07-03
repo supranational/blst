@@ -3,7 +3,7 @@
 The `blst` crate provides a rust interface to the blst BLS12-381 signature library.
 
 ## Build
-The build process uses [bindgen](https://github.com/rust-lang/rust-bindgen) on the blst.h C header file to automatically create the FFI bindings to blst. Currently [build.rs](https://github.com/supranational/blst/blob/master/bindings/rust/build.rs) also runs the assembly generation scripts and compiles everything into libblst.a within the rust target build area. Alternatively this can be modified to either call the appropriate build script in blst base directory or simply link to a prebuilt libblst.a. As more platforms are tested and feedback collected, this process may change.
+[bindgen](https://github.com/rust-lang/rust-bindgen) is used to generate FFI bindings to blst.h. Then [build.rs](https://github.com/supranational/blst/blob/master/bindings/rust/build.rs) invokes C compiler to compile everything into libblst.a within the rust target build area. On Linux it's possible to choose compiler by setting `CC` environment variable.
 
 Everything can be built and run with the typical cargo commands:
 
@@ -11,8 +11,6 @@ Everything can be built and run with the typical cargo commands:
 cargo test
 cargo bench
 ```
-
-**Note this has primarily been tested on Ubuntu and may require further work for other operating systems.**
 
 ## Usage
 There are two primary modes of operation that can be chosen based on declaration path:
