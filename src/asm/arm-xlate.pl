@@ -156,7 +156,7 @@ my $asciz = sub {
 my $align = sub {
     "\tALIGN\t".2**@_[0];
 } if ($flavour =~ /win/);
-my $align = sub {
+   $align = sub {
     ".p2align\t".@_[0];
 } if ($flavour =~ /coff/);
 
