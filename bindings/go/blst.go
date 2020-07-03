@@ -228,6 +228,17 @@ func (dummy *P2Affine) VerifyCompressed(sig []byte, pk []byte,
 	msg Message, dst []byte,
 	optional ...bool) bool { // useHash bool, usePksAsAugs bool
 
+	// CLEANUP!!
+	// Check for infinities (eth spec)
+	// Need to support serialized points here?
+	if len(sig) == BLST_P2_COMPRESS_BYTES && sig[0] == 0xc0 &&
+		len(pk) == BLST_P1_COMPRESS_BYTES && pk[0] == 0xc0 &&
+		bytesAllZero(sig[1:]) && bytesAllZero(pk[1:]) {
+		fmt.Println("INFINITIES!")
+		return true
+	}
+	// CLEANUP!!
+
 	return dummy.AggregateVerifyCompressed(sig, [][]byte{pk},
 		[]Message{msg}, dst, optional...)
 }
@@ -659,6 +670,17 @@ func (sig *P1Affine) Verify(pk *P2Affine, msg Message, dst []byte,
 func (dummy *P1Affine) VerifyCompressed(sig []byte, pk []byte,
 	msg Message, dst []byte,
 	optional ...bool) bool { // useHash bool, usePksAsAugs bool
+
+	// CLEANUP!!
+	// Check for infinities (eth spec)
+	// Need to support serialized points here?
+	if len(sig) == BLST_P1_COMPRESS_BYTES && sig[0] == 0xc0 &&
+		len(pk) == BLST_P2_COMPRESS_BYTES && pk[0] == 0xc0 &&
+		bytesAllZero(sig[1:]) && bytesAllZero(pk[1:]) {
+		fmt.Println("INFINITIES!")
+		return true
+	}
+	// CLEANUP!!
 
 	return dummy.AggregateVerifyCompressed(sig, [][]byte{pk},
 		[]Message{msg}, dst, optional...)
@@ -1326,6 +1348,15 @@ func parseOpts(optional ...interface{}) ([]byte, [][]byte, bool, bool) {
 		}
 	}
 	return augSingle, aug, useHash, true
+}
+
+func bytesAllZero(s []byte) bool {
+	for _, v := range s {
+		if v != 0 {
+			return false
+		}
+	}
+	return true
 }
 
 //

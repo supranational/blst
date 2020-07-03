@@ -23,6 +23,15 @@ func parseOpts(optional ...interface{}) ([]byte, [][]byte, bool, bool) {
 	return augSingle, aug, useHash, true
 }
 
+func bytesAllZero(s []byte) bool {
+	for _, v := range s {
+		if v != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 //
 // Serialization/Deserialization.
 //
