@@ -9,13 +9,12 @@ A BLS12-381 signature library written in C and assembly focused on performance a
 **This library has not yet been audited. Use at your own risk.**
 
 Compliant with IETF draft specifications:
-- [IETF BLS Signature V2](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02)
-- [IETF Hash-to-Curve V8](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-08)
+- [IETF BLS Signature V2](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature)
+- [IETF Hash-to-Curve V8](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve)
 
-Support for x86_64
+Support for x86_64 and ARM64
 
 Support for Linux, Mac, and Windows
-- Limited testing on Mac and Windows
 
 Explicit bindings for other languages
 - Go
@@ -23,8 +22,6 @@ Explicit bindings for other languages
 
 Bindings for other languages provided using [swig](http://swig.org)
 - tested Python
-
-Support for ARM64 is coming soon
 
 Formal verification will be rolling in to various components of the library over the coming months utilizing [cryptol](https://www.cryptol.net) and [coq](https://coq.inria.fr/)
 - Field, curve and bulk signature operations
@@ -36,10 +33,10 @@ The blst API is defined in the C header [bindings/blst.h](https://github.com/sup
 - Intermediate (hash to curve, pairing, serdes)
 - BLS12-381 signature core (sign, verify, aggregate)
 
-Note there is also an auxillary header file [bindings/blst_aux.h](https://github.com/supranational/blst/blob/master/bindings/blst_aux.h) that is used as a staging area for experimental interfaces that may or may not get promoted to blst.h.
+Note there is also an auxiliary header file [bindings/blst_aux.h](https://github.com/supranational/blst/blob/master/bindings/blst_aux.h) that is used as a staging area for experimental interfaces that may or may not get promoted to blst.h.
 
 ## Build
-The build process is very simple and only requires a C complier and Perl. Although pre-built assembly files are provided which can remove the need for Perl.
+The build process is very simple and only requires a C complier. It's integrated into Go and Rust ecosystems, so that respective users would go about as they would with any other external module. Otherwise a binary library would have to be compiled.
 
 ### C static library
 A static library called libblst.a can be built in current working directory of user's choice.
@@ -63,9 +60,7 @@ TODO - basic details
 For more details see the Go binding [readme](https://github.com/supranational/blst/tree/master/bindings/go/README.md).
 
 ### Rust [src](https://github.com/supranational/blst/tree/master/bindings/rust)
-TODO - publish crate
-
-`blst` is the Rust binding crate.
+[`blst`](https://crates.io/crates/blst) is the Rust binding crate.
 
 To use min-pk version:
 ```
@@ -85,9 +80,9 @@ TODO - example swig build/usage
 ## General notes on implementation
 The goal of the blst library is to provide a foundational component for applications and other libraries that require high performance and formally verified BLS12-381 operations. With that in mind some decisions are made to maximize the public good beyond BLS12-381. For example the field operations are optimized for general 384-bit usage as opposed to tuned specifically for the 381-bit BLS12-381 curve parameters. With the formal verification of these foundational components, we believe they can provide a reliable building block for other curves that would like high performance and an extra element of security.
 
-Library deliberately abstains from dealing with memory management and multi-threading with rationale that these ultimately belong in langugage-/run-time-specific bindings.
+Library deliberately abstains from dealing with memory management and multi-threading with rationale that these ultimately belong in language-specific bindings. Another responsibility that is left to application is random number generation. All this in the name of ultimate run-time neutrality, which makes integration into more stringent environments like Intel SGX or ARM TrustZone trivial.
 
-The assembly code is written in perl scripts which can output an assembly file based on the [ABI](https://en.wikipedia.org/wiki/Application_binary_interface) and operating system. For example in the build directory there are pre-build assembly files for elf, mingw64, masm, and macosx. See [build.sh](https://github.com/supranational/blst/blob/master/build.sh) or [refresh.sh](https://github.com/supranational/blst/blob/master/build/refresh.sh) for usage. This method allows for simple reuse of optimized assembly across various platforms with minimal effort.
+The assembly code is wrapped into Perl scripts which output an assembly file based on the [ABI](https://en.wikipedia.org/wiki/Application_binary_interface) and operating system. In the `build` directory there are pre-build assembly files for elf, mingw64, masm, and macosx. See [build.sh](https://github.com/supranational/blst/blob/master/build.sh) or [refresh.sh](https://github.com/supranational/blst/blob/master/build/refresh.sh) for usage. This method allows for simple reuse of optimized assembly across various platforms with minimal effort.
 
 Serialization formatting is implemented according to [Appendix A. BLS12-381](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#appendix-A) of the IETF spec that calls for using the [ZCash definition](https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization).
 
