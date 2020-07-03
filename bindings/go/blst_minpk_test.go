@@ -9,6 +9,7 @@ package blst
 import (
 	"crypto/rand"
 	"fmt"
+	"runtime"
 	"testing"
 )
 
@@ -20,6 +21,11 @@ type AggregateSignatureMinPk = P2Aggregate
 // Names in this file must be unique to support min-sig so we can't use 'dst'
 // here.
 var dstMinPk = []byte("BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_")
+
+func init() {
+	// Use all cores when testing and benchmarking
+	SetMaxProcs(runtime.GOMAXPROCS(0))
+}
 
 func TestInfinityMinPk(t *testing.T) {
 	var infComp [48]byte

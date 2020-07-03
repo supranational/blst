@@ -44,6 +44,19 @@ type Pairing = []uint64
 type SecretKey = Scalar
 
 //
+// Configuration
+//
+
+var maxProcs = runtime.GOMAXPROCS(0) - 1
+
+func SetMaxProcs(max int) {
+	if max <= 0 {
+		max = 1
+	}
+	maxProcs = max
+}
+
+//
 // Secret key
 //
 func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
@@ -320,12 +333,10 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 		useHash = optional[0]
 	}
 
-	numCores := runtime.GOMAXPROCS(0) - 1 // leave one for application
-	numThreads := numCores
+	numCores := runtime.GOMAXPROCS(0)
+	numThreads := maxProcs
 	if numThreads > n {
 		numThreads = n
-	} else if numThreads == 0 {
-		numThreads = 1
 	}
 	// Each thread will determine next message to process by atomically
 	// incrementing curItem, process corresponding pk,msg[,aug] tuple and
@@ -505,7 +516,7 @@ func (agg *P2Aggregate) aggregate(getter aggGetterP2, n int) bool {
 	if n == 0 {
 		return true
 	}
-	numThreads := runtime.GOMAXPROCS(0)
+	numThreads := maxProcs
 	if numThreads > n {
 		numThreads = n
 	}
@@ -754,12 +765,10 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 		useHash = optional[0]
 	}
 
-	numCores := runtime.GOMAXPROCS(0) - 1 // leave one for application
-	numThreads := numCores
+	numCores := runtime.GOMAXPROCS(0)
+	numThreads := maxProcs
 	if numThreads > n {
 		numThreads = n
-	} else if numThreads == 0 {
-		numThreads = 1
 	}
 	// Each thread will determine next message to process by atomically
 	// incrementing curItem, process corresponding pk,msg[,aug] tuple and
@@ -939,7 +948,7 @@ func (agg *P1Aggregate) aggregate(getter aggGetterP1, n int) bool {
 	if n == 0 {
 		return true
 	}
-	numThreads := runtime.GOMAXPROCS(0)
+	numThreads := maxProcs
 	if numThreads > n {
 		numThreads = n
 	}

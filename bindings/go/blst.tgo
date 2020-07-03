@@ -10,6 +10,7 @@ package blst
 // #cgo amd64 CFLAGS: -mno-avx
 // #include "blst.h"
 import "C"
+import "runtime"
 
 const BLST_SCALAR_BYTES = 256 / 8
 const BLST_SCALAR_LIMBS = 256 / 64
@@ -32,6 +33,19 @@ type P2Affine = C.blst_p2_affine
 type Message = []byte
 type Pairing = []uint64
 type SecretKey = Scalar
+
+//
+// Configuration
+//
+
+var maxProcs = runtime.GOMAXPROCS(0) - 1
+
+func SetMaxProcs(max int) {
+	if max <= 0 {
+		max = 1
+	}
+	maxProcs = max
+}
 
 //
 // Secret key

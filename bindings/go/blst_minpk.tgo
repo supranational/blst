@@ -176,12 +176,10 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 		useHash = optional[0]
 	}
 
-	numCores := runtime.GOMAXPROCS(0) - 1	// leave one for application
-	numThreads := numCores
+	numCores := runtime.GOMAXPROCS(0)
+	numThreads := maxProcs
 	if numThreads > n {
 		numThreads = n
-	} else if numThreads == 0 {
-		numThreads = 1
 	}
 	// Each thread will determine next message to process by atomically
 	// incrementing curItem, process corresponding pk,msg[,aug] tuple and
@@ -240,7 +238,7 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 	} else {
 		C.blst_aggregated_in_g2(&gtsig, sig)
 	}
-	mutex.Unlock();
+	mutex.Unlock()
 
 	// Accumulate the thread results
 	var pairings Pairing
@@ -361,7 +359,7 @@ func (agg *P2Aggregate) aggregate(getter aggGetterP2, n int) bool {
 	if n == 0 {
 		return true
 	}
-	numThreads := runtime.GOMAXPROCS(0)
+	numThreads := maxProcs
 	if numThreads > n {
 		numThreads = n
 	}
