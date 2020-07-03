@@ -20,8 +20,8 @@ Explicit bindings for other languages
 - Go
 - Rust
 
-Bindings for other languages provided using [swig](http://swig.org)
-- tested Python
+Unless deemed appropriate to implement specific one, bindings for other languages will be provided using [swig](http://swig.org)
+- so far tested Python
 
 Formal verification will be rolling in to various components of the library over the coming months utilizing [cryptol](https://www.cryptol.net) and [coq](https://coq.inria.fr/)
 - Field, curve and bulk signature operations
