@@ -1,13 +1,13 @@
 	AREA	|.text|,CODE,ALIGN=8,ARM64
 
-.align	5
+	ALIGN	32
 |$Lone|
 	DCQU	1,0,0,0,0,0,0,0
 
 
 
 	EXPORT	|eucl_inverse_mod_384|[FUNC]
-.align	5
+	ALIGN	32
 |eucl_inverse_mod_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -56,7 +56,7 @@
 	stp	xzr,xzr,[sp,#96+80]
 	b	|$Loop_inv|
 
-.align	5
+	ALIGN	32
 |$Loop_inv|
 	add	x1,sp,#96
 	bl	__remove_powers_of_2
@@ -158,7 +158,7 @@
 	ENDP
 
 
-.align	4
+	ALIGN	16
 |__remove_powers_of_2| PROC
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
@@ -200,7 +200,7 @@
 	stp	x8, x9,[x1,#32]
 	b	|$Loop_div_by_2|
 
-.align	4
+	ALIGN	16
 |$Loop_div_by_2|
 	sbfx	x9,x10,#0,#1
 	sub	x3,x3,#1

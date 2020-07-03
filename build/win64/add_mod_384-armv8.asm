@@ -3,7 +3,7 @@
 
 
 	EXPORT	|add_mod_384|[FUNC]
-.align	5
+	ALIGN	32
 |add_mod_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -30,7 +30,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__add_mod_384| PROC
 	ldp	x10,x11,[x1]
 	ldp	x16,x17,[x2]
@@ -69,7 +69,7 @@
 
 
 	EXPORT	|add_mod_384x|[FUNC]
-.align	5
+	ALIGN	32
 |add_mod_384x| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -106,7 +106,7 @@
 
 
 	EXPORT	|lshift_mod_384|[FUNC]
-.align	5
+	ALIGN	32
 |lshift_mod_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -140,7 +140,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__lshift_mod_384| PROC
 	adds	x10,x10,x10
 	adcs	x11,x11,x11
@@ -171,7 +171,7 @@
 
 
 	EXPORT	|mul_by_3_mod_384|[FUNC]
-.align	5
+	ALIGN	32
 |mul_by_3_mod_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -210,7 +210,7 @@
 
 
 	EXPORT	|mul_by_8_mod_384|[FUNC]
-.align	5
+	ALIGN	32
 |mul_by_8_mod_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -245,7 +245,7 @@
 
 
 	EXPORT	|mul_by_b_onE1|[FUNC]
-.align	5
+	ALIGN	32
 |mul_by_b_onE1| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -281,7 +281,7 @@
 
 
 	EXPORT	|mul_by_4b_onE1|[FUNC]
-.align	5
+	ALIGN	32
 |mul_by_4b_onE1| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -319,7 +319,7 @@
 
 
 	EXPORT	|mul_by_3_mod_384x|[FUNC]
-.align	5
+	ALIGN	32
 |mul_by_3_mod_384x| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -373,7 +373,7 @@
 
 
 	EXPORT	|mul_by_8_mod_384x|[FUNC]
-.align	5
+	ALIGN	32
 |mul_by_8_mod_384x| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -419,7 +419,7 @@
 
 
 	EXPORT	|mul_by_b_onE2|[FUNC]
-.align	5
+	ALIGN	32
 |mul_by_b_onE2| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -462,7 +462,7 @@
 
 
 	EXPORT	|mul_by_4b_onE2|[FUNC]
-.align	5
+	ALIGN	32
 |mul_by_4b_onE2| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -509,7 +509,7 @@
 
 
 	EXPORT	|cneg_mod_384|[FUNC]
-.align	5
+	ALIGN	32
 |cneg_mod_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -560,7 +560,7 @@
 
 
 	EXPORT	|sub_mod_384|[FUNC]
-.align	5
+	ALIGN	32
 |sub_mod_384| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -587,7 +587,7 @@
 	ENDP
 
 
-.align	5
+	ALIGN	32
 |__sub_mod_384| PROC
 	ldp	x10,x11,[x1]
 	ldp	x16,x17,[x2]
@@ -623,7 +623,7 @@
 
 
 	EXPORT	|sub_mod_384x|[FUNC]
-.align	5
+	ALIGN	32
 |sub_mod_384x| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -660,7 +660,7 @@
 
 
 	EXPORT	|mul_by_1_plus_i_mod_384x|[FUNC]
-.align	5
+	ALIGN	32
 |mul_by_1_plus_i_mod_384x| PROC
 	DCDU	3573752639
 	stp	x29,x30,[sp,#-48]!
@@ -702,7 +702,7 @@
 
 
 	EXPORT	|sgn0_pty_mod_384|[FUNC]
-.align	5
+	ALIGN	32
 |sgn0_pty_mod_384| PROC
 	ldp	x10,x11,[x0]
 	ldp	x12,x13,[x0,#16]
@@ -739,7 +739,7 @@
 
 
 	EXPORT	|sgn0_pty_mod_384x|[FUNC]
-.align	5
+	ALIGN	32
 |sgn0_pty_mod_384x| PROC
 	ldp	x10,x11,[x0]
 	ldp	x12,x13,[x0,#16]
