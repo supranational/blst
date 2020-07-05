@@ -51,11 +51,13 @@ trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o' 0
 if [ $shared ]; then
     case $flavour in
         macosx) echo "-shared is not supported"; exit 1;;
-        mingw*) sharedlib=blst.dll;;
-	*)      sharedlib=libblst.so;;
+        mingw*) sharedlib=blst.dll
+                CFLAGS="${CFLAGS} --entry=DllMain ${TOP}/build/win64/dll.c"
+                CFLAGS="${CFLAGS} -nostdlib -lgcc";;
+        *)      sharedlib=libblst.so;;
     esac
     echo "{ global: blst_*; BLS12_381_*; local: *; };" |\
-    (set -x; ${CC} -shared -o $sharedlib ${CFLAGS} libblst.a \
+    (set -x; ${CC} -shared -o $sharedlib libblst.a ${CFLAGS} \
                    -Wl,-Bsymbolic,--require-defined=blst_keygen \
                    -Wl,--version-script=/dev/fd/0)
 fi

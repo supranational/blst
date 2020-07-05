@@ -1,13 +1,11 @@
 #include <windows.h>
 
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
-{   return TRUE;   }
-
+#if defined(_MSC_VER)
 /*
  * Even though we don't have memcpy/memset anywhere, MSVC compiler
- * generates them as it recognizes corresponding pattern.
+ * generates calls to them as it recognizes corresponding patterns.
  */
-void *memcpy(unsigned char *dst, unsigned char *src, size_t n)
+void *memcpy(unsigned char *dst, const unsigned char *src, size_t n)
 {
     void *ret = dst;
 
@@ -26,3 +24,9 @@ void *memset(unsigned char *dst, int c, size_t n)
 
     return ret;
 }
+#elif defined(__GNUC__)
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+{   return TRUE;   }
