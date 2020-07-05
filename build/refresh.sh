@@ -25,3 +25,9 @@ done
           --rustified-enum BLST.\* \
     blst.h > rust/src/bindings.rs
 )
+( cd ../bindings;
+  echo "LIBRARY blst\n\nEXPORTS"
+  cc -E blst.h | \
+  perl -n -e '{ (/(blst_[\w]+)\s*\(/ || /(BLS12_[\w]+);/)  && print "\t$1\n" }'
+  echo
+) > win64/blst.def
