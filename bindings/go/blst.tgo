@@ -38,7 +38,15 @@ type SecretKey = Scalar
 // Configuration
 //
 
-var maxProcs = runtime.GOMAXPROCS(0) - 1
+var maxProcs = initMaxProcs()
+
+func initMaxProcs() int {
+	maxProcs := runtime.GOMAXPROCS(0) - 1
+	if maxProcs <= 0 {
+		maxProcs = 1
+	}
+	return maxProcs
+}
 
 func SetMaxProcs(max int) {
 	if max <= 0 {

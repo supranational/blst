@@ -47,7 +47,15 @@ type SecretKey = Scalar
 // Configuration
 //
 
-var maxProcs = runtime.GOMAXPROCS(0) - 1
+var maxProcs = initMaxProcs()
+
+func initMaxProcs() int {
+	maxProcs := runtime.GOMAXPROCS(0) - 1
+	if maxProcs <= 0 {
+		maxProcs = 1
+	}
+	return maxProcs
+}
 
 func SetMaxProcs(max int) {
 	if max <= 0 {
@@ -346,6 +354,9 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 
 	numCores := runtime.GOMAXPROCS(0)
 	numThreads := maxProcs
+	if numThreads > numCores {
+		numThreads = numCores
+	}
 	if numThreads > n {
 		numThreads = n
 	}
@@ -368,7 +379,8 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 				work := atomic.AddUint32(&curItem, 1) - 1
 				if work >= uint32(n) {
 					break
-				} else if work == 0 && numThreads >= numCores {
+				} else if work == 0 && maxProcs == numCores-1 &&
+					numThreads == maxProcs {
 					// let main thread ahead
 					mutex.Lock()
 					mutex.Unlock()
@@ -527,7 +539,9 @@ func (agg *P2Aggregate) aggregate(getter aggGetterP2, n int) bool {
 	if n == 0 {
 		return true
 	}
-	numThreads := maxProcs
+	// operations are considered short enough for not to care about
+	// keeping one core free...
+	numThreads := runtime.GOMAXPROCS(0)
 	if numThreads > n {
 		numThreads = n
 	}
@@ -563,6 +577,8 @@ func (agg *P2Aggregate) aggregate(getter aggGetterP2, n int) bool {
 				} else {
 					C.blst_p2_add_or_double_affine(&agg, &agg, curElmt)
 				}
+				// application might have some async work to do
+				runtime.Gosched()
 			}
 			if first {
 				msgs <- result{nil, true}
@@ -789,6 +805,9 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 
 	numCores := runtime.GOMAXPROCS(0)
 	numThreads := maxProcs
+	if numThreads > numCores {
+		numThreads = numCores
+	}
 	if numThreads > n {
 		numThreads = n
 	}
@@ -811,7 +830,8 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 				work := atomic.AddUint32(&curItem, 1) - 1
 				if work >= uint32(n) {
 					break
-				} else if work == 0 && numThreads >= numCores {
+				} else if work == 0 && maxProcs == numCores-1 &&
+					numThreads == maxProcs {
 					// let main thread ahead
 					mutex.Lock()
 					mutex.Unlock()
@@ -970,7 +990,9 @@ func (agg *P1Aggregate) aggregate(getter aggGetterP1, n int) bool {
 	if n == 0 {
 		return true
 	}
-	numThreads := maxProcs
+	// operations are considered short enough for not to care about
+	// keeping one core free...
+	numThreads := runtime.GOMAXPROCS(0)
 	if numThreads > n {
 		numThreads = n
 	}
@@ -1006,6 +1028,8 @@ func (agg *P1Aggregate) aggregate(getter aggGetterP1, n int) bool {
 				} else {
 					C.blst_p1_add_or_double_affine(&agg, &agg, curElmt)
 				}
+				// application might have some async work to do
+				runtime.Gosched()
 			}
 			if first {
 				msgs <- result{nil, true}
