@@ -35,13 +35,12 @@ matrix:
     include:
       - os: windows
         language: rust
-	rust: stable-msvc
+        rust: stable-msvc
       - os: windows
         language: go
       - os: linux
         arch: arm64
         language: go
-
 
 notifications:
     email: false
