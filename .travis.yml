@@ -10,7 +10,6 @@ git:
 os:
     - linux
     - osx
-    - windows
 
 arch:
     - amd64
@@ -24,10 +23,11 @@ script:
           if [ "x$TRAVIS_OS_NAME" = "xwindows" ]; then
               rustup toolchain add stable-x86_64-pc-windows-msvc;
               rustup set default-host x86_64-pc-windows-msvc;
+              export ML=-nologo;
           fi;
           (cd bindings/rust; cargo test)
       fi
-    - if which go > /dev/null; then
+    - if which go > /dev/null 2>&1; then
           (cd bindings/go; go test -test.v)
       fi
 
@@ -37,6 +37,9 @@ matrix:
         arch: arm64
         language: go
       - os: windows
+        language: rust
+        env: TRAVIS_RUST_VERSION=stable-x86_64-pc-windows-msvc
+      - os: windows
         language: go
 
 
@@ -45,6 +48,9 @@ notifications:
 
 before_cache:
     - rm -rf "$TRAVIS_HOME/.cargo/registry/src"
+    - if [ "x$TRAVIS_LANGUAGE" = "xrust" ]; then
+          (cd bindings/rust; cargo clean -p blst; rm target/debug/build/*/*.o)
+      fi
 
 cache:
     cargo: true
