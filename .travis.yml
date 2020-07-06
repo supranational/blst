@@ -21,7 +21,6 @@ before_script:
 script:
     - if [ "x$TRAVIS_LANGUAGE" = "xrust" ]; then
           if [ "x$TRAVIS_OS_NAME" = "xwindows" ]; then
-              rustup toolchain add stable-x86_64-pc-windows-msvc;
               rustup set default-host x86_64-pc-windows-msvc;
               export ML=-nologo;
           fi;
@@ -48,7 +47,10 @@ notifications:
 before_cache:
     - rm -rf "$TRAVIS_HOME/.cargo/registry/src"
     - if [ "x$TRAVIS_LANGUAGE" = "xrust" ]; then
-          (cd bindings/rust; cargo clean -p blst; rm target/debug/build/*/*.o)
+          (cd bindings/rust; cargo clean -p blst;
+           rm -rf target/debug/incremental;
+           rm -rf target/debug/build/src;
+           rm -rf target/debug/build/build)
       fi
 
 cache:
