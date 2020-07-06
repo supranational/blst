@@ -33,13 +33,13 @@ script:
 
 matrix:
     include:
-      - os: linux
-        arch: arm64
-        language: go
       - os: windows
         language: rust
-        env: TRAVIS_RUST_VERSION=stable-x86_64-pc-windows-msvc
+	rust: stable-msvc
       - os: windows
+        language: go
+      - os: linux
+        arch: arm64
         language: go
 
 
