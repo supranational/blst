@@ -57,7 +57,6 @@ typedef struct { blst_fp fp[2]; } blst_fp2;
 typedef struct { blst_fp2 fp2[3]; } blst_fp6;
 typedef struct { blst_fp6 fp6[2]; } blst_fp12;
 
-#ifndef SWIG
 void blst_scalar_from_uint32(blst_scalar *ret, const uint32_t a[8]);
 void blst_uint32_from_scalar(uint32_t ret[8], const blst_scalar *a);
 void blst_scalar_from_uint64(blst_scalar *ret, const uint64_t a[4]);
@@ -68,6 +67,7 @@ void blst_scalar_from_lendian(blst_scalar *ret, const byte a[32]);
 void blst_lendian_from_scalar(byte ret[32], const blst_scalar *a);
 bool blst_scalar_fr_check(const blst_scalar *a);
 
+#ifndef SWIG
 /*
  * BLS12-381-specifc Fr operations.
  */
