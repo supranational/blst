@@ -529,7 +529,7 @@ func (agg *P2Aggregate) Add(elmt *P2Affine) *P2Aggregate {
 
 func (agg *P2Aggregate) ToAffine() *P2Affine {
 	if agg.v == nil {
-		return nil
+		return new(P2Affine)
 	}
 	return agg.v.ToAffine()
 }
@@ -979,7 +979,7 @@ func (agg *P1Aggregate) Add(elmt *P1Affine) *P1Aggregate {
 
 func (agg *P1Aggregate) ToAffine() *P1Affine {
 	if agg.v == nil {
-		return nil
+		return new(P1Affine)
 	}
 	return agg.v.ToAffine()
 }
