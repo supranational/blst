@@ -36,19 +36,37 @@ type AggregatePublicKey = blst.P2Aggregate
 
 TODO - structures and possibly methods
 
-A simple example for generating a key, signing a message, and verifying the message:
+A complete example for generating a key, signing a message, and verifying the message:
 ```
-var ikm [32]byte
-_, _ = rand.Read(ikm[:])
-sk := blst.KeyGen(ikm[:])
-pk := new(PublicKey).From(sk)
+package main
 
-var dst = []byte("BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_")
-msg := []byte("hello foo")
-sig := new(Signature).Sign(sk, msg, dst)
+import (
+	"crypto/rand"
+	"fmt"
 
-if !sig.Verify(pk, msg, dst) {
-		fmt.Println("ERROR: verify sig")
+	blst "github.com/supranational/blst/bindings/go"
+)
+
+type PublicKey = blst.P1Affine
+type Signature = blst.P2Affine
+type AggregateSignature = blst.P2Aggregate
+type AggregatePublicKey = blst.P1Aggregate
+
+func main() {
+	var ikm [32]byte
+	_, _ = rand.Read(ikm[:])
+	sk := blst.KeyGen(ikm[:])
+	pk := new(PublicKey).From(sk)
+
+	var dst = []byte("BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_")
+	msg := []byte("hello foo")
+	sig := new(Signature).Sign(sk, msg, dst)
+
+	if !sig.Verify(pk, msg, dst) {
+		fmt.Println("ERROR: Invalid!")
+	} else {
+		fmt.Println("Valid!")
+	}
 }
 ```
 

@@ -242,7 +242,6 @@ func (dummy *P2Affine) VerifyCompressed(sig []byte, pk []byte,
 	if len(sig) == BLST_P2_COMPRESS_BYTES && sig[0] == 0xc0 &&
 		len(pk) == BLST_P1_COMPRESS_BYTES && pk[0] == 0xc0 &&
 		bytesAllZero(sig[1:]) && bytesAllZero(pk[1:]) {
-		fmt.Println("INFINITIES!")
 		return true
 	}
 	// CLEANUP!!
@@ -693,7 +692,6 @@ func (dummy *P1Affine) VerifyCompressed(sig []byte, pk []byte,
 	if len(sig) == BLST_P1_COMPRESS_BYTES && sig[0] == 0xc0 &&
 		len(pk) == BLST_P2_COMPRESS_BYTES && pk[0] == 0xc0 &&
 		bytesAllZero(sig[1:]) && bytesAllZero(pk[1:]) {
-		fmt.Println("INFINITIES!")
 		return true
 	}
 	// CLEANUP!!
