@@ -24,7 +24,7 @@ script:
               rustup set default-host x86_64-pc-windows-msvc;
               export ML=-nologo;
           fi;
-          (cd bindings/rust; cargo test)
+          (cd bindings/rust; cargo test --release)
       fi
     - if which go > /dev/null 2>&1; then
           (cd bindings/go; go test -test.v)
