@@ -59,7 +59,7 @@ void blst_pairing_init(PAIRING *ctx)
 #define FROM_AFFINE(out,in) do { \
     vec_copy((out)->X, in->X, 2*sizeof(in->X)), \
     vec_select((out)->Z, in->X, BLS12_381_Rx.p, sizeof(in->X), \
-                         vec_is_zero(in, 2*sizeof(in->X))); } while(0)
+                         vec_is_zero(in->X, 2*sizeof(in->X))); } while(0)
 
 static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
                                              const POINTonE2_affine *PK,
@@ -151,7 +151,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
                                                      (const POINTonE2 *)sig);
         } else {
             ctx->min_sig_or_pk |= AGGR_SIGN_SET;
-            FROM_AFFINE(&ctx->AggrSign.e2, (const POINTonE2 *)sig);
+            FROM_AFFINE(&ctx->AggrSign.e2, sig);
         }
     }
 
