@@ -28,6 +28,18 @@ fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &str) {
 }
 
 fn main() {
+    /*
+     * Use pre-built libblst.a if there is one. This is primarily
+     * for trouble-shooting purposes. Idea is that libblst.a can be
+     * compiled with flags independent from cargo defaults, e.g.
+     * '../../build.sh -O1 ...'.
+     */
+    if Path::new("libblst.a").exists() {
+        println!("cargo:rustc-link-search=.");
+        println!("cargo:rustc-link-lib=blst");
+        return
+    }
+
     let mut file_vec = Vec::new();
 
     let _out_dir = env::var_os("OUT_DIR").unwrap();
