@@ -48,11 +48,11 @@ before_cache:
     - rm -rf "$TRAVIS_HOME/.cargo/registry/src"
     - if [ "x$TRAVIS_LANGUAGE" = "xrust" ]; then
           (cd bindings/rust; cargo clean -p blst;
-           rm -rf target/debug/incremental;
-           rm -rf target/debug/deps/blst-*;
-           rm -rf target/debug/build/blst-*;
-           rm -rf target/debug/build/src;
-           rm -rf target/debug/build/build)
+           rm -rf target/{debug,release}/incremental;
+           rm -rf target/{debug,release}/deps/blst-*;
+           rm -rf target/{debug,release}/build/blst-*;
+           rm -rf target/{debug,release}/build/src;
+           rm -rf target/{debug,release}/build/build)
       fi
 
 cache:
