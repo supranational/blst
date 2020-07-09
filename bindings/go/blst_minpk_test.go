@@ -9,6 +9,7 @@ package blst
 import (
 	"crypto/rand"
 	"fmt"
+	mrand "math/rand"
 	"runtime"
 	"testing"
 )
@@ -17,6 +18,7 @@ import (
 type PublicKeyMinPk = P1Affine
 type SignatureMinPk = P2Affine
 type AggregateSignatureMinPk = P2Aggregate
+type AggregatePublicKeyMinPk = P1Aggregate
 
 // Names in this file must be unique to support min-sig so we can't use 'dst'
 // here.
@@ -232,6 +234,11 @@ func TestSignVerifyAggregateMinPk(t *testing.T) {
 			t.Errorf("failed to verify size %d", size)
 		}
 
+		// Negative test
+		if agSig.FastAggregateVerify(pubks, msgs[0][1:], dstMinPk) {
+			t.Errorf("failed to not verify size %d", size)
+		}
+
 		// Test compressed/serialized signature aggregation
 		compSigs := make([][]byte, size)
 		for i := 0; i < size; i++ {
@@ -251,6 +258,75 @@ func TestSignVerifyAggregateMinPk(t *testing.T) {
 			t.Errorf("failed to verify size %d", size)
 		}
 
+		// Negative test
+		if agSig.FastAggregateVerify(pubks, msgs[0][1:], dstMinPk) {
+			t.Errorf("failed to not verify size %d", size)
+		}
+	}
+}
+
+func TestSignMultipleVerifyAggregateMinPk(t *testing.T) {
+	msgCount := 5
+	for size := 1; size < 20; size++ {
+		msgs := make([]Message, 0)
+		sks := make([]*SecretKey, 0)
+		pks := make([]*PublicKeyMinPk, 0)
+
+		// Generate messages
+		for i := 0; i < msgCount; i++ {
+			msg := Message(fmt.Sprintf("blst is a blast!! %d %d", i, size))
+			msgs = append(msgs, msg)
+		}
+
+		// Generate keypairs
+		for i := 0; i < size; i++ {
+			priv := genRandomKeyMinPk()
+			sks = append(sks, priv)
+			pks = append(pks, new(PublicKeyMinPk).From(priv))
+		}
+
+		// All signers sign each message
+		aggSigs := make([]*SignatureMinPk, 0)
+		aggPks := make([]*PublicKeyMinPk, 0)
+		for i := 0; i < msgCount; i++ {
+			sigsToAgg := make([]*SignatureMinPk, 0)
+			pksToAgg := make([]*PublicKeyMinPk, 0)
+			for j := 0; j < size; j++ {
+				sigsToAgg = append(sigsToAgg, new(SignatureMinPk).Sign(sks[j],
+					msgs[i], dstMinPk))
+				pksToAgg = append(pksToAgg, pks[j])
+			}
+
+			agSig := new(AggregateSignatureMinPk).Aggregate(sigsToAgg).ToAffine()
+			agPk := new(AggregatePublicKeyMinPk).Aggregate(pksToAgg).ToAffine()
+			aggSigs = append(aggSigs, agSig)
+			aggPks = append(aggPks, agPk)
+
+			// Verify aggregated signature and pk
+			if !agSig.Verify(agPk, msgs[i], dstMinPk) {
+				t.Errorf("failed to verify single aggregate size %d", size)
+			}
+
+		}
+
+		randFn := func(s *Scalar) {
+			var rbytes [BLST_SCALAR_BYTES]byte
+			mrand.Read(rbytes[:])
+			s.FromBEndian(rbytes[:])
+		}
+
+		// Verify
+		randBits := 64
+		if !new(SignatureMinPk).MultipleAggregateVerify(aggSigs, aggPks, msgs,
+			dstMinPk, randFn, randBits) {
+			t.Errorf("failed to verify multiple aggregate size %d", size)
+		}
+
+		// Negative test
+		if new(SignatureMinPk).MultipleAggregateVerify(aggSigs, aggPks, msgs,
+			dstMinPk[1:], randFn, randBits) {
+			t.Errorf("failed to not verify multiple aggregate size %d", size)
+		}
 	}
 }
 
