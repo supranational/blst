@@ -37,7 +37,7 @@ fn main() {
     if Path::new("libblst.a").exists() {
         println!("cargo:rustc-link-search=.");
         println!("cargo:rustc-link-lib=blst");
-        return
+        return;
     }
 
     let mut file_vec = Vec::new();
@@ -64,14 +64,15 @@ fn main() {
 
     // Set CC environment variable to choose alternative C compiler.
     // Optimization level depends on whether or not --release is passed
-    // or implied. If default "release" level of 3 is deemed unsuitable,
-    // modify 'opt-level' in [profile.release] in Cargo.toml.
-    cc::Build::new()
-        .flag_if_supported("-march=native")
+    // or implied.
+    let mut cc = cc::Build::new();
+    cc.flag_if_supported("-march=native")
         .flag_if_supported("-mno-avx") // avoid costly transitions
-        .flag_if_supported("-Wno-unused-command-line-argument")
-        .files(&file_vec)
-        .compile("libblst.a");
+        .flag_if_supported("-Wno-unused-command-line-argument");
+    if !cfg!(debug_assertions) {
+        cc.opt_level(2);
+    }
+    cc.files(&file_vec).compile("libblst.a");
 
     /*
     let binding_src_dir = blst_base_dir + "/bindings/";
