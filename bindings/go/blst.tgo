@@ -41,172 +41,172 @@ type SecretKey = Scalar
 var maxProcs = initMaxProcs()
 
 func initMaxProcs() int {
-	maxProcs := runtime.GOMAXPROCS(0) - 1
-	if maxProcs <= 0 {
-		maxProcs = 1
-	}
-	return maxProcs
+    maxProcs := runtime.GOMAXPROCS(0) - 1
+    if maxProcs <= 0 {
+        maxProcs = 1
+    }
+    return maxProcs
 }
 
 func SetMaxProcs(max int) {
-	if max <= 0 {
-		max = 1
-	}
-	maxProcs = max
+    if max <= 0 {
+        max = 1
+    }
+    maxProcs = max
 }
 
 //
 // Secret key
 //
 func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
-	var sk SecretKey
-	var info []byte
-	var infoP *C.byte
-	if len(optional) > 0 {
-		info = optional[0]
-		infoP = (*C.byte)(&info[0])
-	}
-	if len(ikm) < 32 {
-		return nil
-	}
-	C.blst_keygen(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
-		infoP, C.size_t(len(info)))
-	return &sk
+    var sk SecretKey
+    var info []byte
+    var infoP *C.byte
+    if len(optional) > 0 {
+        info = optional[0]
+        infoP = (*C.byte)(&info[0])
+    }
+    if len(ikm) < 32 {
+        return nil
+    }
+    C.blst_keygen(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
+        infoP, C.size_t(len(info)))
+    return &sk
 }
 
 //
 // Pairing
 //
 func PairingCtx() Pairing {
-	ctx := make([]uint64, C.blst_pairing_sizeof()/8)
-	C.blst_pairing_init((*C.blst_pairing)(&ctx[0]))
-	return ctx
+    ctx := make([]uint64, C.blst_pairing_sizeof()/8)
+    C.blst_pairing_init((*C.blst_pairing)(&ctx[0]))
+    return ctx
 }
 
 func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
-	hash_or_encode bool, msg []byte, optional ...[]byte) int {
-	var DST []byte
-	var uDST *C.byte
-	if len(optional) > 0 {
-		DST = optional[0]
-		uDST = (*C.byte)(&DST[0])
-	}
-	var aug []byte
-	var uaug *C.byte
-	if len(optional) > 1 {
-		aug = optional[1]
-		if aug != nil {
-			uaug = (*C.byte)(&aug[0])
-		}
-	}
-	var umsg *C.byte
-	if msg != nil {
-		umsg = (*C.byte)(&msg[0])
-	}
+    hash_or_encode bool, msg []byte, optional ...[]byte) int {
+    var DST []byte
+    var uDST *C.byte
+    if len(optional) > 0 {
+        DST = optional[0]
+        uDST = (*C.byte)(&DST[0])
+    }
+    var aug []byte
+    var uaug *C.byte
+    if len(optional) > 1 {
+        aug = optional[1]
+        if aug != nil {
+            uaug = (*C.byte)(&aug[0])
+        }
+    }
+    var umsg *C.byte
+    if msg != nil {
+        umsg = (*C.byte)(&msg[0])
+    }
 
-	r := C.blst_pairing_aggregate_pk_in_g1((*C.blst_pairing)(&ctx[0]),
-		PK, sig, C.bool(hash_or_encode),
-		umsg, C.size_t(len(msg)),
-		uDST, C.size_t(len(DST)),
-		uaug, C.size_t(len(aug)))
+    r := C.blst_pairing_aggregate_pk_in_g1((*C.blst_pairing)(&ctx[0]),
+        PK, sig, C.bool(hash_or_encode),
+        umsg, C.size_t(len(msg)),
+        uDST, C.size_t(len(DST)),
+        uaug, C.size_t(len(aug)))
 
-	return int(r)
+    return int(r)
 }
 
 func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
-	hash_or_encode bool, msg []byte, optional ...[]byte) int {
-	var DST []byte
-	var uDST *C.byte
-	if len(optional) > 0 {
-		DST = optional[0]
-		uDST = (*C.byte)(&DST[0])
-	}
-	var aug []byte
-	var uaug *C.byte
-	if len(optional) > 1 {
-		aug = optional[1]
-		if aug != nil {
-			uaug = (*C.byte)(&aug[0])
-		}
-	}
+    hash_or_encode bool, msg []byte, optional ...[]byte) int {
+    var DST []byte
+    var uDST *C.byte
+    if len(optional) > 0 {
+        DST = optional[0]
+        uDST = (*C.byte)(&DST[0])
+    }
+    var aug []byte
+    var uaug *C.byte
+    if len(optional) > 1 {
+        aug = optional[1]
+        if aug != nil {
+            uaug = (*C.byte)(&aug[0])
+        }
+    }
 
-	r := C.blst_pairing_aggregate_pk_in_g2((*C.blst_pairing)(&ctx[0]),
-		PK, sig, C.bool(hash_or_encode),
-		(*C.byte)(&msg[0]), C.size_t(len(msg)),
-		uDST, C.size_t(len(DST)),
-		uaug, C.size_t(len(aug)))
+    r := C.blst_pairing_aggregate_pk_in_g2((*C.blst_pairing)(&ctx[0]),
+        PK, sig, C.bool(hash_or_encode),
+        (*C.byte)(&msg[0]), C.size_t(len(msg)),
+        uDST, C.size_t(len(DST)),
+        uaug, C.size_t(len(aug)))
 
-	return int(r)
+    return int(r)
 }
 
 func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
-	rand *Scalar, randBits int, useHash bool, msg []byte,
-	optional ...[]byte) int {
+    rand *Scalar, randBits int, useHash bool, msg []byte,
+    optional ...[]byte) int {
 
-	var dst []byte
-	if len(optional) > 0 {
-		dst = optional[0]
-	}
+    var dst []byte
+    if len(optional) > 0 {
+        dst = optional[0]
+    }
 
-	var aug []byte
-	if len(optional) > 1 {
-		aug = optional[1]
-	}
+    var aug []byte
+    if len(optional) > 1 {
+        aug = optional[1]
+    }
 
-	var hash *P2Affine
-	if useHash {
-		hash = HashToG2(msg, dst, aug).ToAffine()
-	} else {
-		hash = EncodeToG2(msg, dst, aug).ToAffine()
-	}
+    var hash *P2Affine
+    if useHash {
+        hash = HashToG2(msg, dst, aug).ToAffine()
+    } else {
+        hash = EncodeToG2(msg, dst, aug).ToAffine()
+    }
 
-	r := C.blst_pairing_mul_n_aggregate_pk_in_g1((*C.blst_pairing)(&ctx[0]),
-		PK, sig, hash, &rand.l[0], C.size_t(randBits))
+    r := C.blst_pairing_mul_n_aggregate_pk_in_g1((*C.blst_pairing)(&ctx[0]),
+        PK, sig, hash, &rand.l[0], C.size_t(randBits))
 
-	return int(r)
+    return int(r)
 }
 
 func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
-	rand *Scalar, randBits int, useHash bool, msg []byte,
-	optional ...[]byte) int {
+    rand *Scalar, randBits int, useHash bool, msg []byte,
+    optional ...[]byte) int {
 
-	var dst []byte
-	if len(optional) > 0 {
-		dst = optional[0]
-	}
+    var dst []byte
+    if len(optional) > 0 {
+        dst = optional[0]
+    }
 
-	var aug []byte
-	if len(optional) > 1 {
-		aug = optional[1]
-	}
+    var aug []byte
+    if len(optional) > 1 {
+        aug = optional[1]
+    }
 
-	var hash *P1Affine
-	if useHash {
-		hash = HashToG1(msg, dst, aug).ToAffine()
-	} else {
-		hash = EncodeToG1(msg, dst, aug).ToAffine()
-	}
+    var hash *P1Affine
+    if useHash {
+        hash = HashToG1(msg, dst, aug).ToAffine()
+    } else {
+        hash = EncodeToG1(msg, dst, aug).ToAffine()
+    }
 
-	r := C.blst_pairing_mul_n_aggregate_pk_in_g2((*C.blst_pairing)(&ctx[0]),
-		PK, sig, hash, &rand.l[0], C.size_t(randBits))
+    r := C.blst_pairing_mul_n_aggregate_pk_in_g2((*C.blst_pairing)(&ctx[0]),
+        PK, sig, hash, &rand.l[0], C.size_t(randBits))
 
-	return int(r)
+    return int(r)
 }
 
 func PairingCommit(ctx Pairing) {
-	C.blst_pairing_commit((*C.blst_pairing)(&ctx[0]))
+    C.blst_pairing_commit((*C.blst_pairing)(&ctx[0]))
 }
 
 func PairingMerge(ctx Pairing, ctx1 Pairing) int {
-	r := C.blst_pairing_merge((*C.blst_pairing)(&ctx[0]),
-		(*C.blst_pairing)(&ctx1[0]))
-	return int(r)
+    r := C.blst_pairing_merge((*C.blst_pairing)(&ctx[0]),
+        (*C.blst_pairing)(&ctx1[0]))
+    return int(r)
 }
 
 func PairingFinalVerify(ctx Pairing, optional ...*Fp12) bool {
-	var gtsig *Fp12 = nil
-	if len(optional) > 0 {
-		gtsig = optional[0]
-	}
-	return bool(C.blst_pairing_finalverify((*C.blst_pairing)(&ctx[0]), gtsig))
+    var gtsig *Fp12 = nil
+    if len(optional) > 0 {
+        gtsig = optional[0]
+    }
+    return bool(C.blst_pairing_finalverify((*C.blst_pairing)(&ctx[0]), gtsig))
 }

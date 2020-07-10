@@ -4,32 +4,32 @@ import "fmt"
 // Parse out optional arguments for sign and verify.
 //   aug []byte - augmentation bytes (default: nil)
 func parseOpts(optional ...interface{}) ([]byte, [][]byte, bool, bool) {
-	var aug [][]byte     // For aggregate verify
-	var augSingle []byte // For signing
-	useHash := true      // hash (true), encode (false)
+    var aug [][]byte     // For aggregate verify
+    var augSingle []byte // For signing
+    useHash := true      // hash (true), encode (false)
 
-	for _, arg := range optional {
-		switch v := arg.(type) {
-		case []byte:
-			augSingle = v
-		case [][]byte:
-			aug = v
-		case bool:
-			useHash = v
-		default:
-			return nil, nil, useHash, false
-		}
-	}
-	return augSingle, aug, useHash, true
+    for _, arg := range optional {
+        switch v := arg.(type) {
+        case []byte:
+            augSingle = v
+        case [][]byte:
+            aug = v
+        case bool:
+            useHash = v
+        default:
+            return nil, nil, useHash, false
+        }
+    }
+    return augSingle, aug, useHash, true
 }
 
 func bytesAllZero(s []byte) bool {
-	for _, v := range s {
-		if v != 0 {
-			return false
-		}
-	}
-	return true
+    for _, v := range s {
+        if v != 0 {
+            return false
+        }
+    }
+    return true
 }
 
 //
@@ -38,20 +38,20 @@ func bytesAllZero(s []byte) bool {
 
 // Scalar serdes
 func (s *Scalar) Serialize() []byte {
-	var out [BLST_SCALAR_BYTES]byte
-	C.blst_bendian_from_scalar((*C.byte)(&out[0]), s)
-	return out[:]
+    var out [BLST_SCALAR_BYTES]byte
+    C.blst_bendian_from_scalar((*C.byte)(&out[0]), s)
+    return out[:]
 }
 
 func (s *Scalar) Deserialize(in []byte) *Scalar {
-	if len(in) != BLST_SCALAR_BYTES {
-		return nil
-	}
-	C.blst_scalar_from_bendian(s, (*C.byte)(&in[0]))
-	if !C.blst_scalar_fr_check(s) {
-		return nil
-	}
-	return s
+    if len(in) != BLST_SCALAR_BYTES {
+        return nil
+    }
+    C.blst_scalar_from_bendian(s, (*C.byte)(&in[0]))
+    if !C.blst_scalar_fr_check(s) {
+        return nil
+    }
+    return s
 }
 
 //
@@ -59,31 +59,31 @@ func (s *Scalar) Deserialize(in []byte) *Scalar {
 //
 
 func (fr *Scalar) ToLEndian() []byte {
-	var arr [BLST_SCALAR_BYTES]byte
-	C.blst_lendian_from_scalar((*C.byte)(&arr[0]), fr)
-	return arr[:]
+    var arr [BLST_SCALAR_BYTES]byte
+    C.blst_lendian_from_scalar((*C.byte)(&arr[0]), fr)
+    return arr[:]
 }
 
 func (fp *Fp) ToLEndian() []byte {
-	var arr [BLST_FP_BYTES]byte
-	C.blst_lendian_from_fp((*C.byte)(&arr[0]), fp)
-	return arr[:]
+    var arr [BLST_FP_BYTES]byte
+    C.blst_lendian_from_fp((*C.byte)(&arr[0]), fp)
+    return arr[:]
 }
 
 func (fr *Scalar) FromLEndian(arr []byte) *Scalar {
-	if len(arr) != BLST_SCALAR_BYTES {
-		return nil
-	}
-	C.blst_scalar_from_lendian(fr, (*C.byte)(&arr[0]))
-	return fr
+    if len(arr) != BLST_SCALAR_BYTES {
+        return nil
+    }
+    C.blst_scalar_from_lendian(fr, (*C.byte)(&arr[0]))
+    return fr
 }
 
 func (fp *Fp) FromLEndian(arr []byte) *Fp {
-	if len(arr) != BLST_FP_BYTES {
-		return nil
-	}
-	C.blst_fp_from_lendian(fp, (*C.byte)(&arr[0]))
-	return fp
+    if len(arr) != BLST_FP_BYTES {
+        return nil
+    }
+    C.blst_fp_from_lendian(fp, (*C.byte)(&arr[0]))
+    return fp
 }
 
 //
@@ -91,31 +91,31 @@ func (fp *Fp) FromLEndian(arr []byte) *Fp {
 //
 
 func (fr *Scalar) ToBEndian() []byte {
-	var arr [BLST_SCALAR_BYTES]byte
-	C.blst_bendian_from_scalar((*C.byte)(&arr[0]), fr)
-	return arr[:]
+    var arr [BLST_SCALAR_BYTES]byte
+    C.blst_bendian_from_scalar((*C.byte)(&arr[0]), fr)
+    return arr[:]
 }
 
 func (fp *Fp) ToBEndian() []byte {
-	var arr [BLST_FP_BYTES]byte
-	C.blst_bendian_from_fp((*C.byte)(&arr[0]), fp)
-	return arr[:]
+    var arr [BLST_FP_BYTES]byte
+    C.blst_bendian_from_fp((*C.byte)(&arr[0]), fp)
+    return arr[:]
 }
 
 func (fr *Scalar) FromBEndian(arr []byte) *Scalar {
-	if len(arr) != BLST_SCALAR_BYTES {
-		return nil
-	}
-	C.blst_scalar_from_bendian(fr, (*C.byte)(&arr[0]))
-	return fr
+    if len(arr) != BLST_SCALAR_BYTES {
+        return nil
+    }
+    C.blst_scalar_from_bendian(fr, (*C.byte)(&arr[0]))
+    return fr
 }
 
 func (fp *Fp) FromBEndian(arr []byte) *Fp {
-	if len(arr) != BLST_FP_BYTES {
-		return nil
-	}
-	C.blst_fp_from_bendian(fp, (*C.byte)(&arr[0]))
-	return fp
+    if len(arr) != BLST_FP_BYTES {
+        return nil
+    }
+    C.blst_fp_from_bendian(fp, (*C.byte)(&arr[0]))
+    return fp
 }
 
 //
@@ -123,46 +123,46 @@ func (fp *Fp) FromBEndian(arr []byte) *Fp {
 //
 
 func PrintBytes(val []byte, name string) {
-	fmt.Printf("%s = %02x\n", name, val)
+    fmt.Printf("%s = %02x\n", name, val)
 }
 
 func (s *Scalar) Print(name string) {
-	arr := s.ToBEndian()
-	PrintBytes(arr[:], name)
+    arr := s.ToBEndian()
+    PrintBytes(arr[:], name)
 }
 
 func (p *P1Affine) Print(name string) {
-	fmt.Printf("%s:\n", name)
-	arr := p.x.ToBEndian()
-	PrintBytes(arr, "  x")
-	arr = p.y.ToBEndian()
-	PrintBytes(arr, "  y")
+    fmt.Printf("%s:\n", name)
+    arr := p.x.ToBEndian()
+    PrintBytes(arr, "  x")
+    arr = p.y.ToBEndian()
+    PrintBytes(arr, "  y")
 }
 
 func (p *P1) Print(name string) {
-	fmt.Printf("%s:\n", name)
-	aff := p.ToAffine()
-	aff.Print(name)
+    fmt.Printf("%s:\n", name)
+    aff := p.ToAffine()
+    aff.Print(name)
 }
 
 func (f *Fp2) Print(name string) {
-	fmt.Printf("%s:\n", name)
-	arr := f.fp[0].ToBEndian()
-	PrintBytes(arr, "    0")
-	arr = f.fp[1].ToBEndian()
-	PrintBytes(arr, "    1")
+    fmt.Printf("%s:\n", name)
+    arr := f.fp[0].ToBEndian()
+    PrintBytes(arr, "    0")
+    arr = f.fp[1].ToBEndian()
+    PrintBytes(arr, "    1")
 }
 
 func (p *P2Affine) Print(name string) {
-	fmt.Printf("%s:\n", name)
-	p.x.Print("  x")
-	p.y.Print("  y")
+    fmt.Printf("%s:\n", name)
+    p.x.Print("  x")
+    p.y.Print("  y")
 }
 
 func (p *P2) Print(name string) {
-	fmt.Printf("%s:\n", name)
-	aff := p.ToAffine()
-	aff.Print(name)
+    fmt.Printf("%s:\n", name)
+    aff := p.ToAffine()
+    aff.Print(name)
 }
 
 //
@@ -172,39 +172,39 @@ func (p *P2) Print(name string) {
 // TODO: replace with C functions
 
 func (s1 *Scalar) Equals(s2 *Scalar) bool {
-	equal := true
-	for i := 0; i < BLST_SCALAR_LIMBS; i++ {
-		if s1.l[i] != s2.l[i] {
-			equal = false
-		}
-	}
-	return equal
+    equal := true
+    for i := 0; i < BLST_SCALAR_LIMBS; i++ {
+        if s1.l[i] != s2.l[i] {
+            equal = false
+        }
+    }
+    return equal
 }
 
 func (e1 *Fp) Equals(e2 *Fp) bool {
-	equal := true
-	for i := 0; i < BLST_FP_LIMBS; i++ {
-		if e1.l[i] != e2.l[i] {
-			equal = false
-		}
-	}
-	return equal
+    equal := true
+    for i := 0; i < BLST_FP_LIMBS; i++ {
+        if e1.l[i] != e2.l[i] {
+            equal = false
+        }
+    }
+    return equal
 }
 
 func (e1 *Fp2) Equals(e2 *Fp2) bool {
-	return (&(e1.fp[0])).Equals(&e2.fp[0]) && (&(e1.fp[1])).Equals(&e2.fp[1])
+    return (&(e1.fp[0])).Equals(&e2.fp[0]) && (&(e1.fp[1])).Equals(&e2.fp[1])
 }
 
 func (e1 *Fp6) Equals(e2 *Fp6) bool {
-	return (&(e1.fp2[0])).Equals(&e2.fp2[0]) &&
-		(&(e1.fp2[1])).Equals(&e2.fp2[1]) &&
-		(&(e1.fp2[2])).Equals(&e2.fp2[2])
+    return (&(e1.fp2[0])).Equals(&e2.fp2[0]) &&
+        (&(e1.fp2[1])).Equals(&e2.fp2[1]) &&
+        (&(e1.fp2[2])).Equals(&e2.fp2[2])
 }
 
 func (e1 *P1Affine) Equals(e2 *P1Affine) bool {
-	return bool(C.blst_p1_affine_is_equal(e1, e2))
+    return bool(C.blst_p1_affine_is_equal(e1, e2))
 }
 
 func (e1 *P2Affine) Equals(e2 *P2Affine) bool {
-	return bool(C.blst_p2_affine_is_equal(e1, e2))
+    return bool(C.blst_p2_affine_is_equal(e1, e2))
 }
