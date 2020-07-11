@@ -1,6 +1,6 @@
 # blst
 
-The `blst` package provides a rust interface to the blst BLS12-381 signature library.
+The `blst` package provides a Go interface to the blst BLS12-381 signature library.
 
 ## Build
 The build process consists of two steps, code generation followed by compilation.
