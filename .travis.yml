@@ -45,9 +45,11 @@ notifications:
     email: false
 
 before_cache:
-    - rm -rf "$TRAVIS_HOME/.cargo/registry/src"
+    - (cd "$TRAVIS_HOME"; rm -rf .cargo/registry/src)
+    - (cd "$TRAVIS_HOME"; rm -rf .cargo/registry/index/*/.cache)
     - if [ "x$TRAVIS_LANGUAGE" = "xrust" ]; then
-          (cd bindings/rust; cargo clean -p blst; cargo clean -p blst --release;
+          (cd bindings/rust;
+           cargo clean -p blst; cargo clean -p blst --release;
            rm -rf target/.rustc_info.json;
            rm -rf target/{debug,release}/*/blst-*;
            rm -rf target/{debug,release}/incremental;
