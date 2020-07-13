@@ -50,7 +50,7 @@ typedef struct {
 enum { AGGR_UNDEFINED = 0, AGGR_MIN_SIG, AGGR_MIN_PK,
        AGGR_SIGN_SET = 0x10, AGGR_GT_SET = 0x20 };
 
-size_t blst_pairing_sizeof()
+size_t blst_pairing_sizeof(void)
 {   return (sizeof(PAIRING) + 7) & ~(size_t)7;   }
 
 void blst_pairing_init(PAIRING *ctx)
