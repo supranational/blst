@@ -28,6 +28,9 @@ $carry=$n_ptr;
 $code.=<<___;
 .text
 
+.extern BLS12_381_P
+.hidden BLS12_381_P
+
 .globl	add_mod_384
 .hidden	add_mod_384
 .type	add_mod_384,%function
