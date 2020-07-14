@@ -17,7 +17,7 @@ TOP=`dirname $0`
 
 CC=${CC:-cc}
 # if -Werror stands in the way, bypass with -Wno-error on command line
-CFLAGS=${CFLAGS:--O -march=native -fPIC -Wall -Wextra -Werror}
+CFLAGS=${CFLAGS:--O -fPIC -Wall -Wextra -Werror}
 PERL=${PERL:-perl}
 
 case `uname -s` in
@@ -37,8 +37,10 @@ while [ "x$1" != "x" ]; do
     shift
 done
 
-if ${CC} ${CFLAGS} -dM -E -x c /dev/null | grep __AVX__ > /dev/null; then
-    CFLAGS="${CFLAGS} -mno-avx"
+arch=`uname -m`
+if (${CC} ${CFLAGS} -dM -E -x c /dev/null) 2>/dev/null | grep -q $arch; then
+    CFLAGS="${CFLAGS} -march=native"
+    [ "$arch" = "x86_64" ] && CFLAGS="${CFLAGS} -mno-avx"
 fi
 
 rm -f libblst.a
@@ -50,7 +52,8 @@ trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o' 0
 
 if [ $shared ]; then
     case $flavour in
-        macosx) echo "-shared is not supported"; exit 1;;
+        macosx) (set -x; ${CC} -dynamiclib -o libblst.dylib \
+                               -all_load libblst.a ${CFLAGS}); exit 0;;
         mingw*) sharedlib=blst.dll
                 CFLAGS="${CFLAGS} --entry=DllMain ${TOP}/build/win64/dll.c"
                 CFLAGS="${CFLAGS} -nostdlib -lgcc";;
