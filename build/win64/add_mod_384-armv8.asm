@@ -1,5 +1,8 @@
 	AREA	|.text|,CODE,ALIGN=8,ARM64
 
+	EXTERN	BLS12_381_P
+
+
 
 
 	EXPORT	|add_mod_384|[FUNC]

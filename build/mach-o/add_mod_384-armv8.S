@@ -1,5 +1,8 @@
 .text
 
+
+.private_extern	_BLS12_381_P
+
 .globl	_add_mod_384
 .private_extern	_add_mod_384
 
@@ -253,9 +256,9 @@ _mul_by_b_onE1:
 	stp	x19,x20,[sp,#16]
 	stp	x21,x22,[sp,#32]
 
-	adrp	x3,BLS12_381_P@PAGE
+	adrp	x3,_BLS12_381_P@PAGE
 	ldp	x10,x11,[x1]
-	add	x3,x3,BLS12_381_P@PAGEOFF
+	add	x3,x3,_BLS12_381_P@PAGEOFF
 	ldp	x12,x13,[x1,#16]
 	ldp	x14,x15,[x1,#32]
 
@@ -289,9 +292,9 @@ _mul_by_4b_onE1:
 	stp	x19,x20,[sp,#16]
 	stp	x21,x22,[sp,#32]
 
-	adrp	x3,BLS12_381_P@PAGE
+	adrp	x3,_BLS12_381_P@PAGE
 	ldp	x10,x11,[x1]
-	add	x3,x3,BLS12_381_P@PAGEOFF
+	add	x3,x3,_BLS12_381_P@PAGEOFF
 	ldp	x12,x13,[x1,#16]
 	ldp	x14,x15,[x1,#32]
 
@@ -427,8 +430,8 @@ _mul_by_b_onE2:
 	stp	x19,x20,[sp,#16]
 	stp	x21,x22,[sp,#32]
 
-	adrp	x3,BLS12_381_P@PAGE
-	add	x3,x3,BLS12_381_P@PAGEOFF
+	adrp	x3,_BLS12_381_P@PAGE
+	add	x3,x3,_BLS12_381_P@PAGEOFF
 	add	x2,x1,#48
 
 	ldp	x4,x5,[x3]
@@ -470,8 +473,8 @@ _mul_by_4b_onE2:
 	stp	x19,x20,[sp,#16]
 	stp	x21,x22,[sp,#32]
 
-	adrp	x3,BLS12_381_P@PAGE
-	add	x3,x3,BLS12_381_P@PAGEOFF
+	adrp	x3,_BLS12_381_P@PAGE
+	add	x3,x3,_BLS12_381_P@PAGEOFF
 	add	x2,x1,#48
 
 	ldp	x4,x5,[x3]
