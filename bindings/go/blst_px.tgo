@@ -58,6 +58,65 @@ func (p1 *P1Affine) Uncompress(in []byte) *P1Affine {
     }
     return p1
 }
+
+func (dummy *P1Affine) BatchUncompress(in [][]byte) []*P1Affine {
+    // Allocate space for all of the resulting points. Later we'll save pointers
+    // and return those so that the result could be used in other functions,
+    // such as MultipleAggregateVerify.
+    n := len(in)
+    points := make([]P1Affine, n)
+    pointsPtrs := make([]*P1Affine, n)
+
+    numCores := runtime.GOMAXPROCS(0)
+    numThreads := maxProcs
+    if numThreads > numCores {
+        numThreads = numCores
+    }
+    if numThreads > n {
+        numThreads = n
+    }
+    // Each thread will determine next message to process by atomically
+    // incrementing curItem, process corresponding point, and
+    // repeat until n is exceeded. Each thread will send a result (true for
+    // success, false for failure) into the channel when complete.
+    resCh := make(chan bool, numThreads)
+    valid := int32(1)
+    curItem := uint32(0)
+    for tid := 0; tid < numThreads; tid++ {
+        go func() {
+            for atomic.LoadInt32(&valid) > 0 {
+                // Get a work item
+                work := atomic.AddUint32(&curItem, 1) - 1
+                if work >= uint32(n) {
+                    break
+                }
+                if points[work].Uncompress(in[work]) == nil {
+                    atomic.StoreInt32(&valid, 0)
+                    break
+                }
+                pointsPtrs[work] = &points[work]
+            }
+            if atomic.LoadInt32(&valid) > 0 {
+                resCh <- true
+            } else {
+                resCh <- false
+            }
+        }()
+    }
+
+    // Collect the threads
+    result := true
+    for i := 0; i < numThreads; i++ {
+        if ! <-resCh {
+            result = false
+        }
+    }
+    if atomic.LoadInt32(&valid) == 0 || result == false {
+        return nil
+    }
+    return pointsPtrs
+}
+
 func (p1 *P1) Serialize() []byte {
     var out [BLST_P1_SERIALIZE_BYTES]byte
     C.blst_p1_serialize((*C.byte)(&out[0]), p1)

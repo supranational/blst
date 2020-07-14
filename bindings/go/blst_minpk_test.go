@@ -330,6 +330,28 @@ func TestSignMultipleVerifyAggregateMinPk(t *testing.T) {
     }
 }
 
+func TestBatchUncompressMinPk(t *testing.T) {
+    size := 128
+    var points []*P2Affine
+    var compPoints [][]byte
+    
+    for i := 0; i < size; i++ {
+        msg := Message(fmt.Sprintf("blst is a blast!! %d", i))
+        p2 := HashToG2(msg, dstMinPk).ToAffine()
+        points = append(points, p2)
+        compPoints = append(compPoints, p2.Compress())
+    }
+    uncompPoints := new(SignatureMinPk).BatchUncompress(compPoints)
+    if uncompPoints == nil {
+        t.Errorf("BatchUncompress returned nil size %d", size)
+    }
+    for i := 0; i < size; i++ {
+        if !points[i].Equals(uncompPoints[i]) {
+            t.Errorf("Uncompressed point does not equal initial point %d", i)
+        }
+    }
+}
+
 func BenchmarkCoreSignMinPk(b *testing.B) {
     var ikm = [...]byte{
         0x93, 0xad, 0x7e, 0x65, 0xde, 0xad, 0x05, 0x2a,
@@ -498,4 +520,39 @@ func generateBatchTestDataUncompressedMinPk(size int) (sks []*SecretKey,
     }
     agsig = agProj.ToAffine()
     return
+}
+
+func BenchmarkBatchUncompressMinPk(b *testing.B) {
+    size := 128
+    var points []*P2Affine
+    var compPoints [][]byte
+    
+    for i := 0; i < size; i++ {
+        msg := Message(fmt.Sprintf("blst is a blast!! %d", i))
+        p2 := HashToG2(msg, dstMinPk).ToAffine()
+        points = append(points, p2)
+        compPoints = append(compPoints, p2.Compress())
+    }
+    b.Run("Single", func(b *testing.B) {
+        b.ResetTimer()
+        b.ReportAllocs()
+        var tmp SignatureMinPk
+        for i := 0; i < b.N; i++ {
+            for j := 0; j < size; j++ {
+                if tmp.Uncompress(compPoints[j]) == nil {
+                    b.Fatal("could not uncompress point")
+                }
+            }
+        }
+    })
+    b.Run("Batch", func(b *testing.B) {
+        b.ResetTimer()
+        b.ReportAllocs()
+        var tmp SignatureMinPk
+        for i := 0; i < b.N; i++ {
+            if tmp.BatchUncompress(compPoints) == nil {
+                b.Fatal("could not batch uncompress points")
+            }
+        }
+    })
 }
