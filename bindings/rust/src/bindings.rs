@@ -767,7 +767,12 @@ extern "C" {
     pub fn blst_pairing_sizeof() -> usize;
 }
 extern "C" {
-    pub fn blst_pairing_init(new_ctx: *mut blst_pairing);
+    pub fn blst_pairing_init(
+        new_ctx: *mut blst_pairing,
+        hash_or_encode: bool,
+        DST: *const byte,
+        DST_len: usize,
+    );
 }
 extern "C" {
     pub fn blst_pairing_commit(ctx: *mut blst_pairing);
@@ -777,11 +782,8 @@ extern "C" {
         ctx: *mut blst_pairing,
         PK: *const blst_p2_affine,
         signature: *const blst_p1_affine,
-        hash_or_encode: bool,
         msg: *const byte,
         msg_len: usize,
-        DST: *const byte,
-        DST_len: usize,
         aug: *const byte,
         aug_len: usize,
     ) -> BLST_ERROR;
@@ -801,11 +803,8 @@ extern "C" {
         ctx: *mut blst_pairing,
         PK: *const blst_p1_affine,
         signature: *const blst_p2_affine,
-        hash_or_encode: bool,
         msg: *const byte,
         msg_len: usize,
-        DST: *const byte,
-        DST_len: usize,
         aug: *const byte,
         aug_len: usize,
     ) -> BLST_ERROR;
