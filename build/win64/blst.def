@@ -61,7 +61,7 @@ EXPORTS
 	blst_p1_add_affine
 	blst_p1_add_or_double_affine
 	blst_p1_double
-	blst_p1_mult_w5
+	blst_p1_mult
 	blst_p1_cneg
 	blst_p1_to_affine
 	blst_p1_from_affine
@@ -73,7 +73,7 @@ EXPORTS
 	blst_p2_add_affine
 	blst_p2_add_or_double_affine
 	blst_p2_double
-	blst_p2_mult_w5
+	blst_p2_mult
 	blst_p2_cneg
 	blst_p2_to_affine
 	blst_p2_from_affine

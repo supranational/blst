@@ -458,7 +458,7 @@ extern "C" {
     pub fn blst_p1_double(out: *mut blst_p1, a: *const blst_p1);
 }
 extern "C" {
-    pub fn blst_p1_mult_w5(
+    pub fn blst_p1_mult(
         out: *mut blst_p1,
         p: *const blst_p1,
         scalar: *const blst_scalar,
@@ -592,7 +592,7 @@ extern "C" {
     pub fn blst_p2_double(out: *mut blst_p2, a: *const blst_p2);
 }
 extern "C" {
-    pub fn blst_p2_mult_w5(
+    pub fn blst_p2_mult(
         out: *mut blst_p2,
         p: *const blst_p2,
         scalar: *const blst_scalar,
