@@ -258,15 +258,13 @@ typedef struct {} blst_pairing;
 #endif
 
 size_t blst_pairing_sizeof();
-void blst_pairing_init(blst_pairing *new_ctx);
+void blst_pairing_init(blst_pairing *new_ctx, bool hash_or_encode,
+                       const byte *DST DEFNULL, size_t DST_len DEFNULL);
 void blst_pairing_commit(blst_pairing *ctx);
 BLST_ERROR blst_pairing_aggregate_pk_in_g2(blst_pairing *ctx,
                                            const blst_p2_affine *PK,
                                            const blst_p1_affine *signature,
-                                           bool hash_or_encode,
                                            const byte *msg, size_t msg_len,
-                                           const byte *DST DEFNULL,
-                                           size_t DST_len DEFNULL,
                                            const byte *aug DEFNULL,
                                            size_t aug_len DEFNULL);
 BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g2(blst_pairing *ctx,
@@ -278,10 +276,7 @@ BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g2(blst_pairing *ctx,
 BLST_ERROR blst_pairing_aggregate_pk_in_g1(blst_pairing *ctx,
                                            const blst_p1_affine *PK,
                                            const blst_p2_affine *signature,
-                                           bool hash_or_encode,
                                            const byte *msg, size_t msg_len,
-                                           const byte *DST DEFNULL,
-                                           size_t DST_len DEFNULL,
                                            const byte *aug DEFNULL,
                                            size_t aug_len DEFNULL);
 BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g1(blst_pairing *ctx,

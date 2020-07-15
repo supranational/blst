@@ -37,17 +37,24 @@ pub struct Pairing {
 }
 
 impl Pairing {
-    pub fn new() -> Self {
+    pub fn new(hash_or_encode: bool, dst: &[u8]) -> Self {
         let v: Vec<u64> = vec![0; unsafe { blst_pairing_sizeof() } / 8];
         let mut obj = Self {
             v: v.into_boxed_slice(),
         };
-        obj.init();
+        obj.init(hash_or_encode, dst);
         obj
     }
 
-    pub fn init(&mut self) {
-        unsafe { blst_pairing_init(self.ctx()) }
+    pub fn init(&mut self, hash_or_encode: bool, dst: &[u8]) {
+        unsafe {
+            blst_pairing_init(
+                self.ctx(),
+                hash_or_encode,
+                dst.as_ptr(),
+                dst.len(),
+            )
+        }
     }
     fn ctx(&mut self) -> *mut blst_pairing {
         self.v.as_mut_ptr() as *mut blst_pairing
@@ -60,9 +67,7 @@ impl Pairing {
         &mut self,
         pk: &dyn Any,
         sig: &dyn Any,
-        hash_or_encode: bool,
         msg: &[u8],
-        dst: &[u8],
         aug: &[u8],
     ) -> BLST_ERROR {
         if pk.is::<blst_p1_affine>() {
@@ -77,11 +82,8 @@ impl Pairing {
                         Some(sig) => sig,
                         None => ptr::null(),
                     },
-                    hash_or_encode,
                     msg.as_ptr(),
                     msg.len(),
-                    dst.as_ptr(),
-                    dst.len(),
                     aug.as_ptr(),
                     aug.len(),
                 )
@@ -98,11 +100,8 @@ impl Pairing {
                         Some(sig) => sig,
                         None => ptr::null(),
                     },
-                    hash_or_encode,
                     msg.as_ptr(),
                     msg.len(),
-                    dst.as_ptr(),
-                    dst.len(),
                     aug.as_ptr(),
                     aug.len(),
                 )
@@ -216,6 +215,7 @@ macro_rules! sig_variant_impl {
         $sig:ty,
         $sig_aff:ty,
         $sk_to_pk:ident,
+        $hash_or_encode:expr,
         $hash_or_encode_to:ident,
         $sign:ident,
         $pk_eq:ident,
@@ -612,7 +612,7 @@ macro_rules! sig_variant_impl {
                     let valid = valid.clone();
 
                     pool.execute(move || {
-                        let mut pairing = Pairing::new();
+                        let mut pairing = Pairing::new($hash_or_encode, dst);
                         // reconstruct input slices...
                         let msgs = unsafe {
                             slice::from_raw_parts(
@@ -635,9 +635,7 @@ macro_rules! sig_variant_impl {
                             if pairing.aggregate(
                                 &pks[work].point,
                                 &unsafe { ptr::null::<$sig_aff>().as_ref() },
-                                true,
                                 &msgs[work],
-                                &dst,
                                 &[],
                             ) != BLST_ERROR::BLST_SUCCESS
                             {
@@ -737,7 +735,7 @@ macro_rules! sig_variant_impl {
                     let valid = valid.clone();
 
                     pool.execute(move || {
-                        let mut pairing = Pairing::new();
+                        let mut pairing = Pairing::new($hash_or_encode, dst);
                         let mut hash = unsafe {
                             MaybeUninit::<$sig_aff>::uninit().assume_init()
                         };
@@ -1304,6 +1302,7 @@ pub mod min_pk {
         blst_p2,
         blst_p2_affine,
         blst_sk_to_pk2_in_g1,
+        true,
         blst_hash_to_g2,
         blst_sign_pk2_in_g1,
         blst_p1_affine_is_equal,
@@ -1344,6 +1343,7 @@ pub mod min_sig {
         blst_p1,
         blst_p1_affine,
         blst_sk_to_pk2_in_g2,
+        true,
         blst_hash_to_g1,
         blst_sign_pk2_in_g2,
         blst_p2_affine_is_equal,

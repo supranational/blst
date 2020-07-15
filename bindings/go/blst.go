@@ -86,24 +86,24 @@ func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
 //
 // Pairing
 //
-func PairingCtx() Pairing {
+func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
 	ctx := make([]uint64, C.blst_pairing_sizeof()/8)
-	C.blst_pairing_init((*C.blst_pairing)(&ctx[0]))
+	var uDST *C.byte
+	if DST != nil {
+		uDST = (*C.byte)(&DST[0])
+	}
+	C.blst_pairing_init((*C.blst_pairing)(&ctx[0]), C.bool(hash_or_encode),
+		uDST, C.size_t(len(DST)))
 	return ctx
 }
 
 func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
-	hash_or_encode bool, msg []byte, optional ...[]byte) int {
-	var DST []byte
-	var uDST *C.byte
-	if len(optional) > 0 {
-		DST = optional[0]
-		uDST = (*C.byte)(&DST[0])
-	}
+	msg []byte,
+	optional ...[]byte) int { // aug
 	var aug []byte
 	var uaug *C.byte
-	if len(optional) > 1 {
-		aug = optional[1]
+	if len(optional) > 0 {
+		aug = optional[0]
 		if aug != nil {
 			uaug = (*C.byte)(&aug[0])
 		}
@@ -113,36 +113,31 @@ func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
 		umsg = (*C.byte)(&msg[0])
 	}
 
-	r := C.blst_pairing_aggregate_pk_in_g1((*C.blst_pairing)(&ctx[0]),
-		PK, sig, C.bool(hash_or_encode),
+	r := C.blst_pairing_aggregate_pk_in_g1((*C.blst_pairing)(&ctx[0]), PK, sig,
 		umsg, C.size_t(len(msg)),
-		uDST, C.size_t(len(DST)),
 		uaug, C.size_t(len(aug)))
 
 	return int(r)
 }
 
 func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
-	hash_or_encode bool, msg []byte, optional ...[]byte) int {
-	var DST []byte
-	var uDST *C.byte
-	if len(optional) > 0 {
-		DST = optional[0]
-		uDST = (*C.byte)(&DST[0])
-	}
+	msg []byte,
+	optional ...[]byte) int { // aug
 	var aug []byte
 	var uaug *C.byte
-	if len(optional) > 1 {
-		aug = optional[1]
+	if len(optional) > 0 {
+		aug = optional[0]
 		if aug != nil {
 			uaug = (*C.byte)(&aug[0])
 		}
 	}
+	var umsg *C.byte
+	if msg != nil {
+		umsg = (*C.byte)(&msg[0])
+	}
 
-	r := C.blst_pairing_aggregate_pk_in_g2((*C.blst_pairing)(&ctx[0]),
-		PK, sig, C.bool(hash_or_encode),
-		(*C.byte)(&msg[0]), C.size_t(len(msg)),
-		uDST, C.size_t(len(DST)),
+	r := C.blst_pairing_aggregate_pk_in_g2((*C.blst_pairing)(&ctx[0]), PK, sig,
+		umsg, C.size_t(len(msg)),
 		uaug, C.size_t(len(aug)))
 
 	return int(r)
@@ -425,7 +420,7 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 	mutex.Lock()
 	for tid := 0; tid < numThreads; tid++ {
 		go func() {
-			pairing := PairingCtx()
+			pairing := PairingCtx(useHash, dst)
 			var temp P1Affine
 			for atomic.LoadInt32(&valid) > 0 {
 				// Get a work item
@@ -449,8 +444,7 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 				}
 
 				// Pairing and accumulate
-				PairingAggregatePkInG1(pairing, curPk, nil,
-					useHash, msgs[work], dst, aug)
+				PairingAggregatePkInG1(pairing, curPk, nil, msgs[work], aug)
 
 				// application might have some async work to do
 				runtime.Gosched()
@@ -574,7 +568,7 @@ func multipleAggregateVerifyPkInG1(paramsFn mulAggGetterPkInG1, msgs []Message,
 
 	for tid := 0; tid < numThreads; tid++ {
 		go func() {
-			pairing := PairingCtx()
+			pairing := PairingCtx(useHash, dst)
 			var tempRand Scalar
 			var tempPk P1Affine
 			var tempSig P2Affine
@@ -990,7 +984,7 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 	mutex.Lock()
 	for tid := 0; tid < numThreads; tid++ {
 		go func() {
-			pairing := PairingCtx()
+			pairing := PairingCtx(useHash, dst)
 			var temp P2Affine
 			for atomic.LoadInt32(&valid) > 0 {
 				// Get a work item
@@ -1014,8 +1008,7 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 				}
 
 				// Pairing and accumulate
-				PairingAggregatePkInG2(pairing, curPk, nil,
-					useHash, msgs[work], dst, aug)
+				PairingAggregatePkInG2(pairing, curPk, nil, msgs[work], aug)
 
 				// application might have some async work to do
 				runtime.Gosched()
@@ -1139,7 +1132,7 @@ func multipleAggregateVerifyPkInG2(paramsFn mulAggGetterPkInG2, msgs []Message,
 
 	for tid := 0; tid < numThreads; tid++ {
 		go func() {
-			pairing := PairingCtx()
+			pairing := PairingCtx(useHash, dst)
 			var tempRand Scalar
 			var tempPk P2Affine
 			var tempSig P1Affine
