@@ -369,7 +369,7 @@ func multipleAggregateVerifyPkInG1(paramsFn mulAggGetterPkInG1, msgs []Message,
                     &tempPk, &tempRand)
 
                 if PairingMulNAggregatePkInG1(pairing, curPk, curSig,
-                    curRand, randBits, useHash, msgs[work], dst, aug) !=
+                    curRand, randBits, msgs[work], aug) !=
                     C.BLST_SUCCESS {
                     atomic.StoreInt32(&valid, 0)
                     break
