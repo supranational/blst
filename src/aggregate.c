@@ -17,8 +17,8 @@
  ***********************************************************************
  * Usage pattern on multi-processor system is
  *
- *   blst_pairing_init(pk[0]);
- *   blst_pairing_init(pk[1]);
+ *   blst_pairing_init(pk[0], hash_or_encode, DST);
+ *   blst_pairing_init(pk[1], hash_or_encode, DST);
  *   ...
  * start threads each processing an N/nthreads slice of PKs and messages:
  *     blst_pairing_aggregate_pk_in_g1(pk[i], PK[i*n+0], NULL, msg[i*n+0]);
@@ -74,9 +74,17 @@ void blst_pairing_init(PAIRING *ctx, int hash_or_encode,
     vec_select((out)->Z, in->X, BLS12_381_Rx.p, sizeof(in->X), \
                          vec_is_zero(in->X, 2*sizeof(in->X))); } while(0)
 
+/*
+ * Optional |nbits|-wide |scalar| is used to facilitate multiple aggregated
+ * signature vetification as discussed at
+ * https://ethresear.ch/t/fast-verification-of-multiple-bls-signatures/5407.
+ * Usage pattern is not finalized yet, because (sig != NULL) is better and
+ * will be handled separately...
+ */
 static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
                                              const POINTonE2_affine *PK,
                                              const POINTonE1_affine *sig,
+                                             const limb_t *scalar, size_t nbits,
                                              const void *msg, size_t msg_len,
                                              const void *aug, size_t aug_len)
 {
@@ -86,15 +94,26 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
     ctx->ctrl |= AGGR_MIN_SIG;
 
     if (sig != NULL) {
+        POINTonE1 *S = &ctx->AggrSign.e1;
+
         if (!POINTonE1_in_G1((const POINTonE1 *)sig))
             return BLST_POINT_NOT_IN_GROUP;
 
         if (ctx->ctrl & AGGR_SIGN_SET) {
-            POINTonE1_dadd_affine(&ctx->AggrSign.e1, &ctx->AggrSign.e1,
-                                                     (const POINTonE1 *)sig);
+            if (nbits != 0 && scalar != NULL) {
+                POINTonE1 P[1];
+
+                FROM_AFFINE(P, sig);
+                POINTonE1_mult_w5(P, P, scalar, nbits);
+                POINTonE1_dadd(S, S, P, NULL);
+            } else {
+                POINTonE1_dadd_affine(S, S, (const POINTonE1 *)sig);
+            }
         } else {
             ctx->ctrl |= AGGR_SIGN_SET;
-            FROM_AFFINE(&ctx->AggrSign.e1, sig);
+            FROM_AFFINE(S, sig);
+            if (nbits != 0 && scalar != NULL)
+                POINTonE1_mult_w5(S, S, scalar, nbits);
         }
     }
 
@@ -106,6 +125,9 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
             Hash_to_G1(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
         else
             Encode_to_G1(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
+
+        if (nbits != 0 && scalar != NULL)
+            POINTonE1_mult_w5(H, H, scalar, nbits);
 
         POINTonE1_from_Jacobian(H, H);
 
@@ -134,13 +156,27 @@ BLST_ERROR blst_pairing_aggregate_pk_in_g2(PAIRING *ctx,
                                            const POINTonE1_affine *signature,
                                            const void *msg, size_t msg_len,
                                            const void *aug, size_t aug_len)
-{   return PAIRING_Aggregate_PK_in_G2(ctx, PK, signature, msg, msg_len,
-                                                          aug, aug_len);
+{   return PAIRING_Aggregate_PK_in_G2(ctx, PK, signature, NULL, 0,
+                                      msg, msg_len, aug, aug_len);
+}
+
+BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g2(PAIRING *ctx,
+                                                 const POINTonE2_affine *PK,
+                                                 const POINTonE1_affine *sig,
+                                                 const limb_t *scalar,
+                                                 size_t nbits,
+                                                 const void *msg,
+                                                 size_t msg_len,
+                                                 const void *aug,
+                                                 size_t aug_len)
+{   return PAIRING_Aggregate_PK_in_G2(ctx, PK, sig, scalar, nbits,
+                                      msg, msg_len, aug, aug_len);
 }
 
 static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
                                              const POINTonE1_affine *PK,
                                              const POINTonE2_affine *sig,
+                                             const limb_t *scalar, size_t nbits,
                                              const void *msg, size_t msg_len,
                                              const void *aug, size_t aug_len)
 {
@@ -150,15 +186,26 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
     ctx->ctrl |= AGGR_MIN_PK;
 
     if (sig != NULL) {
+        POINTonE2 *S = &ctx->AggrSign.e2;
+
         if (!POINTonE2_in_G2((const POINTonE2 *)sig))
             return BLST_POINT_NOT_IN_GROUP;
 
         if (ctx->ctrl & AGGR_SIGN_SET) {
-            POINTonE2_dadd_affine(&ctx->AggrSign.e2, &ctx->AggrSign.e2,
-                                                     (const POINTonE2 *)sig);
+            if (nbits != 0 && scalar != NULL) {
+                POINTonE2 P[1];
+
+                FROM_AFFINE(P, sig);
+                POINTonE2_mult_w5(P, P, scalar, nbits);
+                POINTonE2_dadd(S, S, P, NULL);
+            } else {
+                POINTonE2_dadd_affine(S, S, (const POINTonE2 *)sig);
+            }
         } else {
             ctx->ctrl |= AGGR_SIGN_SET;
-            FROM_AFFINE(&ctx->AggrSign.e2, sig);
+            FROM_AFFINE(S, sig);
+            if (nbits != 0 && scalar != NULL)
+                POINTonE2_mult_w5(S, S, scalar, nbits);
         }
     }
 
@@ -172,6 +219,15 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
             Encode_to_G2(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
 
         POINTonE2_from_Jacobian(H, H);
+
+        if (nbits != 0 && scalar != NULL) {
+            POINTonE1 pk[1];
+
+            FROM_AFFINE(pk, PK);
+            POINTonE1_mult_w5(pk, pk, scalar, nbits);
+            POINTonE1_from_Jacobian(pk, pk);
+            PK = (const POINTonE1_affine *)pk;
+        }
 
         n = ctx->nelems;
         vec_copy(ctx->Q + n, H, sizeof(POINTonE2_affine));
@@ -198,159 +254,8 @@ BLST_ERROR blst_pairing_aggregate_pk_in_g1(PAIRING *ctx,
                                            const POINTonE2_affine *signature,
                                            const void *msg, size_t msg_len,
                                            const void *aug, size_t aug_len)
-{   return PAIRING_Aggregate_PK_in_G1(ctx, PK, signature, msg, msg_len,
-                                                          aug, aug_len);
-}
-
-static BLST_ERROR PAIRING_Mul_n_Aggregate_PK_in_G2(PAIRING *ctx,
-                                                   const POINTonE2_affine *PK,
-                                                   const POINTonE1_affine *sig,
-                                                   const limb_t *scalar,
-                                                   size_t nbits,
-                                                   const void *msg,
-                                                   size_t msg_len,
-                                                   const void *aug,
-                                                   size_t aug_len)
-{
-    if (ctx->ctrl & AGGR_MIN_PK)
-        return BLST_AGGR_TYPE_MISMATCH;
-
-    ctx->ctrl |= AGGR_MIN_SIG;
-
-    if (sig != NULL) {
-        if (!POINTonE1_in_G1((const POINTonE1 *)sig))
-            return BLST_POINT_NOT_IN_GROUP;
-
-        if (ctx->ctrl & AGGR_SIGN_SET) {
-            POINTonE1 P[1];
-
-            FROM_AFFINE(P, sig);
-            POINTonE1_mult_w5(P, P, scalar, nbits);
-            POINTonE1_dadd(&ctx->AggrSign.e1, &ctx->AggrSign.e1, P, NULL);
-        } else {
-            POINTonE1 *P = &ctx->AggrSign.e1;
-
-            ctx->ctrl |= AGGR_SIGN_SET;
-            FROM_AFFINE(P, sig);
-            POINTonE1_mult_w5(P, P, scalar, nbits);
-        }
-    }
-
-    if (PK != NULL) {
-        unsigned int n;
-        POINTonE1 H[1];
-
-        if (ctx->ctrl & AGGR_HASH_OR_ENCODE)
-            Hash_to_G1(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
-        else
-            Encode_to_G1(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
-
-        POINTonE1_from_Jacobian(H, H);
-
-        POINTonE1_mult_w5(H, H, scalar, nbits);
-        POINTonE1_from_Jacobian(H, H);
-
-        n = ctx->nelems;
-        vec_copy(ctx->Q + n, PK, sizeof(POINTonE2_affine));
-        vec_copy(ctx->P + n, H, sizeof(POINTonE1_affine));
-        if (++n == N_MAX) {
-            if (ctx->ctrl & AGGR_GT_SET) {
-                vec384fp12 GT;
-                miller_loop_n(GT, ctx->Q, ctx->P, n);
-                mul_fp12(ctx->GT, ctx->GT, GT);
-            } else {
-                miller_loop_n(ctx->GT, ctx->Q, ctx->P, n);
-                ctx->ctrl |= AGGR_GT_SET;
-            }
-            n = 0;
-        }
-        ctx->nelems = n;
-    }
-
-    return BLST_SUCCESS;
-}
-
-BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g2(PAIRING *ctx,
-                                                 const POINTonE2_affine *PK,
-                                                 const POINTonE1_affine *sig,
-                                                 const limb_t *scalar,
-                                                 size_t nbits,
-                                                 const void *msg,
-                                                 size_t msg_len,
-                                                 const void *aug,
-                                                 size_t aug_len)
-{   return PAIRING_Mul_n_Aggregate_PK_in_G2(ctx, PK, sig, scalar, nbits,
-                                                 msg, msg_len, aug, aug_len);
-}
-
-static BLST_ERROR PAIRING_Mul_n_Aggregate_PK_in_G1(PAIRING *ctx,
-                                                   const POINTonE1_affine *PK,
-                                                   const POINTonE2_affine *sig,
-                                                   const limb_t *scalar,
-                                                   size_t nbits,
-                                                   const void *msg,
-                                                   size_t msg_len,
-                                                   const void *aug,
-                                                   size_t aug_len)
-{
-    if (ctx->ctrl & AGGR_MIN_SIG)
-        return BLST_AGGR_TYPE_MISMATCH;
-
-    ctx->ctrl |= AGGR_MIN_PK;
-
-    if (sig != NULL) {
-        if (!POINTonE2_in_G2((const POINTonE2 *)sig))
-            return BLST_POINT_NOT_IN_GROUP;
-
-        if (ctx->ctrl & AGGR_SIGN_SET) {
-            POINTonE2 P[1];
-
-            FROM_AFFINE(P, sig);
-            POINTonE2_mult_w5(P, P, scalar, nbits);
-            POINTonE2_dadd(&ctx->AggrSign.e2, &ctx->AggrSign.e2, P, NULL);
-        } else {
-            POINTonE2 *P = &ctx->AggrSign.e2;
-
-            ctx->ctrl |= AGGR_SIGN_SET;
-            FROM_AFFINE(P, sig);
-            POINTonE2_mult_w5(P, P, scalar, nbits);
-        }
-    }
-
-    if (PK != NULL) {
-        unsigned int n;
-        POINTonE1 pk[1];
-        POINTonE2 H[1];
-
-        if (ctx->ctrl & AGGR_HASH_OR_ENCODE)
-            Hash_to_G2(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
-        else
-            Encode_to_G2(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
-
-        POINTonE2_from_Jacobian(H, H);
-
-        FROM_AFFINE(pk, PK);
-        POINTonE1_mult_w5(pk, pk, scalar, nbits);
-        POINTonE1_from_Jacobian(pk, pk);
-
-        n = ctx->nelems;
-        vec_copy(ctx->Q + n, H, sizeof(POINTonE2_affine));
-        vec_copy(ctx->P + n, pk, sizeof(POINTonE1_affine));
-        if (++n == N_MAX) {
-            if (ctx->ctrl & AGGR_GT_SET) {
-                vec384fp12 GT;
-                miller_loop_n(GT, ctx->Q, ctx->P, n);
-                mul_fp12(ctx->GT, ctx->GT, GT);
-            } else {
-                miller_loop_n(ctx->GT, ctx->Q, ctx->P, n);
-                ctx->ctrl |= AGGR_GT_SET;
-            }
-            n = 0;
-        }
-        ctx->nelems = n;
-    }
-
-    return BLST_SUCCESS;
+{   return PAIRING_Aggregate_PK_in_G1(ctx, PK, signature, NULL, 0,
+                                      msg, msg_len, aug, aug_len);
 }
 
 BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g1(PAIRING *ctx,
@@ -362,8 +267,8 @@ BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g1(PAIRING *ctx,
                                                  size_t msg_len,
                                                  const void *aug,
                                                  size_t aug_len)
-{   return PAIRING_Mul_n_Aggregate_PK_in_G1(ctx, PK, sig, scalar, nbits,
-                                                 msg, msg_len, aug, aug_len);
+{   return PAIRING_Aggregate_PK_in_G1(ctx, PK, sig, scalar, nbits,
+                                      msg, msg_len, aug, aug_len);
 }
 
 static void PAIRING_Commit(PAIRING *ctx)
@@ -572,8 +477,8 @@ BLST_ERROR blst_core_verify_pk_in_g1(const POINTonE1_affine *pk,
     ctx.DST = DST;
     ctx.DST_len = DST_len;
 
-    ret = PAIRING_Aggregate_PK_in_G1(&ctx, pk, signature, msg, msg_len,
-                                                          aug, aug_len);
+    ret = PAIRING_Aggregate_PK_in_G1(&ctx, pk, signature, NULL, 0,
+                                     msg, msg_len, aug, aug_len);
     if (ret != BLST_SUCCESS)
         return ret;
 
@@ -597,8 +502,8 @@ BLST_ERROR blst_core_verify_pk_in_g2(const POINTonE2_affine *pk,
     ctx.DST = DST;
     ctx.DST_len = DST_len;
 
-    ret = PAIRING_Aggregate_PK_in_G2(&ctx, pk, signature, msg, msg_len,
-                                                          aug, aug_len);
+    ret = PAIRING_Aggregate_PK_in_G2(&ctx, pk, signature, NULL, 0,
+                                     msg, msg_len, aug, aug_len);
     if (ret != BLST_SUCCESS)
         return ret;
 
