@@ -793,9 +793,12 @@ extern "C" {
         ctx: *mut blst_pairing,
         PK: *const blst_p2_affine,
         sig: *const blst_p1_affine,
-        hash: *const blst_p1_affine,
         scalar: *const limb_t,
         nbits: usize,
+        msg: *const byte,
+        msg_len: usize,
+        aug: *const byte,
+        aug_len: usize,
     ) -> BLST_ERROR;
 }
 extern "C" {
@@ -814,9 +817,12 @@ extern "C" {
         ctx: *mut blst_pairing,
         PK: *const blst_p1_affine,
         sig: *const blst_p2_affine,
-        hash: *const blst_p2_affine,
         scalar: *const limb_t,
         nbits: usize,
+        msg: *const byte,
+        msg_len: usize,
+        aug: *const byte,
+        aug_len: usize,
     ) -> BLST_ERROR;
 }
 extern "C" {

@@ -135,55 +135,51 @@ func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
 }
 
 func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
-    rand *Scalar, randBits int, useHash bool, msg []byte,
-    optional ...[]byte) int {
-
-    var dst []byte
-    if len(optional) > 0 {
-        dst = optional[0]
-    }
-
+                                rand *Scalar, randBits int, msg []byte,
+                                optional ...[]byte) int { // aug
     var aug []byte
-    if len(optional) > 1 {
-        aug = optional[1]
+    var uaug *C.byte
+    if len(optional) > 0 {
+        aug = optional[0]
+        if aug != nil {
+            uaug = (*C.byte)(&aug[0])
+        }
     }
-
-    var hash *P2Affine
-    if useHash {
-        hash = HashToG2(msg, dst, aug).ToAffine()
-    } else {
-        hash = EncodeToG2(msg, dst, aug).ToAffine()
+    var umsg *C.byte
+    if msg != nil {
+        umsg = (*C.byte)(&msg[0])
     }
 
     r := C.blst_pairing_mul_n_aggregate_pk_in_g1((*C.blst_pairing)(&ctx[0]),
-        PK, sig, hash, &rand.l[0], C.size_t(randBits))
+                                                 PK, sig,
+                                                 &rand.l[0], C.size_t(randBits),
+                                                 umsg, C.size_t(len(msg)),
+                                                 uaug, C.size_t(len(aug)))
 
     return int(r)
 }
 
 func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
-    rand *Scalar, randBits int, useHash bool, msg []byte,
-    optional ...[]byte) int {
-
-    var dst []byte
-    if len(optional) > 0 {
-        dst = optional[0]
-    }
-
+                                rand *Scalar, randBits int, msg []byte,
+                                optional ...[]byte) int { // aug
     var aug []byte
-    if len(optional) > 1 {
-        aug = optional[1]
+    var uaug *C.byte
+    if len(optional) > 0 {
+        aug = optional[0]
+        if aug != nil {
+            uaug = (*C.byte)(&aug[0])
+        }
     }
-
-    var hash *P1Affine
-    if useHash {
-        hash = HashToG1(msg, dst, aug).ToAffine()
-    } else {
-        hash = EncodeToG1(msg, dst, aug).ToAffine()
+    var umsg *C.byte
+    if msg != nil {
+        umsg = (*C.byte)(&msg[0])
     }
 
     r := C.blst_pairing_mul_n_aggregate_pk_in_g2((*C.blst_pairing)(&ctx[0]),
-        PK, sig, hash, &rand.l[0], C.size_t(randBits))
+                                                 PK, sig,
+                                                 &rand.l[0], C.size_t(randBits),
+                                                 umsg, C.size_t(len(msg)),
+                                                 uaug, C.size_t(len(aug)))
 
     return int(r)
 }

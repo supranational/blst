@@ -115,9 +115,10 @@ impl Pairing {
         &mut self,
         pk: &dyn Any,
         sig: &dyn Any,
-        hash: &dyn Any,
         scalar: &[limb_t],
         nbits: usize,
+        msg: &[u8],
+        aug: &[u8],
     ) -> BLST_ERROR {
         if pk.is::<blst_p1_affine>() {
             unsafe {
@@ -131,12 +132,12 @@ impl Pairing {
                         Some(sig) => sig,
                         None => ptr::null(),
                     },
-                    match hash.downcast_ref::<blst_p2_affine>() {
-                        Some(hash) => hash,
-                        None => ptr::null(),
-                    },
                     scalar.as_ptr(),
                     nbits,
+                    msg.as_ptr(),
+                    msg.len(),
+                    aug.as_ptr(),
+                    aug.len(),
                 )
             }
         } else if pk.is::<blst_p2_affine>() {
@@ -151,12 +152,12 @@ impl Pairing {
                         Some(sig) => sig,
                         None => ptr::null(),
                     },
-                    match hash.downcast_ref::<blst_p1_affine>() {
-                        Some(hash) => hash,
-                        None => ptr::null(),
-                    },
                     scalar.as_ptr(),
                     nbits,
+                    msg.as_ptr(),
+                    msg.len(),
+                    aug.as_ptr(),
+                    aug.len(),
                 )
             }
         } else {
@@ -736,9 +737,6 @@ macro_rules! sig_variant_impl {
 
                     pool.execute(move || {
                         let mut pairing = Pairing::new($hash_or_encode, dst);
-                        let mut hash = unsafe {
-                            MaybeUninit::<$sig_aff>::uninit().assume_init()
-                        };
                         // reconstruct input slices...
                         let rands = unsafe {
                             slice::from_raw_parts(
@@ -775,25 +773,13 @@ macro_rules! sig_variant_impl {
                                 break;
                             }
 
-                            unsafe {
-                                let mut p = MaybeUninit::<$sig>::uninit();
-                                $hash_or_encode_to(
-                                    p.as_mut_ptr(),
-                                    msgs[work].as_ptr(),
-                                    msgs[work].len(),
-                                    dst.as_ptr(),
-                                    dst.len(),
-                                    ptr::null(),
-                                    0,
-                                );
-                                $sig_to_aff(&mut hash, p.as_ptr());
-                            };
                             if pairing.mul_n_aggregate(
                                 &pks[work].point,
                                 &sigs[work].point,
-                                &hash,
                                 &rands[work].l,
                                 rand_bits,
+                                msgs[work],
+                                &[],
                             ) != BLST_ERROR::BLST_SUCCESS
                             {
                                 valid.store(false, Ordering::Relaxed);
