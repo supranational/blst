@@ -1410,6 +1410,10 @@ func (p1 *P1Affine) Uncompress(in []byte) *P1Affine {
 	return p1
 }
 
+func (p1 *P1Affine) InG1() bool {
+	return bool(C.blst_p1_affine_in_g1(p1))
+}
+
 func (dummy *P1Affine) BatchUncompress(in [][]byte) []*P1Affine {
 	// Allocate space for all of the resulting points. Later we'll save pointers
 	// and return those so that the result could be used in other functions,
@@ -1612,6 +1616,10 @@ func (p2 *P2Affine) Uncompress(in []byte) *P2Affine {
 	return p2
 }
 
+func (p2 *P2Affine) InG2() bool {
+	return bool(C.blst_p2_affine_in_g2(p2))
+}
+
 func (dummy *P2Affine) BatchUncompress(in [][]byte) []*P2Affine {
 	// Allocate space for all of the resulting points. Later we'll save pointers
 	// and return those so that the result could be used in other functions,
@@ -1803,6 +1811,10 @@ func (s *Scalar) Deserialize(in []byte) *Scalar {
 		return nil
 	}
 	return s
+}
+
+func (s *Scalar) Valid() bool {
+	return bool(C.blst_scalar_fr_check(s))
 }
 
 //

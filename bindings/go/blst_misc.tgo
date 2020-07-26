@@ -54,6 +54,10 @@ func (s *Scalar) Deserialize(in []byte) *Scalar {
     return s
 }
 
+func (s *Scalar) Valid() bool {
+  return bool(C.blst_scalar_fr_check(s))
+}
+
 //
 // LEndian
 //
