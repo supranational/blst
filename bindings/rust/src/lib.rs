@@ -419,30 +419,38 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn uncompress(pk_comp: &[u8]) -> Result<Self, BLST_ERROR> {
-                let mut pk = std::mem::MaybeUninit::<$pk_aff>::uninit();
-
-                unsafe {
-                    let err = $pk_uncomp(pk.as_mut_ptr(), pk_comp.as_ptr());
-                    if err != BLST_ERROR::BLST_SUCCESS {
-                        return Err(err);
+                if pk_comp.len() == $pk_comp_size {
+                    unsafe {
+                        let mut pk = MaybeUninit::<$pk_aff>::uninit();
+                        let err = $pk_uncomp(pk.as_mut_ptr(), pk_comp.as_ptr());
+                        if err != BLST_ERROR::BLST_SUCCESS {
+                            return Err(err);
+                        }
+                        Ok(Self {
+                            point: pk.assume_init(),
+                        })
                     }
-                    Ok(Self {
-                        point: pk.assume_init(),
-                    })
+                } else {
+                    Err(BLST_ERROR::BLST_BAD_ENCODING)
                 }
             }
 
             pub fn deserialize(pk_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                let mut pk = std::mem::MaybeUninit::<$pk_aff>::uninit();
-
-                unsafe {
-                    let err = $pk_deser(pk.as_mut_ptr(), pk_in.as_ptr());
-                    if err != BLST_ERROR::BLST_SUCCESS {
-                        return Err(err);
+                if pk_in.len() == $pk_ser_size
+                    || pk_in.len() == $pk_comp_size && (pk_in[0] & 0x80) != 0
+                {
+                    unsafe {
+                        let mut pk = MaybeUninit::<$pk_aff>::uninit();
+                        let err = $pk_deser(pk.as_mut_ptr(), pk_in.as_ptr());
+                        if err != BLST_ERROR::BLST_SUCCESS {
+                            return Err(err);
+                        }
+                        Ok(Self {
+                            point: pk.assume_init(),
+                        })
                     }
-                    Ok(Self {
-                        point: pk.assume_init(),
-                    })
+                } else {
+                    Err(BLST_ERROR::BLST_BAD_ENCODING)
                 }
             }
 
@@ -839,30 +847,39 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn uncompress(sig_comp: &[u8]) -> Result<Self, BLST_ERROR> {
-                let mut sig = std::mem::MaybeUninit::<$sig_aff>::uninit();
-
-                unsafe {
-                    let err = $sig_uncomp(sig.as_mut_ptr(), sig_comp.as_ptr());
-                    if err != BLST_ERROR::BLST_SUCCESS {
-                        return Err(err);
+                if sig_comp.len() == $sig_comp_size {
+                    unsafe {
+                        let mut sig = MaybeUninit::<$sig_aff>::uninit();
+                        let err =
+                            $sig_uncomp(sig.as_mut_ptr(), sig_comp.as_ptr());
+                        if err != BLST_ERROR::BLST_SUCCESS {
+                            return Err(err);
+                        }
+                        Ok(Self {
+                            point: sig.assume_init(),
+                        })
                     }
-                    Ok(Self {
-                        point: sig.assume_init(),
-                    })
+                } else {
+                    Err(BLST_ERROR::BLST_BAD_ENCODING)
                 }
             }
 
             pub fn deserialize(sig_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                let mut sig = std::mem::MaybeUninit::<$sig_aff>::uninit();
-
-                unsafe {
-                    let err = $sig_deser(sig.as_mut_ptr(), sig_in.as_ptr());
-                    if err != BLST_ERROR::BLST_SUCCESS {
-                        return Err(err);
+                if sig_in.len() == $sig_ser_size
+                    || sig_in.len() == $sig_comp_size && (sig_in[0] & 0x80) != 0
+                {
+                    unsafe {
+                        let mut sig = MaybeUninit::<$sig_aff>::uninit();
+                        let err = $sig_deser(sig.as_mut_ptr(), sig_in.as_ptr());
+                        if err != BLST_ERROR::BLST_SUCCESS {
+                            return Err(err);
+                        }
+                        Ok(Self {
+                            point: sig.assume_init(),
+                        })
                     }
-                    Ok(Self {
-                        point: sig.assume_init(),
-                    })
+                } else {
+                    Err(BLST_ERROR::BLST_BAD_ENCODING)
                 }
             }
 
