@@ -69,7 +69,7 @@ fn bindgen_test_layout_blst_fr() {
     );
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct blst_fp {
     pub l: [limb_t; 6usize],
 }
@@ -97,7 +97,7 @@ fn bindgen_test_layout_blst_fp() {
     );
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct blst_fp2 {
     pub fp: [blst_fp; 2usize],
 }
@@ -125,7 +125,7 @@ fn bindgen_test_layout_blst_fp2() {
     );
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct blst_fp6 {
     pub fp2: [blst_fp2; 3usize],
 }
@@ -153,7 +153,7 @@ fn bindgen_test_layout_blst_fp6() {
     );
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct blst_fp12 {
     pub fp6: [blst_fp6; 2usize],
 }
