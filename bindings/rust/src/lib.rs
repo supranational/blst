@@ -361,7 +361,7 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn from_bytes(sk_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                Ok(SecretKey::deserialize(sk_in)?) // TODO - is this correct?
+                SecretKey::deserialize(sk_in)
             }
         }
 
