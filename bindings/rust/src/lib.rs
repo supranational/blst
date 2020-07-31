@@ -361,7 +361,7 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn from_bytes(sk_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                Ok(SecretKey::deserialize(sk_in)?) // TODO - is this correct?
+                SecretKey::deserialize(sk_in)
             }
         }
 
@@ -386,10 +386,10 @@ macro_rules! sig_variant_impl {
                 Ok(pk)
             }
 
-            pub fn from_aggregate(agg_pk: *const AggregatePublicKey) -> Self {
+            pub fn from_aggregate(agg_pk: &AggregatePublicKey) -> Self {
                 let mut pk_aff = std::mem::MaybeUninit::<$pk_aff>::uninit();
                 unsafe {
-                    $pk_to_aff(pk_aff.as_mut_ptr(), &(*agg_pk).point);
+                    $pk_to_aff(pk_aff.as_mut_ptr(), &agg_pk.point);
                     Self {
                         point: pk_aff.assume_init(),
                     }
@@ -457,12 +457,10 @@ macro_rules! sig_variant_impl {
             pub fn from_bytes(pk_in: &[u8]) -> Result<Self, BLST_ERROR> {
                 if (pk_in[0] & 0x80) == 0 {
                     // Not compressed
-                    let pk = PublicKey::deserialize(pk_in)?;
-                    Ok(pk)
+                    PublicKey::deserialize(pk_in)
                 } else {
                     // compressed
-                    let pk = PublicKey::uncompress(pk_in)?;
-                    Ok(pk)
+                    PublicKey::uncompress(pk_in)
                 }
             }
 
@@ -483,10 +481,10 @@ macro_rules! sig_variant_impl {
         }
 
         impl AggregatePublicKey {
-            pub fn from_public_key(pk: *const PublicKey) -> Self {
+            pub fn from_public_key(pk: &PublicKey) -> Self {
                 let mut agg_pk = std::mem::MaybeUninit::<$pk>::uninit();
                 unsafe {
-                    $pk_from_aff(agg_pk.as_mut_ptr(), &(*pk).point);
+                    $pk_from_aff(agg_pk.as_mut_ptr(), &pk.point);
                     Self {
                         point: agg_pk.assume_init(),
                     }
@@ -542,23 +540,15 @@ macro_rules! sig_variant_impl {
                 }
             }
 
-            pub fn add_aggregate(&mut self, agg_pk: *const AggregatePublicKey) {
+            pub fn add_aggregate(&mut self, agg_pk: &AggregatePublicKey) {
                 unsafe {
-                    $pk_add_or_dbl(
-                        &mut self.point,
-                        &self.point,
-                        &(*agg_pk).point,
-                    );
+                    $pk_add_or_dbl(&mut self.point, &self.point, &agg_pk.point);
                 }
             }
 
-            pub fn add_public_key(&mut self, pk: *const PublicKey) {
+            pub fn add_public_key(&mut self, pk: &PublicKey) {
                 unsafe {
-                    $pk_add_or_dbl_aff(
-                        &mut self.point,
-                        &self.point,
-                        &(*pk).point,
-                    );
+                    $pk_add_or_dbl_aff(&mut self.point, &self.point, &pk.point);
                 }
             }
         }
@@ -569,20 +559,15 @@ macro_rules! sig_variant_impl {
         }
 
         impl Signature {
-            // TODO - why does expect *const PublicKey?
             pub fn verify(
                 &self,
                 msg: &[u8],
                 dst: &[u8],
                 aug: &[u8],
-                pk: *const PublicKey,
+                pk: &PublicKey,
             ) -> BLST_ERROR {
                 let aug_msg = [aug, msg].concat();
-                self.aggregate_verify(
-                    &[aug_msg.as_slice()],
-                    dst,
-                    &[&unsafe { *pk }],
-                )
+                self.aggregate_verify(&[aug_msg.as_slice()], dst, &[pk])
             }
 
             pub fn aggregate_verify(
@@ -814,10 +799,10 @@ macro_rules! sig_variant_impl {
                 }
             }
 
-            pub fn from_aggregate(agg_sig: *const AggregateSignature) -> Self {
+            pub fn from_aggregate(agg_sig: &AggregateSignature) -> Self {
                 let mut sig_aff = std::mem::MaybeUninit::<$sig_aff>::uninit();
                 unsafe {
-                    $sig_to_aff(sig_aff.as_mut_ptr(), &(*agg_sig).point);
+                    $sig_to_aff(sig_aff.as_mut_ptr(), &agg_sig.point);
                     Self {
                         point: sig_aff.assume_init(),
                     }
@@ -886,12 +871,10 @@ macro_rules! sig_variant_impl {
             pub fn from_bytes(sig_in: &[u8]) -> Result<Self, BLST_ERROR> {
                 if (sig_in[0] & 0x80) == 0 {
                     // Not compressed
-                    let sig = Signature::deserialize(sig_in)?;
-                    Ok(sig)
+                    Signature::deserialize(sig_in)
                 } else {
                     // compressed
-                    let sig = Signature::uncompress(sig_in)?;
-                    Ok(sig)
+                    Signature::uncompress(sig_in)
                 }
             }
 
@@ -912,10 +895,10 @@ macro_rules! sig_variant_impl {
         }
 
         impl AggregateSignature {
-            pub fn from_signature(sig: *const Signature) -> Self {
+            pub fn from_signature(sig: &Signature) -> Self {
                 let mut agg_sig = std::mem::MaybeUninit::<$sig>::uninit();
                 unsafe {
-                    $sig_from_aff(agg_sig.as_mut_ptr(), &(*sig).point);
+                    $sig_from_aff(agg_sig.as_mut_ptr(), &sig.point);
                     Self {
                         point: agg_sig.assume_init(),
                     }
@@ -972,25 +955,22 @@ macro_rules! sig_variant_impl {
                 }
             }
 
-            pub fn add_aggregate(
-                &mut self,
-                agg_sig: *const AggregateSignature,
-            ) {
+            pub fn add_aggregate(&mut self, agg_sig: &AggregateSignature) {
                 unsafe {
                     $sig_add_or_dbl(
                         &mut self.point,
                         &self.point,
-                        &(*agg_sig).point,
+                        &agg_sig.point,
                     );
                 }
             }
 
-            pub fn add_signature(&mut self, sig: *const Signature) {
+            pub fn add_signature(&mut self, sig: &Signature) {
                 unsafe {
                     $sig_add_or_dbl_aff(
                         &mut self.point,
                         &self.point,
-                        &(*sig).point,
+                        &sig.point,
                     );
                 }
             }
