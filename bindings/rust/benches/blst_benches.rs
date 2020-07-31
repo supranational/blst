@@ -4,7 +4,7 @@
 
 use blst::*;
 
-// Benchmark min_pk 
+// Benchmark min_pk
 use blst::min_pk::*;
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
@@ -65,14 +65,14 @@ fn bench_verify_multi_aggregate(c: &mut Criterion) {
         for i in 0..*n {
             // Create public keys
             rng.fill_bytes(&mut ikm);
-            let sks_i: Vec<_> =
-                (0..pks_per_sig)
-                .map(|_| { ikm[0] += 1; SecretKey::key_gen(&ikm, &[]).unwrap()})
+            let sks_i: Vec<_> = (0..pks_per_sig)
+                .map(|_| {
+                    ikm[0] += 1;
+                    SecretKey::key_gen(&ikm, &[]).unwrap()
+                })
                 .collect();
-            let pks_i = sks_i
-                .iter()
-                .map(|sk| sk.sk_to_pk())
-                .collect::<Vec<_>>();
+            let pks_i =
+                sks_i.iter().map(|sk| sk.sk_to_pk()).collect::<Vec<_>>();
             let pks_refs_i: Vec<&PublicKey> =
                 pks_i.iter().map(|pk| pk).collect();
 
@@ -102,20 +102,14 @@ fn bench_verify_multi_aggregate(c: &mut Criterion) {
             vals[0] = rng.next_u64();
             let mut rand_i = std::mem::MaybeUninit::<blst_scalar>::uninit();
             unsafe {
-                blst_scalar_from_uint64(
-                    rand_i.as_mut_ptr(),
-                    vals.as_ptr(),
-                );
+                blst_scalar_from_uint64(rand_i.as_mut_ptr(), vals.as_ptr());
                 rands.push(rand_i.assume_init());
             }
         }
 
-        let msgs_refs: Vec<&[u8]> =
-            msgs.iter().map(|m| m.as_slice()).collect();
-        let sig_refs =
-            sigs.iter().map(|s| s).collect::<Vec<&Signature>>();
-        let pks_refs: Vec<&PublicKey> =
-            pks.iter().map(|pk| pk).collect();
+        let msgs_refs: Vec<&[u8]> = msgs.iter().map(|m| m.as_slice()).collect();
+        let sig_refs = sigs.iter().map(|s| s).collect::<Vec<&Signature>>();
+        let pks_refs: Vec<&PublicKey> = pks.iter().map(|pk| pk).collect();
 
         let agg_ver = (sig_refs, pks_refs, msgs_refs, dst, rands);
 
@@ -123,7 +117,11 @@ fn bench_verify_multi_aggregate(c: &mut Criterion) {
             BenchmarkId::new("verify_multi_aggregate", n),
             &agg_ver,
             |b, (s, p, m, d, r)| {
-                b.iter(|| Signature::verify_multiple_aggregate_signatures(&m, *d, &p, &s, &r, 64));
+                b.iter(|| {
+                    Signature::verify_multiple_aggregate_signatures(
+                        &m, *d, &p, &s, &r, 64,
+                    )
+                });
             },
         );
     }
@@ -399,8 +397,9 @@ fn bench_keys(c: &mut Criterion) {
     let pk = sk.sk_to_pk();
     let pk_comp = pk.compress();
 
-    group
-        .bench_function("key_gen", |b| b.iter(|| SecretKey::key_gen(&ikm, &[])));
+    group.bench_function("key_gen", |b| {
+        b.iter(|| SecretKey::key_gen(&ikm, &[]))
+    });
 
     group.bench_function("sk_to_pk", |b| {
         b.iter(|| sk.sk_to_pk());
