@@ -436,7 +436,7 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn deserialize(pk_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                if pk_in.len() == $pk_ser_size
+                if pk_in.len() == $pk_ser_size && (pk_in[0] & 0x80) == 0
                     || pk_in.len() == $pk_comp_size && (pk_in[0] & 0x80) != 0
                 {
                     unsafe {
@@ -850,7 +850,7 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn deserialize(sig_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                if sig_in.len() == $sig_ser_size
+                if sig_in.len() == $sig_ser_size && (sig_in[0] & 0x80) == 0
                     || sig_in.len() == $sig_comp_size && (sig_in[0] & 0x80) != 0
                 {
                     unsafe {
