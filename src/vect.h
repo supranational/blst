@@ -177,8 +177,21 @@ static limb_t sqrt_align_fp2(vec384x out, const vec384x ret,
 #endif
 
 static inline int is_bit_set(const limb_t *v, size_t i)
+{   return (v[i/LIMB_T_BITS] >> (i%LIMB_T_BITS)) & 1;   }
+
+static inline limb_t byte_is_zero(unsigned char c)
+{   return ((limb_t)(c) - 1) >> (LIMB_T_BITS - 1);   }
+
+static inline limb_t bytes_are_zero(const void *a, size_t num)
 {
-    return (v[i/LIMB_T_BITS] >> (i%LIMB_T_BITS)) & 1;
+    const unsigned char *ap = (const unsigned char *)a;
+    unsigned char acc;
+    size_t i;
+
+    for (acc = 0, i = 0; i < num; i++)
+        acc |= ap[i];
+
+    return byte_is_zero(acc);
 }
 
 static inline void vec_cswap(void *restrict a, void *restrict b, size_t num,

@@ -224,23 +224,24 @@ void blst_p1_compress(unsigned char out[48], const POINTonE1 *in)
 static limb_t POINTonE1_Uncompress_BE(POINTonE1_affine *out,
                                       const unsigned char in[48])
 {
-    limbs_from_be_bytes(out->X, in, sizeof(out->X));
-    /* clear top 3 bits in case caller was conveying some information there */
-    out->X[sizeof(out->X)/sizeof(limb_t)-1] &= (limb_t)0xffffffffffffffff >> 3;
-    mul_fp(out->X, out->X, BLS12_381_RR);
+    POINTonE1_affine ret;
+    vec384 temp;
 
-    sqr_fp(out->Y, out->X);
-    mul_fp(out->Y, out->Y, out->X);
-    add_fp(out->Y, out->Y, B_E1);                       /* X^3 + B */
-    if (!sqrt_fp(out->Y, out->Y))
+    limbs_from_be_bytes(ret.X, in, sizeof(ret.X));
+    /* clear top 3 bits in case caller was conveying some information there */
+    ret.X[sizeof(ret.X)/sizeof(limb_t)-1] &= ((limb_t)0-1) >> 3;
+    add_fp(temp, ret.X, ZERO_384);  /* less than modulus? */
+    if (!vec_is_equal(temp, ret.X, sizeof(temp)))
+        return (limb_t)0 - BLST_BAD_ENCODING;
+    mul_fp(ret.X, ret.X, BLS12_381_RR);
+
+    sqr_fp(ret.Y, ret.X);
+    mul_fp(ret.Y, ret.Y, ret.X);
+    add_fp(ret.Y, ret.Y, B_E1);                         /* X^3 + B */
+    if (!sqrt_fp(ret.Y, ret.Y))
         return (limb_t)0 - BLST_POINT_NOT_ON_CURVE;
 
-    /*
-     * Even though (0,2) is formally a point on E1 curve it's turned to
-     * infinity...
-     */
-    vec_select(out->Y, out->X, out->Y, sizeof(out->Y),
-               vec_is_zero(out->X, sizeof(out->X)));
+    vec_copy(out, &ret, sizeof(ret));
 
     return sgn0_pty_mont_384(out->Y, BLS12_381_P, p0);
 }
@@ -248,19 +249,19 @@ static limb_t POINTonE1_Uncompress_BE(POINTonE1_affine *out,
 static BLST_ERROR POINTonE1_Uncompress(POINTonE1_affine *out,
                                        const unsigned char in[48])
 {
-    unsigned char info = in[0] & 0xe0;
+    unsigned char in0 = in[0];
     limb_t sgn0_pty;
 
-    if ((info & 0x80) == 0)     /* compressed bit */
+    if ((in0 & 0x80) == 0)      /* compressed bit */
         return BLST_BAD_ENCODING;
 
-    if (info & 0x40) {          /* infinity bit */
-        limb_t inf;
-        vec_copy(out, in, 48);
-        *(unsigned char *)out &= ~0xc0;
-        inf = vec_is_zero(out, 48);
-        vec_zero(out, sizeof(*out));
-        return inf ? BLST_SUCCESS : BLST_BAD_ENCODING;
+    if (in0 & 0x40) {           /* infinity bit */
+        if (byte_is_zero(in0 & 0x3f) & bytes_are_zero(in+1, 47)) {
+            vec_zero(out, sizeof(*out));
+            return BLST_SUCCESS;
+        } else {
+            return BLST_BAD_ENCODING;
+        }
     }
 
     sgn0_pty = POINTonE1_Uncompress_BE(out, in);
@@ -269,58 +270,68 @@ static BLST_ERROR POINTonE1_Uncompress(POINTonE1_affine *out,
         return (BLST_ERROR)(0 - sgn0_pty); /* POINT_NOT_ON_CURVE */
 
     sgn0_pty >>= 1; /* skip over parity bit */
-    sgn0_pty ^= (info & 0x20) >> 5;
+    sgn0_pty ^= (in0 & 0x20) >> 5;
     cneg_fp(out->Y, out->Y, sgn0_pty);
 
-    return BLST_SUCCESS;
+    /* (0,±2) is not in group, but application might want to ignore? */
+    return vec_is_zero(out->X, sizeof(out->X)) ? BLST_POINT_NOT_IN_GROUP
+                                               : BLST_SUCCESS;
 }
 
 BLST_ERROR blst_p1_uncompress(POINTonE1_affine *out, const unsigned char in[48])
 {   return POINTonE1_Uncompress(out, in);   }
 
-static void POINTonE1_Deserialize_BE(POINTonE1_affine *out,
-                                     const unsigned char in[96])
+static BLST_ERROR POINTonE1_Deserialize_BE(POINTonE1_affine *out,
+                                           const unsigned char in[96])
 {
-    limbs_from_be_bytes(out->X, in, sizeof(out->X));
+    POINTonE1_affine ret;
+    vec384 temp;
+
+    limbs_from_be_bytes(ret.X, in, sizeof(ret.X));
+    limbs_from_be_bytes(ret.Y, in + 48, sizeof(ret.Y));
+
     /* clear top 3 bits in case caller was conveying some information there */
-    out->X[sizeof(out->X)/sizeof(limb_t)-1] &= (limb_t)0xffffffffffffffff >> 3;
-    mul_fp(out->X, out->X, BLS12_381_RR);
+    ret.X[sizeof(ret.X)/sizeof(limb_t)-1] &= ((limb_t)0-1) >> 3;
+    add_fp(temp, ret.X, ZERO_384);  /* less than modulus? */
+    if (!vec_is_equal(temp, ret.X, sizeof(temp)))
+        return BLST_BAD_ENCODING;
 
-    limbs_from_be_bytes(out->Y, in + 48, sizeof(out->Y));
-    mul_fp(out->Y, out->Y, BLS12_381_RR);
+    add_fp(temp, ret.Y, ZERO_384);  /* less than modulus? */
+    if (!vec_is_equal(temp, ret.Y, sizeof(temp)))
+        return BLST_BAD_ENCODING;
 
-    /*
-     * Even though (0,2) is formally a point on E1 curve it's turned to
-     * infinity...
-     */
-    vec_select(out->Y, out->X, out->Y, sizeof(out->Y),
-               vec_is_zero(out->X, sizeof(out->X)));
+    mul_fp(ret.X, ret.X, BLS12_381_RR);
+    mul_fp(ret.Y, ret.Y, BLS12_381_RR);
+
+    if (!POINTonE1_affine_on_curve(&ret))
+        return BLST_POINT_NOT_ON_CURVE;
+
+    vec_copy(out, &ret, sizeof(ret));
+
+    /* (0,±2) is not in group, but application might want to ignore? */
+    return vec_is_zero(out->X, sizeof(out->X)) ? BLST_POINT_NOT_IN_GROUP
+                                               : BLST_SUCCESS;
 }
 
 BLST_ERROR blst_p1_deserialize(POINTonE1_affine *out,
                                const unsigned char in[96])
 {
-    if (in[0] & 0x80)           /* compressed bit */
+    unsigned char in0 = in[0];
+
+    if ((in0 & 0xe0) == 0)
+        return POINTonE1_Deserialize_BE(out, in);
+
+    if (in0 & 0x80)             /* compressed bit */
         return POINTonE1_Uncompress(out, in);
 
-    if (in[0] & 0x20)           /* sign bit */
-        return BLST_BAD_ENCODING;
-
-    if (in[0] & 0x40) {         /* infinity bit */
-        limb_t inf;
-        vec_copy(out, in, 96);
-        *(unsigned char *)out &= ~0x40;
-        inf = vec_is_zero(out, 96);
-        vec_zero(out, sizeof(*out));
-        return inf ? BLST_SUCCESS : BLST_BAD_ENCODING;
+    if (in0 & 0x40) {           /* infinity bit */
+        if (byte_is_zero(in0 & 0x3f) & bytes_are_zero(in+1, 95)) {
+            vec_zero(out, sizeof(*out));
+            return BLST_SUCCESS;
+        }
     }
 
-    POINTonE1_Deserialize_BE(out, in);
-
-    if (!POINTonE1_affine_on_curve(out))
-        return BLST_POINT_NOT_ON_CURVE;
-
-    return BLST_SUCCESS;
+    return BLST_BAD_ENCODING;
 }
 
 void blst_sk_to_pk_in_g1(POINTonE1 *out, const vec256 SK)

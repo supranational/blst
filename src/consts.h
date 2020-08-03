@@ -21,6 +21,8 @@ extern const vec384 BLS12_381_RR;   /* (1<<768)%P, "radix"^2, to-Montgomery   */
                    TO_LIMB_T(0x5c071a97a256ec6d), \
                    TO_LIMB_T(0x15f65ec3fa80e493)
 
+#define ZERO_384 (BLS12_381_Rx.p2[1])
+
 extern const vec256 BLS12_381_r;    /* order */
 static const limb_t r0 = (limb_t)0xfffffffeffffffff;  /* -1/r */
 extern const vec256 BLS12_381_rRR;  /* (1<<512)%r, "radix"^2, to-Montgomery   */

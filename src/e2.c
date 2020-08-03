@@ -268,22 +268,32 @@ void blst_p2_compress(unsigned char out[96], const POINTonE2 *in)
 static limb_t POINTonE2_Uncompress_BE(POINTonE2_affine *out,
                                       const unsigned char in[96])
 {
-    limbs_from_be_bytes(out->X[1], in, sizeof(out->X[1]));
+    POINTonE2_affine ret;
+    vec384 temp;
+
+    limbs_from_be_bytes(ret.X[1], in, sizeof(ret.X[1]));
+    limbs_from_be_bytes(ret.X[0], in + 48, sizeof(ret.X[0]));
+
     /* clear top 3 bits in case caller was conveying some information there */
-    out->X[1][sizeof(out->X[1])/sizeof(limb_t)-1] &= (limb_t)0xffffffffffffffff >> 3;
-    mul_fp(out->X[1], out->X[1], BLS12_381_RR);
+    ret.X[1][sizeof(ret.X[1])/sizeof(limb_t)-1] &= ((limb_t)0-1) >> 3;
+    add_fp(temp, ret.X[1], ZERO_384);  /* less than modulus? */
+    if (!vec_is_equal(temp, ret.X[1], sizeof(temp)))
+        return (limb_t)0 - BLST_BAD_ENCODING;
 
-    limbs_from_be_bytes(out->X[0], in + 48, sizeof(out->X[0]));
-    mul_fp(out->X[0], out->X[0], BLS12_381_RR);
+    add_fp(temp, ret.X[0], ZERO_384);  /* less than modulus? */
+    if (!vec_is_equal(temp, ret.X[0], sizeof(temp)))
+        return (limb_t)0 - BLST_BAD_ENCODING;
 
-    sqr_fp2(out->Y, out->X);
-    mul_fp2(out->Y, out->Y, out->X);
-    add_fp2(out->Y, out->Y, B_E2);                      /* X^3 + B */
-    if (!sqrt_fp2(out->Y, out->Y))
+    mul_fp(ret.X[0], ret.X[0], BLS12_381_RR);
+    mul_fp(ret.X[1], ret.X[1], BLS12_381_RR);
+
+    sqr_fp2(ret.Y, ret.X);
+    mul_fp2(ret.Y, ret.Y, ret.X);
+    add_fp2(ret.Y, ret.Y, B_E2);                        /* X^3 + B */
+    if (!sqrt_fp2(ret.Y, ret.Y))
         return (limb_t)0 - BLST_POINT_NOT_ON_CURVE;
 
-    vec_select(out->Y, out->X, out->Y, sizeof(out->Y),
-               vec_is_zero(out->X, sizeof(out->X)));
+    vec_copy(out, &ret, sizeof(ret));
 
     return sgn0_pty_mont_384x(out->Y, BLS12_381_P, p0);
 }
@@ -291,19 +301,19 @@ static limb_t POINTonE2_Uncompress_BE(POINTonE2_affine *out,
 static BLST_ERROR POINTonE2_Uncompress(POINTonE2_affine *out,
                                        const unsigned char in[96])
 {
-    unsigned char info = in[0] & 0xe0;
+    unsigned char in0 = in[0];
     limb_t sgn0_pty;
 
-    if ((info & 0x80) == 0)     /* compressed bit */
+    if ((in0 & 0x80) == 0)      /* compressed bit */
         return BLST_BAD_ENCODING;
 
-    if (info & 0x40) {          /* infinity bit */
-        limb_t inf;
-        vec_copy(out, in, 96);
-        *(unsigned char *)out &= ~0xc0;
-        inf = vec_is_zero(out, 96);
-        vec_zero(out, sizeof(*out));
-        return inf ? BLST_SUCCESS : BLST_BAD_ENCODING;
+    if (in0 & 0x40) {           /* infinity bit */
+        if (byte_is_zero(in0 & 0x3f) & bytes_are_zero(in+1, 95)) {
+            vec_zero(out, sizeof(*out));
+            return BLST_SUCCESS;
+        } else {
+            return BLST_BAD_ENCODING;
+        }
     }
 
     sgn0_pty = POINTonE2_Uncompress_BE(out, in);
@@ -312,7 +322,7 @@ static BLST_ERROR POINTonE2_Uncompress(POINTonE2_affine *out,
         return (BLST_ERROR)(0 - sgn0_pty); /* POINT_NOT_ON_CURVE */
 
     sgn0_pty >>= 1; /* skip over parity bit */
-    sgn0_pty ^= (info & 0x20) >> 5;
+    sgn0_pty ^= (in0 & 0x20) >> 5;
     cneg_fp2(out->Y, out->Y, sgn0_pty);
 
     return BLST_SUCCESS;
@@ -321,50 +331,66 @@ static BLST_ERROR POINTonE2_Uncompress(POINTonE2_affine *out,
 BLST_ERROR blst_p2_uncompress(POINTonE2_affine *out, const unsigned char in[96])
 {   return POINTonE2_Uncompress(out, in);   }
 
-static void POINTonE2_Deserialize_BE(POINTonE2_affine *out,
-                                     const unsigned char in[192])
+static BLST_ERROR POINTonE2_Deserialize_BE(POINTonE2_affine *out,
+                                           const unsigned char in[192])
 {
-    limbs_from_be_bytes(out->X[1], in, sizeof(out->X[1]));
+    POINTonE2_affine ret;
+    vec384 temp;
+
+    limbs_from_be_bytes(ret.X[1], in, sizeof(ret.X[1]));
+    limbs_from_be_bytes(ret.X[0], in + 48, sizeof(ret.X[0]));
+    limbs_from_be_bytes(ret.Y[1], in + 96, sizeof(ret.Y[1]));
+    limbs_from_be_bytes(ret.Y[0], in + 144, sizeof(ret.Y[0]));
+
     /* clear top 3 bits in case caller was conveying some information there */
-    out->X[1][sizeof(out->X[1])/sizeof(limb_t)-1] &= (limb_t)0xffffffffffffffff >> 3;
-    mul_fp(out->X[1], out->X[1], BLS12_381_RR);
+    ret.X[1][sizeof(ret.X[1])/sizeof(limb_t)-1] &= ((limb_t)0-1) >> 3;
+    add_fp(temp, ret.X[1], ZERO_384);  /* less than modulus? */
+    if (!vec_is_equal(temp, ret.X[1], sizeof(temp)))
+        return BLST_BAD_ENCODING;
 
-    limbs_from_be_bytes(out->X[0], in + 48, sizeof(out->X[0]));
-    mul_fp(out->X[0], out->X[0], BLS12_381_RR);
+    add_fp(temp, ret.X[0], ZERO_384);  /* less than modulus? */
+    if (!vec_is_equal(temp, ret.X[0], sizeof(temp)))
+        return BLST_BAD_ENCODING;
 
-    limbs_from_be_bytes(out->Y[1], in + 96, sizeof(out->Y[1]));
-    mul_fp(out->Y[1], out->Y[1], BLS12_381_RR);
+    add_fp(temp, ret.Y[1], ZERO_384);  /* less than modulus? */
+    if (!vec_is_equal(temp, ret.Y[1], sizeof(temp)))
+        return BLST_BAD_ENCODING;
 
-    limbs_from_be_bytes(out->Y[0], in + 144, sizeof(out->Y[0]));
-    mul_fp(out->Y[0], out->Y[0], BLS12_381_RR);
+    add_fp(temp, ret.Y[0], ZERO_384);  /* less than modulus? */
+    if (!vec_is_equal(temp, ret.Y[0], sizeof(temp)))
+        return BLST_BAD_ENCODING;
 
-    vec_select(out->Y, out->X, out->Y, sizeof(out->Y),
-               vec_is_zero(out->X, sizeof(out->X)));
+    mul_fp(ret.X[0], ret.X[0], BLS12_381_RR);
+    mul_fp(ret.X[1], ret.X[1], BLS12_381_RR);
+    mul_fp(ret.Y[0], ret.Y[0], BLS12_381_RR);
+    mul_fp(ret.Y[1], ret.Y[1], BLS12_381_RR);
+
+    if (!POINTonE2_affine_on_curve(&ret))
+        return BLST_POINT_NOT_ON_CURVE;
+
+    vec_copy(out, &ret, sizeof(ret));
+
+    return BLST_SUCCESS;
 }
 
 int blst_p2_deserialize(POINTonE2_affine *out, const unsigned char in[192])
 {
-    if (in[0] & 0x80)           /* compressed bit */
+    unsigned char in0 = in[0];
+
+    if ((in0 & 0xe0) == 0)
+        return POINTonE2_Deserialize_BE(out, in);
+
+    if (in0 & 0x80)             /* compressed bit */
         return POINTonE2_Uncompress(out, in);
 
-    if (in[0] & 0x20)           /* sign bit */
-        return BLST_BAD_ENCODING;
-
-    if (in[0] & 0x40) {         /* infinity bit */
-        limb_t inf;
-        vec_copy(out, in, 192);
-        *(unsigned char *)out &= ~0x40;
-        inf = vec_is_zero(out, 192);
-        vec_zero(out, sizeof(*out));
-        return inf ? BLST_SUCCESS : BLST_BAD_ENCODING;
+    if (in0 & 0x40) {           /* infinity bit */
+        if (byte_is_zero(in0 & 0x3f) & bytes_are_zero(in+1, 191)) {
+            vec_zero(out, sizeof(*out));
+            return BLST_SUCCESS;
+        }
     }
 
-    POINTonE2_Deserialize_BE(out, in);
-
-    if (!POINTonE2_affine_on_curve(out))
-        return BLST_POINT_NOT_ON_CURVE;
-
-    return BLST_SUCCESS;
+    return BLST_BAD_ENCODING;
 }
 
 void blst_sk_to_pk_in_g2(POINTonE2 *out, const vec256 SK)
