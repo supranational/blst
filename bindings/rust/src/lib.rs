@@ -311,15 +311,8 @@ macro_rules! sig_variant_impl {
                         aug.as_ptr(),
                         aug.len(),
                     );
-                    $sign(
-                        std::ptr::null_mut(),
-                        &mut sig_aff,
-                        &q,
-                        &self.value,
-                    );
-                    Signature {
-                        point: sig_aff,
-                    }
+                    $sign(std::ptr::null_mut(), &mut sig_aff, &q, &self.value);
+                    Signature { point: sig_aff }
                 }
             }
 
@@ -346,9 +339,7 @@ macro_rules! sig_variant_impl {
                     if !blst_scalar_fr_check(&sk) {
                         return Err(BLST_ERROR::BLST_BAD_ENCODING);
                     }
-                    Ok(Self {
-                        value: sk,
-                    })
+                    Ok(Self { value: sk })
                 }
             }
 
@@ -386,9 +377,7 @@ macro_rules! sig_variant_impl {
                 let mut pk_aff = <$pk_aff>::default();
                 unsafe {
                     $pk_to_aff(&mut pk_aff, &agg_pk.point);
-                    Self {
-                        point: pk_aff,
-                    }
+                    Self { point: pk_aff }
                 }
             }
 
@@ -422,9 +411,7 @@ macro_rules! sig_variant_impl {
                         if err != BLST_ERROR::BLST_SUCCESS {
                             return Err(err);
                         }
-                        Ok(Self {
-                            point: pk,
-                        })
+                        Ok(Self { point: pk })
                     }
                 } else {
                     Err(BLST_ERROR::BLST_BAD_ENCODING)
