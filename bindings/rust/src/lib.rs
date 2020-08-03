@@ -27,7 +27,7 @@ include!("bindings.rs");
 
 impl blst_fp12 {
     pub fn new() -> Self {
-        unsafe { MaybeUninit::<Self>::uninit().assume_init() }
+        Self::default()
     }
 }
 
@@ -246,7 +246,7 @@ macro_rules! sig_variant_impl {
         $sig_add_or_dbl_aff:ident,
     ) => {
         /// Secret Key
-        #[derive(Debug, Clone)]
+        #[derive(Default, Debug, Clone)]
         pub struct SecretKey {
             pub value: blst_scalar,
         }
@@ -260,38 +260,34 @@ macro_rules! sig_variant_impl {
                 if ikm.len() < 32 {
                     return Err(BLST_ERROR::BLST_BAD_ENCODING);
                 }
-                let mut sk = std::mem::MaybeUninit::<blst_scalar>::uninit();
+                let mut sk = SecretKey::default();
                 unsafe {
                     blst_keygen(
-                        sk.as_mut_ptr(),
+                        &mut sk.value,
                         ikm.as_ptr(),
                         ikm.len(),
                         key_info.as_ptr(),
                         key_info.len(),
                     );
-                    Ok(Self {
-                        value: sk.assume_init(),
-                    })
+                    Ok(sk)
                 }
             }
 
             // sk_to_pk
             pub fn sk_to_pk(&self) -> PublicKey {
                 // TODO - would the user like the serialized/compressed pk as well?
-                let mut pk_aff = std::mem::MaybeUninit::<$pk_aff>::uninit();
+                let mut pk_aff = PublicKey::default();
                 //let mut pk_ser = [0u8; $pk_ser_size];
 
                 unsafe {
                     $sk_to_pk(
                         //pk_ser.as_mut_ptr(),
                         std::ptr::null_mut(),
-                        pk_aff.as_mut_ptr(),
+                        &mut pk_aff.point,
                         &self.value,
                     );
-                    PublicKey {
-                        point: pk_aff.assume_init(),
-                    }
                 }
+                pk_aff
             }
 
             // Sign
@@ -302,12 +298,12 @@ macro_rules! sig_variant_impl {
                 aug: &[u8],
             ) -> Signature {
                 // TODO - would the user like the serialized/compressed sig as well?
-                let mut q = std::mem::MaybeUninit::<$sig>::uninit();
-                let mut sig_aff = std::mem::MaybeUninit::<$sig_aff>::uninit();
+                let mut q = <$sig>::default();
+                let mut sig_aff = <$sig_aff>::default();
                 //let mut sig_ser = [0u8; $sig_ser_size];
                 unsafe {
                     $hash_or_encode_to(
-                        q.as_mut_ptr(),
+                        &mut q,
                         msg.as_ptr(),
                         msg.len(),
                         dst.as_ptr(),
@@ -317,12 +313,12 @@ macro_rules! sig_variant_impl {
                     );
                     $sign(
                         std::ptr::null_mut(),
-                        sig_aff.as_mut_ptr(),
-                        q.as_ptr(),
+                        &mut sig_aff,
+                        &q,
                         &self.value,
                     );
                     Signature {
-                        point: sig_aff.assume_init(),
+                        point: sig_aff,
                     }
                 }
             }
@@ -344,14 +340,14 @@ macro_rules! sig_variant_impl {
 
             // deserialize
             pub fn deserialize(sk_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                let mut sk = std::mem::MaybeUninit::<blst_scalar>::uninit();
+                let mut sk = blst_scalar::default();
                 unsafe {
-                    blst_scalar_from_bendian(sk.as_mut_ptr(), sk_in.as_ptr());
-                    if !blst_scalar_fr_check(sk.as_ptr()) {
+                    blst_scalar_from_bendian(&mut sk, sk_in.as_ptr());
+                    if !blst_scalar_fr_check(&sk) {
                         return Err(BLST_ERROR::BLST_BAD_ENCODING);
                     }
                     Ok(Self {
-                        value: sk.assume_init(),
+                        value: sk,
                     })
                 }
             }
@@ -365,7 +361,7 @@ macro_rules! sig_variant_impl {
             }
         }
 
-        #[derive(Debug, Clone, Copy)]
+        #[derive(Default, Debug, Clone, Copy)]
         pub struct PublicKey {
             pub point: $pk_aff,
         }
@@ -387,11 +383,11 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn from_aggregate(agg_pk: &AggregatePublicKey) -> Self {
-                let mut pk_aff = std::mem::MaybeUninit::<$pk_aff>::uninit();
+                let mut pk_aff = <$pk_aff>::default();
                 unsafe {
-                    $pk_to_aff(pk_aff.as_mut_ptr(), &agg_pk.point);
+                    $pk_to_aff(&mut pk_aff, &agg_pk.point);
                     Self {
-                        point: pk_aff.assume_init(),
+                        point: pk_aff,
                     }
                 }
             }
@@ -399,21 +395,21 @@ macro_rules! sig_variant_impl {
             // Serdes
 
             pub fn compress(&self) -> [u8; $pk_comp_size] {
-                let mut pk = std::mem::MaybeUninit::<$pk>::uninit();
+                let mut pk = <$pk>::default();
                 let mut pk_comp = [0u8; $pk_comp_size]; // TODO - no need to initialize
                 unsafe {
-                    $pk_from_aff(pk.as_mut_ptr(), &self.point);
-                    $pk_comp(pk_comp.as_mut_ptr(), pk.as_ptr());
+                    $pk_from_aff(&mut pk, &self.point);
+                    $pk_comp(pk_comp.as_mut_ptr(), &pk);
                 }
                 pk_comp
             }
 
             pub fn serialize(&self) -> [u8; $pk_ser_size] {
-                let mut pk = std::mem::MaybeUninit::<$pk>::uninit();
+                let mut pk = <$pk>::default();
                 let mut pk_out = [0u8; $pk_ser_size];
                 unsafe {
-                    $pk_from_aff(pk.as_mut_ptr(), &self.point);
-                    $pk_ser(pk_out.as_mut_ptr(), pk.as_ptr());
+                    $pk_from_aff(&mut pk, &self.point);
+                    $pk_ser(pk_out.as_mut_ptr(), &pk);
                 }
                 pk_out
             }
@@ -421,13 +417,13 @@ macro_rules! sig_variant_impl {
             pub fn uncompress(pk_comp: &[u8]) -> Result<Self, BLST_ERROR> {
                 if pk_comp.len() == $pk_comp_size {
                     unsafe {
-                        let mut pk = MaybeUninit::<$pk_aff>::uninit();
-                        let err = $pk_uncomp(pk.as_mut_ptr(), pk_comp.as_ptr());
+                        let mut pk = <$pk_aff>::default();
+                        let err = $pk_uncomp(&mut pk, pk_comp.as_ptr());
                         if err != BLST_ERROR::BLST_SUCCESS {
                             return Err(err);
                         }
                         Ok(Self {
-                            point: pk.assume_init(),
+                            point: pk,
                         })
                     }
                 } else {
