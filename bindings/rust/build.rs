@@ -57,7 +57,7 @@ fn main() {
     println!("Using blst source directory {:?}", blst_base_dir);
 
     let c_src_dir = blst_base_dir.clone() + "/src/";
-    let build_dir = blst_base_dir.clone() + "/build/";
+    let build_dir = blst_base_dir + "/build/";
 
     file_vec.push(Path::new(&c_src_dir).join("server.c"));
     assembly(&mut file_vec, &build_dir);

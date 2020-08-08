@@ -187,8 +187,16 @@ impl Pairing {
         unsafe { blst_pairing_merge(self.ctx(), ctx1.const_ctx()) }
     }
 
-    pub fn finalverify(&self, gtsig: *const blst_fp12) -> bool {
-        unsafe { blst_pairing_finalverify(self.const_ctx(), gtsig) }
+    pub fn finalverify(&self, gtsig: Option<&blst_fp12>) -> bool {
+        unsafe {
+            blst_pairing_finalverify(
+                self.const_ctx(),
+                match gtsig {
+                    Some(gtsig) => gtsig,
+                    None => ptr::null(),
+                },
+            )
+        }
     }
 }
 
@@ -620,7 +628,9 @@ macro_rules! sig_variant_impl {
                     acc.merge(&rx.recv().unwrap());
                 }
 
-                if valid.load(Ordering::Relaxed) && acc.finalverify(&gtsig) {
+                if valid.load(Ordering::Relaxed)
+                    && acc.finalverify(Some(&gtsig))
+                {
                     BLST_ERROR::BLST_SUCCESS
                 } else {
                     BLST_ERROR::BLST_VERIFY_FAIL
@@ -757,8 +767,7 @@ macro_rules! sig_variant_impl {
                     acc.merge(&rx.recv().unwrap());
                 }
 
-                if valid.load(Ordering::Relaxed) && acc.finalverify(ptr::null())
-                {
+                if valid.load(Ordering::Relaxed) && acc.finalverify(None) {
                     BLST_ERROR::BLST_SUCCESS
                 } else {
                     BLST_ERROR::BLST_VERIFY_FAIL
