@@ -1,0 +1,58 @@
+name: ubuntu-latest
+
+on:
+  push:
+    branches:
+    - '**'
+  workflow_dispatch:
+    branches:
+    - '**'
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          bindings/rust/target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+
+    - name: Environment
+      run: env
+
+    - name: Rust
+      run: |
+        rustc --version
+        cd bindings/rust
+        cargo test --release
+        cargo clean -p blst
+        cargo clean -p blst --release
+        rm -rf target/.rustc_info.json
+        rm -rf target/{debug,release}/*/blst-*
+        rm -rf target/{debug,release}/incremental
+        rm -rf target/{debug,release}/build/src
+        rm -rf target/{debug,release}/build/build
+        rm -rf ~/.cargo/registry/src
+        rm -rf ~/.cargo/registry/index/*/.cache
+
+    - name: Go
+      run: |
+        go version
+        cd bindings/go
+        go test -test.v
+
+    - name: Python
+      run: if [ -x bindings/python/run.me ]; then bindings/python/run.me; fi
+
+    - name: Java
+      run: if [ -x bindings/java/run.me ]; then bindings/java/run.me; fi
