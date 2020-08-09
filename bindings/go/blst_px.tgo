@@ -145,7 +145,8 @@ func (p *P1) ToAffine() *P1Affine {
 //
 // Hash
 //
-func HashToG1(msg []byte, dst []byte, optional ...[]byte) *P1 {
+func HashToG1(msg []byte, dst []byte,
+        optional ...[]byte) *P1 { // aug
     var q P1
 
     // Handle zero length message
@@ -168,14 +169,14 @@ func HashToG1(msg []byte, dst []byte, optional ...[]byte) *P1 {
         }
     }
 
-    C.blst_hash_to_g1(&q,
-        msgC, C.size_t(len(msg)),
-        dstC, C.size_t(len(dst)),
-        uaug, C.size_t(len(aug)))
+    C.blst_hash_to_g1(&q, msgC, C.size_t(len(msg)),
+                          dstC, C.size_t(len(dst)),
+                          uaug, C.size_t(len(aug)))
     return &q
 }
 
-func EncodeToG1(msg []byte, dst []byte, optional ...[]byte) *P1 {
+func EncodeToG1(msg []byte, dst []byte,
+        optional ...[]byte) *P1 { // aug
     var q P1
 
     // Handle zero length message
@@ -198,10 +199,9 @@ func EncodeToG1(msg []byte, dst []byte, optional ...[]byte) *P1 {
         }
     }
 
-    C.blst_encode_to_g1(&q,
-        msgC, C.size_t(len(msg)),
-        dstC, C.size_t(len(dst)),
-        uaug, C.size_t(len(aug)))
+    C.blst_encode_to_g1(&q, msgC, C.size_t(len(msg)),
+                            dstC, C.size_t(len(dst)),
+                            uaug, C.size_t(len(aug)))
     return &q
 }
 

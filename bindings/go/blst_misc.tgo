@@ -196,13 +196,14 @@ func (e1 *Fp) Equals(e2 *Fp) bool {
 }
 
 func (e1 *Fp2) Equals(e2 *Fp2) bool {
-    return (&(e1.fp[0])).Equals(&e2.fp[0]) && (&(e1.fp[1])).Equals(&e2.fp[1])
+    return (&(e1.fp[0])).Equals(&e2.fp[0]) &&
+           (&(e1.fp[1])).Equals(&e2.fp[1])
 }
 
 func (e1 *Fp6) Equals(e2 *Fp6) bool {
     return (&(e1.fp2[0])).Equals(&e2.fp2[0]) &&
-        (&(e1.fp2[1])).Equals(&e2.fp2[1]) &&
-        (&(e1.fp2[2])).Equals(&e2.fp2[2])
+           (&(e1.fp2[1])).Equals(&e2.fp2[1]) &&
+           (&(e1.fp2[2])).Equals(&e2.fp2[2])
 }
 
 func (e1 *P1Affine) Equals(e2 *P1Affine) bool {

@@ -70,7 +70,7 @@ func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
         return nil
     }
     C.blst_keygen(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
-        infoP, C.size_t(len(info)))
+                       infoP, C.size_t(len(info)))
     return &sk
 }
 
@@ -190,7 +190,7 @@ func PairingCommit(ctx Pairing) {
 
 func PairingMerge(ctx Pairing, ctx1 Pairing) int {
     r := C.blst_pairing_merge((*C.blst_pairing)(&ctx[0]),
-        (*C.blst_pairing)(&ctx1[0]))
+                              (*C.blst_pairing)(&ctx1[0]))
     return int(r)
 }
 

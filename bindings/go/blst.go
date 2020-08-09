@@ -484,7 +484,8 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 }
 
 func (sig *P2Affine) FastAggregateVerify(pks []*P1Affine, msg Message,
-	dst []byte, optional ...interface{}) bool {
+	dst []byte,
+	optional ...interface{}) bool { // pass-through to Verify
 	n := len(pks)
 
 	// TODO: return value for length zero?
@@ -502,8 +503,9 @@ func (sig *P2Affine) FastAggregateVerify(pks []*P1Affine, msg Message,
 	return sig.Verify(pkAff, msg, dst, optional...)
 }
 
-func (dummy *P2Affine) MultipleAggregateVerify(sigs []*P2Affine, pks []*P1Affine,
-	msgs []Message, dst []byte, randFn func(*Scalar), randBits int,
+func (dummy *P2Affine) MultipleAggregateVerify(sigs []*P2Affine,
+	pks []*P1Affine, msgs []Message, dst []byte, randFn func(*Scalar),
+	randBits int,
 	optional ...interface{}) bool { // useHash
 
 	// Sanity checks and argument parsing
@@ -535,7 +537,8 @@ type mulAggGetterPkInG1 func(work uint32, sig *P2Affine, pk *P1Affine,
 	rand *Scalar) (*P2Affine, *P1Affine, *Scalar, []byte)
 
 func multipleAggregateVerifyPkInG1(paramsFn mulAggGetterPkInG1, msgs []Message,
-	dst []byte, randBits int, optional ...bool) bool { // useHash
+	dst []byte, randBits int,
+	optional ...bool) bool { // useHash
 	n := len(msgs)
 	if n == 0 {
 		return true
@@ -578,8 +581,8 @@ func multipleAggregateVerifyPkInG1(paramsFn mulAggGetterPkInG1, msgs []Message,
 				curSig, curPk, curRand, aug := paramsFn(work, &tempSig,
 					&tempPk, &tempRand)
 
-				if PairingMulNAggregatePkInG1(pairing, curPk, curSig,
-					curRand, randBits, msgs[work], aug) !=
+				if PairingMulNAggregatePkInG1(pairing, curPk, curSig, curRand,
+					randBits, msgs[work], aug) !=
 					C.BLST_SUCCESS {
 					atomic.StoreInt32(&valid, 0)
 					break
@@ -1048,7 +1051,8 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 }
 
 func (sig *P1Affine) FastAggregateVerify(pks []*P2Affine, msg Message,
-	dst []byte, optional ...interface{}) bool {
+	dst []byte,
+	optional ...interface{}) bool { // pass-through to Verify
 	n := len(pks)
 
 	// TODO: return value for length zero?
@@ -1066,8 +1070,9 @@ func (sig *P1Affine) FastAggregateVerify(pks []*P2Affine, msg Message,
 	return sig.Verify(pkAff, msg, dst, optional...)
 }
 
-func (dummy *P1Affine) MultipleAggregateVerify(sigs []*P1Affine, pks []*P2Affine,
-	msgs []Message, dst []byte, randFn func(*Scalar), randBits int,
+func (dummy *P1Affine) MultipleAggregateVerify(sigs []*P1Affine,
+	pks []*P2Affine, msgs []Message, dst []byte, randFn func(*Scalar),
+	randBits int,
 	optional ...interface{}) bool { // useHash
 
 	// Sanity checks and argument parsing
@@ -1099,7 +1104,8 @@ type mulAggGetterPkInG2 func(work uint32, sig *P1Affine, pk *P2Affine,
 	rand *Scalar) (*P1Affine, *P2Affine, *Scalar, []byte)
 
 func multipleAggregateVerifyPkInG2(paramsFn mulAggGetterPkInG2, msgs []Message,
-	dst []byte, randBits int, optional ...bool) bool { // useHash
+	dst []byte, randBits int,
+	optional ...bool) bool { // useHash
 	n := len(msgs)
 	if n == 0 {
 		return true
@@ -1142,8 +1148,8 @@ func multipleAggregateVerifyPkInG2(paramsFn mulAggGetterPkInG2, msgs []Message,
 				curSig, curPk, curRand, aug := paramsFn(work, &tempSig,
 					&tempPk, &tempRand)
 
-				if PairingMulNAggregatePkInG2(pairing, curPk, curSig,
-					curRand, randBits, msgs[work], aug) !=
+				if PairingMulNAggregatePkInG2(pairing, curPk, curSig, curRand,
+					randBits, msgs[work], aug) !=
 					C.BLST_SUCCESS {
 					atomic.StoreInt32(&valid, 0)
 					break
@@ -1485,7 +1491,8 @@ func (p *P1) ToAffine() *P1Affine {
 //
 // Hash
 //
-func HashToG1(msg []byte, dst []byte, optional ...[]byte) *P1 {
+func HashToG1(msg []byte, dst []byte,
+	optional ...[]byte) *P1 { // aug
 	var q P1
 
 	// Handle zero length message
@@ -1508,14 +1515,14 @@ func HashToG1(msg []byte, dst []byte, optional ...[]byte) *P1 {
 		}
 	}
 
-	C.blst_hash_to_g1(&q,
-		msgC, C.size_t(len(msg)),
+	C.blst_hash_to_g1(&q, msgC, C.size_t(len(msg)),
 		dstC, C.size_t(len(dst)),
 		uaug, C.size_t(len(aug)))
 	return &q
 }
 
-func EncodeToG1(msg []byte, dst []byte, optional ...[]byte) *P1 {
+func EncodeToG1(msg []byte, dst []byte,
+	optional ...[]byte) *P1 { // aug
 	var q P1
 
 	// Handle zero length message
@@ -1538,8 +1545,7 @@ func EncodeToG1(msg []byte, dst []byte, optional ...[]byte) *P1 {
 		}
 	}
 
-	C.blst_encode_to_g1(&q,
-		msgC, C.size_t(len(msg)),
+	C.blst_encode_to_g1(&q, msgC, C.size_t(len(msg)),
 		dstC, C.size_t(len(dst)),
 		uaug, C.size_t(len(aug)))
 	return &q
@@ -1691,7 +1697,8 @@ func (p *P2) ToAffine() *P2Affine {
 //
 // Hash
 //
-func HashToG2(msg []byte, dst []byte, optional ...[]byte) *P2 {
+func HashToG2(msg []byte, dst []byte,
+	optional ...[]byte) *P2 { // aug
 	var q P2
 
 	// Handle zero length message
@@ -1714,14 +1721,14 @@ func HashToG2(msg []byte, dst []byte, optional ...[]byte) *P2 {
 		}
 	}
 
-	C.blst_hash_to_g2(&q,
-		msgC, C.size_t(len(msg)),
+	C.blst_hash_to_g2(&q, msgC, C.size_t(len(msg)),
 		dstC, C.size_t(len(dst)),
 		uaug, C.size_t(len(aug)))
 	return &q
 }
 
-func EncodeToG2(msg []byte, dst []byte, optional ...[]byte) *P2 {
+func EncodeToG2(msg []byte, dst []byte,
+	optional ...[]byte) *P2 { // aug
 	var q P2
 
 	// Handle zero length message
@@ -1744,8 +1751,7 @@ func EncodeToG2(msg []byte, dst []byte, optional ...[]byte) *P2 {
 		}
 	}
 
-	C.blst_encode_to_g2(&q,
-		msgC, C.size_t(len(msg)),
+	C.blst_encode_to_g2(&q, msgC, C.size_t(len(msg)),
 		dstC, C.size_t(len(dst)),
 		uaug, C.size_t(len(aug)))
 	return &q
@@ -1944,7 +1950,8 @@ func (e1 *Fp) Equals(e2 *Fp) bool {
 }
 
 func (e1 *Fp2) Equals(e2 *Fp2) bool {
-	return (&(e1.fp[0])).Equals(&e2.fp[0]) && (&(e1.fp[1])).Equals(&e2.fp[1])
+	return (&(e1.fp[0])).Equals(&e2.fp[0]) &&
+		(&(e1.fp[1])).Equals(&e2.fp[1])
 }
 
 func (e1 *Fp6) Equals(e2 *Fp6) bool {
