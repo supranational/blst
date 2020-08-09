@@ -24,6 +24,9 @@ script:
               rustup set default-host x86_64-pc-windows-msvc;
               export ML=-nologo;
           fi;
+          if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+              (cd bindings/rust; cargo update)
+          fi;
           (cd bindings/rust; cargo test --release)
       fi
     - if which go > /dev/null 2>&1; then
@@ -61,4 +64,5 @@ cache:
     cargo: true
     directories:
       - bindings/rust/target
+      - bindings/rust/Cargo.lock
 
