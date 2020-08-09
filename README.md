@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/supranational/blst.svg?branch=master)](https://travis-ci.org/supranational/blst) ![ubuntu-latest](https://github.com/supranational/blst/workflows/ubuntu-latest/badge.svg)
+[![Build Status](https://travis-ci.org/supranational/blst.svg?branch=master)](https://travis-ci.org/supranational/blst) [![ubuntu-latest](https://github.com/supranational/blst/workflows/ubuntu-latest/badge.svg)](actions)
 <div align="left">
   <img src=blst_logo_small.png>
 </div>
