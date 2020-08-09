@@ -24,14 +24,14 @@ script:
               rustup set default-host x86_64-pc-windows-msvc;
               export ML=-nologo;
           fi;
-          cd bindings/rust;
-          if [ -f target/Cargo.lock ]; then
-              mv -f target/Cargo.lock .;
-          fi;
-          if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-              cargo update;
-          fi;
-          cargo test --release;
+          ( cd bindings/rust;
+            if [ -f target/Cargo.lock ]; then
+                mv -f target/Cargo.lock .;
+            fi;
+            if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+                cargo update;
+            fi;
+            cargo test --release )
       fi
     - if which go > /dev/null 2>&1; then
           (cd bindings/go; go test -test.v)
