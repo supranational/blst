@@ -69,6 +69,9 @@ void blst_pairing_init(PAIRING *ctx, int hash_or_encode,
     ctx->DST_len = DST_len;
 }
 
+const void *blst_pairing_get_dst(const PAIRING *ctx)
+{   return ctx->DST;   }
+
 #define FROM_AFFINE(out,in) do { \
     vec_copy((out)->X, in->X, 2*sizeof(in->X)), \
     vec_select((out)->Z, in->X, BLS12_381_Rx.p, sizeof(in->X), \

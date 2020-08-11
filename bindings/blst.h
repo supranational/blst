@@ -260,6 +260,7 @@ typedef struct {} blst_pairing;
 size_t blst_pairing_sizeof();
 void blst_pairing_init(blst_pairing *new_ctx, bool hash_or_encode,
                        const byte *DST DEFNULL, size_t DST_len DEFNULL);
+const byte *blst_pairing_get_dst(const blst_pairing *ctx);
 void blst_pairing_commit(blst_pairing *ctx);
 BLST_ERROR blst_pairing_aggregate_pk_in_g2(blst_pairing *ctx,
                                            const blst_p2_affine *PK,
