@@ -38,7 +38,7 @@ $SZ=4;
 @sigma1=(17,19,10);
 $rounds=64;
 $reg_t="w";
-$func="sha${BITS}_block_data_order";
+$pre="blst_";
 
 ($ctx,$inp,$num,$Ktbl)=map("x$_",(0..2,30));
 
@@ -79,10 +79,10 @@ my ($W0,$W1)=("v16.4s","v17.4s");
 my ($ABCD_SAVE,$EFGH_SAVE)=("v18.16b","v19.16b");
 
 $code.=<<___;
-.globl	sha256_block_armv8
-.type	sha256_block_armv8,%function
+.globl	${pre}sha256_block_armv8
+.type	${pre}sha256_block_armv8,%function
 .align	6
-sha256_block_armv8:
+${pre}sha256_block_armv8:
 .Lv8_entry:
 	stp		x29,x30,[sp,#-16]!
 	add		x29,sp,#0
@@ -147,7 +147,7 @@ $code.=<<___;
 
 	ldr		x29,[sp],#16
 	ret
-.size	sha256_block_armv8,.-sha256_block_armv8
+.size	${pre}sha256_block_armv8,.-${pre}sha256_block_armv8
 ___
 }
 
@@ -339,10 +339,10 @@ sub body_00_15 () {
 }
 
 $code.=<<___;
-.globl	sha256_block_data_order
-.type	sha256_block_data_order,%function
+.globl	${pre}sha256_block_data_order
+.type	${pre}sha256_block_data_order,%function
 .align	4
-sha256_block_data_order:
+${pre}sha256_block_data_order:
 	stp	x29, x30, [sp, #-16]!
 	mov	x29, sp
 	sub	sp,sp,#16*4
@@ -434,7 +434,7 @@ $code.=<<___;
 	ldr	x29,[x29]
 	add	sp,sp,#16*4+16
 	ret
-.size	sha256_block_data_order,.-sha256_block_data_order
+.size	${pre}sha256_block_data_order,.-${pre}sha256_block_data_order
 ___
 }
 
@@ -442,11 +442,11 @@ ___
 my ($out,$inp,$len) = map("x$_",(0..2));
 
 $code.=<<___;
-.globl	sha256_emit
-.hidden	sha256_emit
-.type	sha256_emit,%function
+.globl	${pre}sha256_emit
+.hidden	${pre}sha256_emit
+.type	${pre}sha256_emit,%function
 .align	4
-sha256_emit:
+${pre}sha256_emit:
 	ldp	x4,x5,[$inp]
 	ldp	x6,x7,[$inp,#16]
 #ifndef	__AARCH64EB__
@@ -468,32 +468,32 @@ sha256_emit:
 	str	w6,[$out,#16]
 	str	w7,[$out,#24]
 	ret
-.size	sha256_emit,.-sha256_emit
+.size	${pre}sha256_emit,.-${pre}sha256_emit
 
-.globl	sha256_bcopy
-.hidden	sha256_bcopy
-.type	sha256_bcopy,%function
+.globl	${pre}sha256_bcopy
+.hidden	${pre}sha256_bcopy
+.type	${pre}sha256_bcopy,%function
 .align	4
-sha256_bcopy:
+${pre}sha256_bcopy:
 .Loop_bcopy:
 	ldrb	w3,[$inp],#1
 	sub	$len,$len,#1
 	strb	w3,[$out],#1
 	cbnz	$len,.Loop_bcopy
 	ret
-.size	sha256_bcopy,.-sha256_bcopy
+.size	${pre}sha256_bcopy,.-${pre}sha256_bcopy
 
-.globl	sha256_hcopy
-.hidden	sha256_hcopy
-.type	sha256_hcopy,%function
+.globl	${pre}sha256_hcopy
+.hidden	${pre}sha256_hcopy
+.type	${pre}sha256_hcopy,%function
 .align	4
-sha256_hcopy:
+${pre}sha256_hcopy:
 	ldp	x4,x5,[$inp]
 	ldp	x6,x7,[$inp,#16]
 	stp	x4,x5,[$out]
 	stp	x6,x7,[$out,#16]
 	ret
-.size	sha256_hcopy,.-sha256_hcopy
+.size	${pre}sha256_hcopy,.-${pre}sha256_hcopy
 ___
 }
 

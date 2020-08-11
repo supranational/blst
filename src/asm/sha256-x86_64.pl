@@ -38,7 +38,8 @@ die "can't locate x86_64-xlate.pl";
 open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
     or die "can't call $xlate: $!";
 
-$func="sha256_block_data_order";
+$pre="blst_";
+$func="${pre}sha256_block_data_order";
 $TABLE="K256";
 $SZ=4;
 @ROT=($A,$B,$C,$D,$E,$F,$G,$H)=("%eax","%ebx","%ecx","%edx",
@@ -101,11 +102,11 @@ my ($Wi,$ABEF,$CDGH,$TMP,$BSWAP,$ABEF_SAVE,$CDGH_SAVE)=map("%xmm$_",(0..2,7..10)
 my @MSG=map("%xmm$_",(3..6));
 
 $code.=<<___;
-.globl	sha256_block_data_order_shaext
-.hidden	sha256_block_data_order_shaext
-.type	sha256_block_data_order_shaext,\@function,3,"unwind"
+.globl	${pre}sha256_block_data_order_shaext
+.hidden	${pre}sha256_block_data_order_shaext
+.type	${pre}sha256_block_data_order_shaext,\@function,3,"unwind"
 .align	64
-sha256_block_data_order_shaext:
+${pre}sha256_block_data_order_shaext:
 .cfi_startproc
 ___
 $code.=<<___ if ($win64);
@@ -258,7 +259,7 @@ ___
 $code.=<<___;
 	ret
 .cfi_endproc
-.size	sha256_block_data_order_shaext,.-sha256_block_data_order_shaext
+.size	${pre}sha256_block_data_order_shaext,.-${pre}sha256_block_data_order_shaext
 ___
 }}}
 {{{
@@ -700,11 +701,11 @@ ___
 my ($out,$inp,$len) = $win64 ? ("%rcx","%rdx","%r8") :  # Win64 order
                                ("%rdi","%rsi","%rdx");  # Unix order
 $code.=<<___;
-.globl	sha256_emit
-.hidden	sha256_emit
-.type	sha256_emit,\@abi-omnipotent
+.globl	${pre}sha256_emit
+.hidden	${pre}sha256_emit
+.type	${pre}sha256_emit,\@abi-omnipotent
 .align	16
-sha256_emit:
+${pre}sha256_emit:
 	mov	0($inp), %r8
 	mov	8($inp), %r9
 	mov	16($inp), %r10
@@ -726,13 +727,13 @@ sha256_emit:
 	mov	%r10d, 16($out)
 	mov	%r11d, 24($out)
 	ret
-.size	sha256_emit,.-sha256_emit
+.size	${pre}sha256_emit,.-${pre}sha256_emit
 
-.globl	sha256_bcopy
-.hidden	sha256_bcopy
-.type	sha256_bcopy,\@abi-omnipotent
+.globl	${pre}sha256_bcopy
+.hidden	${pre}sha256_bcopy
+.type	${pre}sha256_bcopy,\@abi-omnipotent
 .align	16
-sha256_bcopy:
+${pre}sha256_bcopy:
 	sub	$inp, $out
 .Loop_bcopy:
 	movzb	($inp), %eax
@@ -741,13 +742,13 @@ sha256_bcopy:
 	dec	$len
 	jnz	.Loop_bcopy
 	ret
-.size	sha256_bcopy,.-sha256_bcopy
+.size	${pre}sha256_bcopy,.-${pre}sha256_bcopy
 
-.globl	sha256_hcopy
-.hidden	sha256_hcopy
-.type	sha256_hcopy,\@abi-omnipotent
+.globl	${pre}sha256_hcopy
+.hidden	${pre}sha256_hcopy
+.type	${pre}sha256_hcopy,\@abi-omnipotent
 .align	16
-sha256_hcopy:
+${pre}sha256_hcopy:
 	mov	0($inp), %r8
 	mov	8($inp), %r9
 	mov	16($inp), %r10
@@ -757,7 +758,7 @@ sha256_hcopy:
 	mov	%r10, 16($out)
 	mov	%r11, 24($out)
 	ret
-.size	sha256_hcopy,.-sha256_hcopy
+.size	${pre}sha256_hcopy,.-${pre}sha256_hcopy
 ___
 }
 
