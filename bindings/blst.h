@@ -33,6 +33,8 @@ typedef _Bool bool; /* it's assumed that cgo calls modern enough compiler */
 
 #ifdef SWIG
 # define DEFNULL =NULL
+#elif defined __cplusplus
+# define DEFNULL =0
 #else
 # define DEFNULL
 #endif
