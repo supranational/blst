@@ -41,10 +41,10 @@
 .byte	83,72,65,50,53,54,32,98,108,111,99,107,32,116,114,97,110,115,102,111,114,109,32,102,111,114,32,65,82,77,118,56,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32,64,100,111,116,45,97,115,109,0
 .align	2
 .align	2
-.globl	sha256_block_armv8
-.type	sha256_block_armv8,%function
+.globl	blst_sha256_block_armv8
+.type	blst_sha256_block_armv8,%function
 .align	6
-sha256_block_armv8:
+blst_sha256_block_armv8:
 .Lv8_entry:
 	stp	x29,x30,[sp,#-16]!
 	add	x29,sp,#0
@@ -179,11 +179,11 @@ sha256_block_armv8:
 
 	ldr	x29,[sp],#16
 	ret
-.size	sha256_block_armv8,.-sha256_block_armv8
-.globl	sha256_block_data_order
-.type	sha256_block_data_order,%function
+.size	blst_sha256_block_armv8,.-blst_sha256_block_armv8
+.globl	blst_sha256_block_data_order
+.type	blst_sha256_block_data_order,%function
 .align	4
-sha256_block_data_order:
+blst_sha256_block_data_order:
 	stp	x29, x30, [sp, #-16]!
 	mov	x29, sp
 	sub	sp,sp,#16*4
@@ -1022,12 +1022,12 @@ sha256_block_data_order:
 	ldr	x29,[x29]
 	add	sp,sp,#16*4+16
 	ret
-.size	sha256_block_data_order,.-sha256_block_data_order
-.globl	sha256_emit
-.hidden	sha256_emit
-.type	sha256_emit,%function
+.size	blst_sha256_block_data_order,.-blst_sha256_block_data_order
+.globl	blst_sha256_emit
+.hidden	blst_sha256_emit
+.type	blst_sha256_emit,%function
 .align	4
-sha256_emit:
+blst_sha256_emit:
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
 #ifndef	__AARCH64EB__
@@ -1049,29 +1049,29 @@ sha256_emit:
 	str	w6,[x0,#16]
 	str	w7,[x0,#24]
 	ret
-.size	sha256_emit,.-sha256_emit
+.size	blst_sha256_emit,.-blst_sha256_emit
 
-.globl	sha256_bcopy
-.hidden	sha256_bcopy
-.type	sha256_bcopy,%function
+.globl	blst_sha256_bcopy
+.hidden	blst_sha256_bcopy
+.type	blst_sha256_bcopy,%function
 .align	4
-sha256_bcopy:
+blst_sha256_bcopy:
 .Loop_bcopy:
 	ldrb	w3,[x1],#1
 	sub	x2,x2,#1
 	strb	w3,[x0],#1
 	cbnz	x2,.Loop_bcopy
 	ret
-.size	sha256_bcopy,.-sha256_bcopy
+.size	blst_sha256_bcopy,.-blst_sha256_bcopy
 
-.globl	sha256_hcopy
-.hidden	sha256_hcopy
-.type	sha256_hcopy,%function
+.globl	blst_sha256_hcopy
+.hidden	blst_sha256_hcopy
+.type	blst_sha256_hcopy,%function
 .align	4
-sha256_hcopy:
+blst_sha256_hcopy:
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
 	stp	x4,x5,[x0]
 	stp	x6,x7,[x0,#16]
 	ret
-.size	sha256_hcopy,.-sha256_hcopy
+.size	blst_sha256_hcopy,.-blst_sha256_hcopy

@@ -41,12 +41,12 @@
 .byte	83,72,65,50,53,54,32,98,108,111,99,107,32,116,114,97,110,115,102,111,114,109,32,102,111,114,32,65,82,77,118,56,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32,64,100,111,116,45,97,115,109,0
 .align	2
 .p2align	2
-.globl	sha256_block_armv8
-.def	sha256_block_armv8;
+.globl	blst_sha256_block_armv8
+.def	blst_sha256_block_armv8;
 .type	32;
 .endef
 .p2align	6
-sha256_block_armv8:
+blst_sha256_block_armv8:
 .Lv8_entry:
 	stp	x29,x30,[sp,#-16]!
 	add	x29,sp,#0
@@ -182,12 +182,12 @@ sha256_block_armv8:
 	ldr	x29,[sp],#16
 	ret
 
-.globl	sha256_block_data_order
-.def	sha256_block_data_order;
+.globl	blst_sha256_block_data_order
+.def	blst_sha256_block_data_order;
 .type	32;
 .endef
 .p2align	4
-sha256_block_data_order:
+blst_sha256_block_data_order:
 	stp	x29, x30, [sp, #-16]!
 	mov	x29, sp
 	sub	sp,sp,#16*4
@@ -1027,13 +1027,13 @@ sha256_block_data_order:
 	add	sp,sp,#16*4+16
 	ret
 
-.globl	sha256_emit
+.globl	blst_sha256_emit
 
-.def	sha256_emit;
+.def	blst_sha256_emit;
 .type	32;
 .endef
 .p2align	4
-sha256_emit:
+blst_sha256_emit:
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
 #ifndef	__AARCH64EB__
@@ -1057,13 +1057,13 @@ sha256_emit:
 	ret
 
 
-.globl	sha256_bcopy
+.globl	blst_sha256_bcopy
 
-.def	sha256_bcopy;
+.def	blst_sha256_bcopy;
 .type	32;
 .endef
 .p2align	4
-sha256_bcopy:
+blst_sha256_bcopy:
 .Loop_bcopy:
 	ldrb	w3,[x1],#1
 	sub	x2,x2,#1
@@ -1072,13 +1072,13 @@ sha256_bcopy:
 	ret
 
 
-.globl	sha256_hcopy
+.globl	blst_sha256_hcopy
 
-.def	sha256_hcopy;
+.def	blst_sha256_hcopy;
 .type	32;
 .endef
 .p2align	4
-sha256_hcopy:
+blst_sha256_hcopy:
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
 	stp	x4,x5,[x0]

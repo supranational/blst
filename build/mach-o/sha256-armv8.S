@@ -41,10 +41,10 @@ LK256:
 .byte	83,72,65,50,53,54,32,98,108,111,99,107,32,116,114,97,110,115,102,111,114,109,32,102,111,114,32,65,82,77,118,56,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32,64,100,111,116,45,97,115,109,0
 .align	2
 .align	2
-.globl	_sha256_block_armv8
+.globl	_blst_sha256_block_armv8
 
 .align	6
-_sha256_block_armv8:
+_blst_sha256_block_armv8:
 Lv8_entry:
 	stp	x29,x30,[sp,#-16]!
 	add	x29,sp,#0
@@ -180,10 +180,10 @@ Loop_hw:
 	ldr	x29,[sp],#16
 	ret
 
-.globl	_sha256_block_data_order
+.globl	_blst_sha256_block_data_order
 
 .align	4
-_sha256_block_data_order:
+_blst_sha256_block_data_order:
 	stp	x29, x30, [sp, #-16]!
 	mov	x29, sp
 	sub	sp,sp,#16*4
@@ -1023,11 +1023,11 @@ L_00_48:
 	add	sp,sp,#16*4+16
 	ret
 
-.globl	_sha256_emit
-.private_extern	_sha256_emit
+.globl	_blst_sha256_emit
+.private_extern	_blst_sha256_emit
 
 .align	4
-_sha256_emit:
+_blst_sha256_emit:
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
 #ifndef	__AARCH64EB__
@@ -1051,11 +1051,11 @@ _sha256_emit:
 	ret
 
 
-.globl	_sha256_bcopy
-.private_extern	_sha256_bcopy
+.globl	_blst_sha256_bcopy
+.private_extern	_blst_sha256_bcopy
 
 .align	4
-_sha256_bcopy:
+_blst_sha256_bcopy:
 Loop_bcopy:
 	ldrb	w3,[x1],#1
 	sub	x2,x2,#1
@@ -1064,11 +1064,11 @@ Loop_bcopy:
 	ret
 
 
-.globl	_sha256_hcopy
-.private_extern	_sha256_hcopy
+.globl	_blst_sha256_hcopy
+.private_extern	_blst_sha256_hcopy
 
 .align	4
-_sha256_hcopy:
+_blst_sha256_hcopy:
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
 	stp	x4,x5,[x0]

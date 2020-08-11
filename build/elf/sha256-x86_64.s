@@ -24,11 +24,11 @@ K256:
 .long	0x03020100,0x0b0a0908,0xffffffff,0xffffffff
 .long	0xffffffff,0xffffffff,0x03020100,0x0b0a0908
 .byte	83,72,65,50,53,54,32,98,108,111,99,107,32,116,114,97,110,115,102,111,114,109,32,102,111,114,32,120,56,54,95,54,52,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32,64,100,111,116,45,97,115,109,0
-.globl	sha256_block_data_order_shaext
-.hidden	sha256_block_data_order_shaext
-.type	sha256_block_data_order_shaext,@function
+.globl	blst_sha256_block_data_order_shaext
+.hidden	blst_sha256_block_data_order_shaext
+.type	blst_sha256_block_data_order_shaext,@function
 .align	64
-sha256_block_data_order_shaext:
+blst_sha256_block_data_order_shaext:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -236,12 +236,12 @@ sha256_block_data_order_shaext:
 	movdqu	%xmm2,16(%rdi)
 	.byte	0xf3,0xc3
 .cfi_endproc	
-.size	sha256_block_data_order_shaext,.-sha256_block_data_order_shaext
-.globl	sha256_block_data_order
-.hidden	sha256_block_data_order
-.type	sha256_block_data_order,@function
+.size	blst_sha256_block_data_order_shaext,.-blst_sha256_block_data_order_shaext
+.globl	blst_sha256_block_data_order
+.hidden	blst_sha256_block_data_order
+.type	blst_sha256_block_data_order,@function
 .align	64
-sha256_block_data_order:
+blst_sha256_block_data_order:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1365,12 +1365,12 @@ sha256_block_data_order:
 	leaq	(%r11),%rsp
 	.byte	0xf3,0xc3
 .cfi_endproc	
-.size	sha256_block_data_order,.-sha256_block_data_order
-.globl	sha256_emit
-.hidden	sha256_emit
-.type	sha256_emit,@function
+.size	blst_sha256_block_data_order,.-blst_sha256_block_data_order
+.globl	blst_sha256_emit
+.hidden	blst_sha256_emit
+.type	blst_sha256_emit,@function
 .align	16
-sha256_emit:
+blst_sha256_emit:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1396,13 +1396,13 @@ sha256_emit:
 	movl	%r11d,24(%rdi)
 	.byte	0xf3,0xc3
 .cfi_endproc
-.size	sha256_emit,.-sha256_emit
+.size	blst_sha256_emit,.-blst_sha256_emit
 
-.globl	sha256_bcopy
-.hidden	sha256_bcopy
-.type	sha256_bcopy,@function
+.globl	blst_sha256_bcopy
+.hidden	blst_sha256_bcopy
+.type	blst_sha256_bcopy,@function
 .align	16
-sha256_bcopy:
+blst_sha256_bcopy:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1415,13 +1415,13 @@ sha256_bcopy:
 	jnz	.Loop_bcopy
 	.byte	0xf3,0xc3
 .cfi_endproc
-.size	sha256_bcopy,.-sha256_bcopy
+.size	blst_sha256_bcopy,.-blst_sha256_bcopy
 
-.globl	sha256_hcopy
-.hidden	sha256_hcopy
-.type	sha256_hcopy,@function
+.globl	blst_sha256_hcopy
+.hidden	blst_sha256_hcopy
+.type	blst_sha256_hcopy,@function
 .align	16
-sha256_hcopy:
+blst_sha256_hcopy:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1435,7 +1435,7 @@ sha256_hcopy:
 	movq	%r11,24(%rdi)
 	.byte	0xf3,0xc3
 .cfi_endproc
-.size	sha256_hcopy,.-sha256_hcopy
+.size	blst_sha256_hcopy,.-blst_sha256_hcopy
 
 .section	.note.GNU-stack,"",@progbits
 .section	.note.gnu.property,"a",@note

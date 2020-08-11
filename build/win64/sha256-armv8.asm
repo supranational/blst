@@ -42,9 +42,9 @@
 	ALIGN	4
 	ALIGN	4
 
-	EXPORT	|sha256_block_armv8|[FUNC]
+	EXPORT	|blst_sha256_block_armv8|[FUNC]
 	ALIGN	64
-|sha256_block_armv8| PROC
+|blst_sha256_block_armv8| PROC
 |$Lv8_entry|
 	stp	x29,x30,[sp,#-16]!
 	add	x29,sp,#0
@@ -181,9 +181,9 @@
 	ret
 	ENDP
 
-	EXPORT	|sha256_block_data_order|[FUNC]
+	EXPORT	|blst_sha256_block_data_order|[FUNC]
 	ALIGN	16
-|sha256_block_data_order| PROC
+|blst_sha256_block_data_order| PROC
 	stp	x29, x30, [sp, #-16]!
 	mov	x29, sp
 	sub	sp,sp,#16*4
@@ -1025,9 +1025,9 @@
 	ENDP
 
 
-	EXPORT	|sha256_emit|[FUNC]
+	EXPORT	|blst_sha256_emit|[FUNC]
 	ALIGN	16
-|sha256_emit| PROC
+|blst_sha256_emit| PROC
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
 #ifndef	__AARCH64EB__
@@ -1053,9 +1053,9 @@
 
 
 
-	EXPORT	|sha256_bcopy|[FUNC]
+	EXPORT	|blst_sha256_bcopy|[FUNC]
 	ALIGN	16
-|sha256_bcopy| PROC
+|blst_sha256_bcopy| PROC
 |$Loop_bcopy|
 	ldrb	w3,[x1],#1
 	sub	x2,x2,#1
@@ -1066,9 +1066,9 @@
 
 
 
-	EXPORT	|sha256_hcopy|[FUNC]
+	EXPORT	|blst_sha256_hcopy|[FUNC]
 	ALIGN	16
-|sha256_hcopy| PROC
+|blst_sha256_hcopy| PROC
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
 	stp	x4,x5,[x0]

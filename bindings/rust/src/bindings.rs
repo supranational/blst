@@ -775,6 +775,9 @@ extern "C" {
     );
 }
 extern "C" {
+    pub fn blst_pairing_get_dst(ctx: *const blst_pairing) -> *const byte;
+}
+extern "C" {
     pub fn blst_pairing_commit(ctx: *mut blst_pairing);
 }
 extern "C" {

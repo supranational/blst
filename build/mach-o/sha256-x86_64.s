@@ -24,11 +24,11 @@ K256:
 .long	0x03020100,0x0b0a0908,0xffffffff,0xffffffff
 .long	0xffffffff,0xffffffff,0x03020100,0x0b0a0908
 .byte	83,72,65,50,53,54,32,98,108,111,99,107,32,116,114,97,110,115,102,111,114,109,32,102,111,114,32,120,56,54,95,54,52,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32,64,100,111,116,45,97,115,109,0
-.globl	_sha256_block_data_order_shaext
-.private_extern	_sha256_block_data_order_shaext
+.globl	_blst_sha256_block_data_order_shaext
+.private_extern	_blst_sha256_block_data_order_shaext
 
 .p2align	6
-_sha256_block_data_order_shaext:
+_blst_sha256_block_data_order_shaext:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -237,11 +237,11 @@ L$oop_shaext:
 	.byte	0xf3,0xc3
 .cfi_endproc	
 
-.globl	_sha256_block_data_order
-.private_extern	_sha256_block_data_order
+.globl	_blst_sha256_block_data_order
+.private_extern	_blst_sha256_block_data_order
 
 .p2align	6
-_sha256_block_data_order:
+_blst_sha256_block_data_order:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1366,11 +1366,11 @@ L$ssse3_00_47:
 	.byte	0xf3,0xc3
 .cfi_endproc	
 
-.globl	_sha256_emit
-.private_extern	_sha256_emit
+.globl	_blst_sha256_emit
+.private_extern	_blst_sha256_emit
 
 .p2align	4
-_sha256_emit:
+_blst_sha256_emit:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1398,11 +1398,11 @@ _sha256_emit:
 .cfi_endproc
 
 
-.globl	_sha256_bcopy
-.private_extern	_sha256_bcopy
+.globl	_blst_sha256_bcopy
+.private_extern	_blst_sha256_bcopy
 
 .p2align	4
-_sha256_bcopy:
+_blst_sha256_bcopy:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1417,11 +1417,11 @@ L$oop_bcopy:
 .cfi_endproc
 
 
-.globl	_sha256_hcopy
-.private_extern	_sha256_hcopy
+.globl	_blst_sha256_hcopy
+.private_extern	_blst_sha256_hcopy
 
 .p2align	4
-_sha256_hcopy:
+_blst_sha256_hcopy:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 

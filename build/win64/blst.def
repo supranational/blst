@@ -109,6 +109,7 @@ EXPORTS
 	blst_miller_loop_lines
 	blst_pairing_sizeof
 	blst_pairing_init
+	blst_pairing_get_dst
 	blst_pairing_commit
 	blst_pairing_aggregate_pk_in_g2
 	blst_pairing_mul_n_aggregate_pk_in_g2
