@@ -23,9 +23,12 @@ jobs:
       with:
         path: |
           ~/.cargo/registry
-          ~/.cargo/git
-          bindings/rust/target
+          **/bindings/rust/target
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+
+    - uses: actions/setup-java@v1
+      with:
+        java-version: 11
 
     - name: Environment
       run: env
@@ -37,6 +40,7 @@ jobs:
         cargo test --release
         cargo clean -p blst
         cargo clean -p blst --release
+        mv Cargo.lock target/
         rm -rf target/.rustc_info.json
         rm -rf target/{debug,release}/*/blst-*
         rm -rf target/{debug,release}/incremental
