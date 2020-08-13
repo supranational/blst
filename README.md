@@ -11,7 +11,7 @@ A BLS12-381 signature library written in C and assembly focused on performance a
 
 Compliant with IETF draft specifications:
 - [IETF BLS Signature V2](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature)
-- [IETF Hash-to-Curve V8](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve)
+- [IETF Hash-to-Curve V9](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve)
 
 Support for x86_64 and ARM64
 
