@@ -39,7 +39,7 @@ done
 
 arch=`uname -m`
 if (${CC} ${CFLAGS} -dM -E -x c /dev/null) 2>/dev/null | grep -q $arch; then
-    CFLAGS="${CFLAGS} -march=native"
+    CFLAGS="${CFLAGS} -D__ADX__"
     [ "$arch" = "x86_64" ] && CFLAGS="${CFLAGS} -mno-avx"
 fi
 
