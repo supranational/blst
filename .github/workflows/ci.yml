@@ -21,10 +21,15 @@ jobs:
 
     - uses: actions/cache@v2
       with:
+        path: '**/Cargo.lock'
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+
+    - uses: actions/cache@v2
+      with:
         path: |
           ~/.cargo/registry
           **/bindings/rust/target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
     - uses: actions/setup-java@v1
       with:
@@ -37,10 +42,12 @@ jobs:
       run: |
         rustc --version
         cd bindings/rust
+        if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+            cargo update
+        fi
         cargo test --release
         cargo clean -p blst
         cargo clean -p blst --release
-        mv Cargo.lock target/
         rm -rf target/.rustc_info.json
         rm -rf target/{debug,release}/*/blst-*
         rm -rf target/{debug,release}/incremental
