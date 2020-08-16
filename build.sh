@@ -31,7 +31,7 @@ unset shared
 while [ "x$1" != "x" ]; do
     case $1 in
         -shared)    shared=1;;
-        -*)         CFLAGS="$CFLAGS $1";;
+        -*)         cflags="$cflags $1";;
         *=*)        eval "$1";;
     esac
     shift
@@ -42,6 +42,8 @@ if (${CC} ${CFLAGS} -dM -E -x c /dev/null) 2>/dev/null | grep -q $arch; then
     CFLAGS="${CFLAGS} -march=native"
     [ "$arch" = "x86_64" ] && CFLAGS="${CFLAGS} -mno-avx"
 fi
+
+CFLAGS="$CFLAGS $cflags"
 
 rm -f libblst.a
 trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o' 0
