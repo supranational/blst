@@ -21,8 +21,9 @@ Explicit bindings for other languages
 - Go
 - Rust
 
-Unless deemed appropriate to implement specific one, bindings for other languages will be provided using [SWIG](http://swig.org)
-- so far tested Python
+Unless deemed appropriate to implement specific one, bindings for other languages will be provided using [SWIG](http://swig.org). PoCs are available for
+- [Python](bindings/python)
+- [Java](bindings/java)
 
 Formal verification will be rolling in to various components of the library over the coming months utilizing [cryptol](https://www.cryptol.net) and [coq](https://coq.inria.fr/)
 - Field, curve and bulk signature operations
