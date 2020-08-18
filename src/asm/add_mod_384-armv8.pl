@@ -849,7 +849,45 @@ sgn0_pty_mod_384x:
 	ret
 .size	sgn0_pty_mod_384x,.-sgn0_pty_mod_384x
 ___
+if (1) {
+sub vec_select {
+my $sz = shift;
+my @v=map("v$_",(0..5,16..21));
 
+$code.=<<___;
+.globl	vec_select_$sz
+.hidden	vec_select_$sz
+.type	vec_select_$sz,%function
+.align	5
+vec_select_$sz:
+	dup	v6.2d, $n_ptr
+	ld1	{@v[0].2d, @v[1].2d, @v[2].2d}, [$a_ptr],#48
+	cmeq	v6.2d, v6.2d, #0
+	ld1	{@v[3].2d, @v[4].2d, @v[5].2d}, [$b_ptr],#48
+___
+for($i=0; $i<$sz-48; $i+=48) {
+$code.=<<___;
+	bit	@v[0].16b, @v[3].16b, v6.16b
+	ld1	{@v[6].2d, @v[7].2d, @v[8].2d}, [$a_ptr],#48
+	bit	@v[1].16b, @v[4].16b, v6.16b
+	ld1	{@v[9].2d, @v[10].2d, @v[11].2d}, [$b_ptr],#48
+	bit	@v[2].16b, @v[5].16b, v6.16b
+	st1	{@v[0].2d, @v[1].2d, @v[2].2d}, [$r_ptr],#48
+___
+	@v = @v[6..11,0..5];
+}
+$code.=<<___;
+	bit	@v[0].16b, @v[3].16b, v6.16b
+	bit	@v[1].16b, @v[4].16b, v6.16b
+	bit	@v[2].16b, @v[5].16b, v6.16b
+	st1	{@v[0].2d, @v[1].2d, @v[2].2d}, [$r_ptr]
+	ret
+.size	vec_select_$sz,.-vec_select_$sz
+___
+}
+vec_select(144);
+vec_select(288);
+}
 print $code;
 
 close STDOUT;

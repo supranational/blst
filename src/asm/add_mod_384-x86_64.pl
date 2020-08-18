@@ -1416,5 +1416,55 @@ nbits_384:
 ___
 }
 
+if (1) {
+my ($out, $inp1, $inp2, $select) = $win64 ? ("%rcx", "%rdx", "%r8", "%r9d")
+                                          : ("%rdi", "%rsi", "%rdx", "%ecx");
+
+sub vec_select {
+my $sz = shift;
+my $half = $sz/2;
+my ($xmm0,$xmm1,$xmm2,$xmm3)=map("%xmm$_",(0..3));
+
+$code.=<<___;
+.globl	vec_select_$sz
+.hidden	vec_select_$sz
+.type	vec_select_$sz,\@abi-omnipotent
+.align	32
+vec_select_$sz:
+	movd	$select, %xmm5
+	pxor	%xmm4,%xmm4
+	pshufd	\$0,%xmm5,%xmm5		# broadcast
+	movdqu	($inp1),$xmm0
+	lea	$half($inp1),$inp1
+	pcmpeqd	%xmm4,%xmm5
+	movdqu	($inp2),$xmm1
+	lea	$half($inp2),$inp2
+	pcmpeqd	%xmm5,%xmm4
+	lea	$half($out),$out
+___
+for($i=0; $i<$sz-16; $i+=16) {
+$code.=<<___;
+	pand	%xmm4,$xmm0
+	movdqu	$i+16-$half($inp1),$xmm2
+	pand	%xmm5,$xmm1
+	movdqu	$i+16-$half($inp2),$xmm3
+	por	$xmm1,$xmm0
+	movdqu	$xmm0,$i-$half($out)
+___
+	($xmm0,$xmm1,$xmm2,$xmm3)=($xmm2,$xmm3,$xmm0,$xmm1);
+}
+$code.=<<___;
+	pand	%xmm4,$xmm0
+	pand	%xmm5,$xmm1
+	por	$xmm1,$xmm0
+	movdqu	$xmm0,$i-$half($out)
+	ret
+.size	vec_select_$sz,.-vec_select_$sz
+___
+}
+vec_select(144);
+vec_select(288);
+}
+
 print $code;
 close STDOUT;

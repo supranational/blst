@@ -212,21 +212,29 @@ static inline void vec_cswap(void *restrict a, void *restrict b, size_t num,
 }
 
 /* ret = bit ? a : b */
+void vec_select_144(void *ret, const void *a, const void *b, limb_t sel_a);
+void vec_select_288(void *ret, const void *a, const void *b, limb_t sel_a);
 static inline void vec_select(void *restrict ret, const void *restrict a,
                                                   const void *restrict b,
                               size_t num, limb_t sel_a)
 {
-    limb_t bi, *rp = (limb_t *)ret;
-    const limb_t *ap = (const limb_t *)a;
-    const limb_t *bp = (const limb_t *)b;
-    limb_t xorm, mask = 0 - sel_a;
-    size_t i;
+    if (num == 144)
+        vec_select_144(ret, a, b, sel_a);
+    else if (num == 288)
+        vec_select_288(ret, a, b, sel_a);
+    else {
+        limb_t bi, *rp = (limb_t *)ret;
+        const limb_t *ap = (const limb_t *)a;
+        const limb_t *bp = (const limb_t *)b;
+        limb_t xorm, mask = 0 - sel_a;
+        size_t i;
 
-    num /= sizeof(limb_t);
+        num /= sizeof(limb_t);
 
-    for (i = 0; i < num; i++) {
-        xorm = (ap[i] ^ (bi = bp[i])) & mask;
-        rp[i] = bi ^ xorm;
+        for (i = 0; i < num; i++) {
+            xorm = (ap[i] ^ (bi = bp[i])) & mask;
+            rp[i] = bi ^ xorm;
+        }
     }
 }
 
