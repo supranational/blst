@@ -188,6 +188,12 @@ typedef enum {
 } BLST_ERROR;
 
 %include "blst.hpp"
+
+extern const blst::P1_Affine BLS12_381_G1;
+extern const blst::P1_Affine BLS12_381_NEG_G1;
+extern const blst::P2_Affine BLS12_381_G2;
+extern const blst::P2_Affine BLS12_381_NEG_G2;
+
 #else
 %ignore blst_fr;
 %ignore blst_fp;
