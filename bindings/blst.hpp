@@ -91,6 +91,7 @@ public:
     }
     P1_Affine(const P1& jacobian);
 
+    P1 to_jacobian() const;
     void serialize(byte out[96]) const
     {   blst_p1_affine_serialize(out, &point);   }
     void compress(byte out[48]) const
@@ -130,6 +131,7 @@ public:
             throw err;
         blst_p1_from_affine(&point, &a);
     }
+    P1(const P1_Affine& affine) { blst_p1_from_affine(&point, affine); }
 
     P1_Affine to_affine() const         { P1_Affine ret(*this); return ret;  }
     void serialize(byte out[96]) const  { blst_p1_serialize(out, &point);    }
@@ -174,6 +176,18 @@ public:
                          aug.size());
     }
 #endif
+    P1* add(const P1& a)
+    {   blst_p1_add_or_double(&point, &point, a); return this;   }
+    P1* add(const P1_Affine &a)
+    {   blst_p1_add_or_double_affine(&point, &point, a); return this;   }
+    P1* dbl()
+    {   blst_p1_double(&point, &point); return this;   }
+    static P1 add(const P1& a, const P1& b)
+    {   P1 ret; blst_p1_add_or_double(&ret.point, a, b); return ret;   }
+    static P1 add(const P1& a, const P1_Affine& b)
+    {   P1 ret; blst_p1_add_or_double_affine(&ret.point, a, b); return ret;   }
+    static P1 dbl(const P1& a)
+    {   P1 ret; blst_p1_double(&ret.point, a); return ret;   }
 
 private:
     friend class P1_Affine;
@@ -193,6 +207,7 @@ public:
     }
     P2_Affine(const P2& jacobian);
 
+    P2 to_jacobian() const;
     void serialize(byte out[192]) const
     {   blst_p2_affine_serialize(out, &point);   }
     void compress(byte out[96]) const
@@ -232,6 +247,7 @@ public:
             throw err;
         blst_p2_from_affine(&point, &a);
     }
+    P2(const P2_Affine& affine) { blst_p2_from_affine(&point, affine); }
 
     P2_Affine to_affine() const         { P2_Affine ret(*this); return ret; }
     void serialize(byte out[192]) const { blst_p2_serialize(out, &point);   }
@@ -276,6 +292,18 @@ public:
                          aug.size());
     }
 #endif
+    P2* add(const P2& a)
+    {   blst_p2_add_or_double(&point, &point, a); return this;   }
+    P2* add(const P2_Affine &a)
+    {   blst_p2_add_or_double_affine(&point, &point, a); return this;   }
+    P2* dbl()
+    {   blst_p2_double(&point, &point); return this;   }
+    static P2 add(const P2& a, const P2& b)
+    {   P2 ret; blst_p2_add_or_double(&ret.point, a, b); return ret;   }
+    static P2 add(const P2& a, const P2_Affine& b)
+    {   P2 ret; blst_p2_add_or_double_affine(&ret.point, a, b); return ret;   }
+    static P2 dbl(const P2& a)
+    {   P2 ret; blst_p2_double(&ret.point, a); return ret;   }
 
 private:
     friend class P2_Affine;
@@ -286,6 +314,9 @@ inline P1_Affine::P1_Affine(const P1& jacobian)
 {   blst_p1_to_affine(&point, jacobian);   }
 inline P2_Affine::P2_Affine(const P2& jacobian)
 {   blst_p2_to_affine(&point, jacobian);   }
+
+inline P1 P1_Affine::to_jacobian() const { P1 ret(*this); return ret; }
+inline P2 P2_Affine::to_jacobian() const { P2 ret(*this); return ret; }
 
 inline BLST_ERROR P1_Affine::core_verify(const P2_Affine& pk,
                                          bool hash_or_encode,
