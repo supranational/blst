@@ -820,4 +820,76 @@
 
 	ret
 	ENDP
+
+
+	EXPORT	|vec_select_144|[FUNC]
+	ALIGN	32
+|vec_select_144| PROC
+	dup	v6.2d, x3
+	ld1	{v0.2d, v1.2d, v2.2d}, [x1],#48
+	cmeq	v6.2d, v6.2d, #0
+	ld1	{v3.2d, v4.2d, v5.2d}, [x2],#48
+	bit	v0.16b, v3.16b, v6.16b
+	ld1	{v16.2d, v17.2d, v18.2d}, [x1],#48
+	bit	v1.16b, v4.16b, v6.16b
+	ld1	{v19.2d, v20.2d, v21.2d}, [x2],#48
+	bit	v2.16b, v5.16b, v6.16b
+	st1	{v0.2d, v1.2d, v2.2d}, [x0],#48
+	bit	v16.16b, v19.16b, v6.16b
+	ld1	{v0.2d, v1.2d, v2.2d}, [x1],#48
+	bit	v17.16b, v20.16b, v6.16b
+	ld1	{v3.2d, v4.2d, v5.2d}, [x2],#48
+	bit	v18.16b, v21.16b, v6.16b
+	st1	{v16.2d, v17.2d, v18.2d}, [x0],#48
+	bit	v0.16b, v3.16b, v6.16b
+	bit	v1.16b, v4.16b, v6.16b
+	bit	v2.16b, v5.16b, v6.16b
+	st1	{v0.2d, v1.2d, v2.2d}, [x0]
+	ret
+	ENDP
+
+
+	EXPORT	|vec_select_288|[FUNC]
+	ALIGN	32
+|vec_select_288| PROC
+	dup	v6.2d, x3
+	ld1	{v0.2d, v1.2d, v2.2d}, [x1],#48
+	cmeq	v6.2d, v6.2d, #0
+	ld1	{v3.2d, v4.2d, v5.2d}, [x2],#48
+	bit	v0.16b, v3.16b, v6.16b
+	ld1	{v16.2d, v17.2d, v18.2d}, [x1],#48
+	bit	v1.16b, v4.16b, v6.16b
+	ld1	{v19.2d, v20.2d, v21.2d}, [x2],#48
+	bit	v2.16b, v5.16b, v6.16b
+	st1	{v0.2d, v1.2d, v2.2d}, [x0],#48
+	bit	v16.16b, v19.16b, v6.16b
+	ld1	{v0.2d, v1.2d, v2.2d}, [x1],#48
+	bit	v17.16b, v20.16b, v6.16b
+	ld1	{v3.2d, v4.2d, v5.2d}, [x2],#48
+	bit	v18.16b, v21.16b, v6.16b
+	st1	{v16.2d, v17.2d, v18.2d}, [x0],#48
+	bit	v0.16b, v3.16b, v6.16b
+	ld1	{v16.2d, v17.2d, v18.2d}, [x1],#48
+	bit	v1.16b, v4.16b, v6.16b
+	ld1	{v19.2d, v20.2d, v21.2d}, [x2],#48
+	bit	v2.16b, v5.16b, v6.16b
+	st1	{v0.2d, v1.2d, v2.2d}, [x0],#48
+	bit	v16.16b, v19.16b, v6.16b
+	ld1	{v0.2d, v1.2d, v2.2d}, [x1],#48
+	bit	v17.16b, v20.16b, v6.16b
+	ld1	{v3.2d, v4.2d, v5.2d}, [x2],#48
+	bit	v18.16b, v21.16b, v6.16b
+	st1	{v16.2d, v17.2d, v18.2d}, [x0],#48
+	bit	v0.16b, v3.16b, v6.16b
+	ld1	{v16.2d, v17.2d, v18.2d}, [x1],#48
+	bit	v1.16b, v4.16b, v6.16b
+	ld1	{v19.2d, v20.2d, v21.2d}, [x2],#48
+	bit	v2.16b, v5.16b, v6.16b
+	st1	{v0.2d, v1.2d, v2.2d}, [x0],#48
+	bit	v16.16b, v19.16b, v6.16b
+	bit	v17.16b, v20.16b, v6.16b
+	bit	v18.16b, v21.16b, v6.16b
+	st1	{v16.2d, v17.2d, v18.2d}, [x0]
+	ret
+	ENDP
 	END
