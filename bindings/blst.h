@@ -335,10 +335,10 @@ BLST_ERROR blst_core_verify_pk_in_g2(const blst_p2_affine *pk,
                                      const byte *aug DEFNULL,
                                      size_t aug_len DEFNULL);
 
-extern blst_p1_affine BLS12_381_G1;
-extern blst_p1_affine BLS12_381_NEG_G1;
-extern blst_p2_affine BLS12_381_G2;
-extern blst_p2_affine BLS12_381_NEG_G2;
+extern const blst_p1_affine BLS12_381_G1;
+extern const blst_p1_affine BLS12_381_NEG_G1;
+extern const blst_p2_affine BLS12_381_G2;
+extern const blst_p2_affine BLS12_381_NEG_G2;
 
 #include "blst_aux.h"
 
