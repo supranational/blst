@@ -7,7 +7,7 @@
 #  define __add_mod_384     __add_mont_384
 #  define __sub_mod_384     __sub_mont_384
 #  define __sub_mod_384x384 __sub_mont_384x384
-#  ifdef __ADX__
+#  if defined(__ADX__) && !defined(__BLST_PORTABLE__)
 #   include "elf/mulx_mont_384-x86_64.s"
 #   include "elf/mulx_mont_256-x86_64.s"
 #  else
@@ -23,7 +23,7 @@
 #  define __add_mod_384     __add_mont_384
 #  define __sub_mod_384     __sub_mont_384
 #  define __sub_mod_384x384 __sub_mont_384x384
-#  ifdef __ADX__
+#  if defined(__ADX__) && !defined(__BLST_PORTABLE__)
 #   include "coff/mulx_mont_384-x86_64.s"
 #   include "coff/mulx_mont_256-x86_64.s"
 #  else
@@ -39,7 +39,7 @@
 #  define __add_mod_384     __add_mont_384
 #  define __sub_mod_384     __sub_mont_384
 #  define __sub_mod_384x384 __sub_mont_384x384
-#  ifdef __ADX__
+#  if defined(__ADX__) && !defined(__BLST_PORTABLE__)
 #   include "mach-o/mulx_mont_384-x86_64.s"
 #   include "mach-o/mulx_mont_256-x86_64.s"
 #  else

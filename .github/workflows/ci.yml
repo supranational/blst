@@ -36,7 +36,9 @@ jobs:
         java-version: 11
 
     - name: Environment
-      run: env
+      run: |
+        lscpu
+        env
 
     - name: Rust
       run: |
@@ -59,6 +61,9 @@ jobs:
     - name: Go
       run: |
         go version
+        if ! (grep -q -e '^flags.*\badx\b' /proc/cpuinfo) 2>/dev/null; then
+            export CGO_CFLAGS="-D__BLST_PORTABLE__"
+        fi
         cd bindings/go
         go test -test.v
 

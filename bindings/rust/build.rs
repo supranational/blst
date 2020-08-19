@@ -27,6 +27,21 @@ fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &str) {
     file_vec.push(Path::new(base_dir).join("assembly.S"))
 }
 
+#[cfg(target_arch = "x86_64")]
+fn is_adx() -> bool {
+    use std::arch::x86_64::*;
+    let mut id = unsafe { __cpuid(0) };
+    if id.eax >= 7 {
+        id = unsafe { __cpuid_count(7, 0) };
+        return (id.ebx & 1 << 19) != 0;
+    }
+    false
+}
+#[cfg(not(target_arch = "x86_64"))]
+fn is_adx() -> bool {
+    false
+}
+
 fn main() {
     /*
      * Use pre-built libblst.a if there is one. This is primarily
@@ -66,8 +81,10 @@ fn main() {
     // Optimization level depends on whether or not --release is passed
     // or implied.
     let mut cc = cc::Build::new();
-    cc.flag_if_supported("-march=native")
-        .flag_if_supported("-mno-avx") // avoid costly transitions
+    if is_adx() {
+        cc.define("__ADX__", None);
+    }
+    cc.flag_if_supported("-mno-avx") // avoid costly transitions
         .flag_if_supported("-Wno-unused-command-line-argument");
     if !cfg!(debug_assertions) {
         cc.opt_level(2);

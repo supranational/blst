@@ -19,15 +19,19 @@ CC=${CC:-cc}
 # if -Werror stands in the way, bypass with -Wno-error on command line
 CFLAGS=${CFLAGS:--O -fPIC -Wall -Wextra -Werror}
 PERL=${PERL:-perl}
+unset cflags shared
 
 case `uname -s` in
-    Darwin)	flavour=macosx;;
+    Darwin)	flavour=macosx
+                if (sysctl machdep.cpu.features) 2>/dev/null | grep -q ADX; then
+                    cflags="-D__ADX__"
+                fi
+                ;;
     CYGWIN*)	flavour=mingw64;;
     MINGW*)	flavour=mingw64;;
     *)		flavour=elf;;
 esac
 
-unset shared
 while [ "x$1" != "x" ]; do
     case $1 in
         -shared)    shared=1;;
@@ -37,10 +41,11 @@ while [ "x$1" != "x" ]; do
     shift
 done
 
-arch=`uname -m`
-if (${CC} ${CFLAGS} -dM -E -x c /dev/null) 2>/dev/null | grep -q $arch; then
-    CFLAGS="${CFLAGS} -march=native"
-    [ "$arch" = "x86_64" ] && CFLAGS="${CFLAGS} -mno-avx"
+if (${CC} ${CFLAGS} -dM -E -x c /dev/null) 2>/dev/null | grep -q x86_64; then
+    cflags="$cflags -mno-avx" # avoid costly transitions
+    if (grep -q -e '^flags.*\badx\b' /proc/cpuinfo) 2>/dev/null; then
+        cflags="-D__ADX__ $cflags"
+    fi
 fi
 
 CFLAGS="$CFLAGS $cflags"

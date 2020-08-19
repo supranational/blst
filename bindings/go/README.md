@@ -15,6 +15,8 @@ The generate.py script is used to generate both min-pk and min-sig variants of t
 
 After running generate.py, `go build` and `go test` can be run as usual. Cgo will compile `server.c`, which includes the required C implementation files, and `assembly.S`, which includes approprate pre-generated assembly code for the platform. To compile on Windows one has to have MinGW gcc on the %PATH%.
 
+If the test or target application crashes with an "illegal instruction" exception [after copying to an older system], set `CGO_CFLAGS` environment variable to `‑D__BLST_PORTABLE__` prior build. You might need to execute `go clean -cache` to make it work.
+
 ## Usage
 There are two primary modes of operation that can be chosen based on type definitions in the application.
 

@@ -53,6 +53,8 @@ Windows (Visual C)
 \some\where\build.bat
 ```
 
+If final application crashes with an "illegal instruction" exception [after copying to an older system], pass `‑D__BLST_PORTABLE__` on build.sh command line. If you don't use build.sh, complement `CFLAGS` environment variable with the said command line option. Unless you compile a Go application, in which case manipulate the `CGO_CFLAGS` variable instead. Alternatively, if you compile Rust application on an older Intel system, but will execute it on a newer one, consider instead adding `‑D__ADX__` to `CFLAGS` for better performance.
+
 ## Bindings
 Bindings to other languages that implement minimal-signature-size and minimal-pubkey-size variants of the BLS signature specification are provided as follows:
 

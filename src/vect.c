@@ -89,7 +89,7 @@ void lshift_mod_384x(vec384x ret, const vec384x a, size_t n, const vec384 p)
 }
 #endif
 
-#if defined(mul_mont_384x) && !defined(__ADX__)
+#if defined(mul_mont_384x) && !(defined(__ADX__) && !defined(__BLST_PORTABLE__))
 void mul_mont_384x(vec384x ret, const vec384x a, const vec384x b,
                    const vec384 mod, limb_t n0)
 {
@@ -112,7 +112,7 @@ void mul_mont_384x(vec384x ret, const vec384x a, const vec384x b,
 }
 #endif
 
-#if defined(sqr_mont_384x) && !defined(__ADX__)
+#if defined(sqr_mont_384x) && !(defined(__ADX__) && !defined(__BLST_PORTABLE__))
 void sqr_mont_384x(vec384x ret, const vec384x a, const vec384 mod, limb_t n0)
 {
     vec384 t0, t1;

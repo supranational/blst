@@ -49,7 +49,7 @@ typedef vec384 vec384x[2];      /* 0 is "real" part, 1 is "imaginary" */
 /*
  * Assembly subroutines...
  */
-#ifdef __ADX__                  /* e.g. -march=broadwell */
+#if defined(__ADX__) /* e.g. -march=broadwell */ && !defined(__BLST_PORTABLE__)
 # define mul_mont_sparse_256 mulx_mont_sparse_256
 # define sqr_mont_sparse_256 sqrx_mont_sparse_256
 # define from_mont_256 fromx_mont_256
@@ -105,7 +105,7 @@ void lshift_mod_384(vec384 ret, const vec384 a, size_t count, const vec384 p);
 limb_t eucl_inverse_mod_384(vec384 ret, const vec384 a, const vec384 p,
                             const vec384 one);
 
-#ifdef __ADX__                  /* e.g. -march=broadwell */
+#if defined(__ADX__) /* e.g. -march=broadwell */ && !defined(__BLST_PORTABLE__)
 # define mul_mont_384x mulx_mont_384x
 # define sqr_mont_384x sqrx_mont_384x
 # define sqr_mont_382x sqrx_mont_382x

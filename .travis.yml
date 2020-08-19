@@ -34,6 +34,10 @@ script:
             cargo test --release )
       fi
     - if which go > /dev/null 2>&1; then
+          go version;
+          if ! (grep -q -e '^flags.*\badx\b' /proc/cpuinfo) 2>/dev/null; then
+              export CGO_CFLAGS="-D__BLST_PORTABLE__";
+          fi;
           (cd bindings/go; go test -test.v)
       fi
 

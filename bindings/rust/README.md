@@ -12,6 +12,8 @@ cargo test
 cargo bench
 ```
 
+If the test or target application crashes with an "illegal instruction" exception [after copying to an older system], set `CFLAGS` environment variable to `‑D__BLST_PORTABLE__` prior clean build. Alternatively, if you compile on an older Intel system, but will execute the binary on a newer one, consider instead `‑D__ADX__` for better performance.
+
 ## Usage
 There are two primary modes of operation that can be chosen based on declaration path:
 
