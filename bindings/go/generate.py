@@ -4,7 +4,7 @@ import os
 import sys
 import re
 
-here = re.split(r'/(?=[^/]*$)',sys.argv[0])
+here = re.split(r'/(?=[^/]*$)', sys.argv[0])
 if len(here) > 1:
   os.chdir(here[0])
 
@@ -14,12 +14,13 @@ for dir in re.split(r':', os.getenv("GOPATH")):
     break
   goimports = None
 
-if goimports == None:
+if goimports is None:
   print("goimports is not found on $GOPATH",                      file=sys.stderr)
   print("install with 'go get golang.org/x/tools/cmd/goimports'", file=sys.stderr)
   sys.exit(1)
 
 outFile = 'blst.go'
+
 
 def concatFile(fout, fin, removeImports):
   for line in fin:
@@ -28,6 +29,7 @@ def concatFile(fout, fin, removeImports):
         line = fin.readline()
       continue
     print(line, file=fout, end='')
+
 
 def remap(fout, fin, mapping, dont_touch, removeImports):
   for line in fin:
@@ -48,7 +50,6 @@ def remap(fout, fin, mapping, dont_touch, removeImports):
       line = line.replace(b, a)
     print(line, file=fout, end='')
 
-    
 fout = open(outFile, "w")
 
 print("//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", file=fout)
@@ -95,7 +96,7 @@ fin.close()
 
 with open('blst_px.tgo', "r") as fin:
   remap(fout, fin, mapping, dont_touch, True)
-  
+
 # final code
 fin = open('blst_misc.tgo', "r")
 concatFile(fout, fin, True)
@@ -105,7 +106,6 @@ fout.close()
 
 # Use goimports to generate the import list
 os.system(goimports + " -w blst.go")
-
 
 # Generate min-sig tests
 fout = open('blst_minsig_test.go', "w")
@@ -119,4 +119,3 @@ mapping.append(('MinPk', 'MinSig'))
 with open('blst_minpk_test.go', "r") as fin:
   remap(fout, fin, mapping, dont_touch, False)
 fout.close()
-
