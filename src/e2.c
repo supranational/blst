@@ -135,7 +135,7 @@ static limb_t POINTonE2_affine_on_curve(const POINTonE2_affine *p)
 
     sqr_fp2(YY, p->Y);                                  /* Y^2 */
 
-    return vec_is_equal(XXX, YY, sizeof(XXX));
+    return vec_is_equal(XXX, YY, sizeof(XXX)) | vec_is_zero(p, sizeof(*p));
 }
 
 static limb_t POINTonE2_on_curve(const POINTonE2 *p)
