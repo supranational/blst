@@ -524,13 +524,11 @@ func generateBatchTestDataUncompressedMinPk(size int) (sks []*SecretKey,
 
 func BenchmarkBatchUncompressMinPk(b *testing.B) {
     size := 128
-    var points []*P2Affine
     var compPoints [][]byte
     
     for i := 0; i < size; i++ {
         msg := Message(fmt.Sprintf("blst is a blast!! %d", i))
         p2 := HashToG2(msg, dstMinPk).ToAffine()
-        points = append(points, p2)
         compPoints = append(compPoints, p2.Compress())
     }
     b.Run("Single", func(b *testing.B) {
