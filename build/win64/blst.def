@@ -65,6 +65,7 @@ EXPORTS
 	blst_p1_cneg
 	blst_p1_to_affine
 	blst_p1_from_affine
+	blst_p1_is_equal
 	blst_p1_affine_on_curve
 	blst_p1_affine_in_g1
 	blst_p1_affine_is_equal
@@ -77,6 +78,7 @@ EXPORTS
 	blst_p2_cneg
 	blst_p2_to_affine
 	blst_p2_from_affine
+	blst_p2_is_equal
 	blst_p2_affine_on_curve
 	blst_p2_affine_in_g2
 	blst_p2_affine_is_equal

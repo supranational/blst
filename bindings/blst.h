@@ -154,6 +154,7 @@ void blst_p1_mult(blst_p1 *out, const blst_p1 *p,
 void blst_p1_cneg(blst_p1 *p, size_t cbit);
 void blst_p1_to_affine(blst_p1_affine *out, const blst_p1 *in);
 void blst_p1_from_affine(blst_p1 *out, const blst_p1_affine *in);
+bool blst_p1_is_equal(const blst_p1 *a, const blst_p1 *b);
 bool blst_p1_affine_on_curve(const blst_p1_affine *p);
 bool blst_p1_affine_in_g1(const blst_p1_affine *p);
 bool blst_p1_affine_is_equal(const blst_p1_affine *a, const blst_p1_affine *b);
@@ -173,6 +174,7 @@ void blst_p2_mult(blst_p2 *out, const blst_p2 *p,
 void blst_p2_cneg(blst_p2 *p, size_t cbit);
 void blst_p2_to_affine(blst_p2_affine *out, const blst_p2 *in);
 void blst_p2_from_affine(blst_p2 *out, const blst_p2_affine *in);
+bool blst_p2_is_equal(const blst_p2 *a, const blst_p2 *b);
 bool blst_p2_affine_on_curve(const blst_p2_affine *p);
 bool blst_p2_affine_in_g2(const blst_p2_affine *p);
 bool blst_p2_affine_is_equal(const blst_p2_affine *a, const blst_p2_affine *b);

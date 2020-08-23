@@ -475,6 +475,9 @@ extern "C" {
     pub fn blst_p1_from_affine(out: *mut blst_p1, in_: *const blst_p1_affine);
 }
 extern "C" {
+    pub fn blst_p1_is_equal(a: *const blst_p1, b: *const blst_p1) -> bool;
+}
+extern "C" {
     pub fn blst_p1_affine_on_curve(p: *const blst_p1_affine) -> bool;
 }
 extern "C" {
@@ -607,6 +610,9 @@ extern "C" {
 }
 extern "C" {
     pub fn blst_p2_from_affine(out: *mut blst_p2, in_: *const blst_p2_affine);
+}
+extern "C" {
+    pub fn blst_p2_is_equal(a: *const blst_p2, b: *const blst_p2) -> bool;
 }
 extern "C" {
     pub fn blst_p2_affine_on_curve(p: *const blst_p2_affine) -> bool;
