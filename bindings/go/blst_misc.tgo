@@ -210,6 +210,14 @@ func (e1 *P1Affine) Equals(e2 *P1Affine) bool {
     return bool(C.blst_p1_affine_is_equal(e1, e2))
 }
 
+func (e1 *P1) Equals(e2 *P1) bool {
+    return bool(C.blst_p1_is_equal(e1, e2))
+}
+
 func (e1 *P2Affine) Equals(e2 *P2Affine) bool {
     return bool(C.blst_p2_affine_is_equal(e1, e2))
+}
+
+func (e1 *P2) Equals(e2 *P2) bool {
+    return bool(C.blst_p2_is_equal(e1, e2))
 }

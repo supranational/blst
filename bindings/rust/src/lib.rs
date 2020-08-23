@@ -25,6 +25,30 @@ fn da_pool() -> ThreadPool {
 
 include!("bindings.rs");
 
+impl PartialEq for blst_p1 {
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { blst_p1_is_equal(self, other) }
+    }
+}
+
+impl PartialEq for blst_p1_affine {
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { blst_p1_affine_is_equal(self, other) }
+    }
+}
+
+impl PartialEq for blst_p2 {
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { blst_p2_is_equal(self, other) }
+    }
+}
+
+impl PartialEq for blst_p2_affine {
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { blst_p2_affine_is_equal(self, other) }
+    }
+}
+
 #[derive(Debug)]
 pub struct Pairing {
     v: Box<[u64]>,
