@@ -400,6 +400,10 @@ POINT_DADD_AFFINE_IMPL_A0(POINTonE1, 384, fp, BLS12_381_Rx.p)
 POINT_ADD_IMPL(POINTonE1, 384, fp)
 POINT_ADD_AFFINE_IMPL(POINTonE1, 384, fp, BLS12_381_Rx.p)
 POINT_DOUBLE_IMPL_A0(POINTonE1, 384, fp)
+POINT_IS_EQUAL_IMPL(POINTonE1, 384, fp)
+
+limb_t blst_p1_is_equal(const POINTonE1 *a, const POINTonE1 *b)
+{   return POINTonE1_is_equal(a, b);   }
 
 #include "ec_mult.h"
 POINT_MULT_SCALAR_W5_IMPL(POINTonE1)

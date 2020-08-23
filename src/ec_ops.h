@@ -460,3 +460,24 @@ static void ptype##xz_ladder_post(ptype *p4, \
     mul_##field(p4->Y, p4->Y, B);       /* Y4 = Y4*Z4^2 */\
 }
 #endif
+
+#define POINT_IS_EQUAL_IMPL(ptype, bits, field) \
+static limb_t ptype##_is_equal(const ptype *p1, const ptype *p2) \
+{ \
+    vec##bits Z1Z1, Z2Z2; \
+    ptype##_affine a1, a2; \
+\
+    sqr_##field(Z1Z1, p1->Z);           /* Z1Z1 = Z1^2 */\
+    sqr_##field(Z2Z2, p2->Z);           /* Z2Z2 = Z2^2 */\
+\
+    mul_##field(a1.X, p1->X, Z2Z2);     /* U1 = X1*Z2Z2 */\
+    mul_##field(a2.X, p2->X, Z1Z1);     /* U2 = X2*Z1Z1 */\
+\
+    mul_##field(a1.Y, p1->Y, p2->Z);    /* Y1*Z2 */\
+    mul_##field(a2.Y, p2->Y, p1->Z);    /* Y2*Z1 */\
+\
+    mul_##field(a1.Y, a1.Y, Z2Z2);      /* S1 = Y1*Z2*Z2Z2 */\
+    mul_##field(a2.Y, a2.Y, Z1Z1);      /* S2 = Y2*Z1*Z1Z1 */\
+\
+    return vec_is_equal(&a1, &a2, sizeof(a1));\
+}
