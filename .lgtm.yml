@@ -1,5 +1,7 @@
 queries:
   include: "*"
+  exclude: cpp/unused-static-function
+  exclude: cpp/include-non-header
 
 extraction:
   cpp:

@@ -52,8 +52,11 @@ typedef struct {
     POINTonE1_affine P[N_MAX];
 } PAIRING;
 
-enum { AGGR_UNDEFINED = 0, AGGR_MIN_SIG, AGGR_MIN_PK,
-       AGGR_SIGN_SET = 0x10, AGGR_GT_SET = 0x20,
+enum { AGGR_UNDEFINED      = 0,
+       AGGR_MIN_SIG        = 1,
+       AGGR_MIN_PK         = 2,
+       AGGR_SIGN_SET       = 0x10,
+       AGGR_GT_SET         = 0x20,
        AGGR_HASH_OR_ENCODE = 0x40 };
 #define MIN_SIG_OR_PK (AGGR_MIN_SIG | AGGR_MIN_PK)
 

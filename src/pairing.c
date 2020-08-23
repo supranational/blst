@@ -266,11 +266,11 @@ static void precompute_lines(vec384fp6 Qlines[68], const POINTonE2_affine *Q)
     vec_copy(T->Z, BLS12_381_Rx.p2, sizeof(T->Z));
 
     line_dbl(Qlines[0], T, T);                  /* 0x2                  */
-    pre_add_n_dbl(Qlines + 1,  T, Q, 2);        /* ..0xc                */
-    pre_add_n_dbl(Qlines + 4,  T, Q, 3);        /* ..0x68               */
-    pre_add_n_dbl(Qlines + 8,  T, Q, 9);        /* ..0xd200             */
-    pre_add_n_dbl(Qlines + 18, T, Q, 32);       /* ..0xd20100000000     */
-    pre_add_n_dbl(Qlines + 51, T, Q, 16);       /* ..0xd201000000010000 */
+    pre_add_n_dbl(&Qlines[1],  T, Q, 2);        /* ..0xc                */
+    pre_add_n_dbl(&Qlines[4],  T, Q, 3);        /* ..0x68               */
+    pre_add_n_dbl(&Qlines[8],  T, Q, 9);        /* ..0xd200             */
+    pre_add_n_dbl(&Qlines[18], T, Q, 32);       /* ..0xd20100000000     */
+    pre_add_n_dbl(&Qlines[51], T, Q, 16);       /* ..0xd201000000010000 */
 }
 
 static void post_line_by_Px2(vec384fp6 out, const vec384fp6 in,
@@ -315,11 +315,11 @@ static void miller_loop_lines(vec384fp12 ret, const vec384fp6 Qlines[68],
     vec_zero(ret, sizeof(vec384fp12));
     vec_copy(ret[0][0], line[0], 2*sizeof(vec384fp2));
     vec_copy(ret[1][1], line[2], sizeof(vec384fp2));
-    post_add_n_dbl(ret, Qlines + 1,  Px2, 2);   /* ..0xc                */
-    post_add_n_dbl(ret, Qlines + 4,  Px2, 3);   /* ..0x68               */
-    post_add_n_dbl(ret, Qlines + 8,  Px2, 9);   /* ..0xd200             */
-    post_add_n_dbl(ret, Qlines + 18, Px2, 32);  /* ..0xd20100000000     */
-    post_add_n_dbl(ret, Qlines + 51, Px2, 16);  /* ..0xd201000000010000 */
+    post_add_n_dbl(ret, &Qlines[1],  Px2, 2);   /* ..0xc                */
+    post_add_n_dbl(ret, &Qlines[4],  Px2, 3);   /* ..0x68               */
+    post_add_n_dbl(ret, &Qlines[8],  Px2, 9);   /* ..0xd200             */
+    post_add_n_dbl(ret, &Qlines[18], Px2, 32);  /* ..0xd20100000000     */
+    post_add_n_dbl(ret, &Qlines[51], Px2, 16);  /* ..0xd201000000010000 */
     conjugate_fp12(ret);                /* account for z being negative */
 }
 
