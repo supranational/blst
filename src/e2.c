@@ -473,3 +473,15 @@ POINT_LADDER_PRE_IMPL(POINTonE2, 384x, fp2)
 POINT_LADDER_STEP_IMPL_A0(POINTonE2, 384x, fp2, onE2)
 POINT_LADDER_POST_IMPL_A0(POINTonE2, 384x, fp2, onE2)
 POINT_MULT_SCALAR_LADDER_IMPL(POINTonE2)
+
+limb_t blst_p2_is_inf(const POINTonE2 *p)
+{   return vec_is_zero(p->Z, sizeof(p->Z));   }
+
+const POINTonE2 *blst_p2_generator()
+{   return &BLS12_381_G2;   }
+
+limb_t blst_p2_affine_is_inf(const POINTonE2_affine *p)
+{   return vec_is_zero(p, sizeof(*p));   }
+
+const POINTonE2_affine *blst_p2_affine_generator()
+{   return (const POINTonE2_affine *)&BLS12_381_G2;   }

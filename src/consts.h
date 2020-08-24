@@ -10,7 +10,7 @@
 extern const vec384 BLS12_381_P;
 extern const limb_t BLS12_381_p0;
 static const limb_t p0 = (limb_t)0x89f3fffcfffcfffd;  /* -1/P */
-typedef union { vec384x p2; vec384 p; } radix384;
+typedef union { vec384x p2; vec384 p; vec384 p12[12]; } radix384;
 extern const radix384 BLS12_381_Rx; /* (1<<384)%P, "radix", one-in-Montgomery */
 extern const vec384 BLS12_381_RR;   /* (1<<768)%P, "radix"^2, to-Montgomery   */
 

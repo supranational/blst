@@ -783,3 +783,6 @@ limb_t blst_fp12_is_one(const vec384fp12 a)
     return vec_is_equal(a[0][0], BLS12_381_Rx.p2, sizeof(a[0][0])) &
            vec_is_zero(a[0][1], sizeof(vec384fp12) - sizeof(a[0][0]));
 }
+
+const vec384fp12 *blst_fp12_one()
+{   return (const vec384fp12 *)BLS12_381_Rx.p12;   }
