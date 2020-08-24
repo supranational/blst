@@ -153,7 +153,7 @@ fn bindgen_test_layout_blst_fp6() {
     );
 }
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Eq)]
 pub struct blst_fp12 {
     pub fp6: [blst_fp6; 2usize],
 }
@@ -349,6 +349,9 @@ extern "C" {
 extern "C" {
     pub fn blst_fp12_is_one(a: *const blst_fp12) -> bool;
 }
+extern "C" {
+    pub fn blst_fp12_one() -> *const blst_fp12;
+}
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, Eq)]
 pub struct blst_p1 {
@@ -478,6 +481,12 @@ extern "C" {
     pub fn blst_p1_is_equal(a: *const blst_p1, b: *const blst_p1) -> bool;
 }
 extern "C" {
+    pub fn blst_p1_is_inf(a: *const blst_p1) -> bool;
+}
+extern "C" {
+    pub fn blst_p1_generator() -> *const blst_p1;
+}
+extern "C" {
     pub fn blst_p1_affine_on_curve(p: *const blst_p1_affine) -> bool;
 }
 extern "C" {
@@ -485,6 +494,12 @@ extern "C" {
 }
 extern "C" {
     pub fn blst_p1_affine_is_equal(a: *const blst_p1_affine, b: *const blst_p1_affine) -> bool;
+}
+extern "C" {
+    pub fn blst_p1_affine_is_inf(a: *const blst_p1_affine) -> bool;
+}
+extern "C" {
+    pub fn blst_p1_affine_generator() -> *const blst_p1_affine;
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, Eq)]
@@ -615,6 +630,12 @@ extern "C" {
     pub fn blst_p2_is_equal(a: *const blst_p2, b: *const blst_p2) -> bool;
 }
 extern "C" {
+    pub fn blst_p2_is_inf(a: *const blst_p2) -> bool;
+}
+extern "C" {
+    pub fn blst_p2_generator() -> *const blst_p2;
+}
+extern "C" {
     pub fn blst_p2_affine_on_curve(p: *const blst_p2_affine) -> bool;
 }
 extern "C" {
@@ -622,6 +643,12 @@ extern "C" {
 }
 extern "C" {
     pub fn blst_p2_affine_is_equal(a: *const blst_p2_affine, b: *const blst_p2_affine) -> bool;
+}
+extern "C" {
+    pub fn blst_p2_affine_is_inf(a: *const blst_p2_affine) -> bool;
+}
+extern "C" {
+    pub fn blst_p2_affine_generator() -> *const blst_p2_affine;
 }
 extern "C" {
     pub fn blst_map_to_g1(out: *mut blst_p1, u: *const blst_fp, v: *const blst_fp);

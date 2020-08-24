@@ -98,6 +98,7 @@ public:
     {   blst_p1_affine_compress(out, &point);   }
     bool on_curve() const { return blst_p1_affine_on_curve(&point); }
     bool in_group() const { return blst_p1_affine_in_g1(&point);    }
+    bool is_inf() const   { return blst_p1_affine_is_inf(&point);   }
     BLST_ERROR core_verify(const P2_Affine& pk, bool hash_or_encode,
                            const byte* msg, size_t msg_len,
                            const std::string& DST = "",
@@ -108,6 +109,10 @@ public:
                            const std::string& DST = "",
                            const app__string_view aug = None) const;
 #endif
+    static const P1_Affine& generator()
+    {
+        return *reinterpret_cast<const P1_Affine*>(blst_p1_affine_generator());
+    }
 
 private:
     friend class Pairing;
@@ -136,6 +141,7 @@ public:
     P1_Affine to_affine() const         { P1_Affine ret(*this); return ret;  }
     void serialize(byte out[96]) const  { blst_p1_serialize(out, &point);    }
     void compress(byte out[48]) const   { blst_p1_compress(out, &point);     }
+    bool is_inf() const                 { return blst_p1_is_inf(&point);     }
     void aggregate(const P1_Affine& in)
     {   if (blst_p1_affine_in_g1(in))
             blst_p1_add_or_double_affine(&point, &point, in);
@@ -176,6 +182,8 @@ public:
                          aug.size());
     }
 #endif
+    P1* cneg(bool flag)
+    {   blst_p1_cneg(&point, flag); return this;   }
     P1* add(const P1& a)
     {   blst_p1_add_or_double(&point, &point, a); return this;   }
     P1* add(const P1_Affine &a)
@@ -188,6 +196,8 @@ public:
     {   P1 ret; blst_p1_add_or_double_affine(&ret.point, a, b); return ret;   }
     static P1 dbl(const P1& a)
     {   P1 ret; blst_p1_double(&ret.point, a); return ret;   }
+    static const P1& generator()
+    {   return *reinterpret_cast<const P1*>(blst_p1_generator());   }
 
 private:
     friend class P1_Affine;
@@ -214,6 +224,7 @@ public:
     {   blst_p2_affine_compress(out, &point);   }
     bool on_curve() const { return blst_p2_affine_on_curve(&point); }
     bool in_group() const { return blst_p2_affine_in_g2(&point);    }
+    bool is_inf() const   { return blst_p2_affine_is_inf(&point);   }
     BLST_ERROR core_verify(const P1_Affine& pk, bool hash_or_encode,
                            const byte* msg, size_t msg_len,
                            const std::string& DST = "",
@@ -224,6 +235,10 @@ public:
                            const std::string& DST = "",
                            const app__string_view aug = None) const;
 #endif
+    static const P2_Affine& generator()
+    {
+        return *reinterpret_cast<const P2_Affine*>(blst_p2_affine_generator());
+    }
 
 private:
     friend class Pairing;
@@ -252,6 +267,7 @@ public:
     P2_Affine to_affine() const         { P2_Affine ret(*this); return ret; }
     void serialize(byte out[192]) const { blst_p2_serialize(out, &point);   }
     void compress(byte out[96]) const   { blst_p2_compress(out, &point);    }
+    bool is_inf() const                 { return blst_p2_is_inf(&point);    }
     void aggregate(const P2_Affine& in)
     {   if (blst_p2_affine_in_g2(in))
             blst_p2_add_or_double_affine(&point, &point, in);
@@ -292,6 +308,8 @@ public:
                          aug.size());
     }
 #endif
+    P2* cneg(bool flag)
+    {   blst_p2_cneg(&point, flag); return this;   }
     P2* add(const P2& a)
     {   blst_p2_add_or_double(&point, &point, a); return this;   }
     P2* add(const P2_Affine &a)
@@ -304,6 +322,8 @@ public:
     {   P2 ret; blst_p2_add_or_double_affine(&ret.point, a, b); return ret;   }
     static P2 dbl(const P2& a)
     {   P2 ret; blst_p2_double(&ret.point, a); return ret;   }
+    static const P2& generator()
+    {   return *reinterpret_cast<const P2*>(blst_p2_generator());   }
 
 private:
     friend class P2_Affine;

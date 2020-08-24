@@ -56,6 +56,7 @@ EXPORTS
 	blst_fp12_frobenius_map
 	blst_fp12_is_equal
 	blst_fp12_is_one
+	blst_fp12_one
 	blst_p1_add
 	blst_p1_add_or_double
 	blst_p1_add_affine
@@ -66,9 +67,13 @@ EXPORTS
 	blst_p1_to_affine
 	blst_p1_from_affine
 	blst_p1_is_equal
+	blst_p1_is_inf
+	blst_p1_generator
 	blst_p1_affine_on_curve
 	blst_p1_affine_in_g1
 	blst_p1_affine_is_equal
+	blst_p1_affine_is_inf
+	blst_p1_affine_generator
 	blst_p2_add
 	blst_p2_add_or_double
 	blst_p2_add_affine
@@ -79,9 +84,13 @@ EXPORTS
 	blst_p2_to_affine
 	blst_p2_from_affine
 	blst_p2_is_equal
+	blst_p2_is_inf
+	blst_p2_generator
 	blst_p2_affine_on_curve
 	blst_p2_affine_in_g2
 	blst_p2_affine_is_equal
+	blst_p2_affine_is_inf
+	blst_p2_affine_generator
 	blst_map_to_g1
 	blst_map_to_g2
 	blst_encode_to_g1

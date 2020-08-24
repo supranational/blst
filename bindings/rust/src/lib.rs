@@ -49,6 +49,18 @@ impl PartialEq for blst_p2_affine {
     }
 }
 
+impl Default for blst_fp12 {
+    fn default() -> Self {
+        unsafe { *blst_fp12_one() }
+    }
+}
+
+impl PartialEq for blst_fp12 {
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { blst_fp12_is_equal(self, other) }
+    }
+}
+
 #[derive(Debug)]
 pub struct Pairing {
     v: Box<[u64]>,

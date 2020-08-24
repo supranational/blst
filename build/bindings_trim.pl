@@ -7,6 +7,9 @@ while(<>) { push @file, $_; }
 for (my $i = 0; $i <= $#file; $i++) {
     if (@file[$i] =~ m/struct\s+blst_p[12]/) {
         @file[$i-1] =~ s/,\s*PartialEq//;
+    } elsif (@file[$i] =~ m/struct\s+blst_fp12/) {
+        @file[$i-1] =~ s/,\s*Default//;
+        @file[$i-1] =~ s/,\s*PartialEq//;
     } elsif (@file[$i] =~ m/struct\s+blst_pairing/) {
         @file[$i-1] =~ s/,\s*Copy//;
         @file[$i-1] =~ s/,\s*Clone//;

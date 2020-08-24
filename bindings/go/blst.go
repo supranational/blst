@@ -211,6 +211,10 @@ func PairingFinalVerify(ctx Pairing, optional ...*Fp12) bool {
 	return bool(C.blst_pairing_finalverify((*C.blst_pairing)(&ctx[0]), gtsig))
 }
 
+func Fp12One() Fp12 {
+	return *C.blst_fp12_one()
+}
+
 //
 // MIN-PK
 //

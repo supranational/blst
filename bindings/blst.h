@@ -134,6 +134,7 @@ void blst_fp12_inverse(blst_fp12 *ret, const blst_fp12 *a);
 void blst_fp12_frobenius_map(blst_fp12 *ret, const blst_fp12 *a, size_t n);
 bool blst_fp12_is_equal(const blst_fp12 *a, const blst_fp12 *b);
 bool blst_fp12_is_one(const blst_fp12 *a);
+const blst_fp12 *blst_fp12_one();
 #endif  // SWIG
 
 /*
@@ -155,9 +156,13 @@ void blst_p1_cneg(blst_p1 *p, size_t cbit);
 void blst_p1_to_affine(blst_p1_affine *out, const blst_p1 *in);
 void blst_p1_from_affine(blst_p1 *out, const blst_p1_affine *in);
 bool blst_p1_is_equal(const blst_p1 *a, const blst_p1 *b);
+bool blst_p1_is_inf(const blst_p1 *a);
+const blst_p1 *blst_p1_generator();
 bool blst_p1_affine_on_curve(const blst_p1_affine *p);
 bool blst_p1_affine_in_g1(const blst_p1_affine *p);
 bool blst_p1_affine_is_equal(const blst_p1_affine *a, const blst_p1_affine *b);
+bool blst_p1_affine_is_inf(const blst_p1_affine *a);
+const blst_p1_affine *blst_p1_affine_generator();
 
 typedef struct { blst_fp2 x, y, z; } blst_p2;
 typedef struct { blst_fp2 x, y; } blst_p2_affine;
@@ -175,9 +180,13 @@ void blst_p2_cneg(blst_p2 *p, size_t cbit);
 void blst_p2_to_affine(blst_p2_affine *out, const blst_p2 *in);
 void blst_p2_from_affine(blst_p2 *out, const blst_p2_affine *in);
 bool blst_p2_is_equal(const blst_p2 *a, const blst_p2 *b);
+bool blst_p2_is_inf(const blst_p2 *a);
+const blst_p2 *blst_p2_generator();
 bool blst_p2_affine_on_curve(const blst_p2_affine *p);
 bool blst_p2_affine_in_g2(const blst_p2_affine *p);
 bool blst_p2_affine_is_equal(const blst_p2_affine *a, const blst_p2_affine *b);
+bool blst_p2_affine_is_inf(const blst_p2_affine *a);
+const blst_p2_affine *blst_p2_affine_generator();
 
 /*
  * Hash-to-curve operations.
