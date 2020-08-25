@@ -238,6 +238,18 @@ extern "C" {
     pub fn blst_fr_from(ret: *mut blst_fr, a: *const blst_fr);
 }
 extern "C" {
+    pub fn blst_fr_from_uint64(ret: *mut blst_fr, a: *const u64);
+}
+extern "C" {
+    pub fn blst_uint64_from_fr(ret: *mut u64, a: *const blst_fr);
+}
+extern "C" {
+    pub fn blst_fr_from_scalar(ret: *mut blst_fr, a: *const blst_scalar);
+}
+extern "C" {
+    pub fn blst_scalar_from_fr(ret: *mut blst_scalar, a: *const blst_fr);
+}
+extern "C" {
     pub fn blst_fp_add(ret: *mut blst_fp, a: *const blst_fp, b: *const blst_fp);
 }
 extern "C" {

@@ -20,6 +20,10 @@ EXPORTS
 	blst_fr_cneg
 	blst_fr_to
 	blst_fr_from
+	blst_fr_from_uint64
+	blst_uint64_from_fr
+	blst_fr_from_scalar
+	blst_scalar_from_fr
 	blst_fp_add
 	blst_fp_sub
 	blst_fp_mul_by_3

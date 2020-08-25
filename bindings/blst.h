@@ -84,6 +84,11 @@ void blst_fr_cneg(blst_fr *ret, const blst_fr *a, size_t flag);
 void blst_fr_to(blst_fr *ret, const blst_fr *a);
 void blst_fr_from(blst_fr *ret, const blst_fr *a);
 
+void blst_fr_from_uint64(blst_fr *ret, const uint64_t a[4]);
+void blst_uint64_from_fr(uint64_t ret[4], const blst_fr *a);
+void blst_fr_from_scalar(blst_fr *ret, const blst_scalar *a);
+void blst_scalar_from_fr(blst_scalar *ret, const blst_fr *a);
+
 /*
  * BLS12-381-specifc Fp operations.
  */
