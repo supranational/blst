@@ -466,6 +466,8 @@ static limb_t ptype##_is_equal(const ptype *p1, const ptype *p2) \
 { \
     vec##bits Z1Z1, Z2Z2; \
     ptype##_affine a1, a2; \
+    limb_t is_inf1 = vec_is_zero(p1->Z, sizeof(p1->Z)); \
+    limb_t is_inf2 = vec_is_zero(p2->Z, sizeof(p2->Z)); \
 \
     sqr_##field(Z1Z1, p1->Z);           /* Z1Z1 = Z1^2 */\
     sqr_##field(Z2Z2, p2->Z);           /* Z2Z2 = Z2^2 */\
@@ -479,5 +481,5 @@ static limb_t ptype##_is_equal(const ptype *p1, const ptype *p2) \
     mul_##field(a1.Y, a1.Y, Z2Z2);      /* S1 = Y1*Z2*Z2Z2 */\
     mul_##field(a2.Y, a2.Y, Z1Z1);      /* S2 = Y2*Z1*Z1Z1 */\
 \
-    return vec_is_equal(&a1, &a2, sizeof(a1));\
+    return vec_is_equal(&a1, &a2, sizeof(a1)) & (is_inf1 ^ is_inf2 ^ 1); \
 }
