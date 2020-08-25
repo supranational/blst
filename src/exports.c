@@ -406,6 +406,50 @@ limb_t blst_scalar_fr_check(const vec256 a)
     return vec_is_equal(zero, a, sizeof(zero));
 }
 
+void blst_fr_from_uint64(vec256 ret, const unsigned long long a[4])
+{
+    const union {
+        long one;
+        char little;
+    } is_endian = { 1 };
+
+    if (sizeof(limb_t) == 4 && !is_endian.little) {
+        int i;
+        for (i = 0; i < 4; i++) {
+            unsigned long long limb = a[i];
+            ret[2*i]   = (limb_t)limb;
+            ret[2*i+1] = (limb_t)(limb >> 32);
+        }
+        a = (const unsigned long long *)ret;
+    }
+    mul_mont_sparse_256(ret, (const limb_t *)a, BLS12_381_rRR, BLS12_381_r, r0);
+}
+
+void blst_uint64_from_fr(unsigned long long ret[4], const vec256 a)
+{
+    const union {
+        long one;
+        char little;
+    } is_endian = { 1 };
+
+    if (sizeof(limb_t) == 8 || is_endian.little) {
+        from_mont_256((limb_t *)ret, a, BLS12_381_r, r0);
+    } else {
+        vec256 out;
+        int i;
+
+        from_mont_256(out, a, BLS12_381_r, r0);
+        for (i = 0; i < 4; i++)
+            ret[i] = out[2*i] | ((unsigned long long)out[2*i+1] << 32);
+    }
+}
+
+void blst_fr_from_scalar(vec256 ret, const vec256 a)
+{   mul_mont_sparse_256(ret, a, BLS12_381_rRR, BLS12_381_r, r0);   }
+
+void blst_scalar_from_fr(vec256 ret, const vec256 a)
+{   from_mont_256(ret, a, BLS12_381_r, r0);   }
+
 /*
  * Test facilitator
  */
