@@ -10,12 +10,14 @@
  * depending on their proven/unproven worthiness.
  */
 
-bool blst_p1_on_curve(const blst_p1 *p);
-bool blst_p2_on_curve(const blst_p2 *p);
+void blst_fr_to(blst_fr *ret, const blst_fr *a);
+void blst_fr_from(blst_fr *ret, const blst_fr *a);
+
+void blst_fp_to(blst_fp *ret, const blst_fp *a);
+void blst_fp_from(blst_fp *ret, const blst_fp *a);
+
 void blst_p1_from_jacobian(blst_p1 *out, const blst_p1 *in);
 void blst_p2_from_jacobian(blst_p2 *out, const blst_p2 *in);
-bool blst_p1_affine_is_equal(const blst_p1_affine *a, const blst_p1_affine *b);
-bool blst_p2_affine_is_equal(const blst_p2_affine *a, const blst_p2_affine *b);
 
 /*
  * Below functions produce both point and deserialized outcome of

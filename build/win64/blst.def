@@ -18,8 +18,6 @@ EXPORTS
 	blst_fr_mul
 	blst_fr_sqr
 	blst_fr_cneg
-	blst_fr_to
-	blst_fr_from
 	blst_fr_from_uint64
 	blst_uint64_from_fr
 	blst_fr_from_scalar
@@ -33,8 +31,8 @@ EXPORTS
 	blst_fp_sqr
 	blst_fp_cneg
 	blst_fp_eucl_inverse
-	blst_fp_to
-	blst_fp_from
+	blst_fp_inverse
+	blst_fp_sqrt
 	blst_fp_from_uint32
 	blst_uint32_from_fp
 	blst_fp_from_uint64
@@ -51,6 +49,9 @@ EXPORTS
 	blst_fp2_mul
 	blst_fp2_sqr
 	blst_fp2_cneg
+	blst_fp2_eucl_inverse
+	blst_fp2_inverse
+	blst_fp2_sqrt
 	blst_fp12_sqr
 	blst_fp12_cyclotomic_sqr
 	blst_fp12_mul
@@ -70,6 +71,7 @@ EXPORTS
 	blst_p1_cneg
 	blst_p1_to_affine
 	blst_p1_from_affine
+	blst_p1_on_curve
 	blst_p1_is_equal
 	blst_p1_is_inf
 	blst_p1_generator
@@ -87,6 +89,7 @@ EXPORTS
 	blst_p2_cneg
 	blst_p2_to_affine
 	blst_p2_from_affine
+	blst_p2_on_curve
 	blst_p2_is_equal
 	blst_p2_is_inf
 	blst_p2_generator
@@ -142,12 +145,12 @@ EXPORTS
 	BLS12_381_NEG_G1
 	BLS12_381_G2
 	BLS12_381_NEG_G2
-	blst_p1_on_curve
-	blst_p2_on_curve
+	blst_fr_to
+	blst_fr_from
+	blst_fp_to
+	blst_fp_from
 	blst_p1_from_jacobian
 	blst_p2_from_jacobian
-	blst_p1_affine_is_equal
-	blst_p2_affine_is_equal
 	blst_sk_to_pk2_in_g1
 	blst_sign_pk2_in_g1
 	blst_sk_to_pk2_in_g2

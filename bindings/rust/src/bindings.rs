@@ -232,12 +232,6 @@ extern "C" {
     pub fn blst_fr_cneg(ret: *mut blst_fr, a: *const blst_fr, flag: usize);
 }
 extern "C" {
-    pub fn blst_fr_to(ret: *mut blst_fr, a: *const blst_fr);
-}
-extern "C" {
-    pub fn blst_fr_from(ret: *mut blst_fr, a: *const blst_fr);
-}
-extern "C" {
     pub fn blst_fr_from_uint64(ret: *mut blst_fr, a: *const u64);
 }
 extern "C" {
@@ -277,10 +271,10 @@ extern "C" {
     pub fn blst_fp_eucl_inverse(ret: *mut blst_fp, a: *const blst_fp);
 }
 extern "C" {
-    pub fn blst_fp_to(ret: *mut blst_fp, a: *const blst_fp);
+    pub fn blst_fp_inverse(ret: *mut blst_fp, a: *const blst_fp);
 }
 extern "C" {
-    pub fn blst_fp_from(ret: *mut blst_fp, a: *const blst_fp);
+    pub fn blst_fp_sqrt(ret: *mut blst_fp, a: *const blst_fp) -> bool;
 }
 extern "C" {
     pub fn blst_fp_from_uint32(ret: *mut blst_fp, a: *const u32);
@@ -329,6 +323,15 @@ extern "C" {
 }
 extern "C" {
     pub fn blst_fp2_cneg(ret: *mut blst_fp2, a: *const blst_fp2, flag: usize);
+}
+extern "C" {
+    pub fn blst_fp2_eucl_inverse(ret: *mut blst_fp2, a: *const blst_fp2);
+}
+extern "C" {
+    pub fn blst_fp2_inverse(ret: *mut blst_fp2, a: *const blst_fp2);
+}
+extern "C" {
+    pub fn blst_fp2_sqrt(ret: *mut blst_fp2, a: *const blst_fp2) -> bool;
 }
 extern "C" {
     pub fn blst_fp12_sqr(ret: *mut blst_fp12, a: *const blst_fp12);
@@ -490,6 +493,9 @@ extern "C" {
     pub fn blst_p1_from_affine(out: *mut blst_p1, in_: *const blst_p1_affine);
 }
 extern "C" {
+    pub fn blst_p1_on_curve(p: *const blst_p1) -> bool;
+}
+extern "C" {
     pub fn blst_p1_is_equal(a: *const blst_p1, b: *const blst_p1) -> bool;
 }
 extern "C" {
@@ -637,6 +643,9 @@ extern "C" {
 }
 extern "C" {
     pub fn blst_p2_from_affine(out: *mut blst_p2, in_: *const blst_p2_affine);
+}
+extern "C" {
+    pub fn blst_p2_on_curve(p: *const blst_p2) -> bool;
 }
 extern "C" {
     pub fn blst_p2_is_equal(a: *const blst_p2, b: *const blst_p2) -> bool;
@@ -938,10 +947,16 @@ extern "C" {
     pub static BLS12_381_NEG_G2: blst_p2_affine;
 }
 extern "C" {
-    pub fn blst_p1_on_curve(p: *const blst_p1) -> bool;
+    pub fn blst_fr_to(ret: *mut blst_fr, a: *const blst_fr);
 }
 extern "C" {
-    pub fn blst_p2_on_curve(p: *const blst_p2) -> bool;
+    pub fn blst_fr_from(ret: *mut blst_fr, a: *const blst_fr);
+}
+extern "C" {
+    pub fn blst_fp_to(ret: *mut blst_fp, a: *const blst_fp);
+}
+extern "C" {
+    pub fn blst_fp_from(ret: *mut blst_fp, a: *const blst_fp);
 }
 extern "C" {
     pub fn blst_p1_from_jacobian(out: *mut blst_p1, in_: *const blst_p1);
