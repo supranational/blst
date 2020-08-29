@@ -78,6 +78,8 @@ void mul_by_3_mod_256(vec256 ret, const vec256 a, const vec256 p);
 void cneg_mod_256(vec256 ret, const vec256 a, limb_t flag, const vec256 p);
 void lshift_mod_256(vec256 ret, const vec256 a, size_t count, const vec256 p);
 void rshift_mod_256(vec256 ret, const vec256 a, size_t count, const vec256 p);
+limb_t eucl_inverse_mod_256(vec256 ret, const vec256 a, const vec256 p,
+                            const vec256 one);
 
 void mul_mont_384(vec384 ret, const vec384 a, const vec384 b,
                   const vec384 p, limb_t n0);

@@ -50,6 +50,9 @@ void blst_fr_to(vec256 ret, const vec256 a)
 void blst_fr_from(vec256 ret, const vec256 a)
 {   from_mont_256(ret, a, BLS12_381_r, r0);   }
 
+void blst_fr_eucl_inverse(vec256 ret, const vec256 a)
+{   eucl_inverse_mod_256(ret, a, BLS12_381_r, BLS12_381_rRR);   }
+
 /*
  * BLS12-381-specifc Fp shortcuts to assembly.
  */
