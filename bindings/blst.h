@@ -81,6 +81,7 @@ void blst_fr_rshift(blst_fr *ret, const blst_fr *a, size_t count);
 void blst_fr_mul(blst_fr *ret, const blst_fr *a, const blst_fr *b);
 void blst_fr_sqr(blst_fr *ret, const blst_fr *a);
 void blst_fr_cneg(blst_fr *ret, const blst_fr *a, size_t flag);
+void blst_fr_eucl_inverse(blst_fr *ret, const blst_fr *a);
 
 void blst_fr_from_uint64(blst_fr *ret, const uint64_t a[4]);
 void blst_uint64_from_fr(uint64_t ret[4], const blst_fr *a);

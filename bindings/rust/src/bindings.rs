@@ -232,6 +232,9 @@ extern "C" {
     pub fn blst_fr_cneg(ret: *mut blst_fr, a: *const blst_fr, flag: usize);
 }
 extern "C" {
+    pub fn blst_fr_eucl_inverse(ret: *mut blst_fr, a: *const blst_fr);
+}
+extern "C" {
     pub fn blst_fr_from_uint64(ret: *mut blst_fr, a: *const u64);
 }
 extern "C" {
