@@ -8,7 +8,7 @@ if [ "x$JAVA_HOME" = "x" ]; then
                awk 'BEGIN { FS="=\\\s*" } /java\.home/ { print $2 }'`
 fi
 
-if [ ! -f ../libblst.a ]; then
+if [ ! -f ../libblst.a -o ../blst.h -nt ../libblst.a ]; then
     (cd ..; ../build.sh)
 fi
 

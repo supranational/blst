@@ -19,7 +19,7 @@ def newer(*files) :
             return True
     return False
 
-if not os.path.exists("../libblst.a") :
+if newer("../blst.h", "../libblst.a") :
     print("building libblst.a...", flush=True)
     subprocess.check_call(["../build.sh"], cwd="..")
 
