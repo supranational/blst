@@ -137,11 +137,11 @@ void blst_p1_affine_serialize(unsigned char out[96],
                               const POINTonE1_affine *in)
 {
     if (vec_is_zero(in->X, 2*sizeof(in->X))) {
-        vec_zero(out, 96);
+        bytes_zero(out, 96);
         out[0] = 0x40;    /* infinitiy bit */
+    } else {
+        (void)POINTonE1_affine_Serialize_BE(out, in);
     }
-
-    (void)POINTonE1_affine_Serialize_BE(out, in);
 }
 
 static limb_t POINTonE1_Serialize_BE(unsigned char out[96],
@@ -159,10 +159,8 @@ static limb_t POINTonE1_Serialize_BE(unsigned char out[96],
 
 static void POINTonE1_Serialize(unsigned char out[96], const POINTonE1 *in)
 {
-    limb_t inf = vec_is_zero(in->Z, sizeof(in->Z));
-
-    if (inf) {
-        vec_zero(out, 96);
+    if (vec_is_zero(in->Z, sizeof(in->Z))) {
+        bytes_zero(out, 96);
         out[0] = 0x40;    /* infinitiy bit */
     } else {
         (void)POINTonE1_Serialize_BE(out, in);
@@ -186,12 +184,11 @@ static limb_t POINTonE1_affine_Compress_BE(unsigned char out[48],
 void blst_p1_affine_compress(unsigned char out[48], const POINTonE1_affine *in)
 {
     if (vec_is_zero(in->X, 2*sizeof(in->X))) {
-        vec_zero(out, 48);
+        bytes_zero(out, 48);
         out[0] = 0xc0;    /* compressed and infinitiy bits */
     } else {
-        unsigned char sign = (unsigned char)POINTonE1_affine_Compress_BE(out,
-                                                                         in);
-        out[0] |= 0x80 | ((sign & 2) << 4);
+        limb_t sign = POINTonE1_affine_Compress_BE(out, in);
+        out[0] |= (unsigned char)(0x80 | ((sign & 2) << 4));
     }
 }
 
@@ -210,14 +207,12 @@ static limb_t POINTonE1_Compress_BE(unsigned char out[48],
 
 void blst_p1_compress(unsigned char out[48], const POINTonE1 *in)
 {
-    limb_t inf = vec_is_zero(in->Z, sizeof(in->Z));
-
-    if (inf) {
-        vec_zero(out, 48);
+    if (vec_is_zero(in->Z, sizeof(in->Z))) {
+        bytes_zero(out, 48);
         out[0] = 0xc0;    /* compressed and infinitiy bits */
     } else {
-        unsigned char sign = (unsigned char)POINTonE1_Compress_BE(out, in);
-        out[0] |= 0x80 | ((sign & 2) << 4);
+        limb_t sign = POINTonE1_Compress_BE(out, in);
+        out[0] |= (unsigned char)(0x80 | ((sign & 2) << 4));
     }
 }
 
