@@ -25,9 +25,9 @@ static limb_t get_wval(const byte *d, size_t off, size_t bits)
  * calculated, which allows to halve the size of pre-computed table,
  * is attributed to A. D. Booth, hence the name of the subroutines...
  */
-static limb_t booth_encode_w5(limb_t wval)
+static limb_t booth_encode(limb_t wval, int sz)
 {
-    limb_t mask = 0 - (wval >> 5);      /* "sign" bit -> mask */
+    limb_t mask = 0 - (wval >> sz);     /* "sign" bit -> mask */
 
     wval = (wval + 1) >> 1;
     wval = (wval & ~mask) | ((0-wval) & mask);
@@ -46,61 +46,52 @@ static limb_t booth_encode_w5(limb_t wval)
  * are encoded as Z==0. [Doubling agorithms handle such points at
  * infinity "naturally," since resulting Z is product of original Z.]
  */
-#define POINT_MULT_SCALAR_W5_IMPL(ptype) \
-static void ptype##_gather_booth_w5(ptype *restrict p, const ptype table[16], \
-                                    limb_t booth_idx) \
+#define POINT_MULT_SCALAR_WX_IMPL(ptype, SZ) \
+static void ptype##_gather_booth_w##SZ(ptype *restrict p, \
+                                       const ptype table[1<<(SZ-1)], \
+                                       limb_t booth_idx) \
 { \
     size_t i; \
-    limb_t booth_sign = (booth_idx >> 5) & 1; \
+    limb_t booth_sign = (booth_idx >> SZ) & 1; \
 \
-    booth_idx &= 0x1f; \
+    booth_idx &= (1<<SZ) - 1; \
     vec_zero(p, sizeof(ptype)); /* implicit infinity at table[-1] */\
     /* ~6% with -Os, ~2% with -O3 ... */\
-    for (i = 1; i <= 16; i++) \
+    for (i = 1; i <= 1<<(SZ-1); i++) \
         ptype##_ccopy(p, table + i - 1, i == booth_idx); \
 \
     ptype##_cneg(p, booth_sign); \
 } \
 \
-static void ptype##_precompute(ptype *row, const ptype *point) \
+static void ptype##_precompute_w##SZ(ptype *row, const ptype *point) \
 { \
+    size_t i, j; \
     row--;  /* row[-1] is implicit infinity */\
 \
     vec_copy(row + 1, point, sizeof(ptype));    /* row[ 1]=p*1     */\
     ptype##_double(row + 2,  point);            /* row[ 2]=p*(1+1) */\
-    ptype##_add   (row + 3,  row + 2, row + 1); /* row[ 3]=p*(2+1) */\
-    ptype##_double(row + 4,  row + 2);          /* row[ 4]=p*(2+2) */\
-    ptype##_add   (row + 5,  row + 3, row + 2); /* row[ 5]=p*(3+2) */\
-    ptype##_double(row + 6,  row + 3);          /* row[ 6]=p*(3+3) */\
-    ptype##_add   (row + 7,  row + 4, row + 3); /* row[ 7]=p*(4+3) */\
-    ptype##_double(row + 8,  row + 4);          /* row[ 8]=p*(4+4) */\
-    ptype##_add   (row + 9,  row + 5, row + 4); /* row[ 9]=p*(5+4) */\
-    ptype##_double(row + 10, row + 5);          /* row[10]=p*(5+5) */\
-    ptype##_add   (row + 11, row + 6, row + 5); /* row[11]=p*(6+5) */\
-    ptype##_double(row + 12, row + 6);          /* row[12]=p*(6+6) */\
-    ptype##_add   (row + 13, row + 7, row + 6); /* row[13]=p*(7+6) */\
-    ptype##_double(row + 14, row + 7);          /* row[14]=p*(7+7) */\
-    ptype##_add   (row + 15, row + 8, row + 7); /* row[15]=p*(8+7) */\
-    ptype##_double(row + 16, row + 8);          /* row[16]=p*(8+8) */\
-} \
+    for (i = 3, j = 2; i < 1<<(SZ-1); i += 2, j++) \
+        ptype##_add(row+i, row+j, row+j-1),     /* row[ 3]=p*(2+1) */\
+        ptype##_double(row+i+1, row+j);         /* row[ 4]=p*(2+2) */\
+}                                               /* row[ 5] ...     */\
 \
-static void ptype##s_mult_w5(ptype *ret, \
-                             const ptype *points[], size_t npoints, \
-                             const byte *scalars[], size_t bits, \
-                             ptype table[][16]) \
+static void ptype##s_mult_w##SZ(ptype *ret, \
+                                const ptype *points[], size_t npoints, \
+                                const byte *scalars[], size_t bits, \
+                                ptype table[][1<<(SZ-1)]) \
 { \
     limb_t wmask, wval; \
-    size_t i, window; \
+    size_t i, j, window; \
     ptype temp[1]; \
 \
     if (table == NULL) \
-        table = alloca(16 * sizeof(ptype) * npoints); \
+        table = alloca((1<<(SZ-1)) * sizeof(ptype) * npoints); \
 \
     for (i = 0; i < npoints; i++) \
-        ptype##_precompute(table[i], points[i]); \
+        ptype##_precompute_w##SZ(table[i], points[i]); \
 \
     /* top excess bits modulo target window size */ \
-    window = bits % 5;  /* yes, it may be zero */ \
+    window = bits % SZ; /* yes, it may be zero */ \
     wmask = ((limb_t)1 << (window + 1)) - 1; \
 \
     bits -= window; \
@@ -109,25 +100,22 @@ static void ptype##s_mult_w5(ptype *ret, \
     else \
         wval = (scalars[0][0] << 1) & wmask; \
 \
-    wval = booth_encode_w5(wval); \
-    ptype##_gather_booth_w5(ret, table[0], wval); \
+    wval = booth_encode(wval, SZ); \
+    ptype##_gather_booth_w##SZ(ret, table[0], wval); \
 \
     i = 1; \
     while (bits > 0) { \
         for (; i < npoints; i++) { \
             wval = get_wval(scalars[i], bits - 1, window + 1) & wmask; \
-            wval = booth_encode_w5(wval); \
-            ptype##_gather_booth_w5(temp, table[i], wval); \
+            wval = booth_encode(wval, SZ); \
+            ptype##_gather_booth_w##SZ(temp, table[i], wval); \
             ptype##_dadd(ret, ret, temp, NULL); \
         } \
 \
-        ptype##_double(ret, ret); \
-        ptype##_double(ret, ret); \
-        ptype##_double(ret, ret); \
-        ptype##_double(ret, ret); \
-        ptype##_double(ret, ret); \
+        for (j = 0; j < SZ; j++) \
+            ptype##_double(ret, ret); \
 \
-        window = 5; \
+        window = SZ; \
         wmask = ((limb_t)1 << (window + 1)) - 1; \
         bits -= window; \
         i = 0; \
@@ -135,49 +123,46 @@ static void ptype##s_mult_w5(ptype *ret, \
 \
     for (; i < npoints; i++) { \
         wval = (scalars[i][0] << 1) & wmask; \
-        wval = booth_encode_w5(wval); \
-        ptype##_gather_booth_w5(temp, table[i], wval); \
+        wval = booth_encode(wval, SZ); \
+        ptype##_gather_booth_w##SZ(temp, table[i], wval); \
         ptype##_dadd(ret, ret, temp, NULL); \
     } \
 } \
 \
-static void ptype##_mult_w5(ptype *ret, const ptype *point, \
-                            const byte *scalar, size_t bits) \
+static void ptype##_mult_w##SZ(ptype *ret, const ptype *point, \
+                               const byte *scalar, size_t bits) \
 { \
     limb_t wmask, wval; \
-    size_t window; \
+    size_t j, window; \
     ptype temp[1]; \
-    ptype table[16]; \
+    ptype table[1<<(SZ-1)]; \
 \
-    ptype##_precompute(table, point); \
+    ptype##_precompute_w##SZ(table, point); \
 \
     /* top excess bits modulo target window size */ \
-    window = bits % 5;  /* yes, it may be zero */ \
+    window = bits % SZ;  /* yes, it may be zero */ \
     wmask = ((limb_t)1 << (window + 1)) - 1; \
 \
     bits -= window; \
     wval = bits ? get_wval(scalar, bits - 1, window + 1) \
                 : (limb_t)scalar[0] << 1; \
     wval &= wmask; \
-    wval = booth_encode_w5(wval); \
-    ptype##_gather_booth_w5(ret, table, wval); \
+    wval = booth_encode(wval, SZ); \
+    ptype##_gather_booth_w##SZ(ret, table, wval); \
 \
     while (bits > 0) { \
-        ptype##_double(ret, ret); \
-        ptype##_double(ret, ret); \
-        ptype##_double(ret, ret); \
-        ptype##_double(ret, ret); \
-        ptype##_double(ret, ret); \
+        for (j = 0; j < SZ; j++) \
+            ptype##_double(ret, ret); \
 \
-        window = 5; \
+        window = SZ; \
         wmask = ((limb_t)1 << (window + 1)) - 1; \
         bits -= window; \
 \
         wval = bits ? get_wval(scalar, bits - 1, window + 1) \
                     : (limb_t)scalar[0] << 1; \
         wval &= wmask; \
-        wval = booth_encode_w5(wval); \
-        ptype##_gather_booth_w5(temp, table, wval); \
+        wval = booth_encode(wval, SZ); \
+        ptype##_gather_booth_w##SZ(temp, table, wval); \
         ptype##_add(ret, ret, temp); \
     } \
 }
