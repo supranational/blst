@@ -29,10 +29,10 @@ void sha256_bcopy(void *dst, const void *src, size_t len);
  * custom name prior including this header.
  */
 typedef struct {
-    unsigned int h[8];
-    unsigned long long N;
-    unsigned char buf[64];
-    size_t off;
+    unsigned int h[8]; // sha256 output
+    unsigned long long N; // how many bytes ingested so far
+    unsigned char buf[64]; // temp buffer in case input is not a multiple of the block size
+    size_t off; // where we are in buf
 } SHA256_CTX;
 
 
@@ -56,6 +56,7 @@ static void sha256_init(SHA256_CTX *ctx)
     ctx->off = 0;
 }
 
+// This function manages a buffer that stores partial input until the block size is reached (512 bytes), at which point it calls sha256_block_data_order
 static void sha256_update(SHA256_CTX *ctx, const void *_inp, size_t len)
 {
     size_t n;
@@ -88,6 +89,7 @@ static void sha256_update(SHA256_CTX *ctx, const void *_inp, size_t len)
         len -= n;
     }
 
+    // copy the remaining bytes (this should be less than 64
     if (len)
         sha256_bcopy(ctx->buf, inp, ctx->off = len);
 }
@@ -121,13 +123,14 @@ static void sha256_final(unsigned char md[32], SHA256_CTX *ctx)
     size_t n = ctx->off;
     unsigned char *tail;
 
-    ctx->buf[n++] = 0x80;
+    ctx->buf[n++] = 0x80; // means n <= 64 before this?
 
     if (n > (sizeof(ctx->buf) - 8)) {
         sha256_block_data_order(ctx->h, ctx->buf, 1);
         vec_zero(ctx->buf, sizeof(ctx->buf));
     }
 
+    // the last two bytes to hash depend on how many bits we hashed in total:
     tail = ctx->buf + sizeof(ctx->buf) - 8;
     __TOBE32(tail, (unsigned int)(bits >> 32));
     __TOBE32(tail + 4, (unsigned int)bits);

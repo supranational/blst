@@ -56,8 +56,8 @@ static void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
     /*
      * compose template for 'strxor(b_0, b_(i-1)) || I2OSP(i, 1) || DST_prime'
      */
-    DST_len &= 0xff;    /* just in case */
-    b_i_blocks = ((33 + DST_len + 1 + 9) + 63) & -64;
+    DST_len &= 0xff;    /* just in case */ // DST_len must be smaller than 255
+    b_i_blocks = ((33 + DST_len + 1 + 9) + 63) & -64; // `& -64` removes the lower 6 bits
     vec_zero(b_i.c + b_i_blocks - 64, 64);
  
     p = b_i.c + 33;
@@ -78,7 +78,7 @@ static void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
     b_i.c[31] = (unsigned char)(len_in_bytes);
     b_i.c[32] = 0;
     sha256_update(&ctx, b_i.c + 30, 3 + DST_len + 1);
-    sha256_final(b_0.c, &ctx);
+    sha256_final(b_0.c, &ctx); // this calls sha256_emit(b_0.c, ...)
 
     sha256_init_h(ctx.h);
     vec_copy(b_i.c, b_0.c, 32);
@@ -100,6 +100,7 @@ static void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
 /*
  * |nelems| is 'count * m' from spec
  */
+// TODO: looks like nelems is always 2. Is this sure?
 static void hash_to_field(vec384 elems[], size_t nelems,
                           const unsigned char *aug, size_t aug_len,
                           const unsigned char *msg, size_t msg_len,
@@ -107,6 +108,7 @@ static void hash_to_field(vec384 elems[], size_t nelems,
 {
     size_t L = sizeof(vec384) + 128/8;  /* ceil((ceil(log2(p)) + k) / 8) */
     size_t len_in_bytes = L * nelems;   /* divisible by 64, hurray!      */
+    // TODO: len_in_bytes will be 128 if nelems is always 2
 #if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901
     limb_t *pseudo_random = alloca(len_in_bytes);
 #else
