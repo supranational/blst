@@ -388,14 +388,14 @@ int blst_p2_deserialize(POINTonE2_affine *out, const unsigned char in[192])
     return BLST_BAD_ENCODING;
 }
 
-void blst_sk_to_pk_in_g2(POINTonE2 *out, const vec256 SK)
+void blst_sk_to_pk_in_g2(POINTonE2 *out, const pow256 SK)
 {   POINTonE2_mult_w5(out, &BLS12_381_G2, SK, 255);   }
 
-void blst_sign_pk_in_g1(POINTonE2 *out, const POINTonE2 *msg, const vec256 SK)
+void blst_sign_pk_in_g1(POINTonE2 *out, const POINTonE2 *msg, const pow256 SK)
 {   POINTonE2_mult_w5(out, msg, SK, 255);   }
 
 void blst_sk_to_pk2_in_g2(unsigned char out[192], POINTonE2_affine *PK,
-                          const vec256 SK)
+                          const pow256 SK)
 {
     POINTonE2 P[1];
 
@@ -411,7 +411,7 @@ void blst_sk_to_pk2_in_g2(unsigned char out[192], POINTonE2_affine *PK,
 }
 
 void blst_sign_pk2_in_g1(unsigned char out[192], POINTonE2_affine *sig,
-                         const POINTonE2 *hash, const vec256 SK)
+                         const POINTonE2 *hash, const pow256 SK)
 {
     POINTonE2 P[1];
 

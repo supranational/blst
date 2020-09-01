@@ -451,8 +451,8 @@ void blst_hash_to_g1(POINTonE1 *p, const unsigned char *msg, size_t msg_len,
 static void POINTonE1_times_zz_minus_1_div_by_3(POINTonE1 *out,
                                                 const POINTonE1 *in)
 {
-    static const limb_t zz_minus_1_div_by_3[] = {
-        TO_LIMB_T(0x0000000055555555), TO_LIMB_T(0x396c8c005555e156)
+    static const byte zz_minus_1_div_by_3[] = {
+        TO_BYTES(0x0000000055555555ULL), TO_BYTES(0x396c8c005555e156)
     };
     size_t n = 126-1;
     const POINTonE1 *dblin = in;

@@ -21,11 +21,11 @@ static void ptype##_add_affine(ptype *out, const ptype *p1,		\
                                            const ptype *p2);		\
 static void ptype##_double(ptype *out, const ptype *p1);		\
 static void ptype##_mult_w5(ptype *out, const ptype *point,		\
-                            const limb_t *scalar, size_t nbits);	\
+                            const byte *scalar, size_t nbits);	\
 static void ptype##_mult_ladder(ptype *out, const ptype *point,		\
-                                const limb_t *scalar, size_t nbits);	\
+                                const byte *scalar, size_t nbits);	\
 static void ptype##_affine_mult_ladder(ptype *out, const ptype *p_aff,	\
-                                       const limb_t *scalar,		\
+                                       const byte *scalar,		\
                                        size_t nbits);			\
 static void ptype##_cneg(ptype *p, limb_t cbit);			\
 static void ptype##_to_affine(ptype##_affine *out, const ptype *in);	\

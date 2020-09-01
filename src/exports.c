@@ -238,7 +238,7 @@ void blst_p1_double(POINTonE1 *out, const POINTonE1 *a)
 {   POINTonE1_double(out, a);   }
 
 void blst_p1_mult(POINTonE1 *out, const POINTonE1 *a,
-                                  const limb_t *scalar, size_t nbits)
+                                  const byte *scalar, size_t nbits)
 {   POINTonE1_mult_w5(out, a, scalar, nbits);   }
 
 limb_t blst_p1_affine_is_equal(const POINTonE1_affine *a,
@@ -263,7 +263,7 @@ void blst_p2_double(POINTonE2 *out, const POINTonE2 *a)
 {   POINTonE2_double(out, a);   }
 
 void blst_p2_mult(POINTonE2 *out, const POINTonE2 *a,
-                                  const limb_t *scalar, size_t nbits)
+                                  const byte *scalar, size_t nbits)
 {   POINTonE2_mult_w5(out, a, scalar, nbits);   }
 
 limb_t blst_p2_affine_is_equal(const POINTonE2_affine *a,
@@ -279,134 +279,141 @@ typedef __UINTPTR_TYPE__ uptr_t;
 typedef const void *uptr_t;
 #endif
 
-void blst_scalar_from_uint32(vec256 ret, const unsigned int a[8])
+void blst_scalar_from_uint32(pow256 ret, const unsigned int a[8])
 {
     const union {
         long one;
         char little;
     } is_endian = { 1 };
+    size_t i;
 
-    if ((uptr_t)ret==(uptr_t)a && (sizeof(limb_t)==4 || is_endian.little))
+    if ((uptr_t)ret==(uptr_t)a && is_endian.little)
         return;
 
-    if (sizeof(limb_t)==4) {
-        vec_copy(ret, a, sizeof(vec256));
-    } else {
-        int i;
-        for (i = 0; i < 4; i++)
-            ret[i] = a[2*i] | ((limb_t)a[2*i+1] << 32);
+    for(i = 0; i < 8; i++) {
+        unsigned int w = a[i];
+        *ret++ = (byte)w;
+        *ret++ = (byte)(w >> 8);
+        *ret++ = (byte)(w >> 16);
+        *ret++ = (byte)(w >> 24);
     }
 }
 
-void blst_uint32_from_scalar(unsigned int ret[8], const vec256 a)
+void blst_uint32_from_scalar(unsigned int ret[8], const pow256 a)
 {
     const union {
         long one;
         char little;
     } is_endian = { 1 };
+    size_t i;
 
-    if ((uptr_t)ret==(uptr_t)a && (sizeof(limb_t)==4 || is_endian.little))
+    if ((uptr_t)ret==(uptr_t)a && is_endian.little)
         return;
 
-    if (sizeof(limb_t)==4) {
-        vec_copy(ret, a, sizeof(vec256));
-    } else {
-        int i;
-        for (i = 0; i < 4; i++) {
-            limb_t limb = a[i];
-            ret[2*i]   = (unsigned int)limb;
-            ret[2*i+1] = (unsigned int)(limb >> 32);
-        }
+    for(i = 0; i < 8; i++) {
+        unsigned int w = (unsigned int)(*a++);
+        w |= (unsigned int)(*a++) << 8;
+        w |= (unsigned int)(*a++) << 16;
+        w |= (unsigned int)(*a++) << 24;
+        ret[i] = w;
     }
 }
 
-void blst_scalar_from_uint64(vec256 ret, const unsigned long long a[4])
+void blst_scalar_from_uint64(pow256 ret, const unsigned long long a[4])
 {
     const union {
         long one;
         char little;
     } is_endian = { 1 };
+    size_t i;
 
-    if (sizeof(limb_t)==8 || is_endian.little) {
-        if ((uptr_t)ret != (uptr_t)a)
-            vec_copy(ret, a, sizeof(vec256));
-    } else {
-        int i;
-        for (i = 0; i < 4; i++) {
-            unsigned long long limb = a[i];
-            ret[2*i]   = (limb_t)limb;
-            ret[2*i+1] = (limb_t)(limb >> 32);
-        }
+    if ((uptr_t)ret==(uptr_t)a && is_endian.little)
+        return;
+
+    for(i = 0; i < 4; i++) {
+        unsigned long long w = a[i];
+        *ret++ = (byte)w;
+        *ret++ = (byte)(w >> 8);
+        *ret++ = (byte)(w >> 16);
+        *ret++ = (byte)(w >> 24);
+        *ret++ = (byte)(w >> 32);
+        *ret++ = (byte)(w >> 40);
+        *ret++ = (byte)(w >> 48);
+        *ret++ = (byte)(w >> 56);
     }
 }
 
-void blst_uint64_from_scalar(unsigned long long ret[4], const vec256 a)
+void blst_uint64_from_scalar(unsigned long long ret[4], const pow256 a)
 {
     const union {
         long one;
         char little;
     } is_endian = { 1 };
+    size_t i;
 
-    if (sizeof(limb_t)==8 || is_endian.little) {
-        if ((uptr_t)ret != (uptr_t)a)
-            vec_copy(ret, a, sizeof(vec256));
-    } else {
-        int i;
-        for (i = 0; i < 4; i++)
-            ret[i] = a[2*i] | ((unsigned long long)a[2*i+1] << 32);
+    if ((uptr_t)ret==(uptr_t)a && is_endian.little)
+        return;
+
+    for(i = 0; i < 4; i++) {
+        unsigned long long w = (unsigned long long)(*a++);
+        w |= (unsigned long long)(*a++) << 8;
+        w |= (unsigned long long)(*a++) << 16;
+        w |= (unsigned long long)(*a++) << 24;
+        w |= (unsigned long long)(*a++) << 32;
+        w |= (unsigned long long)(*a++) << 40;
+        w |= (unsigned long long)(*a++) << 48;
+        w |= (unsigned long long)(*a++) << 56;
+        ret[i] = w;
     }
 }
 
-void blst_scalar_from_bendian(vec256 ret, const unsigned char a[32])
+void blst_scalar_from_bendian(pow256 ret, const unsigned char a[32])
 {
     vec256 out;
     limbs_from_be_bytes(out, a, sizeof(out));
-    vec_copy(ret, out, sizeof(out));
-}
-
-void blst_bendian_from_scalar(unsigned char ret[32], const vec256 a)
-{
-    vec256 out;
-    vec_copy(out, a, sizeof(out));
-    be_bytes_from_limbs(ret, out, sizeof(out));
-}
-
-void blst_scalar_from_lendian(vec256 ret, const unsigned char a[32])
-{
-    vec256 out;
-    const union {
-        long one;
-        char little;
-    } is_endian = { 1 };
-
-    if ((uptr_t)ret==(uptr_t)a && is_endian.little)
-        return;
-
-    limbs_from_le_bytes(out, a, sizeof(out));
-    vec_copy(ret, out, sizeof(out));
-}
-
-void blst_lendian_from_scalar(unsigned char ret[32], const vec256 a)
-{
-    vec256 out;
-    const union {
-        long one;
-        char little;
-    } is_endian = { 1 };
-
-    if ((uptr_t)ret==(uptr_t)a && is_endian.little)
-        return;
-
-    vec_copy(out, a, sizeof(out));
     le_bytes_from_limbs(ret, out, sizeof(out));
+    vec_zero(out, sizeof(out));
 }
 
-limb_t blst_scalar_fr_check(const vec256 a)
+void blst_bendian_from_scalar(unsigned char ret[32], const pow256 a)
 {
-    vec256 zero = { 0 };
+    vec256 out;
+    limbs_from_le_bytes(out, a, sizeof(out));
+    be_bytes_from_limbs(ret, out, sizeof(out));
+    vec_zero(out, sizeof(out));
+}
 
-    add_mod_256(zero, zero, a, BLS12_381_r);
-    return vec_is_equal(zero, a, sizeof(zero));
+void blst_scalar_from_lendian(pow256 ret, const unsigned char a[32])
+{
+    size_t i;
+
+    if ((uptr_t)ret==(uptr_t)a)
+        return;
+
+    for (i = 0; i < 32; i++)
+        ret[i] = a[i];
+}
+
+void blst_lendian_from_scalar(unsigned char ret[32], const pow256 a)
+{
+    size_t i;
+
+    if ((uptr_t)ret==(uptr_t)a)
+        return;
+
+    for (i = 0; i < 32; i++)
+        ret[i] = a[i];
+}
+
+limb_t blst_scalar_fr_check(const pow256 a)
+{
+    vec256 value, zero = { 0 };
+
+    limbs_from_le_bytes(value, a, 32);
+    add_mod_256(zero, zero, value, BLS12_381_r);
+    return vec_is_equal(zero, value, sizeof(zero));
+    vec_zero(zero, sizeof(zero));
+    vec_zero(value, sizeof(value));
 }
 
 void blst_fr_from_uint64(vec256 ret, const unsigned long long a[4])
@@ -444,14 +451,23 @@ void blst_uint64_from_fr(unsigned long long ret[4], const vec256 a)
         from_mont_256(out, a, BLS12_381_r, r0);
         for (i = 0; i < 4; i++)
             ret[i] = out[2*i] | ((unsigned long long)out[2*i+1] << 32);
+        vec_zero(out, sizeof(out));
     }
 }
 
-void blst_fr_from_scalar(vec256 ret, const vec256 a)
-{   mul_mont_sparse_256(ret, a, BLS12_381_rRR, BLS12_381_r, r0);   }
+void blst_fr_from_scalar(vec256 ret, const pow256 a)
+{
+    limbs_from_le_bytes(ret, a, 32);
+    mul_mont_sparse_256(ret, ret, BLS12_381_rRR, BLS12_381_r, r0);
+}
 
-void blst_scalar_from_fr(vec256 ret, const vec256 a)
-{   from_mont_256(ret, a, BLS12_381_r, r0);   }
+void blst_scalar_from_fr(pow256 ret, const vec256 a)
+{
+    vec256 out;
+    from_mont_256(out, a, BLS12_381_r, r0);
+    le_bytes_from_limbs(ret, out, 32);
+    vec_zero(out, sizeof(out));
+}
 
 /*
  * Test facilitator

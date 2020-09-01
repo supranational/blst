@@ -120,7 +120,7 @@ static void HKDF_Expand(unsigned char *OKM, size_t L,
 }
 
 #ifndef HKDF_TESTMODE
-void blst_keygen(vec256 SK, const void *IKM, size_t IKM_len,
+void blst_keygen(pow256 SK, const void *IKM, size_t IKM_len,
                             const void *info, size_t info_len)
 {
     struct {
@@ -128,8 +128,6 @@ void blst_keygen(vec256 SK, const void *IKM, size_t IKM_len,
         unsigned char PRK[32], OKM[48];
         vec512 key;
     } scratch;
-    size_t i;
-    volatile limb_t *p;
 
     /*
      * Vet |info| since some callers were caught to be sloppy, e.g.
@@ -148,14 +146,15 @@ void blst_keygen(vec256 SK, const void *IKM, size_t IKM_len,
     /* SK = OS2IP(OKM) mod r */
     vec_zero(scratch.key, sizeof(scratch.key));
     limbs_from_be_bytes(scratch.key, scratch.OKM, sizeof(scratch.OKM));
-    redc_mont_256(SK, scratch.key, BLS12_381_r, r0);
-    mul_mont_sparse_256(SK, SK, BLS12_381_rRR, BLS12_381_r, r0);
+    redc_mont_256(scratch.key, scratch.key, BLS12_381_r, r0);
+    mul_mont_sparse_256(scratch.key, scratch.key, BLS12_381_rRR,
+                        BLS12_381_r, r0);
+    le_bytes_from_limbs(SK, scratch.key, sizeof(pow256));
 
     /*
      * scrub the stack just in case next callee inadvertently flashes
      * a fragment across application boundary...
      */
-    for(p = (limb_t *)&scratch, i = 0; i < sizeof(scratch)/sizeof(limb_t); i++)
-        p[i] = 0;
+    vec_zero(&scratch, sizeof(scratch));
 }
 #endif

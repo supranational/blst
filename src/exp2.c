@@ -26,7 +26,7 @@ static void reciprocal_fp2(vec384x out, const vec384x inp)
 /*
  * |out| = |inp|^|pow|, small footprint, public exponent
  */
-static void exp_mont_384x(vec384x out, const vec384x inp, const limb_t *pow,
+static void exp_mont_384x(vec384x out, const vec384x inp, const byte *pow,
                           size_t pow_bits, const vec384 p, limb_t n0)
 {
     vec384x ret;
@@ -44,13 +44,13 @@ static void exp_mont_384x(vec384x out, const vec384x inp, const limb_t *pow,
 #ifdef __OPTIMIZE_SIZE__
 static void recip_sqrt_fp2_9mod16(vec384x out, const vec384x inp)
 {
-    static const limb_t BLS_12_381_P_2_minus_9_div_16[] = {
-        TO_LIMB_T(0xb26aa00001c718e3), TO_LIMB_T(0xd7ced6b1d76382ea),
-        TO_LIMB_T(0x3162c338362113cf), TO_LIMB_T(0x966bf91ed3e71b74),
-        TO_LIMB_T(0xb292e85a87091a04), TO_LIMB_T(0x11d68619c86185c7),
-        TO_LIMB_T(0xef53149330978ef0), TO_LIMB_T(0x050a62cfd16ddca6),
-        TO_LIMB_T(0x466e59e49349e8bd), TO_LIMB_T(0x9e2dc90e50e7046b),
-        TO_LIMB_T(0x74bd278eaa22f25e), TO_LIMB_T(0x002a437a4b8c35fc)
+    static const byte BLS_12_381_P_2_minus_9_div_16[] = {
+        TO_BYTES(0xb26aa00001c718e3), TO_BYTES(0xd7ced6b1d76382ea),
+        TO_BYTES(0x3162c338362113cf), TO_BYTES(0x966bf91ed3e71b74),
+        TO_BYTES(0xb292e85a87091a04), TO_BYTES(0x11d68619c86185c7),
+        TO_BYTES(0xef53149330978ef0), TO_BYTES(0x050a62cfd16ddca6),
+        TO_BYTES(0x466e59e49349e8bd), TO_BYTES(0x9e2dc90e50e7046b),
+        TO_BYTES(0x74bd278eaa22f25e), TO_BYTES(0x002a437a4b8c35fc)
     };
 
     exp_mont_384x(out, inp, BLS_12_381_P_2_minus_9_div_16, 758,

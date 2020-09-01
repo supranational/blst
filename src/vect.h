@@ -46,6 +46,13 @@ typedef limb_t vec384[NLIMBS(384)];
 typedef limb_t vec768[NLIMBS(768)];
 typedef vec384 vec384x[2];      /* 0 is "real" part, 1 is "imaginary" */
 
+typedef unsigned char byte;
+#define TO_BYTES(limb64)    (byte)limb64,(byte)(limb64>>8),\
+                            (byte)(limb64>>16),(byte)(limb64>>24),\
+                            (byte)(limb64>>32),(byte)(limb64>>40),\
+                            (byte)(limb64>>48),(byte)(limb64>>56)
+typedef byte pow256[256/8];
+
 /*
  * Assembly subroutines...
  */
@@ -140,13 +147,13 @@ void sub_mod_384x384(vec768 ret, const vec768 a, const vec768 b,
 /*
  * C subroutines
  */
-static void exp_mont_384(vec384 out, const vec384 inp, const limb_t *pow,
+static void exp_mont_384(vec384 out, const vec384 inp, const byte *pow,
                          size_t pow_bits, const vec384 p, limb_t n0);
 static void reciprocal_fp(vec384 out, const vec384 inp);
 static limb_t recip_sqrt_fp(vec384 out, const vec384 inp);
 static limb_t sqrt_fp(vec384 out, const vec384 inp);
 
-static void exp_mont_384x(vec384x out, const vec384x inp, const limb_t *pow,
+static void exp_mont_384x(vec384x out, const vec384x inp, const byte *pow,
                           size_t pow_bits, const vec384 p, limb_t n0);
 static void reciprocal_fp2(vec384x out, const vec384x inp);
 static limb_t recip_sqrt_fp2(vec384x out, const vec384x inp);
@@ -178,8 +185,8 @@ static limb_t sqrt_align_fp2(vec384x out, const vec384x ret,
 # endif
 #endif
 
-static inline int is_bit_set(const limb_t *v, size_t i)
-{   return (v[i/LIMB_T_BITS] >> (i%LIMB_T_BITS)) & 1;   }
+static inline int is_bit_set(const byte *v, size_t i)
+{   return (v[i/8] >> (i%8)) & 1;   }
 
 static inline limb_t byte_is_zero(unsigned char c)
 {   return ((limb_t)(c) - 1) >> (LIMB_T_BITS - 1);   }
@@ -297,7 +304,7 @@ static inline void vec_copy(void *restrict ret, const void *a, size_t num)
 
 static inline void vec_zero(void *ret, size_t num)
 {
-    limb_t *rp = (limb_t *)ret;
+    volatile limb_t *rp = (volatile limb_t *)ret;
     size_t i;
 
     num /= sizeof(limb_t);

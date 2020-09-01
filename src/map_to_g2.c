@@ -292,12 +292,12 @@ static void map_to_isogenous_E2(POINTonE2 *p, const vec384x u)
 }
 
 #if 0
-static const limb_t h_eff[] = {
-    TO_LIMB_T(0xe8020005aaa95551), TO_LIMB_T(0x59894c0adebbf6b4),
-    TO_LIMB_T(0xe954cbc06689f6a3), TO_LIMB_T(0x2ec0ec69d7477c1a),
-    TO_LIMB_T(0x6d82bf015d1212b0), TO_LIMB_T(0x329c2f178731db95),
-    TO_LIMB_T(0x9986ff031508ffe1), TO_LIMB_T(0x88e2a8e9145ad768),
-    TO_LIMB_T(0x584c6a0ea91b3528), TO_LIMB_T(0x0bc69f08f2ee75b3)
+static const byte h_eff[] = {
+    TO_BYTES(0xe8020005aaa95551), TO_BYTES(0x59894c0adebbf6b4),
+    TO_BYTES(0xe954cbc06689f6a3), TO_BYTES(0x2ec0ec69d7477c1a),
+    TO_BYTES(0x6d82bf015d1212b0), TO_BYTES(0x329c2f178731db95),
+    TO_BYTES(0x9986ff031508ffe1), TO_BYTES(0x88e2a8e9145ad768),
+    TO_BYTES(0x584c6a0ea91b3528), TO_BYTES(0x0bc69f08f2ee75b3)
 };
 
 static void clear_cofactor(POINTonE2 *out, const POINTonE2 *p)

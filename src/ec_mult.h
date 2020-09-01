@@ -8,29 +8,14 @@
 
 #include "point.h"
 
-static limb_t get_wval(const limb_t *d, size_t off, size_t bits)
+/* Works up to 9 bits */
+static limb_t get_wval(const byte *d, size_t off, size_t bits)
 {
     size_t top = off + bits - 1;
     limb_t ret;
-    const union {
-        long one;
-        char little;
-    } is_endian = { 1 };
 
-    if (is_endian.little) {
-        const unsigned char *c = (const unsigned char *)d;
-
-        ret = (limb_t)c[off / 8] | ((limb_t)c[top / 8] << 8);
-        ret >>= (off % 8);
-    } else {
-        size_t bitoff = off % LIMB_T_BITS;
-
-        ret = d[off / LIMB_T_BITS];
-        ret >>= bitoff;
-        /* in case bitoff is zero, we'll be or-ing same limb over itself */
-        bitoff = (LIMB_T_BITS - bitoff) % LIMB_T_BITS;
-        ret |= d[top / LIMB_T_BITS] << bitoff;
-    }
+    ret = ((limb_t)d[top / 8] << 8) | d[off / 8];
+    ret >>= (off % 8);
 
     return ret;
 }
@@ -101,7 +86,7 @@ static void ptype##_precompute(ptype *row, const ptype *point) \
 \
 static void ptype##s_mult_w5(ptype *ret, \
                              const ptype *points[], size_t npoints, \
-                             const limb_t *scalars[], size_t bits, \
+                             const byte *scalars[], size_t bits, \
                              ptype table[][16]) \
 { \
     limb_t wmask, wval; \
@@ -157,7 +142,7 @@ static void ptype##s_mult_w5(ptype *ret, \
 } \
 \
 static void ptype##_mult_w5(ptype *ret, const ptype *point, \
-                            const limb_t *scalar, size_t bits) \
+                            const byte *scalar, size_t bits) \
 { \
     limb_t wmask, wval; \
     size_t window; \
@@ -171,7 +156,8 @@ static void ptype##_mult_w5(ptype *ret, const ptype *point, \
     wmask = ((limb_t)1 << (window + 1)) - 1; \
 \
     bits -= window; \
-    wval = bits ? get_wval(scalar, bits - 1, window + 1) : scalar[0] << 1; \
+    wval = bits ? get_wval(scalar, bits - 1, window + 1) \
+                : (limb_t)scalar[0] << 1; \
     wval &= wmask; \
     wval = booth_encode_w5(wval); \
     ptype##_gather_booth_w5(ret, table, wval); \
@@ -187,7 +173,8 @@ static void ptype##_mult_w5(ptype *ret, const ptype *point, \
         wmask = ((limb_t)1 << (window + 1)) - 1; \
         bits -= window; \
 \
-        wval = bits ? get_wval(scalar, bits - 1, window + 1) : scalar[0] << 1; \
+        wval = bits ? get_wval(scalar, bits - 1, window + 1) \
+                    : (limb_t)scalar[0] << 1; \
         wval &= wmask; \
         wval = booth_encode_w5(wval); \
         ptype##_gather_booth_w5(temp, table, wval); \
@@ -199,7 +186,7 @@ static void ptype##_mult_w5(ptype *ret, const ptype *point, \
 /* ~50%, or ~2x[!] slower than w5... */
 #define POINT_MULT_SCALAR_LADDER_IMPL(ptype) \
 static void ptype##_mult_ladder(ptype *ret, const ptype *p, \
-                                const limb_t *scalar, size_t bits) \
+                                const byte *scalar, size_t bits) \
 { \
     ptype sum[1]; \
     limb_t bit, pbit = 0; \
@@ -208,7 +195,7 @@ static void ptype##_mult_ladder(ptype *ret, const ptype *p, \
     vec_zero(ret, sizeof(ptype));   /* infinity */ \
 \
     while (bits--) { \
-        bit = (scalar[bits / LIMB_T_BITS] >> (bits % LIMB_T_BITS)) & 1; \
+        bit = is_bit_set(scalar, bits); \
         bit ^= pbit; \
         ptype##_cswap(ret, sum, bit); \
         ptype##_add(sum, sum, ret); \
@@ -221,7 +208,7 @@ static void ptype##_mult_ladder(ptype *ret, const ptype *p, \
 /* >40% better performance than above, [and ~30% slower than w5]... */
 #define POINT_MULT_SCALAR_LADDER_IMPL(ptype) \
 static void ptype##_mult_ladder(ptype *out, const ptype *p, \
-                                const limb_t *scalar, size_t bits) \
+                                const byte *scalar, size_t bits) \
 { \
     ptype##xz sum[1]; \
     ptype##xz pxz[1]; \
@@ -233,7 +220,7 @@ static void ptype##_mult_ladder(ptype *out, const ptype *p, \
     vec_zero(ret, sizeof(ptype##xz));   /* infinity */ \
 \
     while (bits--) { \
-        bit = (scalar[bits / LIMB_T_BITS] >> (bits % LIMB_T_BITS)) & 1; \
+        bit = is_bit_set(scalar, bits); \
         bit ^= pbit; \
         ptype##xz_cswap(ret, sum, bit); \
         ptype##xz_ladder_step(ret, sum, pxz); \
@@ -270,7 +257,7 @@ static void ptype##_mult_ladder(ptype *out, const ptype *p, \
  */
 #define POINT_AFFINE_MULT_SCALAR_IMPL(ptype) \
 static void ptype##_affine_mult_ladder(ptype *ret, const ptype *p_affine, \
-                                       const limb_t *scalar, size_t bits) \
+                                       const byte *scalar, size_t bits) \
 { \
     ptype sum[1]; \
     limb_t bit; \
