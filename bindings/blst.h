@@ -51,7 +51,7 @@ typedef enum {
 typedef uint8_t byte;
 typedef uint64_t limb_t;
 
-typedef struct { limb_t l[256/8/sizeof(limb_t)]; } blst_scalar;
+typedef struct { byte b[256/8]; } blst_scalar;
 typedef struct { limb_t l[256/8/sizeof(limb_t)]; } blst_fr;
 typedef struct { limb_t l[384/8/sizeof(limb_t)]; } blst_fp;
 /* 0 is "real" part, 1 is "imaginary" */
@@ -295,7 +295,7 @@ BLST_ERROR blst_pairing_aggregate_pk_in_g2(blst_pairing *ctx,
 BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g2(blst_pairing *ctx,
                                                  const blst_p2_affine *PK,
                                                  const blst_p1_affine *sig,
-                                                 const limb_t *scalar,
+                                                 const byte *scalar,
                                                  size_t nbits,
                                                  const byte *msg,
                                                  size_t msg_len,
@@ -310,7 +310,7 @@ BLST_ERROR blst_pairing_aggregate_pk_in_g1(blst_pairing *ctx,
 BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g1(blst_pairing *ctx,
                                                  const blst_p1_affine *PK,
                                                  const blst_p2_affine *sig,
-                                                 const limb_t *scalar,
+                                                 const byte *scalar,
                                                  size_t nbits,
                                                  const byte *msg,
                                                  size_t msg_len,

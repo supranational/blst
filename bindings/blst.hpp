@@ -445,14 +445,14 @@ public:
                          msg, msg_len, aug, aug_len);
     }
     BLST_ERROR mul_n_aggregate(const P1_Affine* pk, const P2_Affine* sig,
-                               const limb_t* scalar, size_t nbits,
+                               const byte* scalar, size_t nbits,
                                const byte* msg, size_t msg_len,
                                const byte* aug = nullptr, size_t aug_len = 0)
     {   return blst_pairing_mul_n_aggregate_pk_in_g1(*this, *pk, *sig,
                                scalar, nbits, msg, msg_len, aug, aug_len);
     }
     BLST_ERROR mul_n_aggregate(const P2_Affine* pk, const P1_Affine* sig,
-                               const limb_t* scalar, size_t nbits,
+                               const byte* scalar, size_t nbits,
                                const byte* msg, size_t msg_len,
                                const byte* aug = nullptr, size_t aug_len = 0)
     {   return blst_pairing_mul_n_aggregate_pk_in_g2(*this, *pk, *sig,
@@ -478,7 +478,7 @@ public:
                          aug.size());
     }
     BLST_ERROR mul_n_aggregate(const P1_Affine* pk, const P2_Affine* sig,
-                               const limb_t* scalar, size_t nbits,
+                               const byte* scalar, size_t nbits,
                                const app__string_view msg,
                                const app__string_view aug = None)
     {   return mul_n_aggregate(pk, sig, scalar, nbits,
@@ -488,7 +488,7 @@ public:
                                aug.size());
     }
     BLST_ERROR mul_n_aggregate(const P2_Affine* pk, const P1_Affine* sig,
-                               const limb_t* scalar, size_t nbits,
+                               const byte* scalar, size_t nbits,
                                const app__string_view msg,
                                const app__string_view aug = None)
     {   return mul_n_aggregate(pk, sig, scalar, nbits,

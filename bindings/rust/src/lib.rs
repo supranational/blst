@@ -145,7 +145,7 @@ impl Pairing {
         &mut self,
         pk: &dyn Any,
         sig: &dyn Any,
-        scalar: &[limb_t],
+        scalar: &[u8],
         nbits: usize,
         msg: &[u8],
         aug: &[u8],
@@ -781,7 +781,7 @@ macro_rules! sig_variant_impl {
                             if pairing.mul_n_aggregate(
                                 &pks[work].point,
                                 &sigs[work].point,
-                                &rands[work].l,
+                                &rands[work].b,
                                 rand_bits,
                                 msgs[work],
                                 &[],

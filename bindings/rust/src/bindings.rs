@@ -15,7 +15,7 @@ pub type limb_t = u64;
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
 pub struct blst_scalar {
-    pub l: [limb_t; 4usize],
+    pub b: [byte; 32usize],
 }
 #[test]
 fn bindgen_test_layout_blst_scalar() {
@@ -26,17 +26,17 @@ fn bindgen_test_layout_blst_scalar() {
     );
     assert_eq!(
         ::std::mem::align_of::<blst_scalar>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(blst_scalar))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_scalar>())).l as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<blst_scalar>())).b as *const _ as usize },
         0usize,
         concat!(
             "Offset of field: ",
             stringify!(blst_scalar),
             "::",
-            stringify!(l)
+            stringify!(b)
         )
     );
 }
@@ -853,7 +853,7 @@ extern "C" {
         ctx: *mut blst_pairing,
         PK: *const blst_p2_affine,
         sig: *const blst_p1_affine,
-        scalar: *const limb_t,
+        scalar: *const byte,
         nbits: usize,
         msg: *const byte,
         msg_len: usize,
@@ -877,7 +877,7 @@ extern "C" {
         ctx: *mut blst_pairing,
         PK: *const blst_p1_affine,
         sig: *const blst_p2_affine,
-        scalar: *const limb_t,
+        scalar: *const byte,
         nbits: usize,
         msg: *const byte,
         msg_len: usize,

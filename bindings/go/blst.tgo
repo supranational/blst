@@ -150,7 +150,7 @@ func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
 
     r := C.blst_pairing_mul_n_aggregate_pk_in_g1((*C.blst_pairing)(&ctx[0]),
                                                  PK, sig,
-                                                 &rand.l[0], C.size_t(randBits),
+                                                 &rand.b[0], C.size_t(randBits),
                                                  umsg, C.size_t(len(msg)),
                                                  uaug, C.size_t(len(aug)))
 
@@ -175,7 +175,7 @@ func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
 
     r := C.blst_pairing_mul_n_aggregate_pk_in_g2((*C.blst_pairing)(&ctx[0]),
                                                  PK, sig,
-                                                 &rand.l[0], C.size_t(randBits),
+                                                 &rand.b[0], C.size_t(randBits),
                                                  umsg, C.size_t(len(msg)),
                                                  uaug, C.size_t(len(aug)))
 

@@ -93,21 +93,17 @@
     $1 = ($1_ltype)JCALL(GetByteArrayElements, $input, 0);
 };
 
-%apply long long[] { const limb_t* scalar }
-%typemap(in) const limb_t* scalar (size_t _global_scalar_sz) %{
-    $1 = ($1_ltype)jenv->GetLongArrayElements($input, 0);
+#ifdef __cplusplus
+%apply const byte* { const byte* scalar }
+%typemap(in) const byte* scalar (size_t _global_scalar_sz) %{
+    $1 = ($1_ltype)jenv->GetByteArrayElements($input, 0);
     _global_scalar_sz = jenv->GetArrayLength($input);
 %};
-%typemap(argout)  const limb_t* scalar ""
-%typemap(freearg) const limb_t* scalar %{
-    jenv->ReleaseLongArrayElements($input, (jlong *)$1, JNI_ABORT);
-%};
-#ifdef __cplusplus
 %typemap(in) size_t nbits %{
-    if (($1 = (size_t)$input) > 8*sizeof(jlong)*_global_scalar_sz) {
+    if (($1 = (size_t)$input) > 8*_global_scalar_sz) {
         SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException,
                                       "BLST_ERROR: scalar size mismatch");
-        $1 = 8*sizeof(jlong)*_global_scalar_sz;
+        $1 = 8*_global_scalar_sz;
     }
 %};
 #endif

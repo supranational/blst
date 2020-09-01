@@ -77,7 +77,7 @@ func TestSerdesMinPk(t *testing.T) {
     }
 
     // Negative test equals
-    sk.l[0] = sk.l[0] + 1
+    sk.b[0] = sk.b[0] + 1
     if sk.Equals(sk2) {
         t.Errorf("sk2 == sk")
     }
