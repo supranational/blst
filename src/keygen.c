@@ -6,19 +6,20 @@
 
 #include "consts.h"
 #include "sha256.h"
+// See [RFC 2104](https://tools.ietf.org/html/rfc2104)
 
 typedef struct {
     SHA256_CTX ctx;
-    unsigned int h_ipad[8];
-    unsigned int h_opad[8];
-    union { limb_t l[64/sizeof(limb_t)]; unsigned char c[64]; } tail;
+    unsigned int h_ipad[8]; // i for inner
+    unsigned int h_opad[8]; // o for outer; it seems both are used as temporary storage space (i.e. beyond their use in the spec).
+    union { limb_t l[64/sizeof(limb_t)]; unsigned char c[64]; } tail; // on x86 l will have 8 limbs and c will be 64 bytes of memory. It seems this is just used to avoid casting later on.
 } HMAC_SHA256_CTX;
 
 static void HMAC_init(HMAC_SHA256_CTX *ctx, const void *K, size_t K_len)
 {
     size_t i;
 
-    if (K == NULL) {            /* reuse h_ipad and h_opad */
+    if (K == NULL) {            /* reuse h_ipad and h_opad */ // TODO: how is h_opad reused?
         sha256_hcopy(ctx->ctx.h, ctx->h_ipad);
         ctx->ctx.N = 64;
         vec_zero(ctx->ctx.buf, sizeof(ctx->ctx.buf));
@@ -28,11 +29,12 @@ static void HMAC_init(HMAC_SHA256_CTX *ctx, const void *K, size_t K_len)
     }
 
     vec_zero(ctx->tail.c, sizeof(ctx->tail));
+    // hash key to make it exactly 64:
     if (K_len > 64) {
         sha256_init(&ctx->ctx);
-        sha256_update(&ctx->ctx, K, K_len);
-        sha256_final(ctx->tail.c, &ctx->ctx);
-    } else {
+        sha256_update(&ctx->ctx, K, K_len); // TODO: compute sizes reusing the previous size functions
+        sha256_final(ctx->tail.c, &ctx->ctx); // NOTE: seems that offset may be non-zero here
+    } else { // K will be padded with zeros
         sha256_bcopy(ctx->tail.c, K, K_len);
     }
 
@@ -69,12 +71,14 @@ static void HMAC_final(unsigned char md[32], HMAC_SHA256_CTX *ctx)
 
 static void HKDF_Extract(unsigned char PRK[32],
                          const void *salt, size_t salt_len,
-                         const void *IKM,  size_t IKM_len,
+                         const void *IKM,  size_t IKM_len, // initial key material
                          HMAC_SHA256_CTX *ctx)
+                         // produces a 32 bytes string from the salt and initial key material
 {
     unsigned char zero[1] = { 0 };
 
     HMAC_init(ctx, salt != NULL ? salt : zero, salt_len);
+    // ctx->ctx.off is 0 here
     HMAC_update(ctx, IKM, IKM_len);
 #ifndef HKDF_TESTMODE
     /* Section 2.3 KeyGen in BLS-signature draft */
@@ -87,6 +91,7 @@ static void HKDF_Expand(unsigned char *OKM, size_t L,
                         const unsigned char PRK[32],
                         const void *info, size_t info_len,
                         HMAC_SHA256_CTX *ctx)
+                        // produces L*32 bytes of output key material given the output PRK of HKDF_Extract
 {
 #if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901
     unsigned char *info_prime = alloca(info_len + 2 + 1);
@@ -94,7 +99,8 @@ static void HKDF_Expand(unsigned char *OKM, size_t L,
     unsigned char info_prime[info_len + 2 + 1];
 #endif
 
-    HMAC_init(ctx, PRK, 32);
+    HMAC_init(ctx, PRK, 32); // Can PRK be null?
+    // ctx->ctx.off is 0 here
 
     if (info_len != 0)
         sha256_bcopy(info_prime, info, info_len);
