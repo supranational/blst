@@ -20,6 +20,14 @@ include = [
     "blst/bindings/blst_aux.h",
 ]
 
+[features]
+# By default, compile with ADX and SHA extensions enabled if the host supports them.
+default = []
+# Compile in portable mode, without ADX or SHA extensions.
+portable = []
+# Enable ADX even if the host CPU doesn't support it.
+force-adx = []
+
 [build-dependencies]
 cc = "1.0"
 glob = "0.3"

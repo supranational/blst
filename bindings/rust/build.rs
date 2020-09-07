@@ -27,21 +27,6 @@ fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &str) {
     file_vec.push(Path::new(base_dir).join("assembly.S"))
 }
 
-#[cfg(target_arch = "x86_64")]
-fn is_adx() -> bool {
-    use std::arch::x86_64::*;
-    let mut id = unsafe { __cpuid(0) };
-    if id.eax >= 7 {
-        id = unsafe { __cpuid_count(7, 0) };
-        return (id.ebx & 1 << 19) != 0;
-    }
-    false
-}
-#[cfg(not(target_arch = "x86_64"))]
-fn is_adx() -> bool {
-    false
-}
-
 fn main() {
     /*
      * Use pre-built libblst.a if there is one. This is primarily
@@ -81,8 +66,29 @@ fn main() {
     // Optimization level depends on whether or not --release is passed
     // or implied.
     let mut cc = cc::Build::new();
-    if is_adx() {
-        cc.define("__ADX__", None);
+
+    match (cfg!(feature = "portable"), cfg!(feature = "force-adx")) {
+        (true, false) => {
+            println!(
+                "Compiling in portable mode without ADX or SHA extensions"
+            );
+            cc.define("__BLST_PORTABLE__", None);
+        }
+        (false, true) => {
+            println!("Enabling ADX support via `force-adx` feature");
+            cc.define("__ADX__", None);
+        }
+        (false, false) =>
+        {
+            #[cfg(target_arch = "x86_64")]
+            if std::is_x86_feature_detected!("adx") {
+                println!("Enabling ADX because it was detected on the host");
+                cc.define("__ADX__", None);
+            }
+        }
+        (true, true) => panic!(
+            "Cannot compile with both `portable` and `force-adx` features"
+        ),
     }
     cc.flag_if_supported("-mno-avx") // avoid costly transitions
         .flag_if_supported("-Wno-unused-command-line-argument");
