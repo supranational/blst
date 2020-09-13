@@ -63,17 +63,16 @@ static void ptype##_gather_booth_w##SZ(ptype *restrict p, \
     ptype##_cneg(p, booth_sign); \
 } \
 \
-static void ptype##_precompute_w##SZ(ptype *row, const ptype *point) \
+static void ptype##_precompute_w##SZ(ptype row[], const ptype *point) \
 { \
     size_t i, j; \
-    row--;  /* row[-1] is implicit infinity */\
-\
-    vec_copy(row + 1, point, sizeof(ptype));    /* row[ 1]=p*1     */\
-    ptype##_double(row + 2,  point);            /* row[ 2]=p*(1+1) */\
-    for (i = 3, j = 2; i < 1<<(SZ-1); i += 2, j++) \
-        ptype##_add(row+i, row+j, row+j-1),     /* row[ 3]=p*(2+1) */\
-        ptype##_double(row+i+1, row+j);         /* row[ 4]=p*(2+2) */\
-}                                               /* row[ 5] ...     */\
+                                      /* row[-1] is implicit infinity */\
+    vec_copy(&row[0], point, sizeof(ptype));        /* row[0]=p*1     */\
+    ptype##_double(&row[1],  point);                /* row[1]=p*(1+1) */\
+    for (i = 2, j = 1; i < 1<<(SZ-1); i += 2, j++) \
+        ptype##_add(&row[i], &row[j], &row[j-1]),   /* row[2]=p*(2+1) */\
+        ptype##_double(&row[i+1], &row[j]);         /* row[3]=p*(2+2) */\
+}                                                   /* row[4] ...     */\
 \
 static void ptype##s_mult_w##SZ(ptype *ret, \
                                 const ptype *points[], size_t npoints, \
