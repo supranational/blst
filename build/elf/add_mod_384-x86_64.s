@@ -1475,6 +1475,189 @@ sgn0_pty_mod_384x:
 	.byte	0xf3,0xc3
 .cfi_endproc	
 .size	sgn0_pty_mod_384x,.-sgn0_pty_mod_384x
+.globl	vec_select_48
+.hidden	vec_select_48
+.type	vec_select_48,@function
+.align	32
+vec_select_48:
+.cfi_startproc
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	movd	%ecx,%xmm5
+	pxor	%xmm4,%xmm4
+	pshufd	$0,%xmm5,%xmm5
+	movdqu	(%rsi),%xmm0
+	leaq	24(%rsi),%rsi
+	pcmpeqd	%xmm4,%xmm5
+	movdqu	(%rdx),%xmm1
+	leaq	24(%rdx),%rdx
+	pcmpeqd	%xmm5,%xmm4
+	leaq	24(%rdi),%rdi
+	pand	%xmm4,%xmm0
+	movdqu	0+16-24(%rsi),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	0+16-24(%rdx),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,0-24(%rdi)
+	pand	%xmm4,%xmm2
+	movdqu	16+16-24(%rsi),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	16+16-24(%rdx),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,16-24(%rdi)
+	pand	%xmm4,%xmm0
+	pand	%xmm5,%xmm1
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,32-24(%rdi)
+	.byte	0xf3,0xc3
+.cfi_endproc
+.size	vec_select_48,.-vec_select_48
+.globl	vec_select_96
+.hidden	vec_select_96
+.type	vec_select_96,@function
+.align	32
+vec_select_96:
+.cfi_startproc
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	movd	%ecx,%xmm5
+	pxor	%xmm4,%xmm4
+	pshufd	$0,%xmm5,%xmm5
+	movdqu	(%rsi),%xmm0
+	leaq	48(%rsi),%rsi
+	pcmpeqd	%xmm4,%xmm5
+	movdqu	(%rdx),%xmm1
+	leaq	48(%rdx),%rdx
+	pcmpeqd	%xmm5,%xmm4
+	leaq	48(%rdi),%rdi
+	pand	%xmm4,%xmm0
+	movdqu	0+16-48(%rsi),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	0+16-48(%rdx),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,0-48(%rdi)
+	pand	%xmm4,%xmm2
+	movdqu	16+16-48(%rsi),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	16+16-48(%rdx),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,16-48(%rdi)
+	pand	%xmm4,%xmm0
+	movdqu	32+16-48(%rsi),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	32+16-48(%rdx),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,32-48(%rdi)
+	pand	%xmm4,%xmm2
+	movdqu	48+16-48(%rsi),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	48+16-48(%rdx),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,48-48(%rdi)
+	pand	%xmm4,%xmm0
+	movdqu	64+16-48(%rsi),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	64+16-48(%rdx),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,64-48(%rdi)
+	pand	%xmm4,%xmm2
+	pand	%xmm5,%xmm3
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,80-48(%rdi)
+	.byte	0xf3,0xc3
+.cfi_endproc
+.size	vec_select_96,.-vec_select_96
+.globl	vec_select_192
+.hidden	vec_select_192
+.type	vec_select_192,@function
+.align	32
+vec_select_192:
+.cfi_startproc
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	movd	%ecx,%xmm5
+	pxor	%xmm4,%xmm4
+	pshufd	$0,%xmm5,%xmm5
+	movdqu	(%rsi),%xmm0
+	leaq	96(%rsi),%rsi
+	pcmpeqd	%xmm4,%xmm5
+	movdqu	(%rdx),%xmm1
+	leaq	96(%rdx),%rdx
+	pcmpeqd	%xmm5,%xmm4
+	leaq	96(%rdi),%rdi
+	pand	%xmm4,%xmm0
+	movdqu	0+16-96(%rsi),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	0+16-96(%rdx),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,0-96(%rdi)
+	pand	%xmm4,%xmm2
+	movdqu	16+16-96(%rsi),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	16+16-96(%rdx),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,16-96(%rdi)
+	pand	%xmm4,%xmm0
+	movdqu	32+16-96(%rsi),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	32+16-96(%rdx),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,32-96(%rdi)
+	pand	%xmm4,%xmm2
+	movdqu	48+16-96(%rsi),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	48+16-96(%rdx),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,48-96(%rdi)
+	pand	%xmm4,%xmm0
+	movdqu	64+16-96(%rsi),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	64+16-96(%rdx),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,64-96(%rdi)
+	pand	%xmm4,%xmm2
+	movdqu	80+16-96(%rsi),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	80+16-96(%rdx),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,80-96(%rdi)
+	pand	%xmm4,%xmm0
+	movdqu	96+16-96(%rsi),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	96+16-96(%rdx),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,96-96(%rdi)
+	pand	%xmm4,%xmm2
+	movdqu	112+16-96(%rsi),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	112+16-96(%rdx),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,112-96(%rdi)
+	pand	%xmm4,%xmm0
+	movdqu	128+16-96(%rsi),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	128+16-96(%rdx),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,128-96(%rdi)
+	pand	%xmm4,%xmm2
+	movdqu	144+16-96(%rsi),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	144+16-96(%rdx),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,144-96(%rdi)
+	pand	%xmm4,%xmm0
+	movdqu	160+16-96(%rsi),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	160+16-96(%rdx),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,160-96(%rdi)
+	pand	%xmm4,%xmm2
+	pand	%xmm5,%xmm3
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,176-96(%rdi)
+	.byte	0xf3,0xc3
+.cfi_endproc
+.size	vec_select_192,.-vec_select_192
 .globl	vec_select_144
 .hidden	vec_select_144
 .type	vec_select_144,@function

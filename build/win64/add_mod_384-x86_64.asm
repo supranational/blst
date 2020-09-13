@@ -1579,6 +1579,180 @@ $L$SEH_epilogue_sgn0_pty_mod_384x::
 
 $L$SEH_end_sgn0_pty_mod_384x::
 sgn0_pty_mod_384x	ENDP
+PUBLIC	vec_select_48
+
+
+ALIGN	32
+vec_select_48	PROC PUBLIC
+	DB	243,15,30,250
+	movd	xmm5,r9d
+	pxor	xmm4,xmm4
+	pshufd	xmm5,xmm5,0
+	movdqu	xmm0,XMMWORD PTR[rdx]
+	lea	rdx,QWORD PTR[24+rdx]
+	pcmpeqd	xmm5,xmm4
+	movdqu	xmm1,XMMWORD PTR[r8]
+	lea	r8,QWORD PTR[24+r8]
+	pcmpeqd	xmm4,xmm5
+	lea	rcx,QWORD PTR[24+rcx]
+	pand	xmm0,xmm4
+	movdqu	xmm2,XMMWORD PTR[((0+16-24))+rdx]
+	pand	xmm1,xmm5
+	movdqu	xmm3,XMMWORD PTR[((0+16-24))+r8]
+	por	xmm0,xmm1
+	movdqu	XMMWORD PTR[(0-24)+rcx],xmm0
+	pand	xmm2,xmm4
+	movdqu	xmm0,XMMWORD PTR[((16+16-24))+rdx]
+	pand	xmm3,xmm5
+	movdqu	xmm1,XMMWORD PTR[((16+16-24))+r8]
+	por	xmm2,xmm3
+	movdqu	XMMWORD PTR[(16-24)+rcx],xmm2
+	pand	xmm0,xmm4
+	pand	xmm1,xmm5
+	por	xmm0,xmm1
+	movdqu	XMMWORD PTR[(32-24)+rcx],xmm0
+	DB	0F3h,0C3h		;repret
+vec_select_48	ENDP
+PUBLIC	vec_select_96
+
+
+ALIGN	32
+vec_select_96	PROC PUBLIC
+	DB	243,15,30,250
+	movd	xmm5,r9d
+	pxor	xmm4,xmm4
+	pshufd	xmm5,xmm5,0
+	movdqu	xmm0,XMMWORD PTR[rdx]
+	lea	rdx,QWORD PTR[48+rdx]
+	pcmpeqd	xmm5,xmm4
+	movdqu	xmm1,XMMWORD PTR[r8]
+	lea	r8,QWORD PTR[48+r8]
+	pcmpeqd	xmm4,xmm5
+	lea	rcx,QWORD PTR[48+rcx]
+	pand	xmm0,xmm4
+	movdqu	xmm2,XMMWORD PTR[((0+16-48))+rdx]
+	pand	xmm1,xmm5
+	movdqu	xmm3,XMMWORD PTR[((0+16-48))+r8]
+	por	xmm0,xmm1
+	movdqu	XMMWORD PTR[(0-48)+rcx],xmm0
+	pand	xmm2,xmm4
+	movdqu	xmm0,XMMWORD PTR[((16+16-48))+rdx]
+	pand	xmm3,xmm5
+	movdqu	xmm1,XMMWORD PTR[((16+16-48))+r8]
+	por	xmm2,xmm3
+	movdqu	XMMWORD PTR[(16-48)+rcx],xmm2
+	pand	xmm0,xmm4
+	movdqu	xmm2,XMMWORD PTR[((32+16-48))+rdx]
+	pand	xmm1,xmm5
+	movdqu	xmm3,XMMWORD PTR[((32+16-48))+r8]
+	por	xmm0,xmm1
+	movdqu	XMMWORD PTR[(32-48)+rcx],xmm0
+	pand	xmm2,xmm4
+	movdqu	xmm0,XMMWORD PTR[((48+16-48))+rdx]
+	pand	xmm3,xmm5
+	movdqu	xmm1,XMMWORD PTR[((48+16-48))+r8]
+	por	xmm2,xmm3
+	movdqu	XMMWORD PTR[(48-48)+rcx],xmm2
+	pand	xmm0,xmm4
+	movdqu	xmm2,XMMWORD PTR[((64+16-48))+rdx]
+	pand	xmm1,xmm5
+	movdqu	xmm3,XMMWORD PTR[((64+16-48))+r8]
+	por	xmm0,xmm1
+	movdqu	XMMWORD PTR[(64-48)+rcx],xmm0
+	pand	xmm2,xmm4
+	pand	xmm3,xmm5
+	por	xmm2,xmm3
+	movdqu	XMMWORD PTR[(80-48)+rcx],xmm2
+	DB	0F3h,0C3h		;repret
+vec_select_96	ENDP
+PUBLIC	vec_select_192
+
+
+ALIGN	32
+vec_select_192	PROC PUBLIC
+	DB	243,15,30,250
+	movd	xmm5,r9d
+	pxor	xmm4,xmm4
+	pshufd	xmm5,xmm5,0
+	movdqu	xmm0,XMMWORD PTR[rdx]
+	lea	rdx,QWORD PTR[96+rdx]
+	pcmpeqd	xmm5,xmm4
+	movdqu	xmm1,XMMWORD PTR[r8]
+	lea	r8,QWORD PTR[96+r8]
+	pcmpeqd	xmm4,xmm5
+	lea	rcx,QWORD PTR[96+rcx]
+	pand	xmm0,xmm4
+	movdqu	xmm2,XMMWORD PTR[((0+16-96))+rdx]
+	pand	xmm1,xmm5
+	movdqu	xmm3,XMMWORD PTR[((0+16-96))+r8]
+	por	xmm0,xmm1
+	movdqu	XMMWORD PTR[(0-96)+rcx],xmm0
+	pand	xmm2,xmm4
+	movdqu	xmm0,XMMWORD PTR[((16+16-96))+rdx]
+	pand	xmm3,xmm5
+	movdqu	xmm1,XMMWORD PTR[((16+16-96))+r8]
+	por	xmm2,xmm3
+	movdqu	XMMWORD PTR[(16-96)+rcx],xmm2
+	pand	xmm0,xmm4
+	movdqu	xmm2,XMMWORD PTR[((32+16-96))+rdx]
+	pand	xmm1,xmm5
+	movdqu	xmm3,XMMWORD PTR[((32+16-96))+r8]
+	por	xmm0,xmm1
+	movdqu	XMMWORD PTR[(32-96)+rcx],xmm0
+	pand	xmm2,xmm4
+	movdqu	xmm0,XMMWORD PTR[((48+16-96))+rdx]
+	pand	xmm3,xmm5
+	movdqu	xmm1,XMMWORD PTR[((48+16-96))+r8]
+	por	xmm2,xmm3
+	movdqu	XMMWORD PTR[(48-96)+rcx],xmm2
+	pand	xmm0,xmm4
+	movdqu	xmm2,XMMWORD PTR[((64+16-96))+rdx]
+	pand	xmm1,xmm5
+	movdqu	xmm3,XMMWORD PTR[((64+16-96))+r8]
+	por	xmm0,xmm1
+	movdqu	XMMWORD PTR[(64-96)+rcx],xmm0
+	pand	xmm2,xmm4
+	movdqu	xmm0,XMMWORD PTR[((80+16-96))+rdx]
+	pand	xmm3,xmm5
+	movdqu	xmm1,XMMWORD PTR[((80+16-96))+r8]
+	por	xmm2,xmm3
+	movdqu	XMMWORD PTR[(80-96)+rcx],xmm2
+	pand	xmm0,xmm4
+	movdqu	xmm2,XMMWORD PTR[((96+16-96))+rdx]
+	pand	xmm1,xmm5
+	movdqu	xmm3,XMMWORD PTR[((96+16-96))+r8]
+	por	xmm0,xmm1
+	movdqu	XMMWORD PTR[(96-96)+rcx],xmm0
+	pand	xmm2,xmm4
+	movdqu	xmm0,XMMWORD PTR[((112+16-96))+rdx]
+	pand	xmm3,xmm5
+	movdqu	xmm1,XMMWORD PTR[((112+16-96))+r8]
+	por	xmm2,xmm3
+	movdqu	XMMWORD PTR[(112-96)+rcx],xmm2
+	pand	xmm0,xmm4
+	movdqu	xmm2,XMMWORD PTR[((128+16-96))+rdx]
+	pand	xmm1,xmm5
+	movdqu	xmm3,XMMWORD PTR[((128+16-96))+r8]
+	por	xmm0,xmm1
+	movdqu	XMMWORD PTR[(128-96)+rcx],xmm0
+	pand	xmm2,xmm4
+	movdqu	xmm0,XMMWORD PTR[((144+16-96))+rdx]
+	pand	xmm3,xmm5
+	movdqu	xmm1,XMMWORD PTR[((144+16-96))+r8]
+	por	xmm2,xmm3
+	movdqu	XMMWORD PTR[(144-96)+rcx],xmm2
+	pand	xmm0,xmm4
+	movdqu	xmm2,XMMWORD PTR[((160+16-96))+rdx]
+	pand	xmm1,xmm5
+	movdqu	xmm3,XMMWORD PTR[((160+16-96))+r8]
+	por	xmm0,xmm1
+	movdqu	XMMWORD PTR[(160-96)+rcx],xmm0
+	pand	xmm2,xmm4
+	pand	xmm3,xmm5
+	por	xmm2,xmm3
+	movdqu	XMMWORD PTR[(176-96)+rcx],xmm2
+	DB	0F3h,0C3h		;repret
+vec_select_192	ENDP
 PUBLIC	vec_select_144
 
 

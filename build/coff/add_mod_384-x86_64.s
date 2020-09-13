@@ -1547,6 +1547,183 @@ sgn0_pty_mod_384x:
 	.byte	0xf3,0xc3
 
 .LSEH_end_sgn0_pty_mod_384x:
+.globl	vec_select_48
+
+.def	vec_select_48;	.scl 2;	.type 32;	.endef
+.p2align	5
+vec_select_48:
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	movd	%r9d,%xmm5
+	pxor	%xmm4,%xmm4
+	pshufd	$0,%xmm5,%xmm5
+	movdqu	(%rdx),%xmm0
+	leaq	24(%rdx),%rdx
+	pcmpeqd	%xmm4,%xmm5
+	movdqu	(%r8),%xmm1
+	leaq	24(%r8),%r8
+	pcmpeqd	%xmm5,%xmm4
+	leaq	24(%rcx),%rcx
+	pand	%xmm4,%xmm0
+	movdqu	0+16-24(%rdx),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	0+16-24(%r8),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,0-24(%rcx)
+	pand	%xmm4,%xmm2
+	movdqu	16+16-24(%rdx),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	16+16-24(%r8),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,16-24(%rcx)
+	pand	%xmm4,%xmm0
+	pand	%xmm5,%xmm1
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,32-24(%rcx)
+	.byte	0xf3,0xc3
+
+.globl	vec_select_96
+
+.def	vec_select_96;	.scl 2;	.type 32;	.endef
+.p2align	5
+vec_select_96:
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	movd	%r9d,%xmm5
+	pxor	%xmm4,%xmm4
+	pshufd	$0,%xmm5,%xmm5
+	movdqu	(%rdx),%xmm0
+	leaq	48(%rdx),%rdx
+	pcmpeqd	%xmm4,%xmm5
+	movdqu	(%r8),%xmm1
+	leaq	48(%r8),%r8
+	pcmpeqd	%xmm5,%xmm4
+	leaq	48(%rcx),%rcx
+	pand	%xmm4,%xmm0
+	movdqu	0+16-48(%rdx),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	0+16-48(%r8),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,0-48(%rcx)
+	pand	%xmm4,%xmm2
+	movdqu	16+16-48(%rdx),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	16+16-48(%r8),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,16-48(%rcx)
+	pand	%xmm4,%xmm0
+	movdqu	32+16-48(%rdx),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	32+16-48(%r8),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,32-48(%rcx)
+	pand	%xmm4,%xmm2
+	movdqu	48+16-48(%rdx),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	48+16-48(%r8),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,48-48(%rcx)
+	pand	%xmm4,%xmm0
+	movdqu	64+16-48(%rdx),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	64+16-48(%r8),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,64-48(%rcx)
+	pand	%xmm4,%xmm2
+	pand	%xmm5,%xmm3
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,80-48(%rcx)
+	.byte	0xf3,0xc3
+
+.globl	vec_select_192
+
+.def	vec_select_192;	.scl 2;	.type 32;	.endef
+.p2align	5
+vec_select_192:
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	movd	%r9d,%xmm5
+	pxor	%xmm4,%xmm4
+	pshufd	$0,%xmm5,%xmm5
+	movdqu	(%rdx),%xmm0
+	leaq	96(%rdx),%rdx
+	pcmpeqd	%xmm4,%xmm5
+	movdqu	(%r8),%xmm1
+	leaq	96(%r8),%r8
+	pcmpeqd	%xmm5,%xmm4
+	leaq	96(%rcx),%rcx
+	pand	%xmm4,%xmm0
+	movdqu	0+16-96(%rdx),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	0+16-96(%r8),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,0-96(%rcx)
+	pand	%xmm4,%xmm2
+	movdqu	16+16-96(%rdx),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	16+16-96(%r8),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,16-96(%rcx)
+	pand	%xmm4,%xmm0
+	movdqu	32+16-96(%rdx),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	32+16-96(%r8),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,32-96(%rcx)
+	pand	%xmm4,%xmm2
+	movdqu	48+16-96(%rdx),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	48+16-96(%r8),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,48-96(%rcx)
+	pand	%xmm4,%xmm0
+	movdqu	64+16-96(%rdx),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	64+16-96(%r8),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,64-96(%rcx)
+	pand	%xmm4,%xmm2
+	movdqu	80+16-96(%rdx),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	80+16-96(%r8),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,80-96(%rcx)
+	pand	%xmm4,%xmm0
+	movdqu	96+16-96(%rdx),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	96+16-96(%r8),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,96-96(%rcx)
+	pand	%xmm4,%xmm2
+	movdqu	112+16-96(%rdx),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	112+16-96(%r8),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,112-96(%rcx)
+	pand	%xmm4,%xmm0
+	movdqu	128+16-96(%rdx),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	128+16-96(%r8),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,128-96(%rcx)
+	pand	%xmm4,%xmm2
+	movdqu	144+16-96(%rdx),%xmm0
+	pand	%xmm5,%xmm3
+	movdqu	144+16-96(%r8),%xmm1
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,144-96(%rcx)
+	pand	%xmm4,%xmm0
+	movdqu	160+16-96(%rdx),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	160+16-96(%r8),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,160-96(%rcx)
+	pand	%xmm4,%xmm2
+	pand	%xmm5,%xmm3
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,176-96(%rcx)
+	.byte	0xf3,0xc3
+
 .globl	vec_select_144
 
 .def	vec_select_144;	.scl 2;	.type 32;	.endef
