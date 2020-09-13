@@ -67,22 +67,25 @@ fn main() {
     // or implied.
     let mut cc = cc::Build::new();
 
+    // account for cross-compilation
+    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     match (cfg!(feature = "portable"), cfg!(feature = "force-adx")) {
         (true, false) => {
             println!("Compiling in portable mode without ISA extensions");
             cc.define("__BLST_PORTABLE__", None);
         }
         (false, true) => {
-            if cfg!(target_arch = "x86_64") {
+            if target_arch.eq("x86_64") {
                 println!("Enabling ADX support via `force-adx` feature");
                 cc.define("__ADX__", None);
             } else {
-                println!("`force-adx` is ignored on non-x86_64 platform");
+                println!("`force-adx` is ignored for non-x86_64 targets");
             }
         }
         (false, false) => {
             #[cfg(target_arch = "x86_64")]
-            if std::is_x86_feature_detected!("adx") {
+            if target_arch.eq("x86_64") && std::is_x86_feature_detected!("adx")
+            {
                 println!("Enabling ADX because it was detected on the host");
                 cc.define("__ADX__", None);
             }
