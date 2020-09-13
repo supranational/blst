@@ -7,7 +7,7 @@ PERL=${PERL:-perl}
 
 for pl in ../src/asm/*-x86_64.pl; do
     s=`basename $pl .pl`.asm
-    (set -x; ${PERL} $pl masm > win64/$s)
+    expr $s : '.*portable' > /dev/null || (set -x; ${PERL} $pl masm > win64/$s)
     s=`basename $pl .pl`.s
     (set -x; ${PERL} $pl elf > elf/$s)
     (set -x; ${PERL} $pl mingw64 > coff/$s)

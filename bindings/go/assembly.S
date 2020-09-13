@@ -1,6 +1,10 @@
 #if defined(__x86_64) || defined(__x86_64__)
 # if defined(__ELF__)
-#  include "elf/sha256-x86_64.s"
+#  if defined(__BLST_PORTABLE__)
+#   include "elf/sha256-portable-x86_64.s"
+#  else
+#   include "elf/sha256-x86_64.s"
+#  endif
 #  include "elf/inverse_mod_384-x86_64.s"
 #  include "elf/add_mod_384-x86_64.s"
 #  include "elf/add_mod_384x384-x86_64.s"
@@ -17,7 +21,11 @@
 #  include "elf/add_mod_256-x86_64.s"
 #  include "elf/inverse_mod_256-x86_64.s"
 # elif defined(_WIN64) || defined(__CYGWIN__)
-#  include "coff/sha256-x86_64.s"
+#  if defined(__BLST_PORTABLE__)
+#   include "coff/sha256-portable-x86_64.s"
+#  else
+#   include "coff/sha256-x86_64.s"
+#  endif
 #  include "coff/inverse_mod_384-x86_64.s"
 #  include "coff/add_mod_384-x86_64.s"
 #  include "coff/add_mod_384x384-x86_64.s"
