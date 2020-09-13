@@ -25,8 +25,8 @@ jobs:
           ~/.cargo/registry
           **/Cargo.lock
           **/bindings/rust/target
-        key: ${{ runner.os }}-cargo-1
-        restore-keys: ${{ runner.os }}-cargo-0
+        key: ${{ runner.os }}-cargo-2
+        restore-keys: ${{ runner.os }}-cargo-1
 
     - uses: actions/setup-java@v1
       with:
