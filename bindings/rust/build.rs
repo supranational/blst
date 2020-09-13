@@ -69,17 +69,18 @@ fn main() {
 
     match (cfg!(feature = "portable"), cfg!(feature = "force-adx")) {
         (true, false) => {
-            println!(
-                "Compiling in portable mode without ADX or SHA extensions"
-            );
+            println!("Compiling in portable mode without ISA extensions");
             cc.define("__BLST_PORTABLE__", None);
         }
         (false, true) => {
-            println!("Enabling ADX support via `force-adx` feature");
-            cc.define("__ADX__", None);
+            if cfg!(target_arch = "x86_64") {
+                println!("Enabling ADX support via `force-adx` feature");
+                cc.define("__ADX__", None);
+            } else {
+                println!("`force-adx` is ignored on non-x86_64 platform");
+            }
         }
-        (false, false) =>
-        {
+        (false, false) => {
             #[cfg(target_arch = "x86_64")]
             if std::is_x86_feature_detected!("adx") {
                 println!("Enabling ADX because it was detected on the host");

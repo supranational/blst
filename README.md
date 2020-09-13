@@ -130,7 +130,7 @@ Windows (Visual C)
 \some\where\build.bat
 ```
 
-If final application crashes with an "illegal instruction" exception [after copying to another system], pass `‑D__BLST_PORTABLE__` on `build.sh` command line. If you don't use build.sh, complement the `CFLAGS` environment variable with the said command line option. If you compile a Go application, you will need to modify the `CGO_CFLAGS` variable instead. Alternatively, if you compile a Rust application on an older Intel system, but will execute it on a newer one, consider instead adding `‑D__ADX__` to `CFLAGS` for better performance.
+If final application crashes with an "illegal instruction" exception [after copying to another system], pass `‑D__BLST_PORTABLE__` on `build.sh` command line. If you don't use build.sh, complement the `CFLAGS` environment variable with the said command line option. If you compile a Go application, you will need to modify the `CGO_CFLAGS` variable instead. And if you compile a Rust application, you can pass `‑‑features portable` to `cargo build`. Alternatively, if you compile on an older Intel system, but will execute application on a newer one, consider instead passing `‑‑features force‑adx` for better performance.
 
 ## Language-specific notes
 
