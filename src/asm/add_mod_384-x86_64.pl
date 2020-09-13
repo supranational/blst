@@ -1462,6 +1462,9 @@ $code.=<<___;
 .size	vec_select_$sz,.-vec_select_$sz
 ___
 }
+vec_select(48);
+vec_select(96);
+vec_select(192);
 vec_select(144);
 vec_select(288);
 }

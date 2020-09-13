@@ -228,16 +228,19 @@ static inline void vec_cswap(void *restrict a, void *restrict b, size_t num,
 }
 
 /* ret = bit ? a : b */
+void vec_select_48(void *ret, const void *a, const void *b, limb_t sel_a);
+void vec_select_96(void *ret, const void *a, const void *b, limb_t sel_a);
 void vec_select_144(void *ret, const void *a, const void *b, limb_t sel_a);
+void vec_select_192(void *ret, const void *a, const void *b, limb_t sel_a);
 void vec_select_288(void *ret, const void *a, const void *b, limb_t sel_a);
-static inline void vec_select(void *restrict ret, const void *restrict a,
-                                                  const void *restrict b,
+static inline void vec_select(void *ret, const void *a, const void *b,
                               size_t num, limb_t sel_a)
 {
-    if (num == 144)
-        vec_select_144(ret, a, b, sel_a);
-    else if (num == 288)
-        vec_select_288(ret, a, b, sel_a);
+    if (num == 48)          vec_select_48(ret, a, b, sel_a);
+    else if (num == 96)     vec_select_96(ret, a, b, sel_a);
+    else if (num == 144)    vec_select_144(ret, a, b, sel_a);
+    else if (num == 192)    vec_select_192(ret, a, b, sel_a);
+    else if (num == 288)    vec_select_288(ret, a, b, sel_a);
     else {
         limb_t bi, *rp = (limb_t *)ret;
         const limb_t *ap = (const limb_t *)a;
@@ -385,9 +388,6 @@ static inline void le_bytes_from_limbs(unsigned char *out, const limb_t *in,
 # pragma warning(disable:556)
 #elif defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wpedantic"
-# if __GNUC__>=8
-# pragma GCC diagnostic ignored "-Wrestrict"
-# endif
 #elif defined(_MSC_VER)
 # pragma warning(disable: 4127 4189)
 #endif
