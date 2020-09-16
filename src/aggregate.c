@@ -108,7 +108,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
     if (sig != NULL && !vec_is_zero(sig, sizeof(*sig))) {
         POINTonE1 *S = &ctx->AggrSign.e1;
 
-        if (!POINTonE1_in_G1((const POINTonE1 *)sig))
+        if (!POINTonE1_in_G1(sig))
             return BLST_POINT_NOT_IN_GROUP;
 
         if (ctx->ctrl & AGGR_SIGN_SET) {
@@ -212,7 +212,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
     if (sig != NULL && !vec_is_zero(sig, sizeof(*sig))) {
         POINTonE2 *S = &ctx->AggrSign.e2;
 
-        if (!POINTonE2_in_G2((const POINTonE2 *)sig))
+        if (!POINTonE2_in_G2(sig))
             return BLST_POINT_NOT_IN_GROUP;
 
         if (ctx->ctrl & AGGR_SIGN_SET) {
@@ -444,7 +444,7 @@ BLST_ERROR blst_aggregate_in_g1(POINTonE1 *out, const POINTonE1 *in,
             return BLST_POINT_NOT_ON_CURVE;
     }
 
-    if (!POINTonE1_in_G1((POINTonE1 *)P))
+    if (!POINTonE1_in_G1(P))
         return BLST_POINT_NOT_IN_GROUP;
 
     if (in == NULL) {
@@ -478,7 +478,7 @@ BLST_ERROR blst_aggregate_in_g2(POINTonE2 *out, const POINTonE2 *in,
             return BLST_POINT_NOT_ON_CURVE;
     }
 
-    if (!POINTonE2_in_G2((POINTonE2 *)P))
+    if (!POINTonE2_in_G2(P))
         return BLST_POINT_NOT_IN_GROUP;
 
     if (in == NULL) {

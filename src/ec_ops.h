@@ -244,7 +244,7 @@ static void ptype##_add(ptype *out, const ptype *p1, const ptype *p2) \
  * |p2| not equal to |p3|!!!
  */
 #define POINT_ADD_AFFINE_IMPL(ptype, bits, field, one) \
-static void ptype##_add_affine(ptype *p3, const ptype *p1, const ptype *p2) \
+static void ptype##_add_affine(ptype *p3, const ptype *p1, const ptype##_affine *p2) \
 { \
     vec##bits Z1Z1, H, HH, I, J, r, V; \
     limb_t p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \

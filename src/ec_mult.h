@@ -240,7 +240,7 @@ static void ptype##_mult_ladder(ptype *out, const ptype *p, \
  * not a problem...
  */
 #define POINT_AFFINE_MULT_SCALAR_IMPL(ptype) \
-static void ptype##_affine_mult_ladder(ptype *ret, const ptype *p_affine, \
+static void ptype##_affine_mult_ladder(ptype *ret, const ptype##_affine *p_affine, \
                                        const byte *scalar, size_t bits) \
 { \
     ptype sum[1]; \
