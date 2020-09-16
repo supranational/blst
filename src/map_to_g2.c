@@ -472,7 +472,7 @@ void blst_hash_to_g2(POINTonE2 *p, const unsigned char *msg, size_t msg_len,
                                    const unsigned char *aug, size_t aug_len)
 {   Hash_to_G2(p, msg, msg_len, DST, DST_len, aug, aug_len);   }
 
-static limb_t POINTonE2_in_G2(const POINTonE2 *p)
+static limb_t POINTonE2_in_G2(const POINTonE2_affine *p)
 {
     POINTonE2 t0, t1, t2;
 
@@ -493,4 +493,4 @@ static limb_t POINTonE2_in_G2(const POINTonE2 *p)
 }
 
 limb_t blst_p2_affine_in_g2(const POINTonE2_affine *p)
-{   return POINTonE2_in_G2((const POINTonE2 *)p);   }
+{   return POINTonE2_in_G2(p);   }
