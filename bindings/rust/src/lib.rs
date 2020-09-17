@@ -486,8 +486,8 @@ macro_rules! sig_variant_impl {
 
         // Trait for equality comparisons which are equivalence relations.
         //
-        // This means, that in addition to a == b and a != b being strict inverses, the equality
-        // must be reflexive, symmetric and transitive.
+        // This means, that in addition to a == b and a != b being strict
+        // inverses, the equality must be reflexive, symmetric and transitive.
         impl Eq for PublicKey {}
 
         impl PartialEq for PublicKey {
@@ -892,8 +892,8 @@ macro_rules! sig_variant_impl {
 
         // Trait for equality comparisons which are equivalence relations.
         //
-        // This means, that in addition to a == b and a != b being strict inverses, the equality
-        // must be reflexive, symmetric and transitive.
+        // This means, that in addition to a == b and a != b being strict
+        // inverses, the equality must be reflexive, symmetric and transitive.
         impl Eq for Signature {}
 
         impl PartialEq for Signature {
