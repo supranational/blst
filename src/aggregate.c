@@ -99,7 +99,13 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
 
     ctx->ctrl |= AGGR_MIN_SIG;
 
-    if (sig != NULL) {
+    /*
+     * Since we don't know if the signature is individual or aggregated,
+     * the only sensible thing to do is to skip over infinite one and
+     * count on the corresponding infinite public key to be rejected,
+     * in case the signature is non-aggregated that is.
+     */
+    if (sig != NULL && !vec_is_zero(sig, sizeof(*sig))) {
         POINTonE1 *S = &ctx->AggrSign.e1;
 
         if (!POINTonE1_in_G1((const POINTonE1 *)sig))
@@ -126,6 +132,12 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
     if (PK != NULL) {
         unsigned int n;
         POINTonE1 H[1];
+
+        /*
+         * Reject infinite public keys.
+         */
+        if (vec_is_zero(PK, sizeof(*PK)))
+            return BLST_PK_IS_INFINITY;
 
         if (ctx->ctrl & AGGR_HASH_OR_ENCODE)
             Hash_to_G1(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
@@ -191,7 +203,13 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
 
     ctx->ctrl |= AGGR_MIN_PK;
 
-    if (sig != NULL) {
+    /*
+     * Since we don't know if the signature is individual or aggregated,
+     * the only sensible thing to do is to skip over infinite one and
+     * count on the corresponding infinite public key to be rejected,
+     * in case the signature is non-aggregated that is.
+     */
+    if (sig != NULL && !vec_is_zero(sig, sizeof(*sig))) {
         POINTonE2 *S = &ctx->AggrSign.e2;
 
         if (!POINTonE2_in_G2((const POINTonE2 *)sig))
@@ -218,6 +236,12 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
     if (PK != NULL) {
         unsigned int n;
         POINTonE2 H[1];
+
+        /*
+         * Reject infinite public keys.
+         */
+        if (vec_is_zero(PK, sizeof(*PK)))
+            return BLST_PK_IS_INFINITY;
 
         if (ctx->ctrl & AGGR_HASH_OR_ENCODE)
             Hash_to_G2(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
@@ -372,7 +396,11 @@ static limb_t PAIRING_FinalVerify(const PAIRING *ctx, const vec384fp12 GTsig)
                 return 0;
         }
     } else {
-        return 0;
+        /*
+         * The aggregated signature was infinite, relation between the
+         * hashes and the public keys has to be VERY special...
+         */
+        vec_copy(GT, BLS12_381_Rx.p12, sizeof(GT));
     }
 
     conjugate_fp12(GT);

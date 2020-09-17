@@ -229,6 +229,16 @@ static void miller_loop_n(vec384fp12 ret, const POINTonE2_affine Q[],
 #endif
     size_t i;
 
+    if ((n == 1) && (vec_is_zero(&Q[0], sizeof(Q[0])) |
+                     vec_is_zero(&P[0], sizeof(P[0]))) ) {
+        /*
+         * Special case of infinite aggregated signature, pair the additive
+         * group's identity with the multiplicative group's identity.
+         */
+        vec_copy(ret, BLS12_381_Rx.p12, sizeof(vec384fp12));
+        return;
+    }
+
     for (i = 0; i < n; i++) {
         /* Move common expression from line evaluation to line_by_Px2.  */
         add_fp(Px2[i].X, P[i].X, P[i].X);
