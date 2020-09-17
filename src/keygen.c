@@ -128,6 +128,8 @@ void blst_keygen(pow256 SK, const void *IKM, size_t IKM_len,
         unsigned char PRK[32], OKM[48];
         vec512 key;
     } scratch;
+    unsigned char salt[32] = "BLS-SIG-KEYGEN-SALT-";
+    size_t salt_len = 20;
 
     /*
      * Vet |info| since some callers were caught to be sloppy, e.g.
@@ -135,20 +137,29 @@ void blst_keygen(pow256 SK, const void *IKM, size_t IKM_len,
      */
     info_len = info==NULL ? 0 : info_len;
 
-    /* PRK = HKDF-Extract("BLS-SIG-KEYGEN-SALT-", IKM || I2OSP(0, 1)) */
-    HKDF_Extract(scratch.PRK, "BLS-SIG-KEYGEN-SALT-", 20,
-                              IKM, IKM_len, &scratch.ctx);
+    do {
+        /* salt = H(salt) */
+        sha256_init(&scratch.ctx.ctx);
+        sha256_update(&scratch.ctx.ctx, salt, salt_len);
+        sha256_final(salt, &scratch.ctx.ctx);
+        salt_len = sizeof(salt);
 
-    /* OKM = HKDF-Expand(PRK, key_info || I2OSP(L, 2), L) */
-    HKDF_Expand(scratch.OKM, sizeof(scratch.OKM), scratch.PRK,
-                info, info_len, &scratch.ctx);
+        /* PRK = HKDF-Extract(salt, IKM || I2OSP(0, 1)) */
+        HKDF_Extract(scratch.PRK, salt, salt_len,
+                                  IKM, IKM_len, &scratch.ctx);
 
-    /* SK = OS2IP(OKM) mod r */
-    vec_zero(scratch.key, sizeof(scratch.key));
-    limbs_from_be_bytes(scratch.key, scratch.OKM, sizeof(scratch.OKM));
-    redc_mont_256(scratch.key, scratch.key, BLS12_381_r, r0);
-    mul_mont_sparse_256(scratch.key, scratch.key, BLS12_381_rRR,
-                        BLS12_381_r, r0);
+        /* OKM = HKDF-Expand(PRK, key_info || I2OSP(L, 2), L) */
+        HKDF_Expand(scratch.OKM, sizeof(scratch.OKM), scratch.PRK,
+                    info, info_len, &scratch.ctx);
+
+        /* SK = OS2IP(OKM) mod r */
+        vec_zero(scratch.key, sizeof(scratch.key));
+        limbs_from_be_bytes(scratch.key, scratch.OKM, sizeof(scratch.OKM));
+        redc_mont_256(scratch.key, scratch.key, BLS12_381_r, r0);
+        mul_mont_sparse_256(scratch.key, scratch.key, BLS12_381_rRR,
+                            BLS12_381_r, r0);
+    } while (vec_is_zero(scratch.key, sizeof(vec256)));
+
     le_bytes_from_limbs(SK, scratch.key, sizeof(pow256));
 
     /*
