@@ -53,7 +53,6 @@ sub ROUND_00_15()
 { my ($i,$a,$b,$c,$d,$e,$f,$g,$h) = @_;
   my $STRIDE=$SZ;
   #   $STRIDE += 16 if ($i%(16/$SZ)==(16/$SZ-1));
-  my $round = $i%16;
 
 $code.=<<___;
 	ror	\$`$Sigma1[2]-$Sigma1[1]`,$a0
@@ -92,7 +91,7 @@ $code.=<<___;
 	add	$T1,$h			# h+=T1
 ___
 $code.=<<___ if ($i==31);
-	lea	`16*$SZ`($Tbl),$Tbl	# round++
+	lea	`16*$SZ`($Tbl),$Tbl	# round+=16
 ___
 $code.=<<___ if ($i<15);
 	add	$a1,$h			# h+=Sigma0(a)
