@@ -76,7 +76,7 @@ static void HKDF_Extract(unsigned char PRK[32],
 
     HMAC_init(ctx, salt != NULL ? salt : zero, salt_len);
     HMAC_update(ctx, IKM, IKM_len);
-#ifndef HKDF_TESTMODE
+#ifndef __BLST_HKDF_TESTMODE__
     /* Section 2.3 KeyGen in BLS-signature draft */
     HMAC_update(ctx, zero, 1);
 #endif
@@ -98,7 +98,7 @@ static void HKDF_Expand(unsigned char *OKM, size_t L,
 
     if (info_len != 0)
         sha256_bcopy(info_prime, info, info_len);
-#ifndef HKDF_TESTMODE
+#ifndef __BLST_HKDF_TESTMODE__
     /* Section 2.3 KeyGen in BLS-signature draft */
     info_prime[info_len + 0] = (unsigned char)(L >> 8);
     info_prime[info_len + 1] = (unsigned char)(L);
@@ -119,7 +119,7 @@ static void HKDF_Expand(unsigned char *OKM, size_t L,
     sha256_bcopy(OKM, ctx->tail.c, L);
 }
 
-#ifndef HKDF_TESTMODE
+#ifndef __BLST_HKDF_TESTMODE__
 void blst_keygen(pow256 SK, const void *IKM, size_t IKM_len,
                             const void *info, size_t info_len)
 {
