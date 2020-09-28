@@ -227,11 +227,12 @@ void blst_p1_add_or_double(POINTonE1 *out, const POINTonE1 *a,
                                            const POINTonE1 *b)
 {   POINTonE1_dadd(out, a, b, NULL);   }
 
-void blst_p1_add_affine(POINTonE1 *out, const POINTonE1 *a, const POINTonE1 *b)
-{   POINTonE1_add_affine(out, a, (const POINTonE1_affine*)b);   }
+void blst_p1_add_affine(POINTonE1 *out, const POINTonE1 *a,
+                                        const POINTonE1_affine *b)
+{   POINTonE1_add_affine(out, a, b);   }
 
 void blst_p1_add_or_double_affine(POINTonE1 *out, const POINTonE1 *a,
-                                                  const POINTonE1 *b)
+                                                  const POINTonE1_affine *b)
 {   POINTonE1_dadd_affine(out, a, b);   }
 
 void blst_p1_double(POINTonE1 *out, const POINTonE1 *a)
@@ -252,11 +253,12 @@ void blst_p2_add_or_double(POINTonE2 *out, const POINTonE2 *a,
                                            const POINTonE2 *b)
 {   POINTonE2_dadd(out, a, b, NULL);   }
 
-void blst_p2_add_affine(POINTonE2 *out, const POINTonE2 *a, const POINTonE2 *b)
-{   POINTonE2_add_affine(out, a, (const POINTonE2_affine*)b);   }
+void blst_p2_add_affine(POINTonE2 *out, const POINTonE2 *a,
+                                        const POINTonE2_affine *b)
+{   POINTonE2_add_affine(out, a, b);   }
 
 void blst_p2_add_or_double_affine(POINTonE2 *out, const POINTonE2 *a,
-                                                  const POINTonE2 *b)
+                                                  const POINTonE2_affine *b)
 {   POINTonE2_dadd_affine(out, a, b);   }
 
 void blst_p2_double(POINTonE2 *out, const POINTonE2 *a)
