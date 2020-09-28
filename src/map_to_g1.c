@@ -516,7 +516,7 @@ static limb_t POINTonE1_in_G1(const POINTonE1_affine *p)
 
     /* Bowe, S., "Faster subgroup checks for BLS12-381"                 */
     sigma(&t0, p);                      /* σ(P)                         */
-    sigma(&t1, (POINTonE1_affine*)&t0);                    /* σ²(P)                        */
+    sigma(&t1, (POINTonE1_affine*)&t0); /* σ²(P)                        */
 
     POINTonE1_double(&t0, &t0);         /* 2σ(P)                        */
     POINTonE1_add_affine(&t2, &t1, p);  /* P +  σ²(P)                   */
