@@ -21,12 +21,7 @@ static void ptype##_add_affine(ptype *out, const ptype *p1,		\
                                            const ptype##_affine *p2);	\
 static void ptype##_double(ptype *out, const ptype *p1);		\
 static void ptype##_mult_w5(ptype *out, const ptype *point,		\
-                            const byte *scalar, size_t nbits);	\
-static void ptype##_mult_ladder(ptype *out, const ptype *point,		\
-                                const byte *scalar, size_t nbits);	\
-static void ptype##_affine_mult_ladder(ptype *out, const ptype##_affine *p_aff,\
-                                       const byte *scalar,		\
-                                       size_t nbits);			\
+                            const byte *scalar, size_t nbits);		\
 static void ptype##_cneg(ptype *p, limb_t cbit);			\
 static void ptype##_to_affine(ptype##_affine *out, const ptype *in);	\
 static void ptype##_from_Jacobian(ptype *out, const ptype *in);		\
