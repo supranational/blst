@@ -34,7 +34,7 @@ This library is compliant with the following IETF draft specifications:
 - [IETF BLS Signature V4](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature)
 - [IETF Hash-to-Curve V9](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve)
 
-The serialization formatting is implemented according to [Appendix A. BLS12-381](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02#appendix-A) of the IETF spec that calls for using the ZCash definition.
+The serialization formatting is implemented according to [Appendix A. BLS12-381](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature#appendix-A) of the IETF spec that calls for using the ZCash definition.
 
 ## General notes on implementation
 The goal of the blst library is to provide a foundational component for applications and other libraries that require high performance and formally verified BLS12-381 operations. With that in mind some decisions are made to maximize the public good beyond BLS12-381. For example, the field operations are optimized for general 384-bit usage, as opposed to tuned specifically for the 381-bit BLS12-381 curve parameters. With the formal verification of these foundational components, we believe they can provide a reliable building block for other curves that would like high performance and an extra element of security.
