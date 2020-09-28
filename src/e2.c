@@ -462,6 +462,8 @@ limb_t blst_p2_is_equal(const POINTonE2 *a, const POINTonE2 *b)
 #include "ec_mult.h"
 POINT_MULT_SCALAR_WX_IMPL(POINTonE2, 4)
 POINT_MULT_SCALAR_WX_IMPL(POINTonE2, 5)
+
+#ifdef __BLST_PRIVATE_TESTMODE__
 POINT_AFFINE_MULT_SCALAR_IMPL(POINTonE2)
 
 DECLARE_PRIVATE_POINTXZ(POINTonE2, 384x)
@@ -469,6 +471,7 @@ POINT_LADDER_PRE_IMPL(POINTonE2, 384x, fp2)
 POINT_LADDER_STEP_IMPL_A0(POINTonE2, 384x, fp2, onE2)
 POINT_LADDER_POST_IMPL_A0(POINTonE2, 384x, fp2, onE2)
 POINT_MULT_SCALAR_LADDER_IMPL(POINTonE2)
+#endif
 
 limb_t blst_p2_is_inf(const POINTonE2 *p)
 {   return vec_is_zero(p->Z, sizeof(p->Z));   }
