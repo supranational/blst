@@ -128,7 +128,8 @@ static void ptype##_dadd(ptype *out, const ptype *p1, const ptype *p2, \
  * infinity by virtue of Z3 = (U2-U1)*zz = H*zz = 0*zz == 0.
  */
 #define POINT_DADD_AFFINE_IMPL_A0(ptype, bits, field, one) \
-static void ptype##_dadd_affine(ptype *out, const ptype *p1, const ptype *p2) \
+static void ptype##_dadd_affine(ptype *out, const ptype *p1, \
+                                            const ptype##_affine *p2) \
 { \
     ptype p3; /* starts as (,, H*Z1) from addition side */\
     struct { vec##bits H, R, sx; } add, dbl; \

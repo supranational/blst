@@ -119,7 +119,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
                 POINTonE1_mult_w5(P, P, scalar, nbits);
                 POINTonE1_dadd(S, S, P, NULL);
             } else {
-                POINTonE1_dadd_affine(S, S, (const POINTonE1 *)sig);
+                POINTonE1_dadd_affine(S, S, sig);
             }
         } else {
             ctx->ctrl |= AGGR_SIGN_SET;
@@ -223,7 +223,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
                 POINTonE2_mult_w5(P, P, scalar, nbits);
                 POINTonE2_dadd(S, S, P, NULL);
             } else {
-                POINTonE2_dadd_affine(S, S, (const POINTonE2 *)sig);
+                POINTonE2_dadd_affine(S, S, sig);
             }
         } else {
             ctx->ctrl |= AGGR_SIGN_SET;
@@ -451,7 +451,7 @@ BLST_ERROR blst_aggregate_in_g1(POINTonE1 *out, const POINTonE1 *in,
         vec_copy(out->X, P->X, 2*sizeof(out->X));
         vec_copy(out->Z, BLS12_381_Rx.p, sizeof(out->Z));
     } else {
-        POINTonE1_dadd_affine(out, in, (POINTonE1 *)P);
+        POINTonE1_dadd_affine(out, in, P);
     }
 
     return BLST_SUCCESS;
@@ -485,7 +485,7 @@ BLST_ERROR blst_aggregate_in_g2(POINTonE2 *out, const POINTonE2 *in,
         vec_copy(out->X, P->X, 2*sizeof(out->X));
         vec_copy(out->Z, BLS12_381_Rx.p, sizeof(out->Z));
     } else {
-        POINTonE2_dadd_affine(out, in, (POINTonE2 *)P);
+        POINTonE2_dadd_affine(out, in, P);
     }
     return BLST_SUCCESS;
 }

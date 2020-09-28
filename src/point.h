@@ -15,7 +15,7 @@ typedef struct { vec##bits X,Y; } ptype##_affine; \
 static void ptype##_dadd(ptype *out, const ptype *p1, const ptype *p2,	\
                          const vec##bits a4);				\
 static void ptype##_dadd_affine(ptype *out, const ptype *p1,		\
-                         const ptype *p2);				\
+                                            const ptype##_affine *p2);	\
 static void ptype##_add(ptype *out, const ptype *p1, const ptype *p2);	\
 static void ptype##_add_affine(ptype *out, const ptype *p1,		\
                                            const ptype##_affine *p2);	\
