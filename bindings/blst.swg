@@ -108,6 +108,55 @@
 %};
 #endif
 
+#elif defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_V8)
+
+%typemap(throws) BLST_ERROR %{ SWIG_V8_Raise(BLST_ERROR_str[$1]); SWIG_fail; %};
+
+%typemap(in) const byte* {
+    if ($input->IsArrayBufferView()) {
+        auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
+        auto buf = av->Buffer();
+        $1 = ($1_ltype)buf->GetContents().Data() + av->ByteOffset();
+    } else {
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                            "expecting <Buffer>");
+    }
+};
+%typemap(argout)  const byte* ""
+%typemap(freearg) const byte* ""
+
+%apply const byte* { const byte[ANY] }
+%typemap(in) const byte[ANY] {
+    if ($input->IsArrayBufferView()) {
+        auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
+        if (av->ByteLength() != $1_dim0)
+            SWIG_exception_fail(SWIG_IndexError, "in method '$symname', "
+                                                 "expecting $1_dim0 bytes");
+        auto buf = av->Buffer();
+        $1 = ($1_ltype)buf->GetContents().Data() + av->ByteOffset();
+    } else {
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                            "expecting <Buffer>");
+    }
+};
+
+%typemap(in) (const char *STRING, size_t LENGTH) {
+    if ($input->IsArrayBufferView()) {
+        auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
+        auto buf = av->Buffer();
+        $1 = ($1_ltype)buf->GetContents().Data() + av->ByteOffset();
+        $2 = av->ByteLength();
+    } else if ($input->IsString()) {
+        auto str = SWIGV8_TO_STRING($input);
+        $2 = SWIGV8_UTF8_LENGTH(str);
+        $1 = ($1_ltype)alloca($2);
+        SWIGV8_WRITE_UTF8(str, (char *)$1, $2);
+    } else {
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                            "expecting <Buffer> or <String>");
+    }
+};
+
 #endif  // SWIG<language>
 
 // everybody has a way to bundle pointer and buffer size, but C:-(
@@ -136,6 +185,10 @@
     if ($result != $null) {
         JCALL(SetByteArrayRegion, $result, 0, $1_dim0, (const jbyte *)$1);
     }
+#elif defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_V8)
+    auto ab = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), $1_dim0);
+    memcpy(ab->GetContents().Data(), $1, $1_dim0);
+    $result = v8::Uint8Array::New(ab, 0, $1_dim0);
 #else // TODO: figure out more language-specific ways to return multi-values...
     if ($result == NULL)
         $result = SWIG_FromCharPtrAndSize((char *)$1, $1_dim0);

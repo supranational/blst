@@ -52,6 +52,7 @@ This repository includes explicit bindings for:
 Unless deemed appropriate to implement, bindings for other languages will be provided using [SWIG](http://swig.org). Proof-of-concept scripts are available for:
 - [Python](bindings/python)
 - [Java](bindings/java)
+- [Node.js](bindings/node.js)
 
 ## API
 

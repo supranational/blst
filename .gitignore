@@ -65,3 +65,4 @@ bindings/rust/blst
 # These are customarily filled with swig artefacts
 bindings/python
 bindings/java
+bindings/node.js

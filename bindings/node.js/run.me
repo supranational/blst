@@ -1,0 +1,43 @@
+#!/bin/sh -e
+#
+# Even though blst.swg works with current node.js version, v14.x at the
+# moment of this writing, SWIG 4.0 can generate wrapper only up to 10.x.
+# Till SWIG catches up (with https://github.com/swig/swig/pull/1746),
+# build the patched version yourself, or download pre-generated
+# blst_wrap.cpp from...
+
+cd `dirname $0`
+
+NODE=`which ${NODE:-node} 2>&1` || NODE=`which nodejs`
+
+include=`dirname $NODE`/../include
+if [ ! -d $include ]; then
+    echo "$include not found" 1>&2
+    exit 1
+fi
+include=`cd $include; pwd`
+[ -f $include/node/node.h ]       && INCS="-I$include/node"
+[ -f $include/v8/v8.h ]           && INCS="$INCS -I$include/v8"
+[ -f $include/nodejs/src/node.h ] && INCS="$INCS -I$include/nodejs/src"
+
+if [ ! -f ../libblst.a -o ../blst.h -nt ../libblst.a ]; then
+    (cd ..; ../build.sh)
+fi
+
+if [ ! -f blst_wrap.cpp -o ../blst.swg -nt blst_wrap.cpp \
+                        -o ../blst.hpp -nt blst_wrap.cpp \
+                        -o ../blst.h   -nt blst_wrap.cpp ]; then
+    #swig -version | awk -F'[. ]' '/Version/ {print $3}'
+    (set -x; swig -c++ -javascript -node -DV8_VERSION=0x060000 \
+                  -outdir . -o blst_wrap.cpp ../blst.swg)
+fi
+
+if [ ! -f blst.node -o blst_wrap.cpp -nt blst.node \
+                    -o ../libblst.a  -nt blst.node ]; then
+    (set -x; c++ -shared -o blst.node -fPIC -std=c++11 \
+                 ${INCS} -I.. -DBUILDING_NODE_EXTENSION \
+                 -O -Wall -Wno-unused-result blst_wrap.cpp \
+                 ../libblst.a -Wl,-Bsymbolic)
+fi
+
+env NODE_PATH=.: $NODE runnable.js
