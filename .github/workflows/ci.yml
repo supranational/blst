@@ -92,5 +92,6 @@ jobs:
                 make install;
               )
             fi
-            env PATH=~/swig/bin:$PATH bindings/node.js/run.me
+            env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2 \
+                bindings/node.js/run.me
         fi
