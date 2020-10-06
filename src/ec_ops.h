@@ -174,9 +174,9 @@ static void ptype##_dadd_affine(ptype *out, const ptype *p1, \
     p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
     p2inf = vec_is_zero(p2->X, 2*sizeof(p2->X)); \
 \
-    vec_select(&p3, p1, &p3, sizeof(ptype), p2inf); \
-    vec_select(out->X, p2,  p3.X, 2*sizeof(p3.X), p1inf); \
-    vec_select(out->Z, one, p3.Z, sizeof(p3.Z), p1inf & (p2inf^1)); \
+    vec_select(p3.X, p2,  p3.X, 2*sizeof(p3.X), p1inf); \
+    vec_select(p3.Z, one, p3.Z, sizeof(p3.Z), p1inf); \
+    vec_select(out, p1, &p3, sizeof(ptype), p2inf); \
 }
 
 /*
@@ -240,16 +240,17 @@ static void ptype##_add(ptype *out, const ptype *p1, const ptype *p2) \
 
 /*
  * https://hyperelliptic.org/EFD/g1p/auto-shortw-jacobian-0.html#addition-madd-2007-bl
- * with twist to handle |p1| at infinity, which is encoded as Z==0.
- * |p2|->Z is expected to be one, that's what makes it affine, and
- * |p2| not equal to |p3|!!!
+ * with twist to handle either input at infinity, with |p1| encoded as Z==0,
+ * and |p2| as X==Y==0.
  */
 #define POINT_ADD_AFFINE_IMPL(ptype, bits, field, one) \
-static void ptype##_add_affine(ptype *p3, const ptype *p1, \
-                                          const ptype##_affine *p2) \
+static void ptype##_add_affine(ptype *out, const ptype *p1, \
+                                           const ptype##_affine *p2) \
 { \
+    ptype p3; \
     vec##bits Z1Z1, H, HH, I, J, r, V; \
     limb_t p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
+    limb_t p2inf = vec_is_zero(p2->X, 2*sizeof(p2->X)); \
 \
     sqr_##field(Z1Z1, p1->Z);           /* Z1Z1 = Z1^2 */\
 \
@@ -271,24 +272,25 @@ static void ptype##_add_affine(ptype *p3, const ptype *p1, \
 \
     mul_##field(V, p1->X, I);           /* V = X1*I */\
 \
-    sqr_##field(p3->X, r);              /* r^2 */\
-    sub_##field(p3->X, p3->X, J);       /* r^2-J */\
-    sub_##field(p3->X, p3->X, V);       \
-    sub_##field(p3->X, p3->X, V);       /* X3 = r^2-J-2*V */\
+    sqr_##field(p3.X, r);               /* r^2 */\
+    sub_##field(p3.X, p3.X, J);         /* r^2-J */\
+    sub_##field(p3.X, p3.X, V);         \
+    sub_##field(p3.X, p3.X, V);         /* X3 = r^2-J-2*V */\
 \
     mul_##field(J, J, p1->Y);           /* Y1*J */\
-    sub_##field(p3->Y, V, p3->X);       /* V-X3 */\
-    mul_##field(p3->Y, p3->Y, r);       /* r*(V-X3) */\
-    sub_##field(p3->Y, p3->Y, J);       \
-    sub_##field(p3->Y, p3->Y, J);       /* Y3 = r*(V-X3)-2*Y1*J */\
+    sub_##field(p3.Y, V, p3.X);         /* V-X3 */\
+    mul_##field(p3.Y, p3.Y, r);         /* r*(V-X3) */\
+    sub_##field(p3.Y, p3.Y, J);         \
+    sub_##field(p3.Y, p3.Y, J);         /* Y3 = r*(V-X3)-2*Y1*J */\
 \
-    add_##field(p3->Z, p1->Z, H);       /* Z1+H */\
-    sqr_##field(p3->Z, p3->Z);          /* (Z1+H)^2 */\
-    sub_##field(p3->Z, p3->Z, Z1Z1);    /* (Z1+H)^2-Z1Z1 */\
-    sub_##field(p3->Z, p3->Z, HH);      /* Z3 = (Z1+H)^2-Z1Z1-HH */\
+    add_##field(p3.Z, p1->Z, H);        /* Z1+H */\
+    sqr_##field(p3.Z, p3.Z);            /* (Z1+H)^2 */\
+    sub_##field(p3.Z, p3.Z, Z1Z1);      /* (Z1+H)^2-Z1Z1 */\
+    sub_##field(p3.Z, p3.Z, HH);        /* Z3 = (Z1+H)^2-Z1Z1-HH */\
 \
-    vec_select(p3->X, p2->X, p3->X, 2*sizeof(p3->X), p1inf); \
-    vec_select(p3->Z, one, p3->Z, sizeof(p3->Z), p1inf); \
+    vec_select(p3.X, p2,  p3.X, 2*sizeof(p3.X), p1inf); \
+    vec_select(p3.Z, one, p3.Z, sizeof(p3.Z), p1inf); \
+    vec_select(out, p1, &p3, sizeof(ptype), p2inf); \
 }
 
 /*
