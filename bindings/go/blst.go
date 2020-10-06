@@ -260,15 +260,6 @@ type pkGetterP1 func(i uint32, temp *P1Affine) (*P1Affine, []byte)
 func (sig *P2Affine) Verify(pk *P1Affine, msg Message, dst []byte,
 	optional ...interface{}) bool { // useHash bool, aug []byte
 
-	// CLEANUP!!
-	// Check for infinities (eth spec)
-	var zeroSig P2Affine
-	var zeroPk P1Affine
-	if pk.Equals(&zeroPk) && sig.Equals(&zeroSig) {
-		return true
-	}
-	// CLEANUP!!
-
 	aug, _, useHash, ok := parseOpts(optional...)
 	if !ok {
 		return false
@@ -282,16 +273,6 @@ func (sig *P2Affine) Verify(pk *P1Affine, msg Message, dst []byte,
 func (dummy *P2Affine) VerifyCompressed(sig []byte, pk []byte,
 	msg Message, dst []byte,
 	optional ...bool) bool { // useHash bool, usePksAsAugs bool
-
-	// CLEANUP!!
-	// Check for infinities (eth spec)
-	// Need to support serialized points here?
-	if len(sig) == BLST_P2_COMPRESS_BYTES && sig[0] == 0xc0 &&
-		len(pk) == BLST_P1_COMPRESS_BYTES && pk[0] == 0xc0 &&
-		bytesAllZero(sig[1:]) && bytesAllZero(pk[1:]) {
-		return true
-	}
-	// CLEANUP!!
 
 	return dummy.AggregateVerifyCompressed(sig, [][]byte{pk},
 		[]Message{msg}, dst, optional...)
@@ -827,15 +808,6 @@ type pkGetterP2 func(i uint32, temp *P2Affine) (*P2Affine, []byte)
 func (sig *P1Affine) Verify(pk *P2Affine, msg Message, dst []byte,
 	optional ...interface{}) bool { // useHash bool, aug []byte
 
-	// CLEANUP!!
-	// Check for infinities (eth spec)
-	var zeroSig P1Affine
-	var zeroPk P2Affine
-	if pk.Equals(&zeroPk) && sig.Equals(&zeroSig) {
-		return true
-	}
-	// CLEANUP!!
-
 	aug, _, useHash, ok := parseOpts(optional...)
 	if !ok {
 		return false
@@ -849,16 +821,6 @@ func (sig *P1Affine) Verify(pk *P2Affine, msg Message, dst []byte,
 func (dummy *P1Affine) VerifyCompressed(sig []byte, pk []byte,
 	msg Message, dst []byte,
 	optional ...bool) bool { // useHash bool, usePksAsAugs bool
-
-	// CLEANUP!!
-	// Check for infinities (eth spec)
-	// Need to support serialized points here?
-	if len(sig) == BLST_P1_COMPRESS_BYTES && sig[0] == 0xc0 &&
-		len(pk) == BLST_P2_COMPRESS_BYTES && pk[0] == 0xc0 &&
-		bytesAllZero(sig[1:]) && bytesAllZero(pk[1:]) {
-		return true
-	}
-	// CLEANUP!!
 
 	return dummy.AggregateVerifyCompressed(sig, [][]byte{pk},
 		[]Message{msg}, dst, optional...)
@@ -1366,13 +1328,6 @@ func (p1 *P1Affine) Deserialize(in []byte) *P1Affine {
 		(*C.byte)(&in[0])) != C.BLST_SUCCESS {
 		return nil
 	}
-	// CLEANUP!!
-	// Check for infinities (eth spec)
-	var zero P1Affine
-	if p1.Equals(&zero) {
-		return p1
-	}
-	// CLEANUP!!
 
 	if !bool(C.blst_p1_affine_in_g1(p1)) {
 		return nil
@@ -1393,13 +1348,6 @@ func (p1 *P1Affine) Uncompress(in []byte) *P1Affine {
 		(*C.byte)(&in[0])) != C.BLST_SUCCESS {
 		return nil
 	}
-	// CLEANUP!!
-	// Check for infinities (eth spec)
-	var zero P1Affine
-	if p1.Equals(&zero) {
-		return p1
-	}
-	// CLEANUP!!
 
 	if !bool(C.blst_p1_affine_in_g1(p1)) {
 		return nil
@@ -1572,13 +1520,6 @@ func (p2 *P2Affine) Deserialize(in []byte) *P2Affine {
 		(*C.byte)(&in[0])) != C.BLST_SUCCESS {
 		return nil
 	}
-	// CLEANUP!!
-	// Check for infinities (eth spec)
-	var zero P2Affine
-	if p2.Equals(&zero) {
-		return p2
-	}
-	// CLEANUP!!
 
 	if !bool(C.blst_p2_affine_in_g2(p2)) {
 		return nil
@@ -1599,13 +1540,6 @@ func (p2 *P2Affine) Uncompress(in []byte) *P2Affine {
 		(*C.byte)(&in[0])) != C.BLST_SUCCESS {
 		return nil
 	}
-	// CLEANUP!!
-	// Check for infinities (eth spec)
-	var zero P2Affine
-	if p2.Equals(&zero) {
-		return p2
-	}
-	// CLEANUP!!
 
 	if !bool(C.blst_p2_affine_in_g2(p2)) {
 		return nil

@@ -35,32 +35,6 @@ func TestInfinityMinPk(t *testing.T) {
     new(PublicKeyMinPk).Uncompress(infComp[:])
 }
 
-// Aggregate no signatures - taken from a Lotus example
-func TestAggregateNoneMinPk(t *testing.T) {
-    // Create an empty aggregate
-    sigsS := make([][]byte, 0)
-    aggregator := new(AggregateSignatureMinPk).AggregateCompressed(sigsS)
-    if aggregator == nil {
-        t.Errorf("AggregateCompressed unexpectedly returned nil")
-        return
-    }
-    aggAff := aggregator.ToAffine()
-    if aggAff == nil {
-        t.Errorf("ToAffine unexpectedly returned nil")
-        return
-    }
-    aggSig := aggAff.Compress()
-
-    // Create an empty key
-    pubK := new(PublicKeyMinPk).Compress()
-
-    // Verify
-    msg := make([]byte, 0)
-    if !new(SignatureMinPk).VerifyCompressed(aggSig, pubK, msg, dstMinPk) {
-        t.Errorf("VerifyCompressed failed to verify")
-    }
-}
-
 func TestSerdesMinPk(t *testing.T) {
     var ikm = [...]byte{
         0x93, 0xad, 0x7e, 0x65, 0xde, 0xad, 0x05, 0x2a,
