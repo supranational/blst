@@ -477,7 +477,8 @@ static limb_t POINTonE2_in_G2(const POINTonE2_affine *p)
     POINTonE2 t0, t1, t2;
 
     vec_copy(t0.X, p->X, 2*sizeof(t0.X));
-    vec_copy(t0.Z, BLS12_381_Rx.p2, sizeof(t0.Z));
+    vec_select(t0.Z, p->X, BLS12_381_Rx.p2, sizeof(t0.Z),
+                     vec_is_zero(p, sizeof(*p)));
 
     /* Bowe, S., "Faster subgroup checks for BLS12-381"                 */
     psi(&t0, &t0);                      /* Ψ(P)                         */
