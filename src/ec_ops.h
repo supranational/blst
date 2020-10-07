@@ -45,14 +45,16 @@ static void ptype##_dadd(ptype *out, const ptype *p1, const ptype *p2, \
     struct { vec##bits H, R, sx; } add, dbl; \
     limb_t p1inf, p2inf, is_dbl; \
 \
-    add_##field(dbl.H, p1->Y, p1->Y);   /* H = 2*Y1 */\
-    sqr_##field(dbl.R, p1->X);          /* X1^2 */\
     add_##field(dbl.sx, p1->X, p1->X);  /* sx = X1+X1 */\
+    sqr_##field(dbl.R, p1->X);          /* X1^2 */\
     mul_by_3_##field(dbl.R, dbl.R);     /* R = 3*X1^2 */\
+    add_##field(dbl.H, p1->Y, p1->Y);   /* H = 2*Y1 */\
 \
-    sqr_##field(add.H, p1->Z);          /* Z1^2 */\
+    p2inf = vec_is_zero(p2->Z, sizeof(p2->Z)); \
     sqr_##field(p3.X, p2->Z);           /* Z2^2 */\
     mul_##field(p3.Z, p1->Z, p2->Z);    /* Z1*Z2 */\
+    p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
+    sqr_##field(add.H, p1->Z);          /* Z1^2 */\
 \
     if (a4 != NULL) { \
         sqr_##field(p3.Y, add.H);       /* Z1^4, [borrow p3.Y] */\
@@ -61,16 +63,16 @@ static void ptype##_dadd(ptype *out, const ptype *p1, const ptype *p2, \
     } \
 \
     mul_##field(p3.Y, p1->Y, p2->Z);    \
-    mul_##field(add.R, p2->Y, p1->Z);   \
     mul_##field(p3.Y, p3.Y, p3.X);      /* S1 = Y1*Z2^3 */\
+    mul_##field(add.R, p2->Y, p1->Z);   \
     mul_##field(add.R, add.R, add.H);   /* S2 = Y2*Z1^3 */\
 \
     mul_##field(p3.X, p3.X, p1->X);     /* U1 = X1*Z2^2 */\
     mul_##field(add.H, add.H, p2->X);   /* U2 = X2*Z1^2 */\
 \
-    sub_##field(add.R, add.R, p3.Y);    /* R = S2-S1 */\
     add_##field(add.sx, add.H, p3.X);   /* sx = U1+U2 */\
     sub_##field(add.H, add.H, p3.X);    /* H = U2-U1 */\
+    sub_##field(add.R, add.R, p3.Y);    /* R = S2-S1 */\
 \
     /* make the choice between addition and doubling */\
     is_dbl = vec_is_zero(add.H, 2*sizeof(add.H));      \
@@ -78,10 +80,12 @@ static void ptype##_dadd(ptype *out, const ptype *p1, const ptype *p2, \
     vec_select(&add, &dbl, &add, sizeof(add), is_dbl); \
     /* |p3| and |add| hold all inputs now, |p3| will hold output */\
 \
+    mul_##field(p3.Z, p3.Z, add.H);     /* Z3 = H*Z1*Z2 */\
+\
     sqr_##field(dbl.H, add.H);          /* H^2 */\
-    mul_##field(dbl.R, add.H, p3.Y);    /* H*S1 */\
+    mul_##field(dbl.R, dbl.H, add.H);   /* H^3 */\
+    mul_##field(dbl.R, dbl.R, p3.Y);    /* H^3*S1 */\
     mul_##field(p3.Y, dbl.H, p3.X);     /* H^2*U1 */\
-    mul_##field(dbl.R, dbl.R, dbl.H);   /* H^3*S1 */\
 \
     mul_##field(dbl.H, dbl.H, add.sx);  /* H^2*sx */\
     sqr_##field(p3.X, add.R);           /* R^2 */\
@@ -90,11 +94,6 @@ static void ptype##_dadd(ptype *out, const ptype *p1, const ptype *p2, \
     sub_##field(p3.Y, p3.Y, p3.X);      /* H^2*U1-X3 */\
     mul_##field(p3.Y, p3.Y, add.R);     /* R*(H^2*U1-X3) */\
     sub_##field(p3.Y, p3.Y, dbl.R);     /* Y3 = R*(H^2*U1-X3)-H^3*S1 */\
-\
-    mul_##field(p3.Z, p3.Z, add.H);     /* Z3 = H*Z1*Z2 */\
-\
-    p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
-    p2inf = vec_is_zero(p2->Z, sizeof(p2->Z)); \
 \
     vec_select(&p3, p1, &p3, sizeof(ptype), p2inf); \
     vec_select(out, p2, &p3, sizeof(ptype), p1inf); \
@@ -135,11 +134,13 @@ static void ptype##_dadd_affine(ptype *out, const ptype *p1, \
     struct { vec##bits H, R, sx; } add, dbl; \
     limb_t p1inf, p2inf, is_dbl; \
 \
-    add_##field(dbl.H, p2->Y, p2->Y);   /* H = 2*Y2 */\
-    sqr_##field(dbl.R, p2->X);          /* X2^2 */\
+    p2inf = vec_is_zero(p2->X, 2*sizeof(p2->X)); \
     add_##field(dbl.sx, p2->X, p2->X);  /* sx = X2+X2 */\
+    sqr_##field(dbl.R, p2->X);          /* X2^2 */\
     mul_by_3_##field(dbl.R, dbl.R);     /* R = 3*X2^2 */\
+    add_##field(dbl.H, p2->Y, p2->Y);   /* H = 2*Y2 */\
 \
+    p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
     sqr_##field(add.H, p1->Z);          /* Z1^2 */\
     mul_##field(add.R, add.H, p1->Z);   /* Z1^3 */\
     mul_##field(add.H, add.H, p2->X);   /* U2 = X2*Z1^2 */\
@@ -159,9 +160,9 @@ static void ptype##_dadd_affine(ptype *out, const ptype *p1, \
     /* |p3| and |add| hold all inputs now, |p3| will hold output */\
 \
     sqr_##field(dbl.H, add.H);          /* H^2 */\
-    mul_##field(dbl.R, add.H, p3.Y);    /* H*S1 */\
+    mul_##field(dbl.R, dbl.H, add.H);   /* H^3 */\
+    mul_##field(dbl.R, dbl.R, p3.Y);    /* H^3*S1 */\
     mul_##field(p3.Y, dbl.H, p3.X);     /* H^2*U1 */\
-    mul_##field(dbl.R, dbl.R, dbl.H);   /* H^3*S1 */\
 \
     mul_##field(dbl.H, dbl.H, add.sx);  /* H^2*sx */\
     sqr_##field(p3.X, add.R);           /* R^2 */\
@@ -170,9 +171,6 @@ static void ptype##_dadd_affine(ptype *out, const ptype *p1, \
     sub_##field(p3.Y, p3.Y, p3.X);      /* H^2*U1-X3 */\
     mul_##field(p3.Y, p3.Y, add.R);     /* R*(H^2*U1-X3) */\
     sub_##field(p3.Y, p3.Y, dbl.R);     /* Y3 = R*(H^2*U1-X3)-H^3*S1 */\
-\
-    p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
-    p2inf = vec_is_zero(p2->X, 2*sizeof(p2->X)); \
 \
     vec_select(p3.X, p2,  p3.X, 2*sizeof(p3.X), p1inf); \
     vec_select(p3.Z, one, p3.Z, sizeof(p3.Z), p1inf); \
@@ -190,17 +188,20 @@ static void ptype##_add(ptype *out, const ptype *p1, const ptype *p2) \
     vec##bits Z1Z1, Z2Z2, U1, S1, H, I, J, r, V; \
     limb_t p1inf, p2inf; \
 \
+    p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
     sqr_##field(Z1Z1, p1->Z);           /* Z1Z1 = Z1^2 */\
+\
+    mul_##field(r, Z1Z1, p1->Z);        /* Z1*Z1Z1 */\
+    mul_##field(r, r, p2->Y);           /* S2 = Y2*Z1*Z1Z1 */\
+\
+    p2inf = vec_is_zero(p2->Z, sizeof(p2->Z)); \
     sqr_##field(Z2Z2, p2->Z);           /* Z2Z2 = Z2^2 */\
+\
+    mul_##field(S1, Z2Z2, p2->Z);       /* Z2*Z2Z2 */\
+    mul_##field(S1, S1, p1->Y);         /* S1 = Y1*Z2*Z2Z2 */\
 \
     mul_##field(U1, p1->X, Z2Z2);       /* U1 = X1*Z2Z2 */\
     mul_##field(H,  p2->X, Z1Z1);       /* U2 = X2*Z1Z1 */\
-\
-    mul_##field(S1, p1->Y, p2->Z);      /* Y1*Z2 */\
-    mul_##field(S1, S1, Z2Z2);          /* S1 = Y1*Z2*Z2Z2 */\
-\
-    mul_##field(r, p2->Y, p1->Z);       /* Y2*Z1 */\
-    mul_##field(r, r, Z1Z1);            /* S2 = Y2*Z1*Z1Z1 */\
 \
     sub_##field(H, H, U1);              /* H = U2-U1 */\
 \
@@ -231,9 +232,6 @@ static void ptype##_add(ptype *out, const ptype *p1, const ptype *p2) \
     sub_##field(p3.Z, p3.Z, Z2Z2);      /* (Z1+Z2)^2-Z1Z1-Z2Z2 */\
     mul_##field(p3.Z, p3.Z, H);         /* Z3 = ((Z1+Z2)^2-Z1Z1-Z2Z2)*H */\
 \
-    p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
-    p2inf = vec_is_zero(p2->Z, sizeof(p2->Z)); \
-\
     vec_select(&p3, p1, &p3, sizeof(ptype), p2inf); \
     vec_select(out, p2, &p3, sizeof(ptype), p1inf); \
 }
@@ -249,16 +247,18 @@ static void ptype##_add_affine(ptype *out, const ptype *p1, \
 { \
     ptype p3; \
     vec##bits Z1Z1, H, HH, I, J, r, V; \
-    limb_t p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
-    limb_t p2inf = vec_is_zero(p2->X, 2*sizeof(p2->X)); \
+    limb_t p1inf, p2inf; \
+\
+    p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
 \
     sqr_##field(Z1Z1, p1->Z);           /* Z1Z1 = Z1^2 */\
 \
+    mul_##field(r, Z1Z1, p1->Z);        /* Z1*Z1Z1 */\
+    mul_##field(r, r, p2->Y);           /* S2 = Y2*Z1*Z1Z1 */\
+\
+    p2inf = vec_is_zero(p2->X, 2*sizeof(p2->X)); \
+\
     mul_##field(H, p2->X, Z1Z1);        /* U2 = X2*Z1Z1 */\
-\
-    mul_##field(r, p2->Y, p1->Z);       /* Y2*Z1 */\
-    mul_##field(r, r, Z1Z1);            /* S2 = Y2*Z1*Z1Z1 */\
-\
     sub_##field(H, H, p1->X);           /* H = U2-X1 */\
 \
     sqr_##field(HH, H);                 /* HH = H^2 */\
@@ -266,11 +266,10 @@ static void ptype##_add_affine(ptype *out, const ptype *p1, \
     add_##field(I, I, I);               /* I = 4*HH */\
 \
     mul_##field(J, H, I);               /* J = H*I */\
+    mul_##field(V, p1->X, I);           /* V = X1*I */\
 \
     sub_##field(r, r, p1->Y);           /* S2-Y1 */\
     add_##field(r, r, r);               /* r = 2*(S2-Y1) */\
-\
-    mul_##field(V, p1->X, I);           /* V = X1*I */\
 \
     sqr_##field(p3.X, r);               /* r^2 */\
     sub_##field(p3.X, p3.X, J);         /* r^2-J */\
@@ -288,8 +287,8 @@ static void ptype##_add_affine(ptype *out, const ptype *p1, \
     sub_##field(p3.Z, p3.Z, Z1Z1);      /* (Z1+H)^2-Z1Z1 */\
     sub_##field(p3.Z, p3.Z, HH);        /* Z3 = (Z1+H)^2-Z1Z1-HH */\
 \
-    vec_select(p3.X, p2,  p3.X, 2*sizeof(p3.X), p1inf); \
     vec_select(p3.Z, one, p3.Z, sizeof(p3.Z), p1inf); \
+    vec_select(p3.X, p2,  p3.X, 2*sizeof(p3.X), p1inf); \
     vec_select(out, p1, &p3, sizeof(ptype), p2inf); \
 }
 
