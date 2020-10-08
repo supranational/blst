@@ -185,20 +185,23 @@ static void ptype##_dadd_affine(ptype *out, const ptype *p1, \
 static void ptype##_add(ptype *out, const ptype *p1, const ptype *p2) \
 { \
     ptype p3; \
-    vec##bits Z1Z1, Z2Z2, U1, S1, H, I, J, r, V; \
+    vec##bits Z1Z1, Z2Z2, U1, S1, H, I, J; \
     limb_t p1inf, p2inf; \
 \
     p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
     sqr_##field(Z1Z1, p1->Z);           /* Z1Z1 = Z1^2 */\
 \
-    mul_##field(r, Z1Z1, p1->Z);        /* Z1*Z1Z1 */\
-    mul_##field(r, r, p2->Y);           /* S2 = Y2*Z1*Z1Z1 */\
+    mul_##field(p3.Z, Z1Z1, p1->Z);     /* Z1*Z1Z1 */\
+    mul_##field(p3.Z, p3.Z, p2->Y);     /* S2 = Y2*Z1*Z1Z1 */\
 \
     p2inf = vec_is_zero(p2->Z, sizeof(p2->Z)); \
     sqr_##field(Z2Z2, p2->Z);           /* Z2Z2 = Z2^2 */\
 \
     mul_##field(S1, Z2Z2, p2->Z);       /* Z2*Z2Z2 */\
     mul_##field(S1, S1, p1->Y);         /* S1 = Y1*Z2*Z2Z2 */\
+\
+    sub_##field(p3.Z, p3.Z, S1);        /* S2-S1 */\
+    add_##field(p3.Z, p3.Z, p3.Z);      /* r = 2*(S2-S1) */\
 \
     mul_##field(U1, p1->X, Z2Z2);       /* U1 = X1*Z2Z2 */\
     mul_##field(H,  p2->X, Z1Z1);       /* U2 = X2*Z1Z1 */\
@@ -209,20 +212,17 @@ static void ptype##_add(ptype *out, const ptype *p1, const ptype *p2) \
     sqr_##field(I, I);                  /* I = (2*H)^2 */\
 \
     mul_##field(J, H, I);               /* J = H*I */\
-\
-    sub_##field(r, r, S1);              /* S2-S1 */\
-    add_##field(r, r, r);               /* r = 2*(S2-S1) */\
-\
-    mul_##field(V, U1, I);              /* V = U1*I */\
-\
-    sqr_##field(p3.X, r);               /* r^2 */\
-    sub_##field(p3.X, p3.X, J);         /* r^2-J */\
-    sub_##field(p3.X, p3.X, V);         \
-    sub_##field(p3.X, p3.X, V);         /* X3 = r^2-J-2*V */\
-\
-    sub_##field(p3.Y, V, p3.X);         /* V-X3 */\
-    mul_##field(p3.Y, p3.Y, r);         /* r*(V-X3) */\
     mul_##field(S1, S1, J);             /* S1*J */\
+\
+    mul_##field(p3.Y, U1, I);           /* V = U1*I */\
+\
+    sqr_##field(p3.X, p3.Z);            /* r^2 */\
+    sub_##field(p3.X, p3.X, J);         /* r^2-J */\
+    sub_##field(p3.X, p3.X, p3.Y);      \
+    sub_##field(p3.X, p3.X, p3.Y);      /* X3 = r^2-J-2*V */\
+\
+    sub_##field(p3.Y, p3.Y, p3.X);      /* V-X3 */\
+    mul_##field(p3.Y, p3.Y, p3.Z);      /* r*(V-X3) */\
     sub_##field(p3.Y, p3.Y, S1);        \
     sub_##field(p3.Y, p3.Y, S1);        /* Y3 = r*(V-X3)-2*S1*J */\
 \
@@ -246,15 +246,15 @@ static void ptype##_add_affine(ptype *out, const ptype *p1, \
                                            const ptype##_affine *p2) \
 { \
     ptype p3; \
-    vec##bits Z1Z1, H, HH, I, J, r, V; \
+    vec##bits Z1Z1, H, HH, I, J; \
     limb_t p1inf, p2inf; \
 \
     p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
 \
     sqr_##field(Z1Z1, p1->Z);           /* Z1Z1 = Z1^2 */\
 \
-    mul_##field(r, Z1Z1, p1->Z);        /* Z1*Z1Z1 */\
-    mul_##field(r, r, p2->Y);           /* S2 = Y2*Z1*Z1Z1 */\
+    mul_##field(p3.Z, Z1Z1, p1->Z);     /* Z1*Z1Z1 */\
+    mul_##field(p3.Z, p3.Z, p2->Y);     /* S2 = Y2*Z1*Z1Z1 */\
 \
     p2inf = vec_is_zero(p2->X, 2*sizeof(p2->X)); \
 \
@@ -265,22 +265,22 @@ static void ptype##_add_affine(ptype *out, const ptype *p1, \
     add_##field(I, HH, HH);             \
     add_##field(I, I, I);               /* I = 4*HH */\
 \
+    mul_##field(p3.Y, p1->X, I);        /* V = X1*I */\
     mul_##field(J, H, I);               /* J = H*I */\
-    mul_##field(V, p1->X, I);           /* V = X1*I */\
+    mul_##field(I, J, p1->Y);           /* Y1*J */\
 \
-    sub_##field(r, r, p1->Y);           /* S2-Y1 */\
-    add_##field(r, r, r);               /* r = 2*(S2-Y1) */\
+    sub_##field(p3.Z, p3.Z, p1->Y);     /* S2-Y1 */\
+    add_##field(p3.Z, p3.Z, p3.Z);      /* r = 2*(S2-Y1) */\
 \
-    sqr_##field(p3.X, r);               /* r^2 */\
+    sqr_##field(p3.X, p3.Z);            /* r^2 */\
     sub_##field(p3.X, p3.X, J);         /* r^2-J */\
-    sub_##field(p3.X, p3.X, V);         \
-    sub_##field(p3.X, p3.X, V);         /* X3 = r^2-J-2*V */\
+    sub_##field(p3.X, p3.X, p3.Y);      \
+    sub_##field(p3.X, p3.X, p3.Y);      /* X3 = r^2-J-2*V */\
 \
-    mul_##field(J, J, p1->Y);           /* Y1*J */\
-    sub_##field(p3.Y, V, p3.X);         /* V-X3 */\
-    mul_##field(p3.Y, p3.Y, r);         /* r*(V-X3) */\
-    sub_##field(p3.Y, p3.Y, J);         \
-    sub_##field(p3.Y, p3.Y, J);         /* Y3 = r*(V-X3)-2*Y1*J */\
+    sub_##field(p3.Y, p3.Y, p3.X);      /* V-X3 */\
+    mul_##field(p3.Y, p3.Y, p3.Z);      /* r*(V-X3) */\
+    sub_##field(p3.Y, p3.Y, I);         \
+    sub_##field(p3.Y, p3.Y, I);         /* Y3 = r*(V-X3)-2*Y1*J */\
 \
     add_##field(p3.Z, p1->Z, H);        /* Z1+H */\
     sqr_##field(p3.Z, p3.Z);            /* (Z1+H)^2 */\
