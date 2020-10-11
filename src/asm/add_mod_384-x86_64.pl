@@ -177,6 +177,178 @@ add_mod_384x:
 .size	add_mod_384x,.-add_mod_384x
 
 ########################################################################
+.globl	rshift_mod_384
+.hidden	rshift_mod_384
+.type	rshift_mod_384,\@function,4,"unwind"
+.align	32
+rshift_mod_384:
+.cfi_startproc
+	push	%rbp
+.cfi_push	%rbp
+	push	%rbx
+.cfi_push	%rbx
+	push	%r12
+.cfi_push	%r12
+	push	%r13
+.cfi_push	%r13
+	push	%r14
+.cfi_push	%r14
+	push	%r15
+.cfi_push	%r15
+	push	$r_ptr
+.cfi_adjust_cfa_offset	8
+.cfi_end_prologue
+
+	mov	8*0($a_ptr), @acc[0]
+	mov	8*1($a_ptr), @acc[1]
+	mov	8*2($a_ptr), @acc[2]
+	mov	8*3($a_ptr), @acc[3]
+	mov	8*4($a_ptr), @acc[4]
+	mov	8*5($a_ptr), @acc[5]
+
+.Loop_rshift_mod_384:
+	call	__rshift_mod_384
+	dec	%edx
+	jnz	.Loop_rshift_mod_384
+
+	mov	@acc[0], 8*0($r_ptr)
+	mov	@acc[1], 8*1($r_ptr)
+	mov	@acc[2], 8*2($r_ptr)
+	mov	@acc[3], 8*3($r_ptr)
+	mov	@acc[4], 8*4($r_ptr)
+	mov	@acc[5], 8*5($r_ptr)
+
+	mov	8(%rsp),%r15
+.cfi_restore	%r15
+	mov	16(%rsp),%r14
+.cfi_restore	%r14
+	mov	24(%rsp),%r13
+.cfi_restore	%r13
+	mov	32(%rsp),%r12
+.cfi_restore	%r12
+	mov	40(%rsp),%rbx
+.cfi_restore	%rbx
+	mov	48(%rsp),%rbp
+.cfi_restore	%rbp
+	lea	56(%rsp),%rsp
+.cfi_adjust_cfa_offset	-56
+.cfi_epilogue
+	ret
+.cfi_endproc
+.size	rshift_mod_384,.-rshift_mod_384
+
+.type	__rshift_mod_384,\@abi-omnipotent
+.align	32
+__rshift_mod_384:
+	mov	\$1, @acc[11]
+	mov	8*0($n_ptr), @acc[6]
+	and	@acc[0], @acc[11]
+	mov	8*1($n_ptr), @acc[7]
+	neg	@acc[11]
+	mov	8*2($n_ptr), @acc[8]
+	and	@acc[11], @acc[6]
+	mov	8*3($n_ptr), @acc[9]
+	and	@acc[11], @acc[7]
+	mov	8*4($n_ptr), @acc[10]
+	and	@acc[11], @acc[8]
+	and	@acc[11], @acc[9]
+	and	@acc[11], @acc[10]
+	and	8*5($n_ptr), @acc[11]
+
+	add	@acc[0], @acc[6]
+	adc	@acc[1], @acc[7]
+	adc	@acc[2], @acc[8]
+	adc	@acc[3], @acc[9]
+	adc	@acc[4], @acc[10]
+	adc	@acc[5], @acc[11]
+	sbb	@acc[5], @acc[5]
+
+	shr	\$1, @acc[6]
+	mov	@acc[7], @acc[0]
+	shr	\$1, @acc[7]
+	mov	@acc[8], @acc[1]
+	shr	\$1, @acc[8]
+	mov	@acc[9], @acc[2]
+	shr	\$1, @acc[9]
+	mov	@acc[10], @acc[3]
+	shr	\$1, @acc[10]
+	mov	@acc[11], @acc[4]
+	shr	\$1, @acc[11]
+	shl	\$63, @acc[0]
+	shl	\$63, @acc[1]
+	or	@acc[6], @acc[0]
+	shl	\$63, @acc[2]
+	or	@acc[7], @acc[1]
+	shl	\$63, @acc[3]
+	or	@acc[8], @acc[2]
+	shl	\$63, @acc[4]
+	or	@acc[9], @acc[3]
+	shl	\$63, @acc[5]
+	or	@acc[10], @acc[4]
+	or	@acc[11], @acc[5]
+
+	ret
+.size	__rshift_mod_384,.-__rshift_mod_384
+
+.globl	div_by_2_mod_384
+.hidden	div_by_2_mod_384
+.type	div_by_2_mod_384,\@function,3,"unwind"
+.align	32
+div_by_2_mod_384:
+.cfi_startproc
+	push	%rbp
+.cfi_push	%rbp
+	push	%rbx
+.cfi_push	%rbx
+	push	%r12
+.cfi_push	%r12
+	push	%r13
+.cfi_push	%r13
+	push	%r14
+.cfi_push	%r14
+	push	%r15
+.cfi_push	%r15
+	push	$r_ptr
+.cfi_adjust_cfa_offset	8
+.cfi_end_prologue
+
+	mov	8*0($a_ptr), @acc[0]
+	mov	$b_org, $n_ptr
+	mov	8*1($a_ptr), @acc[1]
+	mov	8*2($a_ptr), @acc[2]
+	mov	8*3($a_ptr), @acc[3]
+	mov	8*4($a_ptr), @acc[4]
+	mov	8*5($a_ptr), @acc[5]
+
+	call	__rshift_mod_384
+
+	mov	@acc[0], 8*0($r_ptr)
+	mov	@acc[1], 8*1($r_ptr)
+	mov	@acc[2], 8*2($r_ptr)
+	mov	@acc[3], 8*3($r_ptr)
+	mov	@acc[4], 8*4($r_ptr)
+	mov	@acc[5], 8*5($r_ptr)
+
+	mov	8(%rsp),%r15
+.cfi_restore	%r15
+	mov	16(%rsp),%r14
+.cfi_restore	%r14
+	mov	24(%rsp),%r13
+.cfi_restore	%r13
+	mov	32(%rsp),%r12
+.cfi_restore	%r12
+	mov	40(%rsp),%rbx
+.cfi_restore	%rbx
+	mov	48(%rsp),%rbp
+.cfi_restore	%rbp
+	lea	56(%rsp),%rsp
+.cfi_adjust_cfa_offset	-56
+.cfi_epilogue
+	ret
+.cfi_endproc
+.size	div_by_2_mod_384,.-div_by_2_mod_384
+
+########################################################################
 .globl	lshift_mod_384
 .hidden	lshift_mod_384
 .type	lshift_mod_384,\@function,4,"unwind"

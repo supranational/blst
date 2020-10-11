@@ -134,6 +134,101 @@ add_mod_384x:
 	ret
 .size	add_mod_384x,.-add_mod_384x
 
+.globl	rshift_mod_384
+.hidden	rshift_mod_384
+.type	rshift_mod_384,%function
+.align	5
+rshift_mod_384:
+	paciasp
+	stp	x29,x30,[sp,#-48]!
+	add	x29,sp,#0
+	stp	x19,x20,[sp,#16]
+	stp	x21,x22,[sp,#32]
+
+	ldp	@a[0],@a[1],[$a_ptr]
+	ldp	@a[2],@a[3],[$a_ptr,#16]
+	ldp	@a[4],@a[5],[$a_ptr,#32]
+
+	ldp	@mod[0],@mod[1],[$n_ptr]
+	ldp	@mod[2],@mod[3],[$n_ptr,#16]
+	ldp	@mod[4],@mod[5],[$n_ptr,#32]
+
+.Loop_rshift_mod_384:
+	sub	$b_ptr,$b_ptr,#1
+	bl	__rshift_mod_384
+	cbnz	$b_ptr,.Loop_rshift_mod_384
+
+	ldr	x30,[sp,#8]
+	stp	@a[0],@a[1],[$r_ptr]
+	stp	@a[2],@a[3],[$r_ptr,#16]
+	stp	@a[4],@a[5],[$r_ptr,#32]
+
+	ldp	x19,x20,[x29,#16]
+	ldp	x21,x22,[x29,#32]
+	ldr	x29,[sp],#48
+	autiasp
+	ret
+.size	rshift_mod_384,.-rshift_mod_384
+
+.type	__rshift_mod_384,%function
+.align	5
+__rshift_mod_384:
+	sbfx	@b[5],@a[0],#0,#1
+	 and	@b[0],@b[5],@mod[0]
+	 and	@b[1],@b[5],@mod[1]
+	adds	@a[0],@a[0],@b[0]
+	 and	@b[2],@b[5],@mod[2]
+	adcs	@a[1],@a[1],@b[1]
+	 and	@b[3],@b[5],@mod[3]
+	adcs	@a[2],@a[2],@b[2]
+	 and	@b[4],@b[5],@mod[4]
+	adcs	@a[3],@a[3],@b[3]
+	 and	@b[5],@b[5],@mod[5]
+	adcs	@a[4],@a[4],@b[4]
+	 extr	@a[0],@a[1],@a[0],#1	// a[0:5] >>= 1
+	adcs	@a[5],@a[5],@b[5]
+	 extr	@a[1],@a[2],@a[1],#1
+	adc	@b[5],xzr,xzr
+	 extr	@a[2],@a[3],@a[2],#1
+	 extr	@a[3],@a[4],@a[3],#1
+	 extr	@a[4],@a[5],@a[4],#1
+	 extr	@a[5],@b[5],@a[5],#1
+	ret
+.size	__rshift_mod_384,.-__rshift_mod_384
+
+.globl	div_by_2_mod_384
+.hidden	div_by_2_mod_384
+.type	div_by_2_mod_384,%function
+.align	5
+div_by_2_mod_384:
+	paciasp
+	stp	x29,x30,[sp,#-48]!
+	add	x29,sp,#0
+	stp	x19,x20,[sp,#16]
+	stp	x21,x22,[sp,#32]
+
+	ldp	@a[0],@a[1],[$a_ptr]
+	ldp	@a[2],@a[3],[$a_ptr,#16]
+	ldp	@a[4],@a[5],[$a_ptr,#32]
+
+	ldp	@mod[0],@mod[1],[$b_ptr]
+	ldp	@mod[2],@mod[3],[$b_ptr,#16]
+	ldp	@mod[4],@mod[5],[$b_ptr,#32]
+
+	bl	__rshift_mod_384
+
+	ldr	x30,[sp,#8]
+	stp	@a[0],@a[1],[$r_ptr]
+	stp	@a[2],@a[3],[$r_ptr,#16]
+	stp	@a[4],@a[5],[$r_ptr,#32]
+
+	ldp	x19,x20,[x29,#16]
+	ldp	x21,x22,[x29,#32]
+	ldr	x29,[sp],#48
+	autiasp
+	ret
+.size	div_by_2_mod_384,.-div_by_2_mod_384
+
 .globl	lshift_mod_384
 .hidden	lshift_mod_384
 .type	lshift_mod_384,%function

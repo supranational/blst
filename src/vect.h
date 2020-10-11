@@ -111,6 +111,7 @@ void mul_by_8_mod_384(vec384 ret, const vec384 a, const vec384 p);
 void mul_by_3_mod_384(vec384 ret, const vec384 a, const vec384 p);
 void cneg_mod_384(vec384 ret, const vec384 a, limb_t flag, const vec384 p);
 void lshift_mod_384(vec384 ret, const vec384 a, size_t count, const vec384 p);
+void rshift_mod_384(vec384 ret, const vec384 a, size_t count, const vec384 p);
 limb_t eucl_inverse_mod_384(vec384 ret, const vec384 a, const vec384 p,
                             const vec384 one);
 
