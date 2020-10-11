@@ -71,10 +71,6 @@ const POINTonE2 BLS12_381_NEG_G2 = { /* negative generator [in Montgomery] */
 { { ONE_MONT_P }, { 0 } }
 };
 
-#if 1
-void mul_by_b_onE2(vec384x out, const vec384x in);
-void mul_by_4b_onE2(vec384x out, const vec384x in);
-#else
 static void mul_by_b_onE2(vec384x out, const vec384x in)
 {
     sub_mod_384(out[0], in[0], in[1], BLS12_381_P);
@@ -90,7 +86,6 @@ static void mul_by_4b_onE2(vec384x out, const vec384x in)
     lshift_mod_384(out[0], out[0], 4, BLS12_381_P);
     lshift_mod_384(out[1], out[1], 4, BLS12_381_P);
 }
-#endif
 
 static void POINTonE2_cneg(POINTonE2 *p, limb_t cbit)
 {
