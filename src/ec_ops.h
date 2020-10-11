@@ -66,13 +66,13 @@ static void ptype##_dadd(ptype *out, const ptype *p1, const ptype *p2, \
     mul_##field(p3.Y, p3.Y, p3.X);      /* S1 = Y1*Z2^3 */\
     mul_##field(add.R, p2->Y, p1->Z);   \
     mul_##field(add.R, add.R, add.H);   /* S2 = Y2*Z1^3 */\
+    sub_##field(add.R, add.R, p3.Y);    /* R = S2-S1 */\
 \
     mul_##field(p3.X, p3.X, p1->X);     /* U1 = X1*Z2^2 */\
     mul_##field(add.H, add.H, p2->X);   /* U2 = X2*Z1^2 */\
 \
     add_##field(add.sx, add.H, p3.X);   /* sx = U1+U2 */\
     sub_##field(add.H, add.H, p3.X);    /* H = U2-U1 */\
-    sub_##field(add.R, add.R, p3.Y);    /* R = S2-S1 */\
 \
     /* make the choice between addition and doubling */\
     is_dbl = vec_is_zero(add.H, 2*sizeof(add.H));      \
@@ -143,12 +143,13 @@ static void ptype##_dadd_affine(ptype *out, const ptype *p1, \
     p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
     sqr_##field(add.H, p1->Z);          /* Z1^2 */\
     mul_##field(add.R, add.H, p1->Z);   /* Z1^3 */\
-    mul_##field(add.H, add.H, p2->X);   /* U2 = X2*Z1^2 */\
     mul_##field(add.R, add.R, p2->Y);   /* S2 = Y2*Z1^3 */\
+    sub_##field(add.R, add.R, p1->Y);   /* R = S2-Y1 */\
+\
+    mul_##field(add.H, add.H, p2->X);   /* U2 = X2*Z1^2 */\
 \
     add_##field(add.sx, add.H, p1->X);  /* sx = X1+U2 */\
     sub_##field(add.H, add.H, p1->X);   /* H = U2-X1 */\
-    sub_##field(add.R, add.R, p1->Y);   /* R = S2-Y1 */\
 \
     mul_##field(p3.Z, add.H, p1->Z);    /* Z3 = H*Z1 */\
 \
