@@ -182,6 +182,210 @@ $L$SEH_end_add_mod_384x::
 add_mod_384x	ENDP
 
 
+PUBLIC	rshift_mod_384
+
+
+ALIGN	32
+rshift_mod_384	PROC PUBLIC
+	DB	243,15,30,250
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	r11,rsp
+$L$SEH_begin_rshift_mod_384::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
+
+
+
+	push	rbp
+
+	push	rbx
+
+	push	r12
+
+	push	r13
+
+	push	r14
+
+	push	r15
+
+	push	rdi
+
+$L$SEH_body_rshift_mod_384::
+
+
+	mov	r8,QWORD PTR[rsi]
+	mov	r9,QWORD PTR[8+rsi]
+	mov	r10,QWORD PTR[16+rsi]
+	mov	r11,QWORD PTR[24+rsi]
+	mov	r12,QWORD PTR[32+rsi]
+	mov	r13,QWORD PTR[40+rsi]
+
+$L$oop_rshift_mod_384::
+	call	__rshift_mod_384
+	dec	edx
+	jnz	$L$oop_rshift_mod_384
+
+	mov	QWORD PTR[rdi],r8
+	mov	QWORD PTR[8+rdi],r9
+	mov	QWORD PTR[16+rdi],r10
+	mov	QWORD PTR[24+rdi],r11
+	mov	QWORD PTR[32+rdi],r12
+	mov	QWORD PTR[40+rdi],r13
+
+	mov	r15,QWORD PTR[8+rsp]
+
+	mov	r14,QWORD PTR[16+rsp]
+
+	mov	r13,QWORD PTR[24+rsp]
+
+	mov	r12,QWORD PTR[32+rsp]
+
+	mov	rbx,QWORD PTR[40+rsp]
+
+	mov	rbp,QWORD PTR[48+rsp]
+
+	lea	rsp,QWORD PTR[56+rsp]
+
+$L$SEH_epilogue_rshift_mod_384::
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+
+	DB	0F3h,0C3h		;repret
+
+$L$SEH_end_rshift_mod_384::
+rshift_mod_384	ENDP
+
+
+ALIGN	32
+__rshift_mod_384	PROC PRIVATE
+	DB	243,15,30,250
+	mov	rsi,1
+	mov	r14,QWORD PTR[rcx]
+	and	rsi,r8
+	mov	r15,QWORD PTR[8+rcx]
+	neg	rsi
+	mov	rax,QWORD PTR[16+rcx]
+	and	r14,rsi
+	mov	rbx,QWORD PTR[24+rcx]
+	and	r15,rsi
+	mov	rbp,QWORD PTR[32+rcx]
+	and	rax,rsi
+	and	rbx,rsi
+	and	rbp,rsi
+	and	rsi,QWORD PTR[40+rcx]
+
+	add	r14,r8
+	adc	r15,r9
+	adc	rax,r10
+	adc	rbx,r11
+	adc	rbp,r12
+	adc	rsi,r13
+	sbb	r13,r13
+
+	shr	r14,1
+	mov	r8,r15
+	shr	r15,1
+	mov	r9,rax
+	shr	rax,1
+	mov	r10,rbx
+	shr	rbx,1
+	mov	r11,rbp
+	shr	rbp,1
+	mov	r12,rsi
+	shr	rsi,1
+	shl	r8,63
+	shl	r9,63
+	or	r8,r14
+	shl	r10,63
+	or	r9,r15
+	shl	r11,63
+	or	r10,rax
+	shl	r12,63
+	or	r11,rbx
+	shl	r13,63
+	or	r12,rbp
+	or	r13,rsi
+
+	DB	0F3h,0C3h		;repret
+__rshift_mod_384	ENDP
+
+PUBLIC	div_by_2_mod_384
+
+
+ALIGN	32
+div_by_2_mod_384	PROC PUBLIC
+	DB	243,15,30,250
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	r11,rsp
+$L$SEH_begin_div_by_2_mod_384::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+
+
+
+	push	rbp
+
+	push	rbx
+
+	push	r12
+
+	push	r13
+
+	push	r14
+
+	push	r15
+
+	push	rdi
+
+$L$SEH_body_div_by_2_mod_384::
+
+
+	mov	r8,QWORD PTR[rsi]
+	mov	rcx,rdx
+	mov	r9,QWORD PTR[8+rsi]
+	mov	r10,QWORD PTR[16+rsi]
+	mov	r11,QWORD PTR[24+rsi]
+	mov	r12,QWORD PTR[32+rsi]
+	mov	r13,QWORD PTR[40+rsi]
+
+	call	__rshift_mod_384
+
+	mov	QWORD PTR[rdi],r8
+	mov	QWORD PTR[8+rdi],r9
+	mov	QWORD PTR[16+rdi],r10
+	mov	QWORD PTR[24+rdi],r11
+	mov	QWORD PTR[32+rdi],r12
+	mov	QWORD PTR[40+rdi],r13
+
+	mov	r15,QWORD PTR[8+rsp]
+
+	mov	r14,QWORD PTR[16+rsp]
+
+	mov	r13,QWORD PTR[24+rsp]
+
+	mov	r12,QWORD PTR[32+rsp]
+
+	mov	rbx,QWORD PTR[40+rsp]
+
+	mov	rbp,QWORD PTR[48+rsp]
+
+	lea	rsp,QWORD PTR[56+rsp]
+
+$L$SEH_epilogue_div_by_2_mod_384::
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+
+	DB	0F3h,0C3h		;repret
+
+$L$SEH_end_div_by_2_mod_384::
+div_by_2_mod_384	ENDP
+
+
 PUBLIC	lshift_mod_384
 
 
@@ -468,154 +672,6 @@ $L$SEH_epilogue_mul_by_8_mod_384::
 $L$SEH_end_mul_by_8_mod_384::
 mul_by_8_mod_384	ENDP
 
-PUBLIC	mul_by_b_onE1
-
-
-ALIGN	32
-mul_by_b_onE1	PROC PUBLIC
-	DB	243,15,30,250
-	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
-	mov	QWORD PTR[16+rsp],rsi
-	mov	r11,rsp
-$L$SEH_begin_mul_by_b_onE1::
-	mov	rdi,rcx
-	mov	rsi,rdx
-
-
-
-	push	rbp
-
-	push	rbx
-
-	push	r12
-
-	push	r13
-
-	push	r14
-
-	push	r15
-
-	sub	rsp,8
-
-$L$SEH_body_mul_by_b_onE1::
-
-
-	mov	r8,QWORD PTR[rsi]
-	mov	r9,QWORD PTR[8+rsi]
-	mov	r10,QWORD PTR[16+rsi]
-	mov	r11,QWORD PTR[24+rsi]
-	mov	r12,QWORD PTR[32+rsi]
-	mov	r13,QWORD PTR[40+rsi]
-	lea	rcx,QWORD PTR[BLS12_381_P]
-
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-
-	mov	QWORD PTR[rdi],r8
-	mov	QWORD PTR[8+rdi],r9
-	mov	QWORD PTR[16+rdi],r10
-	mov	QWORD PTR[24+rdi],r11
-	mov	QWORD PTR[32+rdi],r12
-	mov	QWORD PTR[40+rdi],r13
-
-	mov	r15,QWORD PTR[8+rsp]
-
-	mov	r14,QWORD PTR[16+rsp]
-
-	mov	r13,QWORD PTR[24+rsp]
-
-	mov	r12,QWORD PTR[32+rsp]
-
-	mov	rbx,QWORD PTR[40+rsp]
-
-	mov	rbp,QWORD PTR[48+rsp]
-
-	lea	rsp,QWORD PTR[56+rsp]
-
-$L$SEH_epilogue_mul_by_b_onE1::
-	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
-	mov	rsi,QWORD PTR[16+rsp]
-
-	DB	0F3h,0C3h		;repret
-
-$L$SEH_end_mul_by_b_onE1::
-mul_by_b_onE1	ENDP
-
-PUBLIC	mul_by_4b_onE1
-
-
-ALIGN	32
-mul_by_4b_onE1	PROC PUBLIC
-	DB	243,15,30,250
-	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
-	mov	QWORD PTR[16+rsp],rsi
-	mov	r11,rsp
-$L$SEH_begin_mul_by_4b_onE1::
-	mov	rdi,rcx
-	mov	rsi,rdx
-
-
-
-	push	rbp
-
-	push	rbx
-
-	push	r12
-
-	push	r13
-
-	push	r14
-
-	push	r15
-
-	sub	rsp,8
-
-$L$SEH_body_mul_by_4b_onE1::
-
-
-	mov	r8,QWORD PTR[rsi]
-	mov	r9,QWORD PTR[8+rsi]
-	mov	r10,QWORD PTR[16+rsi]
-	mov	r11,QWORD PTR[24+rsi]
-	mov	r12,QWORD PTR[32+rsi]
-	mov	r13,QWORD PTR[40+rsi]
-	lea	rcx,QWORD PTR[BLS12_381_P]
-
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-
-	mov	QWORD PTR[rdi],r8
-	mov	QWORD PTR[8+rdi],r9
-	mov	QWORD PTR[16+rdi],r10
-	mov	QWORD PTR[24+rdi],r11
-	mov	QWORD PTR[32+rdi],r12
-	mov	QWORD PTR[40+rdi],r13
-
-	mov	r15,QWORD PTR[8+rsp]
-
-	mov	r14,QWORD PTR[16+rsp]
-
-	mov	r13,QWORD PTR[24+rsp]
-
-	mov	r12,QWORD PTR[32+rsp]
-
-	mov	rbx,QWORD PTR[40+rsp]
-
-	mov	rbp,QWORD PTR[48+rsp]
-
-	lea	rsp,QWORD PTR[56+rsp]
-
-$L$SEH_epilogue_mul_by_4b_onE1::
-	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
-	mov	rsi,QWORD PTR[16+rsp]
-
-	DB	0F3h,0C3h		;repret
-
-$L$SEH_end_mul_by_4b_onE1::
-mul_by_4b_onE1	ENDP
-
 
 PUBLIC	mul_by_3_mod_384x
 
@@ -795,174 +851,6 @@ $L$SEH_epilogue_mul_by_8_mod_384x::
 
 $L$SEH_end_mul_by_8_mod_384x::
 mul_by_8_mod_384x	ENDP
-
-PUBLIC	mul_by_b_onE2
-
-
-ALIGN	32
-mul_by_b_onE2	PROC PUBLIC
-	DB	243,15,30,250
-	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
-	mov	QWORD PTR[16+rsp],rsi
-	mov	r11,rsp
-$L$SEH_begin_mul_by_b_onE2::
-	mov	rdi,rcx
-	mov	rsi,rdx
-
-
-
-	push	rbp
-
-	push	rbx
-
-	push	r12
-
-	push	r13
-
-	push	r14
-
-	push	r15
-
-	push	rsi
-
-$L$SEH_body_mul_by_b_onE2::
-
-
-	lea	rcx,QWORD PTR[BLS12_381_P]
-	lea	rdx,QWORD PTR[48+rsi]
-	call	__sub_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-
-	mov	rsi,QWORD PTR[rsp]
-	mov	QWORD PTR[rdi],r8
-	mov	QWORD PTR[8+rdi],r9
-	mov	QWORD PTR[16+rdi],r10
-	mov	QWORD PTR[24+rdi],r11
-	mov	QWORD PTR[32+rdi],r12
-	mov	QWORD PTR[40+rdi],r13
-
-	lea	rdx,QWORD PTR[48+rsi]
-	lea	rdi,QWORD PTR[48+rdi]
-	call	__add_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-
-	mov	QWORD PTR[rdi],r8
-	mov	QWORD PTR[8+rdi],r9
-	mov	QWORD PTR[16+rdi],r10
-	mov	QWORD PTR[24+rdi],r11
-	mov	QWORD PTR[32+rdi],r12
-	mov	QWORD PTR[40+rdi],r13
-
-	mov	r15,QWORD PTR[8+rsp]
-
-	mov	r14,QWORD PTR[16+rsp]
-
-	mov	r13,QWORD PTR[24+rsp]
-
-	mov	r12,QWORD PTR[32+rsp]
-
-	mov	rbx,QWORD PTR[40+rsp]
-
-	mov	rbp,QWORD PTR[48+rsp]
-
-	lea	rsp,QWORD PTR[56+rsp]
-
-$L$SEH_epilogue_mul_by_b_onE2::
-	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
-	mov	rsi,QWORD PTR[16+rsp]
-
-	DB	0F3h,0C3h		;repret
-
-$L$SEH_end_mul_by_b_onE2::
-mul_by_b_onE2	ENDP
-
-PUBLIC	mul_by_4b_onE2
-
-
-ALIGN	32
-mul_by_4b_onE2	PROC PUBLIC
-	DB	243,15,30,250
-	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
-	mov	QWORD PTR[16+rsp],rsi
-	mov	r11,rsp
-$L$SEH_begin_mul_by_4b_onE2::
-	mov	rdi,rcx
-	mov	rsi,rdx
-
-
-
-	push	rbp
-
-	push	rbx
-
-	push	r12
-
-	push	r13
-
-	push	r14
-
-	push	r15
-
-	push	rsi
-
-$L$SEH_body_mul_by_4b_onE2::
-
-
-	lea	rcx,QWORD PTR[BLS12_381_P]
-	lea	rdx,QWORD PTR[48+rsi]
-	call	__sub_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-
-	mov	rsi,QWORD PTR[rsp]
-	mov	QWORD PTR[rdi],r8
-	mov	QWORD PTR[8+rdi],r9
-	mov	QWORD PTR[16+rdi],r10
-	mov	QWORD PTR[24+rdi],r11
-	mov	QWORD PTR[32+rdi],r12
-	mov	QWORD PTR[40+rdi],r13
-
-	lea	rdx,QWORD PTR[48+rsi]
-	lea	rdi,QWORD PTR[48+rdi]
-	call	__add_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-
-	mov	QWORD PTR[rdi],r8
-	mov	QWORD PTR[8+rdi],r9
-	mov	QWORD PTR[16+rdi],r10
-	mov	QWORD PTR[24+rdi],r11
-	mov	QWORD PTR[32+rdi],r12
-	mov	QWORD PTR[40+rdi],r13
-
-	mov	r15,QWORD PTR[8+rsp]
-
-	mov	r14,QWORD PTR[16+rsp]
-
-	mov	r13,QWORD PTR[24+rsp]
-
-	mov	r12,QWORD PTR[32+rsp]
-
-	mov	rbx,QWORD PTR[40+rsp]
-
-	mov	rbp,QWORD PTR[48+rsp]
-
-	lea	rsp,QWORD PTR[56+rsp]
-
-$L$SEH_epilogue_mul_by_4b_onE2::
-	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
-	mov	rsi,QWORD PTR[16+rsp]
-
-	DB	0F3h,0C3h		;repret
-
-$L$SEH_end_mul_by_4b_onE2::
-mul_by_4b_onE2	ENDP
 
 
 PUBLIC	cneg_mod_384
@@ -1974,6 +1862,30 @@ ALIGN	4
 	DD	imagerel $L$SEH_end_add_mod_384x
 	DD	imagerel $L$SEH_info_add_mod_384x_epilogue
 
+	DD	imagerel $L$SEH_begin_rshift_mod_384
+	DD	imagerel $L$SEH_body_rshift_mod_384
+	DD	imagerel $L$SEH_info_rshift_mod_384_prologue
+
+	DD	imagerel $L$SEH_body_rshift_mod_384
+	DD	imagerel $L$SEH_epilogue_rshift_mod_384
+	DD	imagerel $L$SEH_info_rshift_mod_384_body
+
+	DD	imagerel $L$SEH_epilogue_rshift_mod_384
+	DD	imagerel $L$SEH_end_rshift_mod_384
+	DD	imagerel $L$SEH_info_rshift_mod_384_epilogue
+
+	DD	imagerel $L$SEH_begin_div_by_2_mod_384
+	DD	imagerel $L$SEH_body_div_by_2_mod_384
+	DD	imagerel $L$SEH_info_div_by_2_mod_384_prologue
+
+	DD	imagerel $L$SEH_body_div_by_2_mod_384
+	DD	imagerel $L$SEH_epilogue_div_by_2_mod_384
+	DD	imagerel $L$SEH_info_div_by_2_mod_384_body
+
+	DD	imagerel $L$SEH_epilogue_div_by_2_mod_384
+	DD	imagerel $L$SEH_end_div_by_2_mod_384
+	DD	imagerel $L$SEH_info_div_by_2_mod_384_epilogue
+
 	DD	imagerel $L$SEH_begin_lshift_mod_384
 	DD	imagerel $L$SEH_body_lshift_mod_384
 	DD	imagerel $L$SEH_info_lshift_mod_384_prologue
@@ -2010,30 +1922,6 @@ ALIGN	4
 	DD	imagerel $L$SEH_end_mul_by_8_mod_384
 	DD	imagerel $L$SEH_info_mul_by_8_mod_384_epilogue
 
-	DD	imagerel $L$SEH_begin_mul_by_b_onE1
-	DD	imagerel $L$SEH_body_mul_by_b_onE1
-	DD	imagerel $L$SEH_info_mul_by_b_onE1_prologue
-
-	DD	imagerel $L$SEH_body_mul_by_b_onE1
-	DD	imagerel $L$SEH_epilogue_mul_by_b_onE1
-	DD	imagerel $L$SEH_info_mul_by_b_onE1_body
-
-	DD	imagerel $L$SEH_epilogue_mul_by_b_onE1
-	DD	imagerel $L$SEH_end_mul_by_b_onE1
-	DD	imagerel $L$SEH_info_mul_by_b_onE1_epilogue
-
-	DD	imagerel $L$SEH_begin_mul_by_4b_onE1
-	DD	imagerel $L$SEH_body_mul_by_4b_onE1
-	DD	imagerel $L$SEH_info_mul_by_4b_onE1_prologue
-
-	DD	imagerel $L$SEH_body_mul_by_4b_onE1
-	DD	imagerel $L$SEH_epilogue_mul_by_4b_onE1
-	DD	imagerel $L$SEH_info_mul_by_4b_onE1_body
-
-	DD	imagerel $L$SEH_epilogue_mul_by_4b_onE1
-	DD	imagerel $L$SEH_end_mul_by_4b_onE1
-	DD	imagerel $L$SEH_info_mul_by_4b_onE1_epilogue
-
 	DD	imagerel $L$SEH_begin_mul_by_3_mod_384x
 	DD	imagerel $L$SEH_body_mul_by_3_mod_384x
 	DD	imagerel $L$SEH_info_mul_by_3_mod_384x_prologue
@@ -2057,30 +1945,6 @@ ALIGN	4
 	DD	imagerel $L$SEH_epilogue_mul_by_8_mod_384x
 	DD	imagerel $L$SEH_end_mul_by_8_mod_384x
 	DD	imagerel $L$SEH_info_mul_by_8_mod_384x_epilogue
-
-	DD	imagerel $L$SEH_begin_mul_by_b_onE2
-	DD	imagerel $L$SEH_body_mul_by_b_onE2
-	DD	imagerel $L$SEH_info_mul_by_b_onE2_prologue
-
-	DD	imagerel $L$SEH_body_mul_by_b_onE2
-	DD	imagerel $L$SEH_epilogue_mul_by_b_onE2
-	DD	imagerel $L$SEH_info_mul_by_b_onE2_body
-
-	DD	imagerel $L$SEH_epilogue_mul_by_b_onE2
-	DD	imagerel $L$SEH_end_mul_by_b_onE2
-	DD	imagerel $L$SEH_info_mul_by_b_onE2_epilogue
-
-	DD	imagerel $L$SEH_begin_mul_by_4b_onE2
-	DD	imagerel $L$SEH_body_mul_by_4b_onE2
-	DD	imagerel $L$SEH_info_mul_by_4b_onE2_prologue
-
-	DD	imagerel $L$SEH_body_mul_by_4b_onE2
-	DD	imagerel $L$SEH_epilogue_mul_by_4b_onE2
-	DD	imagerel $L$SEH_info_mul_by_4b_onE2_body
-
-	DD	imagerel $L$SEH_epilogue_mul_by_4b_onE2
-	DD	imagerel $L$SEH_end_mul_by_4b_onE2
-	DD	imagerel $L$SEH_info_mul_by_4b_onE2_epilogue
 
 	DD	imagerel $L$SEH_begin_cneg_mod_384
 	DD	imagerel $L$SEH_body_cneg_mod_384
@@ -2205,6 +2069,54 @@ DB	000h,074h,001h,000h
 DB	000h,064h,002h,000h
 DB	000h,000h,000h,000h
 
+$L$SEH_info_rshift_mod_384_prologue::
+DB	1,0,5,00bh
+DB	0,074h,1,0
+DB	0,064h,2,0
+DB	0,003h
+DB	0,0
+$L$SEH_info_rshift_mod_384_body::
+DB	1,0,17,0
+DB	000h,0f4h,001h,000h
+DB	000h,0e4h,002h,000h
+DB	000h,0d4h,003h,000h
+DB	000h,0c4h,004h,000h
+DB	000h,034h,005h,000h
+DB	000h,054h,006h,000h
+DB	000h,074h,008h,000h
+DB	000h,064h,009h,000h
+DB	000h,062h
+DB	000h,000h
+$L$SEH_info_rshift_mod_384_epilogue::
+DB	1,0,4,0
+DB	000h,074h,001h,000h
+DB	000h,064h,002h,000h
+DB	000h,000h,000h,000h
+
+$L$SEH_info_div_by_2_mod_384_prologue::
+DB	1,0,5,00bh
+DB	0,074h,1,0
+DB	0,064h,2,0
+DB	0,003h
+DB	0,0
+$L$SEH_info_div_by_2_mod_384_body::
+DB	1,0,17,0
+DB	000h,0f4h,001h,000h
+DB	000h,0e4h,002h,000h
+DB	000h,0d4h,003h,000h
+DB	000h,0c4h,004h,000h
+DB	000h,034h,005h,000h
+DB	000h,054h,006h,000h
+DB	000h,074h,008h,000h
+DB	000h,064h,009h,000h
+DB	000h,062h
+DB	000h,000h
+$L$SEH_info_div_by_2_mod_384_epilogue::
+DB	1,0,4,0
+DB	000h,074h,001h,000h
+DB	000h,064h,002h,000h
+DB	000h,000h,000h,000h
+
 $L$SEH_info_lshift_mod_384_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
@@ -2277,54 +2189,6 @@ DB	000h,074h,001h,000h
 DB	000h,064h,002h,000h
 DB	000h,000h,000h,000h
 
-$L$SEH_info_mul_by_b_onE1_prologue::
-DB	1,0,5,00bh
-DB	0,074h,1,0
-DB	0,064h,2,0
-DB	0,003h
-DB	0,0
-$L$SEH_info_mul_by_b_onE1_body::
-DB	1,0,17,0
-DB	000h,0f4h,001h,000h
-DB	000h,0e4h,002h,000h
-DB	000h,0d4h,003h,000h
-DB	000h,0c4h,004h,000h
-DB	000h,034h,005h,000h
-DB	000h,054h,006h,000h
-DB	000h,074h,008h,000h
-DB	000h,064h,009h,000h
-DB	000h,062h
-DB	000h,000h
-$L$SEH_info_mul_by_b_onE1_epilogue::
-DB	1,0,4,0
-DB	000h,074h,001h,000h
-DB	000h,064h,002h,000h
-DB	000h,000h,000h,000h
-
-$L$SEH_info_mul_by_4b_onE1_prologue::
-DB	1,0,5,00bh
-DB	0,074h,1,0
-DB	0,064h,2,0
-DB	0,003h
-DB	0,0
-$L$SEH_info_mul_by_4b_onE1_body::
-DB	1,0,17,0
-DB	000h,0f4h,001h,000h
-DB	000h,0e4h,002h,000h
-DB	000h,0d4h,003h,000h
-DB	000h,0c4h,004h,000h
-DB	000h,034h,005h,000h
-DB	000h,054h,006h,000h
-DB	000h,074h,008h,000h
-DB	000h,064h,009h,000h
-DB	000h,062h
-DB	000h,000h
-$L$SEH_info_mul_by_4b_onE1_epilogue::
-DB	1,0,4,0
-DB	000h,074h,001h,000h
-DB	000h,064h,002h,000h
-DB	000h,000h,000h,000h
-
 $L$SEH_info_mul_by_3_mod_384x_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
@@ -2368,54 +2232,6 @@ DB	000h,064h,009h,000h
 DB	000h,062h
 DB	000h,000h
 $L$SEH_info_mul_by_8_mod_384x_epilogue::
-DB	1,0,4,0
-DB	000h,074h,001h,000h
-DB	000h,064h,002h,000h
-DB	000h,000h,000h,000h
-
-$L$SEH_info_mul_by_b_onE2_prologue::
-DB	1,0,5,00bh
-DB	0,074h,1,0
-DB	0,064h,2,0
-DB	0,003h
-DB	0,0
-$L$SEH_info_mul_by_b_onE2_body::
-DB	1,0,17,0
-DB	000h,0f4h,001h,000h
-DB	000h,0e4h,002h,000h
-DB	000h,0d4h,003h,000h
-DB	000h,0c4h,004h,000h
-DB	000h,034h,005h,000h
-DB	000h,054h,006h,000h
-DB	000h,074h,008h,000h
-DB	000h,064h,009h,000h
-DB	000h,062h
-DB	000h,000h
-$L$SEH_info_mul_by_b_onE2_epilogue::
-DB	1,0,4,0
-DB	000h,074h,001h,000h
-DB	000h,064h,002h,000h
-DB	000h,000h,000h,000h
-
-$L$SEH_info_mul_by_4b_onE2_prologue::
-DB	1,0,5,00bh
-DB	0,074h,1,0
-DB	0,064h,2,0
-DB	0,003h
-DB	0,0
-$L$SEH_info_mul_by_4b_onE2_body::
-DB	1,0,17,0
-DB	000h,0f4h,001h,000h
-DB	000h,0e4h,002h,000h
-DB	000h,0d4h,003h,000h
-DB	000h,0c4h,004h,000h
-DB	000h,034h,005h,000h
-DB	000h,054h,006h,000h
-DB	000h,074h,008h,000h
-DB	000h,064h,009h,000h
-DB	000h,062h
-DB	000h,000h
-$L$SEH_info_mul_by_4b_onE2_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
 DB	000h,064h,002h,000h

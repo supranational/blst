@@ -178,6 +178,207 @@ add_mod_384x:
 .LSEH_end_add_mod_384x:
 
 
+.globl	rshift_mod_384
+
+.def	rshift_mod_384;	.scl 2;	.type 32;	.endef
+.p2align	5
+rshift_mod_384:
+	.byte	0xf3,0x0f,0x1e,0xfa
+	movq	%rdi,8(%rsp)
+	movq	%rsi,16(%rsp)
+	movq	%rsp,%r11
+.LSEH_begin_rshift_mod_384:
+	movq	%rcx,%rdi
+	movq	%rdx,%rsi
+	movq	%r8,%rdx
+	movq	%r9,%rcx
+
+
+	pushq	%rbp
+
+	pushq	%rbx
+
+	pushq	%r12
+
+	pushq	%r13
+
+	pushq	%r14
+
+	pushq	%r15
+
+	pushq	%rdi
+
+.LSEH_body_rshift_mod_384:
+
+
+	movq	0(%rsi),%r8
+	movq	8(%rsi),%r9
+	movq	16(%rsi),%r10
+	movq	24(%rsi),%r11
+	movq	32(%rsi),%r12
+	movq	40(%rsi),%r13
+
+.Loop_rshift_mod_384:
+	call	__rshift_mod_384
+	decl	%edx
+	jnz	.Loop_rshift_mod_384
+
+	movq	%r8,0(%rdi)
+	movq	%r9,8(%rdi)
+	movq	%r10,16(%rdi)
+	movq	%r11,24(%rdi)
+	movq	%r12,32(%rdi)
+	movq	%r13,40(%rdi)
+
+	movq	8(%rsp),%r15
+
+	movq	16(%rsp),%r14
+
+	movq	24(%rsp),%r13
+
+	movq	32(%rsp),%r12
+
+	movq	40(%rsp),%rbx
+
+	movq	48(%rsp),%rbp
+
+	leaq	56(%rsp),%rsp
+
+.LSEH_epilogue_rshift_mod_384:
+	mov	8(%rsp),%rdi
+	mov	16(%rsp),%rsi
+
+	.byte	0xf3,0xc3
+
+.LSEH_end_rshift_mod_384:
+
+.def	__rshift_mod_384;	.scl 3;	.type 32;	.endef
+.p2align	5
+__rshift_mod_384:
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	movq	$1,%rsi
+	movq	0(%rcx),%r14
+	andq	%r8,%rsi
+	movq	8(%rcx),%r15
+	negq	%rsi
+	movq	16(%rcx),%rax
+	andq	%rsi,%r14
+	movq	24(%rcx),%rbx
+	andq	%rsi,%r15
+	movq	32(%rcx),%rbp
+	andq	%rsi,%rax
+	andq	%rsi,%rbx
+	andq	%rsi,%rbp
+	andq	40(%rcx),%rsi
+
+	addq	%r8,%r14
+	adcq	%r9,%r15
+	adcq	%r10,%rax
+	adcq	%r11,%rbx
+	adcq	%r12,%rbp
+	adcq	%r13,%rsi
+	sbbq	%r13,%r13
+
+	shrq	$1,%r14
+	movq	%r15,%r8
+	shrq	$1,%r15
+	movq	%rax,%r9
+	shrq	$1,%rax
+	movq	%rbx,%r10
+	shrq	$1,%rbx
+	movq	%rbp,%r11
+	shrq	$1,%rbp
+	movq	%rsi,%r12
+	shrq	$1,%rsi
+	shlq	$63,%r8
+	shlq	$63,%r9
+	orq	%r14,%r8
+	shlq	$63,%r10
+	orq	%r15,%r9
+	shlq	$63,%r11
+	orq	%rax,%r10
+	shlq	$63,%r12
+	orq	%rbx,%r11
+	shlq	$63,%r13
+	orq	%rbp,%r12
+	orq	%rsi,%r13
+
+	.byte	0xf3,0xc3
+
+
+.globl	div_by_2_mod_384
+
+.def	div_by_2_mod_384;	.scl 2;	.type 32;	.endef
+.p2align	5
+div_by_2_mod_384:
+	.byte	0xf3,0x0f,0x1e,0xfa
+	movq	%rdi,8(%rsp)
+	movq	%rsi,16(%rsp)
+	movq	%rsp,%r11
+.LSEH_begin_div_by_2_mod_384:
+	movq	%rcx,%rdi
+	movq	%rdx,%rsi
+	movq	%r8,%rdx
+
+
+	pushq	%rbp
+
+	pushq	%rbx
+
+	pushq	%r12
+
+	pushq	%r13
+
+	pushq	%r14
+
+	pushq	%r15
+
+	pushq	%rdi
+
+.LSEH_body_div_by_2_mod_384:
+
+
+	movq	0(%rsi),%r8
+	movq	%rdx,%rcx
+	movq	8(%rsi),%r9
+	movq	16(%rsi),%r10
+	movq	24(%rsi),%r11
+	movq	32(%rsi),%r12
+	movq	40(%rsi),%r13
+
+	call	__rshift_mod_384
+
+	movq	%r8,0(%rdi)
+	movq	%r9,8(%rdi)
+	movq	%r10,16(%rdi)
+	movq	%r11,24(%rdi)
+	movq	%r12,32(%rdi)
+	movq	%r13,40(%rdi)
+
+	movq	8(%rsp),%r15
+
+	movq	16(%rsp),%r14
+
+	movq	24(%rsp),%r13
+
+	movq	32(%rsp),%r12
+
+	movq	40(%rsp),%rbx
+
+	movq	48(%rsp),%rbp
+
+	leaq	56(%rsp),%rsp
+
+.LSEH_epilogue_div_by_2_mod_384:
+	mov	8(%rsp),%rdi
+	mov	16(%rsp),%rsi
+
+	.byte	0xf3,0xc3
+
+.LSEH_end_div_by_2_mod_384:
+
+
 .globl	lshift_mod_384
 
 .def	lshift_mod_384;	.scl 2;	.type 32;	.endef
@@ -459,150 +660,6 @@ mul_by_8_mod_384:
 
 .LSEH_end_mul_by_8_mod_384:
 
-.globl	mul_by_b_onE1
-
-.def	mul_by_b_onE1;	.scl 2;	.type 32;	.endef
-.p2align	5
-mul_by_b_onE1:
-	.byte	0xf3,0x0f,0x1e,0xfa
-	movq	%rdi,8(%rsp)
-	movq	%rsi,16(%rsp)
-	movq	%rsp,%r11
-.LSEH_begin_mul_by_b_onE1:
-	movq	%rcx,%rdi
-	movq	%rdx,%rsi
-
-
-	pushq	%rbp
-
-	pushq	%rbx
-
-	pushq	%r12
-
-	pushq	%r13
-
-	pushq	%r14
-
-	pushq	%r15
-
-	subq	$8,%rsp
-
-.LSEH_body_mul_by_b_onE1:
-
-
-	movq	0(%rsi),%r8
-	movq	8(%rsi),%r9
-	movq	16(%rsi),%r10
-	movq	24(%rsi),%r11
-	movq	32(%rsi),%r12
-	movq	40(%rsi),%r13
-	leaq	BLS12_381_P(%rip),%rcx
-
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-
-	movq	%r8,0(%rdi)
-	movq	%r9,8(%rdi)
-	movq	%r10,16(%rdi)
-	movq	%r11,24(%rdi)
-	movq	%r12,32(%rdi)
-	movq	%r13,40(%rdi)
-
-	movq	8(%rsp),%r15
-
-	movq	16(%rsp),%r14
-
-	movq	24(%rsp),%r13
-
-	movq	32(%rsp),%r12
-
-	movq	40(%rsp),%rbx
-
-	movq	48(%rsp),%rbp
-
-	leaq	56(%rsp),%rsp
-
-.LSEH_epilogue_mul_by_b_onE1:
-	mov	8(%rsp),%rdi
-	mov	16(%rsp),%rsi
-
-	.byte	0xf3,0xc3
-
-.LSEH_end_mul_by_b_onE1:
-
-.globl	mul_by_4b_onE1
-
-.def	mul_by_4b_onE1;	.scl 2;	.type 32;	.endef
-.p2align	5
-mul_by_4b_onE1:
-	.byte	0xf3,0x0f,0x1e,0xfa
-	movq	%rdi,8(%rsp)
-	movq	%rsi,16(%rsp)
-	movq	%rsp,%r11
-.LSEH_begin_mul_by_4b_onE1:
-	movq	%rcx,%rdi
-	movq	%rdx,%rsi
-
-
-	pushq	%rbp
-
-	pushq	%rbx
-
-	pushq	%r12
-
-	pushq	%r13
-
-	pushq	%r14
-
-	pushq	%r15
-
-	subq	$8,%rsp
-
-.LSEH_body_mul_by_4b_onE1:
-
-
-	movq	0(%rsi),%r8
-	movq	8(%rsi),%r9
-	movq	16(%rsi),%r10
-	movq	24(%rsi),%r11
-	movq	32(%rsi),%r12
-	movq	40(%rsi),%r13
-	leaq	BLS12_381_P(%rip),%rcx
-
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-
-	movq	%r8,0(%rdi)
-	movq	%r9,8(%rdi)
-	movq	%r10,16(%rdi)
-	movq	%r11,24(%rdi)
-	movq	%r12,32(%rdi)
-	movq	%r13,40(%rdi)
-
-	movq	8(%rsp),%r15
-
-	movq	16(%rsp),%r14
-
-	movq	24(%rsp),%r13
-
-	movq	32(%rsp),%r12
-
-	movq	40(%rsp),%rbx
-
-	movq	48(%rsp),%rbp
-
-	leaq	56(%rsp),%rsp
-
-.LSEH_epilogue_mul_by_4b_onE1:
-	mov	8(%rsp),%rdi
-	mov	16(%rsp),%rsi
-
-	.byte	0xf3,0xc3
-
-.LSEH_end_mul_by_4b_onE1:
-
 
 .globl	mul_by_3_mod_384x
 
@@ -778,170 +835,6 @@ mul_by_8_mod_384x:
 	.byte	0xf3,0xc3
 
 .LSEH_end_mul_by_8_mod_384x:
-
-.globl	mul_by_b_onE2
-
-.def	mul_by_b_onE2;	.scl 2;	.type 32;	.endef
-.p2align	5
-mul_by_b_onE2:
-	.byte	0xf3,0x0f,0x1e,0xfa
-	movq	%rdi,8(%rsp)
-	movq	%rsi,16(%rsp)
-	movq	%rsp,%r11
-.LSEH_begin_mul_by_b_onE2:
-	movq	%rcx,%rdi
-	movq	%rdx,%rsi
-
-
-	pushq	%rbp
-
-	pushq	%rbx
-
-	pushq	%r12
-
-	pushq	%r13
-
-	pushq	%r14
-
-	pushq	%r15
-
-	pushq	%rsi
-
-.LSEH_body_mul_by_b_onE2:
-
-
-	leaq	BLS12_381_P(%rip),%rcx
-	leaq	48(%rsi),%rdx
-	call	__sub_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-
-	movq	0(%rsp),%rsi
-	movq	%r8,0(%rdi)
-	movq	%r9,8(%rdi)
-	movq	%r10,16(%rdi)
-	movq	%r11,24(%rdi)
-	movq	%r12,32(%rdi)
-	movq	%r13,40(%rdi)
-
-	leaq	48(%rsi),%rdx
-	leaq	48(%rdi),%rdi
-	call	__add_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-
-	movq	%r8,0(%rdi)
-	movq	%r9,8(%rdi)
-	movq	%r10,16(%rdi)
-	movq	%r11,24(%rdi)
-	movq	%r12,32(%rdi)
-	movq	%r13,40(%rdi)
-
-	movq	8(%rsp),%r15
-
-	movq	16(%rsp),%r14
-
-	movq	24(%rsp),%r13
-
-	movq	32(%rsp),%r12
-
-	movq	40(%rsp),%rbx
-
-	movq	48(%rsp),%rbp
-
-	leaq	56(%rsp),%rsp
-
-.LSEH_epilogue_mul_by_b_onE2:
-	mov	8(%rsp),%rdi
-	mov	16(%rsp),%rsi
-
-	.byte	0xf3,0xc3
-
-.LSEH_end_mul_by_b_onE2:
-
-.globl	mul_by_4b_onE2
-
-.def	mul_by_4b_onE2;	.scl 2;	.type 32;	.endef
-.p2align	5
-mul_by_4b_onE2:
-	.byte	0xf3,0x0f,0x1e,0xfa
-	movq	%rdi,8(%rsp)
-	movq	%rsi,16(%rsp)
-	movq	%rsp,%r11
-.LSEH_begin_mul_by_4b_onE2:
-	movq	%rcx,%rdi
-	movq	%rdx,%rsi
-
-
-	pushq	%rbp
-
-	pushq	%rbx
-
-	pushq	%r12
-
-	pushq	%r13
-
-	pushq	%r14
-
-	pushq	%r15
-
-	pushq	%rsi
-
-.LSEH_body_mul_by_4b_onE2:
-
-
-	leaq	BLS12_381_P(%rip),%rcx
-	leaq	48(%rsi),%rdx
-	call	__sub_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-
-	movq	0(%rsp),%rsi
-	movq	%r8,0(%rdi)
-	movq	%r9,8(%rdi)
-	movq	%r10,16(%rdi)
-	movq	%r11,24(%rdi)
-	movq	%r12,32(%rdi)
-	movq	%r13,40(%rdi)
-
-	leaq	48(%rsi),%rdx
-	leaq	48(%rdi),%rdi
-	call	__add_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-	call	__lshift_mod_384
-
-	movq	%r8,0(%rdi)
-	movq	%r9,8(%rdi)
-	movq	%r10,16(%rdi)
-	movq	%r11,24(%rdi)
-	movq	%r12,32(%rdi)
-	movq	%r13,40(%rdi)
-
-	movq	8(%rsp),%r15
-
-	movq	16(%rsp),%r14
-
-	movq	24(%rsp),%r13
-
-	movq	32(%rsp),%r12
-
-	movq	40(%rsp),%rbx
-
-	movq	48(%rsp),%rbp
-
-	leaq	56(%rsp),%rsp
-
-.LSEH_epilogue_mul_by_4b_onE2:
-	mov	8(%rsp),%rdi
-	mov	16(%rsp),%rsi
-
-	.byte	0xf3,0xc3
-
-.LSEH_end_mul_by_4b_onE2:
 
 
 .globl	cneg_mod_384
@@ -1946,6 +1839,30 @@ vec_select_288:
 .rva	.LSEH_end_add_mod_384x
 .rva	.LSEH_info_add_mod_384x_epilogue
 
+.rva	.LSEH_begin_rshift_mod_384
+.rva	.LSEH_body_rshift_mod_384
+.rva	.LSEH_info_rshift_mod_384_prologue
+
+.rva	.LSEH_body_rshift_mod_384
+.rva	.LSEH_epilogue_rshift_mod_384
+.rva	.LSEH_info_rshift_mod_384_body
+
+.rva	.LSEH_epilogue_rshift_mod_384
+.rva	.LSEH_end_rshift_mod_384
+.rva	.LSEH_info_rshift_mod_384_epilogue
+
+.rva	.LSEH_begin_div_by_2_mod_384
+.rva	.LSEH_body_div_by_2_mod_384
+.rva	.LSEH_info_div_by_2_mod_384_prologue
+
+.rva	.LSEH_body_div_by_2_mod_384
+.rva	.LSEH_epilogue_div_by_2_mod_384
+.rva	.LSEH_info_div_by_2_mod_384_body
+
+.rva	.LSEH_epilogue_div_by_2_mod_384
+.rva	.LSEH_end_div_by_2_mod_384
+.rva	.LSEH_info_div_by_2_mod_384_epilogue
+
 .rva	.LSEH_begin_lshift_mod_384
 .rva	.LSEH_body_lshift_mod_384
 .rva	.LSEH_info_lshift_mod_384_prologue
@@ -1982,30 +1899,6 @@ vec_select_288:
 .rva	.LSEH_end_mul_by_8_mod_384
 .rva	.LSEH_info_mul_by_8_mod_384_epilogue
 
-.rva	.LSEH_begin_mul_by_b_onE1
-.rva	.LSEH_body_mul_by_b_onE1
-.rva	.LSEH_info_mul_by_b_onE1_prologue
-
-.rva	.LSEH_body_mul_by_b_onE1
-.rva	.LSEH_epilogue_mul_by_b_onE1
-.rva	.LSEH_info_mul_by_b_onE1_body
-
-.rva	.LSEH_epilogue_mul_by_b_onE1
-.rva	.LSEH_end_mul_by_b_onE1
-.rva	.LSEH_info_mul_by_b_onE1_epilogue
-
-.rva	.LSEH_begin_mul_by_4b_onE1
-.rva	.LSEH_body_mul_by_4b_onE1
-.rva	.LSEH_info_mul_by_4b_onE1_prologue
-
-.rva	.LSEH_body_mul_by_4b_onE1
-.rva	.LSEH_epilogue_mul_by_4b_onE1
-.rva	.LSEH_info_mul_by_4b_onE1_body
-
-.rva	.LSEH_epilogue_mul_by_4b_onE1
-.rva	.LSEH_end_mul_by_4b_onE1
-.rva	.LSEH_info_mul_by_4b_onE1_epilogue
-
 .rva	.LSEH_begin_mul_by_3_mod_384x
 .rva	.LSEH_body_mul_by_3_mod_384x
 .rva	.LSEH_info_mul_by_3_mod_384x_prologue
@@ -2029,30 +1922,6 @@ vec_select_288:
 .rva	.LSEH_epilogue_mul_by_8_mod_384x
 .rva	.LSEH_end_mul_by_8_mod_384x
 .rva	.LSEH_info_mul_by_8_mod_384x_epilogue
-
-.rva	.LSEH_begin_mul_by_b_onE2
-.rva	.LSEH_body_mul_by_b_onE2
-.rva	.LSEH_info_mul_by_b_onE2_prologue
-
-.rva	.LSEH_body_mul_by_b_onE2
-.rva	.LSEH_epilogue_mul_by_b_onE2
-.rva	.LSEH_info_mul_by_b_onE2_body
-
-.rva	.LSEH_epilogue_mul_by_b_onE2
-.rva	.LSEH_end_mul_by_b_onE2
-.rva	.LSEH_info_mul_by_b_onE2_epilogue
-
-.rva	.LSEH_begin_mul_by_4b_onE2
-.rva	.LSEH_body_mul_by_4b_onE2
-.rva	.LSEH_info_mul_by_4b_onE2_prologue
-
-.rva	.LSEH_body_mul_by_4b_onE2
-.rva	.LSEH_epilogue_mul_by_4b_onE2
-.rva	.LSEH_info_mul_by_4b_onE2_body
-
-.rva	.LSEH_epilogue_mul_by_4b_onE2
-.rva	.LSEH_end_mul_by_4b_onE2
-.rva	.LSEH_info_mul_by_4b_onE2_epilogue
 
 .rva	.LSEH_begin_cneg_mod_384
 .rva	.LSEH_body_cneg_mod_384
@@ -2176,6 +2045,54 @@ vec_select_288:
 .byte	0x00,0x64,0x02,0x00
 .byte	0x00,0x00,0x00,0x00
 
+.LSEH_info_rshift_mod_384_prologue:
+.byte	1,0,5,0x0b
+.byte	0,0x74,1,0
+.byte	0,0x64,2,0
+.byte	0,0x03
+.byte	0,0
+.LSEH_info_rshift_mod_384_body:
+.byte	1,0,17,0
+.byte	0x00,0xf4,0x01,0x00
+.byte	0x00,0xe4,0x02,0x00
+.byte	0x00,0xd4,0x03,0x00
+.byte	0x00,0xc4,0x04,0x00
+.byte	0x00,0x34,0x05,0x00
+.byte	0x00,0x54,0x06,0x00
+.byte	0x00,0x74,0x08,0x00
+.byte	0x00,0x64,0x09,0x00
+.byte	0x00,0x62
+.byte	0x00,0x00
+.LSEH_info_rshift_mod_384_epilogue:
+.byte	1,0,4,0
+.byte	0x00,0x74,0x01,0x00
+.byte	0x00,0x64,0x02,0x00
+.byte	0x00,0x00,0x00,0x00
+
+.LSEH_info_div_by_2_mod_384_prologue:
+.byte	1,0,5,0x0b
+.byte	0,0x74,1,0
+.byte	0,0x64,2,0
+.byte	0,0x03
+.byte	0,0
+.LSEH_info_div_by_2_mod_384_body:
+.byte	1,0,17,0
+.byte	0x00,0xf4,0x01,0x00
+.byte	0x00,0xe4,0x02,0x00
+.byte	0x00,0xd4,0x03,0x00
+.byte	0x00,0xc4,0x04,0x00
+.byte	0x00,0x34,0x05,0x00
+.byte	0x00,0x54,0x06,0x00
+.byte	0x00,0x74,0x08,0x00
+.byte	0x00,0x64,0x09,0x00
+.byte	0x00,0x62
+.byte	0x00,0x00
+.LSEH_info_div_by_2_mod_384_epilogue:
+.byte	1,0,4,0
+.byte	0x00,0x74,0x01,0x00
+.byte	0x00,0x64,0x02,0x00
+.byte	0x00,0x00,0x00,0x00
+
 .LSEH_info_lshift_mod_384_prologue:
 .byte	1,0,5,0x0b
 .byte	0,0x74,1,0
@@ -2248,54 +2165,6 @@ vec_select_288:
 .byte	0x00,0x64,0x02,0x00
 .byte	0x00,0x00,0x00,0x00
 
-.LSEH_info_mul_by_b_onE1_prologue:
-.byte	1,0,5,0x0b
-.byte	0,0x74,1,0
-.byte	0,0x64,2,0
-.byte	0,0x03
-.byte	0,0
-.LSEH_info_mul_by_b_onE1_body:
-.byte	1,0,17,0
-.byte	0x00,0xf4,0x01,0x00
-.byte	0x00,0xe4,0x02,0x00
-.byte	0x00,0xd4,0x03,0x00
-.byte	0x00,0xc4,0x04,0x00
-.byte	0x00,0x34,0x05,0x00
-.byte	0x00,0x54,0x06,0x00
-.byte	0x00,0x74,0x08,0x00
-.byte	0x00,0x64,0x09,0x00
-.byte	0x00,0x62
-.byte	0x00,0x00
-.LSEH_info_mul_by_b_onE1_epilogue:
-.byte	1,0,4,0
-.byte	0x00,0x74,0x01,0x00
-.byte	0x00,0x64,0x02,0x00
-.byte	0x00,0x00,0x00,0x00
-
-.LSEH_info_mul_by_4b_onE1_prologue:
-.byte	1,0,5,0x0b
-.byte	0,0x74,1,0
-.byte	0,0x64,2,0
-.byte	0,0x03
-.byte	0,0
-.LSEH_info_mul_by_4b_onE1_body:
-.byte	1,0,17,0
-.byte	0x00,0xf4,0x01,0x00
-.byte	0x00,0xe4,0x02,0x00
-.byte	0x00,0xd4,0x03,0x00
-.byte	0x00,0xc4,0x04,0x00
-.byte	0x00,0x34,0x05,0x00
-.byte	0x00,0x54,0x06,0x00
-.byte	0x00,0x74,0x08,0x00
-.byte	0x00,0x64,0x09,0x00
-.byte	0x00,0x62
-.byte	0x00,0x00
-.LSEH_info_mul_by_4b_onE1_epilogue:
-.byte	1,0,4,0
-.byte	0x00,0x74,0x01,0x00
-.byte	0x00,0x64,0x02,0x00
-.byte	0x00,0x00,0x00,0x00
-
 .LSEH_info_mul_by_3_mod_384x_prologue:
 .byte	1,0,5,0x0b
 .byte	0,0x74,1,0
@@ -2339,54 +2208,6 @@ vec_select_288:
 .byte	0x00,0x62
 .byte	0x00,0x00
 .LSEH_info_mul_by_8_mod_384x_epilogue:
-.byte	1,0,4,0
-.byte	0x00,0x74,0x01,0x00
-.byte	0x00,0x64,0x02,0x00
-.byte	0x00,0x00,0x00,0x00
-
-.LSEH_info_mul_by_b_onE2_prologue:
-.byte	1,0,5,0x0b
-.byte	0,0x74,1,0
-.byte	0,0x64,2,0
-.byte	0,0x03
-.byte	0,0
-.LSEH_info_mul_by_b_onE2_body:
-.byte	1,0,17,0
-.byte	0x00,0xf4,0x01,0x00
-.byte	0x00,0xe4,0x02,0x00
-.byte	0x00,0xd4,0x03,0x00
-.byte	0x00,0xc4,0x04,0x00
-.byte	0x00,0x34,0x05,0x00
-.byte	0x00,0x54,0x06,0x00
-.byte	0x00,0x74,0x08,0x00
-.byte	0x00,0x64,0x09,0x00
-.byte	0x00,0x62
-.byte	0x00,0x00
-.LSEH_info_mul_by_b_onE2_epilogue:
-.byte	1,0,4,0
-.byte	0x00,0x74,0x01,0x00
-.byte	0x00,0x64,0x02,0x00
-.byte	0x00,0x00,0x00,0x00
-
-.LSEH_info_mul_by_4b_onE2_prologue:
-.byte	1,0,5,0x0b
-.byte	0,0x74,1,0
-.byte	0,0x64,2,0
-.byte	0,0x03
-.byte	0,0
-.LSEH_info_mul_by_4b_onE2_body:
-.byte	1,0,17,0
-.byte	0x00,0xf4,0x01,0x00
-.byte	0x00,0xe4,0x02,0x00
-.byte	0x00,0xd4,0x03,0x00
-.byte	0x00,0xc4,0x04,0x00
-.byte	0x00,0x34,0x05,0x00
-.byte	0x00,0x54,0x06,0x00
-.byte	0x00,0x74,0x08,0x00
-.byte	0x00,0x64,0x09,0x00
-.byte	0x00,0x62
-.byte	0x00,0x00
-.LSEH_info_mul_by_4b_onE2_epilogue:
 .byte	1,0,4,0
 .byte	0x00,0x74,0x01,0x00
 .byte	0x00,0x64,0x02,0x00

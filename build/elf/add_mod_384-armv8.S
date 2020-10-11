@@ -106,6 +106,101 @@ add_mod_384x:
 	ret
 .size	add_mod_384x,.-add_mod_384x
 
+.globl	rshift_mod_384
+.hidden	rshift_mod_384
+.type	rshift_mod_384,%function
+.align	5
+rshift_mod_384:
+	.inst	0xd503233f
+	stp	x29,x30,[sp,#-48]!
+	add	x29,sp,#0
+	stp	x19,x20,[sp,#16]
+	stp	x21,x22,[sp,#32]
+
+	ldp	x10,x11,[x1]
+	ldp	x12,x13,[x1,#16]
+	ldp	x14,x15,[x1,#32]
+
+	ldp	x4,x5,[x3]
+	ldp	x6,x7,[x3,#16]
+	ldp	x8,x9,[x3,#32]
+
+.Loop_rshift_mod_384:
+	sub	x2,x2,#1
+	bl	__rshift_mod_384
+	cbnz	x2,.Loop_rshift_mod_384
+
+	ldr	x30,[sp,#8]
+	stp	x10,x11,[x0]
+	stp	x12,x13,[x0,#16]
+	stp	x14,x15,[x0,#32]
+
+	ldp	x19,x20,[x29,#16]
+	ldp	x21,x22,[x29,#32]
+	ldr	x29,[sp],#48
+	.inst	0xd50323bf
+	ret
+.size	rshift_mod_384,.-rshift_mod_384
+
+.type	__rshift_mod_384,%function
+.align	5
+__rshift_mod_384:
+	sbfx	x22,x10,#0,#1
+	and	x16,x22,x4
+	and	x17,x22,x5
+	adds	x10,x10,x16
+	and	x19,x22,x6
+	adcs	x11,x11,x17
+	and	x20,x22,x7
+	adcs	x12,x12,x19
+	and	x21,x22,x8
+	adcs	x13,x13,x20
+	and	x22,x22,x9
+	adcs	x14,x14,x21
+	extr	x10,x11,x10,#1	// a[0:5] >>= 1
+	adcs	x15,x15,x22
+	extr	x11,x12,x11,#1
+	adc	x22,xzr,xzr
+	extr	x12,x13,x12,#1
+	extr	x13,x14,x13,#1
+	extr	x14,x15,x14,#1
+	extr	x15,x22,x15,#1
+	ret
+.size	__rshift_mod_384,.-__rshift_mod_384
+
+.globl	div_by_2_mod_384
+.hidden	div_by_2_mod_384
+.type	div_by_2_mod_384,%function
+.align	5
+div_by_2_mod_384:
+	.inst	0xd503233f
+	stp	x29,x30,[sp,#-48]!
+	add	x29,sp,#0
+	stp	x19,x20,[sp,#16]
+	stp	x21,x22,[sp,#32]
+
+	ldp	x10,x11,[x1]
+	ldp	x12,x13,[x1,#16]
+	ldp	x14,x15,[x1,#32]
+
+	ldp	x4,x5,[x2]
+	ldp	x6,x7,[x2,#16]
+	ldp	x8,x9,[x2,#32]
+
+	bl	__rshift_mod_384
+
+	ldr	x30,[sp,#8]
+	stp	x10,x11,[x0]
+	stp	x12,x13,[x0,#16]
+	stp	x14,x15,[x0,#32]
+
+	ldp	x19,x20,[x29,#16]
+	ldp	x21,x22,[x29,#32]
+	ldr	x29,[sp],#48
+	.inst	0xd50323bf
+	ret
+.size	div_by_2_mod_384,.-div_by_2_mod_384
+
 .globl	lshift_mod_384
 .hidden	lshift_mod_384
 .type	lshift_mod_384,%function
@@ -245,80 +340,6 @@ mul_by_8_mod_384:
 	ret
 .size	mul_by_8_mod_384,.-mul_by_8_mod_384
 
-.globl	mul_by_b_onE1
-.hidden	mul_by_b_onE1
-.type	mul_by_b_onE1,%function
-.align	5
-mul_by_b_onE1:
-	.inst	0xd503233f
-	stp	x29,x30,[sp,#-48]!
-	add	x29,sp,#0
-	stp	x19,x20,[sp,#16]
-	stp	x21,x22,[sp,#32]
-
-	adrp	x3,BLS12_381_P
-	ldp	x10,x11,[x1]
-	add	x3,x3,#:lo12:BLS12_381_P
-	ldp	x12,x13,[x1,#16]
-	ldp	x14,x15,[x1,#32]
-
-	ldp	x4,x5,[x3]
-	ldp	x6,x7,[x3,#16]
-	ldp	x8,x9,[x3,#32]
-
-	bl	__lshift_mod_384
-	bl	__lshift_mod_384
-	ldr	x30,[sp,#8]
-
-	stp	x10,x11,[x0]
-	stp	x12,x13,[x0,#16]
-	stp	x14,x15,[x0,#32]
-
-	ldp	x19,x20,[x29,#16]
-	ldp	x21,x22,[x29,#32]
-	ldr	x29,[sp],#48
-	.inst	0xd50323bf
-	ret
-.size	mul_by_b_onE1,.-mul_by_b_onE1
-
-.globl	mul_by_4b_onE1
-.hidden	mul_by_4b_onE1
-.type	mul_by_4b_onE1,%function
-.align	5
-mul_by_4b_onE1:
-	.inst	0xd503233f
-	stp	x29,x30,[sp,#-48]!
-	add	x29,sp,#0
-	stp	x19,x20,[sp,#16]
-	stp	x21,x22,[sp,#32]
-
-	adrp	x3,BLS12_381_P
-	ldp	x10,x11,[x1]
-	add	x3,x3,#:lo12:BLS12_381_P
-	ldp	x12,x13,[x1,#16]
-	ldp	x14,x15,[x1,#32]
-
-	ldp	x4,x5,[x3]
-	ldp	x6,x7,[x3,#16]
-	ldp	x8,x9,[x3,#32]
-
-	bl	__lshift_mod_384
-	bl	__lshift_mod_384
-	bl	__lshift_mod_384
-	bl	__lshift_mod_384
-	ldr	x30,[sp,#8]
-
-	stp	x10,x11,[x0]
-	stp	x12,x13,[x0,#16]
-	stp	x14,x15,[x0,#32]
-
-	ldp	x19,x20,[x29,#16]
-	ldp	x21,x22,[x29,#32]
-	ldr	x29,[sp],#48
-	.inst	0xd50323bf
-	ret
-.size	mul_by_4b_onE1,.-mul_by_4b_onE1
-
 .globl	mul_by_3_mod_384x
 .hidden	mul_by_3_mod_384x
 .type	mul_by_3_mod_384x,%function
@@ -418,96 +439,6 @@ mul_by_8_mod_384x:
 	.inst	0xd50323bf
 	ret
 .size	mul_by_8_mod_384x,.-mul_by_8_mod_384x
-
-.globl	mul_by_b_onE2
-.hidden	mul_by_b_onE2
-.type	mul_by_b_onE2,%function
-.align	5
-mul_by_b_onE2:
-	.inst	0xd503233f
-	stp	x29,x30,[sp,#-48]!
-	add	x29,sp,#0
-	stp	x19,x20,[sp,#16]
-	stp	x21,x22,[sp,#32]
-
-	adrp	x3,BLS12_381_P
-	add	x3,x3,#:lo12:BLS12_381_P
-	add	x2,x1,#48
-
-	ldp	x4,x5,[x3]
-	ldp	x6,x7,[x3,#16]
-	ldp	x8,x9,[x3,#32]
-
-	bl	__sub_mod_384
-	bl	__lshift_mod_384
-	bl	__lshift_mod_384
-
-	stp	x10,x11,[x0]
-	stp	x12,x13,[x0,#16]
-	stp	x14,x15,[x0,#32]
-
-	bl	__add_mod_384
-	bl	__lshift_mod_384
-	bl	__lshift_mod_384
-	ldr	x30,[sp,#8]
-
-	stp	x10,x11,[x0,#48]
-	stp	x12,x13,[x0,#64]
-	stp	x14,x15,[x0,#80]
-
-	ldp	x19,x20,[x29,#16]
-	ldp	x21,x22,[x29,#32]
-	ldr	x29,[sp],#48
-	.inst	0xd50323bf
-	ret
-.size	mul_by_b_onE2,.-mul_by_b_onE2
-
-.globl	mul_by_4b_onE2
-.hidden	mul_by_4b_onE2
-.type	mul_by_4b_onE2,%function
-.align	5
-mul_by_4b_onE2:
-	.inst	0xd503233f
-	stp	x29,x30,[sp,#-48]!
-	add	x29,sp,#0
-	stp	x19,x20,[sp,#16]
-	stp	x21,x22,[sp,#32]
-
-	adrp	x3,BLS12_381_P
-	add	x3,x3,#:lo12:BLS12_381_P
-	add	x2,x1,#48
-
-	ldp	x4,x5,[x3]
-	ldp	x6,x7,[x3,#16]
-	ldp	x8,x9,[x3,#32]
-
-	bl	__sub_mod_384
-	bl	__lshift_mod_384
-	bl	__lshift_mod_384
-	bl	__lshift_mod_384
-	bl	__lshift_mod_384
-
-	stp	x10,x11,[x0]
-	stp	x12,x13,[x0,#16]
-	stp	x14,x15,[x0,#32]
-
-	bl	__add_mod_384
-	bl	__lshift_mod_384
-	bl	__lshift_mod_384
-	bl	__lshift_mod_384
-	bl	__lshift_mod_384
-	ldr	x30,[sp,#8]
-
-	stp	x10,x11,[x0,#48]
-	stp	x12,x13,[x0,#64]
-	stp	x14,x15,[x0,#80]
-
-	ldp	x19,x20,[x29,#16]
-	ldp	x21,x22,[x29,#32]
-	ldr	x29,[sp],#48
-	.inst	0xd50323bf
-	ret
-.size	mul_by_4b_onE2,.-mul_by_4b_onE2
 
 .globl	cneg_mod_384
 .hidden	cneg_mod_384
