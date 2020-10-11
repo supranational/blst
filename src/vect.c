@@ -14,7 +14,8 @@
  */
 
 #ifdef lshift_mod_384
-void lshift_mod_384(vec384 ret, const vec384 a, size_t n, const vec384 mod)
+inline void lshift_mod_384(vec384 ret, const vec384 a, size_t n,
+                           const vec384 mod)
 {
     while(n--)
         add_mod_384(ret, a, a, mod), a = ret;
@@ -22,12 +23,12 @@ void lshift_mod_384(vec384 ret, const vec384 a, size_t n, const vec384 mod)
 #endif
 
 #ifdef mul_by_8_mod_384
-void mul_by_8_mod_384(vec384 ret, const vec384 a, const vec384 mod)
+inline void mul_by_8_mod_384(vec384 ret, const vec384 a, const vec384 mod)
 {   lshift_mod_384(ret, a, 3, mod);   }
 #endif
 
 #ifdef mul_by_3_mod_384
-void mul_by_3_mod_384(vec384 ret, const vec384 a, const vec384 mod)
+inline void mul_by_3_mod_384(vec384 ret, const vec384 a, const vec384 mod)
 {
     vec384 t;
 
@@ -37,7 +38,7 @@ void mul_by_3_mod_384(vec384 ret, const vec384 a, const vec384 mod)
 #endif
 
 #ifdef mul_by_3_mod_384x
-void mul_by_3_mod_384x(vec384x ret, const vec384x a, const vec384 mod)
+inline void mul_by_3_mod_384x(vec384x ret, const vec384x a, const vec384 mod)
 {
     mul_by_3_mod_384(ret[0], a[0], mod);
     mul_by_3_mod_384(ret[1], a[1], mod);
@@ -45,7 +46,7 @@ void mul_by_3_mod_384x(vec384x ret, const vec384x a, const vec384 mod)
 #endif
 
 #ifdef mul_by_8_mod_384x
-void mul_by_8_mod_384x(vec384x ret, const vec384x a, const vec384 mod)
+inline void mul_by_8_mod_384x(vec384x ret, const vec384x a, const vec384 mod)
 {
     mul_by_8_mod_384(ret[0], a[0], mod);
     mul_by_8_mod_384(ret[1], a[1], mod);
@@ -53,7 +54,8 @@ void mul_by_8_mod_384x(vec384x ret, const vec384x a, const vec384 mod)
 #endif
 
 #ifdef mul_by_1_plus_i_mod_384x
-void mul_by_1_plus_i_mod_384x(vec384x ret, const vec384x a, const vec384 mod)
+inline void mul_by_1_plus_i_mod_384x(vec384x ret, const vec384x a,
+                                     const vec384 mod)
 {
     vec384 t;
 
@@ -64,8 +66,8 @@ void mul_by_1_plus_i_mod_384x(vec384x ret, const vec384x a, const vec384 mod)
 #endif
 
 #ifdef add_mod_384x
-void add_mod_384x(vec384x ret, const vec384x a, const vec384x b,
-                  const vec384 mod)
+inline void add_mod_384x(vec384x ret, const vec384x a, const vec384x b,
+                         const vec384 mod)
 {
     add_mod_384(ret[0], a[0], b[0], mod);
     add_mod_384(ret[1], a[1], b[1], mod);
@@ -73,8 +75,8 @@ void add_mod_384x(vec384x ret, const vec384x a, const vec384x b,
 #endif
 
 #ifdef sub_mod_384x
-void sub_mod_384x(vec384x ret, const vec384x a, const vec384x b,
-                  const vec384 mod)
+inline void sub_mod_384x(vec384x ret, const vec384x a, const vec384x b,
+                         const vec384 mod)
 {
     sub_mod_384(ret[0], a[0], b[0], mod);
     sub_mod_384(ret[1], a[1], b[1], mod);
@@ -82,10 +84,11 @@ void sub_mod_384x(vec384x ret, const vec384x a, const vec384x b,
 #endif
 
 #ifdef lshift_mod_384x
-void lshift_mod_384x(vec384x ret, const vec384x a, size_t n, const vec384 p)
+inline void lshift_mod_384x(vec384x ret, const vec384x a, size_t n,
+                            const vec384 mod)
 {
-    lshift_mod_384(ret[0], a[0], n, p);
-    lshift_mod_384(ret[1], a[1], n, p);
+    lshift_mod_384(ret[0], a[0], n, mod);
+    lshift_mod_384(ret[1], a[1], n, mod);
 }
 #endif
 
