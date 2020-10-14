@@ -410,12 +410,15 @@ void blst_lendian_from_scalar(unsigned char ret[32], const pow256 a)
 limb_t blst_scalar_fr_check(const pow256 a)
 {
     vec256 value, zero = { 0 };
+    limb_t ret;
 
     limbs_from_le_bytes(value, a, 32);
     add_mod_256(zero, zero, value, BLS12_381_r);
-    return vec_is_equal(zero, value, sizeof(zero));
+    ret = vec_is_equal(zero, value, sizeof(zero));
     vec_zero(zero, sizeof(zero));
     vec_zero(value, sizeof(value));
+
+    return ret;
 }
 
 void blst_fr_from_uint64(vec256 ret, const unsigned long long a[4])
