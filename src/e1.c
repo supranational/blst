@@ -46,10 +46,10 @@ const POINTonE1 BLS12_381_NEG_G1 = { /* negative generator [in Montgomery] */
 };
 
 static inline void mul_by_b_onE1(vec384 out, const vec384 in)
-{   lshift_mod_384(out, in, 2, BLS12_381_P);   }
+{   lshift_fp(out, in, 2);   }
 
 static inline void mul_by_4b_onE1(vec384 out, const vec384 in)
-{   lshift_mod_384(out, in, 4, BLS12_381_P);   }
+{   lshift_fp(out, in, 4);   }
 
 static void POINTonE1_cneg(POINTonE1 *p, limb_t cbit)
 {   cneg_fp(p->Y, p->Y, cbit);   }
