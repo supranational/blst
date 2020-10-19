@@ -1369,12 +1369,51 @@ $L$SEH_begin_sgn0_pty_mod_384x::
 $L$SEH_body_sgn0_pty_mod_384x::
 
 
-	mov	r8,QWORD PTR[rdi]
-	mov	r9,QWORD PTR[8+rdi]
-	mov	r10,QWORD PTR[16+rdi]
-	mov	r11,QWORD PTR[24+rdi]
-	mov	rcx,QWORD PTR[32+rdi]
-	mov	rdx,QWORD PTR[40+rdi]
+	mov	r8,QWORD PTR[48+rdi]
+	mov	r9,QWORD PTR[56+rdi]
+	mov	r10,QWORD PTR[64+rdi]
+	mov	r11,QWORD PTR[72+rdi]
+	mov	rcx,QWORD PTR[80+rdi]
+	mov	rdx,QWORD PTR[88+rdi]
+
+	mov	rbx,r8
+	or	r8,r9
+	or	r8,r10
+	or	r8,r11
+	or	r8,rcx
+	or	r8,rdx
+
+	lea	rax,QWORD PTR[rdi]
+	xor	rdi,rdi
+	mov	rbp,rbx
+	add	rbx,rbx
+	adc	r9,r9
+	adc	r10,r10
+	adc	r11,r11
+	adc	rcx,rcx
+	adc	rdx,rdx
+	adc	rdi,0
+
+	sub	rbx,QWORD PTR[rsi]
+	sbb	r9,QWORD PTR[8+rsi]
+	sbb	r10,QWORD PTR[16+rsi]
+	sbb	r11,QWORD PTR[24+rsi]
+	sbb	rcx,QWORD PTR[32+rsi]
+	sbb	rdx,QWORD PTR[40+rsi]
+	sbb	rdi,0
+
+	mov	QWORD PTR[rsp],r8
+	not	rdi
+	and	rbp,1
+	and	rdi,2
+	or	rdi,rbp
+
+	mov	r8,QWORD PTR[rax]
+	mov	r9,QWORD PTR[8+rax]
+	mov	r10,QWORD PTR[16+rax]
+	mov	r11,QWORD PTR[24+rax]
+	mov	rcx,QWORD PTR[32+rax]
+	mov	rdx,QWORD PTR[40+rax]
 
 	mov	rbx,r8
 	or	r8,r9
@@ -1401,53 +1440,15 @@ $L$SEH_body_sgn0_pty_mod_384x::
 	sbb	rdx,QWORD PTR[40+rsi]
 	sbb	rax,0
 
-	mov	QWORD PTR[rsp],r8
-	not	rax
-	and	rbp,1
-	and	rax,2
-	or	rax,rbp
-
-	mov	r8,QWORD PTR[48+rdi]
-	mov	r9,QWORD PTR[56+rdi]
-	mov	r10,QWORD PTR[64+rdi]
-	mov	r11,QWORD PTR[72+rdi]
-	mov	rcx,QWORD PTR[80+rdi]
-	mov	rdx,QWORD PTR[88+rdi]
-
-	mov	rbx,r8
-	or	r8,r9
-	or	r8,r10
-	or	r8,r11
-	or	r8,rcx
-	or	r8,rdx
-
-	xor	rdi,rdi
-	mov	rbp,rbx
-	add	rbx,rbx
-	adc	r9,r9
-	adc	r10,r10
-	adc	r11,r11
-	adc	rcx,rcx
-	adc	rdx,rdx
-	adc	rdi,0
-
-	sub	rbx,QWORD PTR[rsi]
-	sbb	r9,QWORD PTR[8+rsi]
-	sbb	r10,QWORD PTR[16+rsi]
-	sbb	r11,QWORD PTR[24+rsi]
-	sbb	rcx,QWORD PTR[32+rsi]
-	sbb	rdx,QWORD PTR[40+rsi]
-	sbb	rdi,0
-
 	mov	rbx,QWORD PTR[rsp]
 
-	not	rdi
+	not	rax
 
 	test	r8,r8
-	cmovnz	rax,rdi
+	cmovz	rbp,rdi
 
 	test	rbx,rbx
-	cmovz	rbp,rdi
+	cmovnz	rax,rdi
 
 	and	rbp,1
 	and	rax,2

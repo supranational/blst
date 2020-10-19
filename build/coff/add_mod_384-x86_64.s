@@ -1343,12 +1343,51 @@ sgn0_pty_mod_384x:
 .LSEH_body_sgn0_pty_mod_384x:
 
 
-	movq	0(%rdi),%r8
-	movq	8(%rdi),%r9
-	movq	16(%rdi),%r10
-	movq	24(%rdi),%r11
-	movq	32(%rdi),%rcx
-	movq	40(%rdi),%rdx
+	movq	48(%rdi),%r8
+	movq	56(%rdi),%r9
+	movq	64(%rdi),%r10
+	movq	72(%rdi),%r11
+	movq	80(%rdi),%rcx
+	movq	88(%rdi),%rdx
+
+	movq	%r8,%rbx
+	orq	%r9,%r8
+	orq	%r10,%r8
+	orq	%r11,%r8
+	orq	%rcx,%r8
+	orq	%rdx,%r8
+
+	leaq	0(%rdi),%rax
+	xorq	%rdi,%rdi
+	movq	%rbx,%rbp
+	addq	%rbx,%rbx
+	adcq	%r9,%r9
+	adcq	%r10,%r10
+	adcq	%r11,%r11
+	adcq	%rcx,%rcx
+	adcq	%rdx,%rdx
+	adcq	$0,%rdi
+
+	subq	0(%rsi),%rbx
+	sbbq	8(%rsi),%r9
+	sbbq	16(%rsi),%r10
+	sbbq	24(%rsi),%r11
+	sbbq	32(%rsi),%rcx
+	sbbq	40(%rsi),%rdx
+	sbbq	$0,%rdi
+
+	movq	%r8,0(%rsp)
+	notq	%rdi
+	andq	$1,%rbp
+	andq	$2,%rdi
+	orq	%rbp,%rdi
+
+	movq	0(%rax),%r8
+	movq	8(%rax),%r9
+	movq	16(%rax),%r10
+	movq	24(%rax),%r11
+	movq	32(%rax),%rcx
+	movq	40(%rax),%rdx
 
 	movq	%r8,%rbx
 	orq	%r9,%r8
@@ -1375,53 +1414,15 @@ sgn0_pty_mod_384x:
 	sbbq	40(%rsi),%rdx
 	sbbq	$0,%rax
 
-	movq	%r8,0(%rsp)
-	notq	%rax
-	andq	$1,%rbp
-	andq	$2,%rax
-	orq	%rbp,%rax
-
-	movq	48(%rdi),%r8
-	movq	56(%rdi),%r9
-	movq	64(%rdi),%r10
-	movq	72(%rdi),%r11
-	movq	80(%rdi),%rcx
-	movq	88(%rdi),%rdx
-
-	movq	%r8,%rbx
-	orq	%r9,%r8
-	orq	%r10,%r8
-	orq	%r11,%r8
-	orq	%rcx,%r8
-	orq	%rdx,%r8
-
-	xorq	%rdi,%rdi
-	movq	%rbx,%rbp
-	addq	%rbx,%rbx
-	adcq	%r9,%r9
-	adcq	%r10,%r10
-	adcq	%r11,%r11
-	adcq	%rcx,%rcx
-	adcq	%rdx,%rdx
-	adcq	$0,%rdi
-
-	subq	0(%rsi),%rbx
-	sbbq	8(%rsi),%r9
-	sbbq	16(%rsi),%r10
-	sbbq	24(%rsi),%r11
-	sbbq	32(%rsi),%rcx
-	sbbq	40(%rsi),%rdx
-	sbbq	$0,%rdi
-
 	movq	0(%rsp),%rbx
 
-	notq	%rdi
+	notq	%rax
 
 	testq	%r8,%r8
-	cmovnzq	%rdi,%rax
+	cmovzq	%rdi,%rbp
 
 	testq	%rbx,%rbx
-	cmovzq	%rdi,%rbp
+	cmovnzq	%rdi,%rax
 
 	andq	$1,%rbp
 	andq	$2,%rax
