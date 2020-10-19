@@ -1181,12 +1181,51 @@ sgn0_pty_mod_384x:
 .cfi_adjust_cfa_offset	8
 .cfi_end_prologue
 
-	mov	8*0($r_ptr), @acc[0]
-	mov	8*1($r_ptr), @acc[1]
-	mov	8*2($r_ptr), @acc[2]
-	mov	8*3($r_ptr), @acc[3]
-	mov	8*4($r_ptr), @acc[4]
-	mov	8*5($r_ptr), @acc[5]
+	mov	8*6($r_ptr), @acc[0]	# sgn0(a->im)
+	mov	8*7($r_ptr), @acc[1]
+	mov	8*8($r_ptr), @acc[2]
+	mov	8*9($r_ptr), @acc[3]
+	mov	8*10($r_ptr), @acc[4]
+	mov	8*11($r_ptr), @acc[5]
+
+	mov	@acc[0], @acc[6]
+	or	@acc[1], @acc[0]
+	or	@acc[2], @acc[0]
+	or	@acc[3], @acc[0]
+	or	@acc[4], @acc[0]
+	or	@acc[5], @acc[0]
+
+	lea	0($r_ptr), %rax		# sgn0(a->re)
+	xor	$r_ptr, $r_ptr
+	mov	@acc[6], @acc[7]
+	add	@acc[6], @acc[6]
+	adc	@acc[1], @acc[1]
+	adc	@acc[2], @acc[2]
+	adc	@acc[3], @acc[3]
+	adc	@acc[4], @acc[4]
+	adc	@acc[5], @acc[5]
+	adc	\$0, $r_ptr
+
+	sub	8*0($n_ptr), @acc[6]
+	sbb	8*1($n_ptr), @acc[1]
+	sbb	8*2($n_ptr), @acc[2]
+	sbb	8*3($n_ptr), @acc[3]
+	sbb	8*4($n_ptr), @acc[4]
+	sbb	8*5($n_ptr), @acc[5]
+	sbb	\$0, $r_ptr
+
+	mov	@acc[0], 0(%rsp)	# a->im is zero or not
+	not	$r_ptr			# 2*x > p, which means "negative"
+	and	\$1, @acc[7]
+	and	\$2, $r_ptr
+	or	@acc[7], $r_ptr		# pack sign and parity
+
+	mov	8*0(%rax), @acc[0]
+	mov	8*1(%rax), @acc[1]
+	mov	8*2(%rax), @acc[2]
+	mov	8*3(%rax), @acc[3]
+	mov	8*4(%rax), @acc[4]
+	mov	8*5(%rax), @acc[5]
 
 	mov	@acc[0], @acc[6]
 	or	@acc[1], @acc[0]
@@ -1213,53 +1252,15 @@ sgn0_pty_mod_384x:
 	sbb	8*5($n_ptr), @acc[5]
 	sbb	\$0, %rax
 
-	mov	@acc[0], 0(%rsp)	# a->re is zero or not
-	not	%rax			# 2*x > p, which means "negative"
-	and	\$1, @acc[7]
-	and	\$2, %rax
-	or	@acc[7], %rax		# pack sign and parity
-
-	mov	8*6($r_ptr), @acc[0]
-	mov	8*7($r_ptr), @acc[1]
-	mov	8*8($r_ptr), @acc[2]
-	mov	8*9($r_ptr), @acc[3]
-	mov	8*10($r_ptr), @acc[4]
-	mov	8*11($r_ptr), @acc[5]
-
-	mov	@acc[0], @acc[6]
-	or	@acc[1], @acc[0]
-	or	@acc[2], @acc[0]
-	or	@acc[3], @acc[0]
-	or	@acc[4], @acc[0]
-	or	@acc[5], @acc[0]
-
-	xor	$r_ptr, $r_ptr
-	mov	@acc[6], @acc[7]
-	add	@acc[6], @acc[6]
-	adc	@acc[1], @acc[1]
-	adc	@acc[2], @acc[2]
-	adc	@acc[3], @acc[3]
-	adc	@acc[4], @acc[4]
-	adc	@acc[5], @acc[5]
-	adc	\$0, $r_ptr
-
-	sub	8*0($n_ptr), @acc[6]
-	sbb	8*1($n_ptr), @acc[1]
-	sbb	8*2($n_ptr), @acc[2]
-	sbb	8*3($n_ptr), @acc[3]
-	sbb	8*4($n_ptr), @acc[4]
-	sbb	8*5($n_ptr), @acc[5]
-	sbb	\$0, $r_ptr
-
 	mov	0(%rsp), @acc[6]
 
-	not	$r_ptr			# 2*x > p, which means "negative"
+	not	%rax			# 2*x > p, which means "negative"
 
 	test	@acc[0], @acc[0]
-	cmovnz	$r_ptr, %rax		# a->im!=0? sgn0(a->im) : sgn0(a->re)
+	cmovz	$r_ptr, @acc[7]		# a->re==0? prty(a->im) : prty(a->re)
 
 	test	@acc[6], @acc[6]
-	cmovz	$r_ptr, @acc[7]		# a->re==0? prty(a->im) : prty(a->re)
+	cmovnz	$r_ptr, %rax		# a->im!=0? sgn0(a->im) : sgn0(a->re)
 
 	and	\$1, @acc[7]
 	and	\$2, %rax
