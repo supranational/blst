@@ -84,7 +84,8 @@ static void ptype##s_mult_w##SZ(ptype *ret, \
     ptype temp[1]; \
 \
     if (table == NULL) \
-        table = alloca((1<<(SZ-1)) * sizeof(ptype) * npoints); \
+        table = (ptype (*)[1<<(SZ-1)])alloca((1<<(SZ-1)) * sizeof(ptype) * \
+                                             npoints); \
 \
     for (i = 0; i < npoints; i++) \
         ptype##_precompute_w##SZ(table[i], points[i]); \

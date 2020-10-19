@@ -174,7 +174,7 @@ static limb_t sqrt_align_fp2(vec384x out, const vec384x ret,
 # endif
 #endif
 
-#if !defined(inline)
+#if !defined(inline) && !defined(__cplusplus)
 # if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901
 #  if defined(__GNUC__) && __GNUC__>=2
 #   define inline __inline__
