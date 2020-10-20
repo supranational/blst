@@ -1185,6 +1185,10 @@ macro_rules! sig_variant_impl {
                     // create random values
                     let mut vals = [0u64; 4];
                     vals[0] = rng.next_u64();
+                    while vals[0] == 0 {
+                        // Reject zero as it is used for multiplication.
+                        vals[0] = rng.next_u64();
+                    }
                     let mut rand_i = MaybeUninit::<blst_scalar>::uninit();
                     unsafe {
                         blst_scalar_from_uint64(
