@@ -888,6 +888,12 @@ macro_rules! sig_variant_impl {
             pub fn to_bytes(&self) -> [u8; $sig_comp_size] {
                 self.compress()
             }
+
+            pub fn subgroup_check(&self) -> bool {
+                unsafe {
+                    $sig_in_group(&self.point)
+                }
+            }
         }
 
         // Trait for equality comparisons which are equivalence relations.
