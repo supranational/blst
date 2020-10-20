@@ -4,13 +4,8 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 #
-# "Sparse" in subroutine names refers to most significant limb of the
-# modulus. Though "sparse" is a bit of misnomer, because limitation is
-# just not-all-ones. Or in other words not larger than 2^256-2^192-1.
-# Just in case, why limitation at all and not a general-purpose 256-bit
-# subroutines? Unlike 384-bit case, accounting for additional carry has
-# disproportionate impact on performance, especially in adcx/adox
-# implementation.
+# As for "sparse" in subroutine names, see commentary in the
+# asm/mulx_mont_256-x86_64.pl module.
 
 $flavour = shift;
 $output  = shift;

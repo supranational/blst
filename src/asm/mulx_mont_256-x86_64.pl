@@ -7,9 +7,22 @@
 # "Sparse" in subroutine names refers to most significant limb of the
 # modulus. Though "sparse" is a bit of misnomer, because limitation is
 # just not-all-ones. Or in other words not larger than 2^256-2^192-1.
-# Just in case, why limitation at all and not a general-purpose 256-bit
-# subroutines? Unlike 384-bit case, accounting for additional carry has
-# disproportionate impact on performance, especially in adcx/adox
+# In general Montgomery multiplication algorithm can handle one of the
+# inputs being non-reduced and capped by 1<<radix_width, 1<<256 in this
+# case, rather than the modulus. Whether or not mul_mont_sparse_256, a
+# *taylored* implementation of the algorithm, can handle such input can
+# be circumstantial. For example, in most general case it depends on
+# similar "bit sparsity" of individual limbs of the second, fully reduced
+# multiplicand. If you can't make such assumption about the limbs, then
+# non-reduced value shouldn't be larger than "same old" 2^256-2^192-1.
+# This requirement can be met by conditionally subtracting "bitwise
+# left-aligned" modulus. For example, if modulus is 200 bits wide, you
+# would need to conditionally subtract the value of modulus<<56. Common
+# source of non-reduced values is redc_mont_256 treating 512-bit inputs.
+# Well, more specifically ones with upper half not smaller than modulus.
+# Just in case, why limitation at all and not general-purpose 256-bit
+# subroutines? Unlike the 384-bit case, accounting for additional carry
+# has disproportionate impact on performance, especially in adcx/adox
 # implementation.
 
 $flavour = shift;

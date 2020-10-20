@@ -156,6 +156,12 @@ void blst_keygen(pow256 SK, const void *IKM, size_t IKM_len,
         vec_zero(scratch.key, sizeof(scratch.key));
         limbs_from_be_bytes(scratch.key, scratch.OKM, sizeof(scratch.OKM));
         redc_mont_256(scratch.key, scratch.key, BLS12_381_r, r0);
+        /*
+         * Given that mul_mont_sparse_256 has special boundary conditions
+         * it's appropriate to mention that redc_mont_256 output is fully
+         * reduced at this point. Because we started with 384-bit input,
+         * one with most significant half smaller than the modulus.
+         */
         mul_mont_sparse_256(scratch.key, scratch.key, BLS12_381_rRR,
                             BLS12_381_r, r0);
     } while (vec_is_zero(scratch.key, sizeof(vec256)));

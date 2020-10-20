@@ -3,6 +3,9 @@
 # Copyright Supranational LLC
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
+#
+# As for "sparse" in subroutine names, see commentary in the
+# asm/mulx_mont_256-x86_64.pl module.
 
 $flavour = shift;
 $output  = shift;
