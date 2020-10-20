@@ -988,6 +988,14 @@ macro_rules! sig_variant_impl {
                     );
                 }
             }
+
+            pub fn subgroup_check(&self) -> bool {
+                let mut sig = <$sig_aff>::default();
+                unsafe {
+                    $sig_to_aff(&mut sig, &self.point);
+                    $sig_in_group(&sig)
+                }
+            }
         }
 
         #[cfg(test)]
