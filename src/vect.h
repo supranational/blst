@@ -162,6 +162,12 @@ static limb_t sqrt_fp2(vec384x out, const vec384x inp);
 static limb_t sqrt_align_fp2(vec384x out, const vec384x ret,
                              const vec384x sqrt, const vec384x inp);
 
+#ifdef __UINTPTR_TYPE__
+typedef __UINTPTR_TYPE__ uptr_t;
+#else
+typedef const void *uptr_t;
+#endif
+
 #if !defined(restrict)
 # if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901
 #  if defined(__GNUC__) && __GNUC__>=2
@@ -371,12 +377,26 @@ static inline void limbs_from_le_bytes(limb_t *restrict ret,
 static inline void le_bytes_from_limbs(unsigned char *out, const limb_t *in,
                                        size_t n)
 {
+    const union {
+        long one;
+        char little;
+    } is_endian = { 1 };
     limb_t limb;
-    size_t i;
+    size_t i, j, r;
+
+    if ((uptr_t)out == (uptr_t)in && is_endian.little)
+        return;
+
+    r = n % sizeof(limb_t);
+    n /= sizeof(limb_t);
 
     for(i = 0; i < n; i++) {
-        limb = in[i / sizeof(limb_t)];
-        *out++ = (unsigned char)(limb >> (8 * (i % sizeof(limb_t))));
+        for (limb = in[i], j = 0; j < sizeof(limb_t); j++, limb >>= 8)
+            *out++ = (unsigned char)limb;
+    }
+    if (r) {
+        for (limb = in[i], j = 0; j < r; j++, limb >>= 8)
+            *out++ = (unsigned char)limb;
     }
 }
 

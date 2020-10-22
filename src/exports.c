@@ -275,12 +275,6 @@ limb_t blst_p2_affine_is_equal(const POINTonE2_affine *a,
 /*
  * Scalar serialization/deseriazation
  */
-#ifdef __UINTPTR_TYPE__
-typedef __UINTPTR_TYPE__ uptr_t;
-#else
-typedef const void *uptr_t;
-#endif
-
 void blst_scalar_from_uint32(pow256 ret, const unsigned int a[8])
 {
     const union {
