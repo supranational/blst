@@ -315,6 +315,10 @@ static inline void vec_zero(void *ret, size_t num)
 
     for (i = 0; i < num; i++)
         rp[i] = 0;
+
+#ifdef __GNUC__
+    asm volatile("" : : "r"(ret) : "memory");
+#endif
 }
 
 static inline void limbs_from_be_bytes(limb_t *restrict ret,
