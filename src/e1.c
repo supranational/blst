@@ -54,6 +54,9 @@ static inline void mul_by_4b_onE1(vec384 out, const vec384 in)
 static void POINTonE1_cneg(POINTonE1 *p, limb_t cbit)
 {   cneg_fp(p->Y, p->Y, cbit);   }
 
+void blst_p1_cneg(POINTonE1 *a, size_t cbit)
+{   POINTonE1_cneg(a, cbit);   }
+
 static void POINTonE1_from_Jacobian(POINTonE1 *out, const POINTonE1 *in)
 {
     vec384 Z, ZZ;
@@ -71,6 +74,9 @@ static void POINTonE1_from_Jacobian(POINTonE1 *out, const POINTonE1 *in)
                        sizeof(BLS12_381_G1.Z), inf);    /* Z = inf ? 0 : 1 */
 }
 
+void blst_p1_from_jacobian(POINTonE1 *out, const POINTonE1 *a)
+{   POINTonE1_from_Jacobian(out, a);   }
+
 static void POINTonE1_to_affine(POINTonE1_affine *out, const POINTonE1 *in)
 {
     POINTonE1 p;
@@ -80,6 +86,16 @@ static void POINTonE1_to_affine(POINTonE1_affine *out, const POINTonE1 *in)
         in = &p;
     }
     vec_copy(out, in, sizeof(*out));
+}
+
+void blst_p1_to_affine(POINTonE1_affine *out, const POINTonE1 *a)
+{   POINTonE1_to_affine(out, a);   }
+
+void blst_p1_from_affine(POINTonE1 *out, const POINTonE1_affine *a)
+{
+    vec_copy(out, a, sizeof(*a));
+    vec_select(out->Z, a->X, BLS12_381_Rx.p, sizeof(out->Z),
+                       vec_is_zero(a, sizeof(*a)));
 }
 
 static limb_t POINTonE1_affine_on_curve(const POINTonE1_affine *p)
@@ -94,6 +110,9 @@ static limb_t POINTonE1_affine_on_curve(const POINTonE1_affine *p)
 
     return vec_is_equal(XXX, YY, sizeof(XXX)) | vec_is_zero(p, sizeof(*p));
 }
+
+limb_t blst_p1_affine_on_curve(const POINTonE1_affine *p)
+{   return POINTonE1_affine_on_curve(p);   }
 
 static limb_t POINTonE1_on_curve(const POINTonE1 *p)
 {
@@ -113,6 +132,9 @@ static limb_t POINTonE1_on_curve(const POINTonE1 *p)
 
     return vec_is_equal(XXX, YY, sizeof(XXX)) | inf;
 }
+
+limb_t blst_p1_on_curve(const POINTonE1 *p)
+{   return POINTonE1_on_curve(p);   }
 
 static limb_t POINTonE1_affine_Serialize_BE(unsigned char out[96],
                                             const POINTonE1_affine *in)
@@ -324,6 +346,31 @@ BLST_ERROR blst_p1_deserialize(POINTonE1_affine *out,
     return BLST_BAD_ENCODING;
 }
 
+#include "ec_ops.h"
+POINT_DADD_IMPL(POINTonE1, 384, fp)
+POINT_DADD_AFFINE_IMPL_A0(POINTonE1, 384, fp, BLS12_381_Rx.p)
+POINT_ADD_IMPL(POINTonE1, 384, fp)
+POINT_ADD_AFFINE_IMPL(POINTonE1, 384, fp, BLS12_381_Rx.p)
+POINT_DOUBLE_IMPL_A0(POINTonE1, 384, fp)
+POINT_IS_EQUAL_IMPL(POINTonE1, 384, fp)
+
+limb_t blst_p1_is_equal(const POINTonE1 *a, const POINTonE1 *b)
+{   return POINTonE1_is_equal(a, b);   }
+
+#include "ec_mult.h"
+POINT_MULT_SCALAR_WX_IMPL(POINTonE1, 4)
+POINT_MULT_SCALAR_WX_IMPL(POINTonE1, 5)
+
+#ifdef __BLST_PRIVATE_TESTMODE__
+POINT_AFFINE_MULT_SCALAR_IMPL(POINTonE1)
+
+DECLARE_PRIVATE_POINTXZ(POINTonE1, 384)
+POINT_LADDER_PRE_IMPL(POINTonE1, 384, fp)
+POINT_LADDER_STEP_IMPL_A0(POINTonE1, 384, fp, onE1)
+POINT_LADDER_POST_IMPL_A0(POINTonE1, 384, fp, onE1)
+POINT_MULT_SCALAR_LADDER_IMPL(POINTonE1)
+#endif
+
 void blst_sk_to_pk_in_g1(POINTonE1 *out, const pow256 SK)
 {   POINTonE1_mult_w5(out, &BLS12_381_G1, SK, 255);   }
 
@@ -361,53 +408,6 @@ void blst_sign_pk2_in_g2(unsigned char out[96], POINTonE1_affine *sig,
         out[0] |= vec_is_zero(P->Z, sizeof(P->Z)) << 6;
     }
 }
-
-void blst_p1_cneg(POINTonE1 *a, size_t cbit)
-{   POINTonE1_cneg(a, cbit);   }
-
-void blst_p1_from_jacobian(POINTonE1 *out, const POINTonE1 *a)
-{   POINTonE1_from_Jacobian(out, a);   }
-
-void blst_p1_to_affine(POINTonE1_affine *out, const POINTonE1 *a)
-{   POINTonE1_to_affine(out, a);   }
-
-void blst_p1_from_affine(POINTonE1 *out, const POINTonE1_affine *a)
-{
-    vec_copy(out, a, sizeof(*a));
-    vec_select(out->Z, a->X, BLS12_381_Rx.p, sizeof(out->Z),
-                       vec_is_zero(a, sizeof(*a)));
-}
-
-limb_t blst_p1_on_curve(const POINTonE1 *p)
-{   return POINTonE1_on_curve(p);   }
-
-limb_t blst_p1_affine_on_curve(const POINTonE1_affine *p)
-{   return POINTonE1_affine_on_curve(p);   }
-
-#include "ec_ops.h"
-POINT_DADD_IMPL(POINTonE1, 384, fp)
-POINT_DADD_AFFINE_IMPL_A0(POINTonE1, 384, fp, BLS12_381_Rx.p)
-POINT_ADD_IMPL(POINTonE1, 384, fp)
-POINT_ADD_AFFINE_IMPL(POINTonE1, 384, fp, BLS12_381_Rx.p)
-POINT_DOUBLE_IMPL_A0(POINTonE1, 384, fp)
-POINT_IS_EQUAL_IMPL(POINTonE1, 384, fp)
-
-limb_t blst_p1_is_equal(const POINTonE1 *a, const POINTonE1 *b)
-{   return POINTonE1_is_equal(a, b);   }
-
-#include "ec_mult.h"
-POINT_MULT_SCALAR_WX_IMPL(POINTonE1, 4)
-POINT_MULT_SCALAR_WX_IMPL(POINTonE1, 5)
-
-#ifdef __BLST_PRIVATE_TESTMODE__
-POINT_AFFINE_MULT_SCALAR_IMPL(POINTonE1)
-
-DECLARE_PRIVATE_POINTXZ(POINTonE1, 384)
-POINT_LADDER_PRE_IMPL(POINTonE1, 384, fp)
-POINT_LADDER_STEP_IMPL_A0(POINTonE1, 384, fp, onE1)
-POINT_LADDER_POST_IMPL_A0(POINTonE1, 384, fp, onE1)
-POINT_MULT_SCALAR_LADDER_IMPL(POINTonE1)
-#endif
 
 limb_t blst_p1_is_inf(const POINTonE1 *p)
 {   return vec_is_zero(p->Z, sizeof(p->Z));   }
