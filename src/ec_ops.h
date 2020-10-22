@@ -299,29 +299,29 @@ static void ptype##_add_affine(ptype *out, const ptype *p1, \
 #define POINT_DOUBLE_IMPL_A0(ptype, bits, field) \
 static void ptype##_double(ptype *p3, const ptype *p1) \
 { \
-    vec##bits A, B, C, D; \
+    vec##bits A, B, C; \
 \
     sqr_##field(A, p1->X);              /* A = X1^2 */\
     sqr_##field(B, p1->Y);              /* B = Y1^2 */\
     sqr_##field(C, B);                  /* C = B^2 */\
 \
-    add_##field(D, p1->X, B);           /* X1+B */\
-    sqr_##field(D, D);                  /* (X1+B)^2 */\
-    sub_##field(D, D, A);               /* (X1+B)^2-A */\
-    sub_##field(D, D, C);               /* (X1+B)^2-A-C */\
-    add_##field(D, D, D);               /* D = 2*((X1+B)^2-A-C) */\
+    add_##field(B, B, p1->X);           /* X1+B */\
+    sqr_##field(B, B);                  /* (X1+B)^2 */\
+    sub_##field(B, B, A);               /* (X1+B)^2-A */\
+    sub_##field(B, B, C);               /* (X1+B)^2-A-C */\
+    add_##field(B, B, B);               /* D = 2*((X1+B)^2-A-C) */\
 \
     mul_by_3_##field(A, A);             /* E = 3*A */\
 \
     sqr_##field(p3->X, A);              /* F = E^2 */\
-    sub_##field(p3->X, p3->X, D);       \
-    sub_##field(p3->X, p3->X, D);       /* X3 = F-2*D */\
+    sub_##field(p3->X, p3->X, B);       \
+    sub_##field(p3->X, p3->X, B);       /* X3 = F-2*D */\
 \
     add_##field(p3->Z, p1->Z, p1->Z);   /* 2*Z1 */\
     mul_##field(p3->Z, p3->Z, p1->Y);   /* Z3 = 2*Z1*Y1 */\
 \
     mul_by_8_##field(C, C);             /* 8*C */\
-    sub_##field(p3->Y, D, p3->X);       /* D-X3 */\
+    sub_##field(p3->Y, B, p3->X);       /* D-X3 */\
     mul_##field(p3->Y, p3->Y, A);       /* E*(D-X3) */\
     sub_##field(p3->Y, p3->Y, C);       /* Y3 = E*(D-X3)-8*C */\
 }
