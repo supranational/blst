@@ -161,6 +161,8 @@ static limb_t recip_sqrt_fp2(vec384x out, const vec384x inp);
 static limb_t sqrt_fp2(vec384x out, const vec384x inp);
 static limb_t sqrt_align_fp2(vec384x out, const vec384x ret,
                              const vec384x sqrt, const vec384x inp);
+static void div_by_zz(limb_t val[]);
+static void div_by_z(limb_t val[]);
 
 #ifdef __UINTPTR_TYPE__
 typedef __UINTPTR_TYPE__ uptr_t;
