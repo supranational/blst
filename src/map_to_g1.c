@@ -494,23 +494,9 @@ static void POINTonE1_times_zz_minus_1_div_by_3(POINTonE1 *out,
 }
 #endif
 
-static void sigma(POINTonE1 *out, const POINTonE1 *in)
-{
-    static const vec384 beta = {            /* such that beta^3 - 1 = 0  */
-        /* -1/2 * (1 + sqrt(-3)) = ((P-2)^(P-2)) * (1 + (P-3)^((P+1)/4)) */
-        /* (0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4
-              897d29650fb85f9b409427eb4f49fffd8bfd00000000aaac << 384) % P */
-        TO_LIMB_T(0xcd03c9e48671f071), TO_LIMB_T(0x5dab22461fcda5d2),
-        TO_LIMB_T(0x587042afd3851b95), TO_LIMB_T(0x8eb60ebe01bacb9e),
-        TO_LIMB_T(0x03f97d6e83d050d2), TO_LIMB_T(0x18f0206554638741)
-    };
-
-    mul_fp(out->X, in->X, beta);
-    vec_copy(out->Y, in->Y, 2*sizeof(out->Y));
-}
-
 static limb_t POINTonE1_in_G1(const POINTonE1_affine *p)
 {
+    void sigma(POINTonE1 *out, const POINTonE1 *in);
     POINTonE1 t0, t1, t2;
 
     vec_copy(t2.X, p->X, 2*sizeof(t0.X));

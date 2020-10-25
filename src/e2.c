@@ -428,18 +428,83 @@ POINT_LADDER_POST_IMPL_A0(POINTonE2, 384x, fp2, onE2)
 POINT_MULT_SCALAR_LADDER_IMPL(POINTonE2)
 #endif
 
+static void psi(POINTonE2 *out, const POINTonE2 *in)
+{
+    static const vec384x frobenius_x = { /* 1/(1 + i)^((P-1)/3) */
+      { 0 },
+      { /* (0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4
+              897d29650fb85f9b409427eb4f49fffd8bfd00000000aaad << 384) % P */
+        TO_LIMB_T(0x890dc9e4867545c3), TO_LIMB_T(0x2af322533285a5d5),
+        TO_LIMB_T(0x50880866309b7e2c), TO_LIMB_T(0xa20d1b8c7e881024),
+        TO_LIMB_T(0x14e4f04fe2db9068), TO_LIMB_T(0x14e56d3f1564853a) }
+    };
+    static const vec384x frobenius_y = { /* 1/(1 + i)^((P-1)/2) */
+      { /* (0x135203e60180a68ee2e9c448d77a2cd91c3dedd930b1cf60
+              ef396489f61eb45e304466cf3e67fa0af1ee7b04121bdea2 << 384) % P */
+        TO_LIMB_T(0x3e2f585da55c9ad1), TO_LIMB_T(0x4294213d86c18183),
+        TO_LIMB_T(0x382844c88b623732), TO_LIMB_T(0x92ad2afd19103e18),
+        TO_LIMB_T(0x1d794e4fac7cf0b9), TO_LIMB_T(0x0bd592fc7d825ec8) },
+      { /* (0x06af0e0437ff400b6831e36d6bd17ffe48395dabc2d3435e
+              77f76e17009241c5ee67992f72ec05f4c81084fbede3cc09 << 384) % P */
+        TO_LIMB_T(0x7bcfa7a25aa30fda), TO_LIMB_T(0xdc17dec12a927e7c),
+        TO_LIMB_T(0x2f088dd86b4ebef1), TO_LIMB_T(0xd1ca2087da74d4a7),
+        TO_LIMB_T(0x2da2596696cebc1d), TO_LIMB_T(0x0e2b7eedbbfd87d2) },
+    };
+
+    vec_copy(out, in, sizeof(*out));
+    cneg_fp(out->X[1], out->X[1], 1);   mul_fp2(out->X, out->X, frobenius_x);
+    cneg_fp(out->Y[1], out->Y[1], 1);   mul_fp2(out->Y, out->Y, frobenius_y);
+    cneg_fp(out->Z[1], out->Z[1], 1);
+}
+
+/* Galbraith-Lin-Scott, ~36-39% faster than POINTonE2_mul_w5 */
+static void POINTonE2_mult_gls(POINTonE2 *out, const POINTonE2 *in,
+                               const pow256 SK)
+{
+    union { vec256 l; pow256 s; } val;
+
+    /* break down SK to "digits" with |z| as radix [in constant time] */
+
+    limbs_from_le_bytes(val.l, SK, 32);
+    div_by_zz(val.l);
+    div_by_z(val.l);
+    div_by_z(val.l + NLIMBS(256)/2);
+    le_bytes_from_limbs(val.s, val.l, 32);
+
+    {
+        const POINTonE2 *points[4];
+        const byte *scalars[4];
+        POINTonE2 P[3];
+
+        psi(&P[0], in);
+        psi(&P[1], &P[0]);
+        psi(&P[2], &P[1]);
+
+        POINTonE2_cneg(&P[0], 1);   /* account for z being negative */
+        POINTonE2_cneg(&P[2], 1);
+
+        points[0] = in,     scalars[0] = val.s;
+        points[1] = &P[0],  scalars[1] = val.s + 8;
+        points[2] = &P[1],  scalars[2] = val.s + 16;
+        points[3] = &P[2],  scalars[3] = val.s + 24;
+        POINTonE2s_mult_w4(out, points, 4, scalars, 64, NULL);
+    }
+
+    vec_zero(val.l, sizeof(val));   /* scrub the copy of SK */
+}
+
 void blst_sk_to_pk_in_g2(POINTonE2 *out, const pow256 SK)
-{   POINTonE2_mult_w5(out, &BLS12_381_G2, SK, 255);   }
+{   POINTonE2_mult_gls(out, &BLS12_381_G2, SK);   }
 
 void blst_sign_pk_in_g1(POINTonE2 *out, const POINTonE2 *msg, const pow256 SK)
-{   POINTonE2_mult_w5(out, msg, SK, 255);   }
+{   POINTonE2_mult_gls(out, msg, SK);   }
 
 void blst_sk_to_pk2_in_g2(unsigned char out[192], POINTonE2_affine *PK,
                           const pow256 SK)
 {
     POINTonE2 P[1];
 
-    POINTonE2_mult_w5(P, &BLS12_381_G2, SK, 255);
+    POINTonE2_mult_gls(P, &BLS12_381_G2, SK);
     POINTonE2_from_Jacobian(P, P);
     if (PK != NULL)
         vec_copy(PK, P, sizeof(*PK));
@@ -455,7 +520,7 @@ void blst_sign_pk2_in_g1(unsigned char out[192], POINTonE2_affine *sig,
 {
     POINTonE2 P[1];
 
-    POINTonE2_mult_w5(P, hash, SK, 255);
+    POINTonE2_mult_gls(P, hash, SK);
     POINTonE2_from_Jacobian(P, P);
     if (sig != NULL)
         vec_copy(sig, P, sizeof(*sig));

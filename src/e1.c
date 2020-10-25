@@ -371,18 +371,63 @@ POINT_LADDER_POST_IMPL_A0(POINTonE1, 384, fp, onE1)
 POINT_MULT_SCALAR_LADDER_IMPL(POINTonE1)
 #endif
 
+static const vec384 beta = {            /* such that beta^3 - 1 = 0  */
+    /* -1/2 * (1 + sqrt(-3)) = ((P-2)^(P-2)) * (1 + (P-3)^((P+1)/4)) */
+    /* (0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4
+          897d29650fb85f9b409427eb4f49fffd8bfd00000000aaac << 384) % P */
+    TO_LIMB_T(0xcd03c9e48671f071), TO_LIMB_T(0x5dab22461fcda5d2),
+    TO_LIMB_T(0x587042afd3851b95), TO_LIMB_T(0x8eb60ebe01bacb9e),
+    TO_LIMB_T(0x03f97d6e83d050d2), TO_LIMB_T(0x18f0206554638741)
+};
+
+static void sigma(POINTonE1 *out, const POINTonE1 *in)
+{
+    vec_copy(out->X, in->X, 2*sizeof(out->X));
+    mul_fp(out->Z, in->Z, beta);
+}
+
+/* Gallant-Lambert-Vanstone, ~24-30% faster than POINTonE1_mult_w5 */
+static void POINTonE1_mult_glv(POINTonE1 *out, const POINTonE1 *in,
+                               const pow256 SK)
+{
+    union { vec256 l; pow256 s; } val;
+
+    /* SK/z^2 [in constant time] */
+
+    limbs_from_le_bytes(val.l, SK, 32);
+    div_by_zz(val.l);
+    le_bytes_from_limbs(val.s, val.l, 32);
+
+    {
+        const POINTonE1 *points[2];
+        const byte *scalars[2];
+        POINTonE1 in_sigma[1];
+
+        sigma(in_sigma, in);
+        POINTonE1_cneg(in_sigma, 1);
+        points[0] = in,         scalars[0] = val.s + 16;
+        points[1] = in_sigma,   scalars[1] = val.s;
+        POINTonE1s_mult_w4(out, points, 2, scalars, 128, NULL);
+        POINTonE1_cneg(out, 1);
+        mul_fp(out->Z, out->Z, beta);
+        mul_fp(out->Z, out->Z, beta);
+    }
+
+    vec_zero(val.l, sizeof(val));   /* scrub the copy of SK */
+}
+
 void blst_sk_to_pk_in_g1(POINTonE1 *out, const pow256 SK)
-{   POINTonE1_mult_w5(out, &BLS12_381_G1, SK, 255);   }
+{   POINTonE1_mult_glv(out, &BLS12_381_G1, SK);   }
 
 void blst_sign_pk_in_g2(POINTonE1 *out, const POINTonE1 *msg, const pow256 SK)
-{   POINTonE1_mult_w5(out, msg, SK, 255);   }
+{   POINTonE1_mult_glv(out, msg, SK);   }
 
 void blst_sk_to_pk2_in_g1(unsigned char out[96], POINTonE1_affine *PK,
                           const pow256 SK)
 {
     POINTonE1 P[1];
 
-    POINTonE1_mult_w5(P, &BLS12_381_G1, SK, 255);
+    POINTonE1_mult_glv(P, &BLS12_381_G1, SK);
     POINTonE1_from_Jacobian(P, P);
     if (PK != NULL)
         vec_copy(PK, P, sizeof(*PK));
@@ -398,7 +443,7 @@ void blst_sign_pk2_in_g2(unsigned char out[96], POINTonE1_affine *sig,
 {
     POINTonE1 P[1];
 
-    POINTonE1_mult_w5(P, hash, SK, 255);
+    POINTonE1_mult_glv(P, hash, SK);
     POINTonE1_from_Jacobian(P, P);
     if (sig != NULL)
         vec_copy(sig, P, sizeof(*sig));

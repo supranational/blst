@@ -307,78 +307,6 @@ static void clear_cofactor(POINTonE2 *out, const POINTonE2 *p)
  * As per suggestions in "7. Clearing the cofactor" at
  * https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve-06
  */
-static const vec384x iwsc = {           /* 1/(1 + i) = 1/2 - 1/2*i      */
-  { TO_LIMB_T(0x1804000000015554), TO_LIMB_T(0x855000053ab00001),
-    TO_LIMB_T(0x633cb57c253c276f), TO_LIMB_T(0x6e22d1ec31ebb502),
-    TO_LIMB_T(0xd3916126f2d14ca2), TO_LIMB_T(0x17fbb8571a006596) },
-  { TO_LIMB_T(0xa1fafffffffe5557), TO_LIMB_T(0x995bfff976a3fffe),
-    TO_LIMB_T(0x03f41d24d174ceb4), TO_LIMB_T(0xf6547998c1995dbd),
-    TO_LIMB_T(0x778a468f507a6034), TO_LIMB_T(0x020559931f7f8103) }
-};
-
-static const vec384x k_cx = {           /* iwsc^((P-1)/3)               */
-  { 0 },
-  { /* (0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4
-          897d29650fb85f9b409427eb4f49fffd8bfd00000000aaad << 384) % P */
-    TO_LIMB_T(0x890dc9e4867545c3), TO_LIMB_T(0x2af322533285a5d5),
-    TO_LIMB_T(0x50880866309b7e2c), TO_LIMB_T(0xa20d1b8c7e881024),
-    TO_LIMB_T(0x14e4f04fe2db9068), TO_LIMB_T(0x14e56d3f1564853a) }
-};
-
-static const vec384x k_cy = {           /* iwsc^((P-1)/2)               */
-  { /* (0x135203e60180a68ee2e9c448d77a2cd91c3dedd930b1cf60
-          ef396489f61eb45e304466cf3e67fa0af1ee7b04121bdea2 << 384) % P */
-    TO_LIMB_T(0x3e2f585da55c9ad1), TO_LIMB_T(0x4294213d86c18183),
-    TO_LIMB_T(0x382844c88b623732), TO_LIMB_T(0x92ad2afd19103e18),
-    TO_LIMB_T(0x1d794e4fac7cf0b9), TO_LIMB_T(0x0bd592fc7d825ec8) },
-  { /* (0x06af0e0437ff400b6831e36d6bd17ffe48395dabc2d3435e
-          77f76e17009241c5ee67992f72ec05f4c81084fbede3cc09 << 384) % P */
-    TO_LIMB_T(0x7bcfa7a25aa30fda), TO_LIMB_T(0xdc17dec12a927e7c),
-    TO_LIMB_T(0x2f088dd86b4ebef1), TO_LIMB_T(0xd1ca2087da74d4a7),
-    TO_LIMB_T(0x2da2596696cebc1d), TO_LIMB_T(0x0e2b7eedbbfd87d2) },
-};
-
-static void qi_x_iwsc(vec384x out, const vec384x in)
-{
-    mul_fp2(out, in, iwsc);
-    mul_fp(out[0], out[0], k_cx[1]);
-    mul_fp(out[1], out[1], k_cx[1]);
-    neg_fp(out[1], out[1]);
-}
-
-static void qi_y_iwsc(vec384x out, const vec384x in)
-{
-    vec384x t;
-
-    mul_fp2(t, in, iwsc);
-    add_fp(out[0], t[0], t[1]);
-    sub_fp(out[1], t[0], t[1]);
-    mul_fp(out[0], out[0], k_cy[1]);
-    mul_fp(out[1], out[1], k_cy[1]);
-}
-
-static void psi(POINTonE2 *out, const POINTonE2 *in)
-{
-    vec384x xn, xd, yn, yd;
-
-    sqr_fp2(xd, in->Z);                 /* xd = Z^2                     */
-    mul_fp2(yd, xd, in->Z);             /* yd = Z^3                     */
-
-    qi_x_iwsc(xn, in->X);   mul_fp2(xn, xn, k_cx);
-    qi_x_iwsc(xd, xd);
-
-    qi_y_iwsc(yn, in->Y);   mul_fp2(yn, yn, k_cy);
-    qi_y_iwsc(yd, yd);
-
-    /* convert (xn, xd, yn, yd) to Jacobian coordinates                 */
-    mul_fp2(out->Z, xd, yd);            /* Z = xd * yd                  */
-    mul_fp2(out->X, xn, yd);
-    mul_fp2(out->X, out->X, out->Z);    /* X = xn * xd * yd^2           */
-    sqr_fp2(out->Y, out->Z);
-    mul_fp2(out->Y, out->Y, xd);
-    mul_fp2(out->Y, out->Y, yn);        /* Y = yn * xd^3 * yd^2         */
-}
-
 static void POINTonE2_add_n_dbl(POINTonE2 *out, const POINTonE2 *p, size_t n)
 {
     POINTonE2_add(out, out, p);
@@ -398,6 +326,7 @@ static void POINTonE2_times_minus_z(POINTonE2 *out, const POINTonE2 *in)
 
 static void clear_cofactor(POINTonE2 *out, const POINTonE2 *p)
 {
+    void psi(POINTonE2 *out, const POINTonE2 *in);
     POINTonE2 t0, t1;
 
     /* A.Budroni, F.Pintore, "Efficient hash maps to G2 on BLS curves"  */
