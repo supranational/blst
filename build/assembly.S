@@ -20,6 +20,7 @@
 #  endif
 #  include "elf/add_mod_256-x86_64.s"
 #  include "elf/inverse_mod_256-x86_64.s"
+#  include "elf/div3w-x86_64.s"
 # elif defined(_WIN64) || defined(__CYGWIN__)
 #  if defined(__BLST_PORTABLE__)
 #   include "coff/sha256-portable-x86_64.s"
@@ -41,6 +42,7 @@
 #  endif
 #  include "coff/add_mod_256-x86_64.s"
 #  include "coff/inverse_mod_256-x86_64.s"
+#  include "coff/div3w-x86_64.s"
 # elif defined(__APPLE__)
 #  include "mach-o/sha256-x86_64.s"
 #  include "mach-o/inverse_mod_384-x86_64.s"
@@ -58,6 +60,7 @@
 #  endif
 #  include "mach-o/add_mod_256-x86_64.s"
 #  include "mach-o/inverse_mod_256-x86_64.s"
+#  include "mach-o/div3w-x86_64.s"
 # endif
 #elif defined(__aarch64__)
 # if defined(__ELF__)
@@ -70,6 +73,7 @@
 #  include "elf/mul_mont_256-armv8.S"
 #  include "elf/add_mod_256-armv8.S"
 #  include "elf/inverse_mod_256-armv8.S"
+#  include "elf/div3w-armv8.S"
 # elif defined(_WIN64)
 #  include "coff/sha256-armv8.S"
 #  include "coff/inverse_mod_384-armv8.S"
@@ -80,6 +84,7 @@
 #  include "coff/mul_mont_256-armv8.S"
 #  include "coff/add_mod_256-armv8.S"
 #  include "coff/inverse_mod_256-armv8.S"
+#  include "coff/div3w-armv8.S"
 # elif defined(__APPLE__)
 #  include "mach-o/sha256-armv8.S"
 #  include "mach-o/inverse_mod_384-armv8.S"
@@ -90,6 +95,7 @@
 #  include "mach-o/mul_mont_256-armv8.S"
 #  include "mach-o/add_mod_256-armv8.S"
 #  include "mach-o/inverse_mod_256-armv8.S"
+#  include "mach-o/div3w-armv8.S"
 # endif
 #else
 # error "unsupported platform"
