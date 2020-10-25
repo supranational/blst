@@ -14,7 +14,8 @@ pub enum BLST_ERROR {
 pub type byte = u8;
 pub type limb_t = u64;
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Zeroize)]
+#[zeroize(drop)]
 pub struct blst_scalar {
     pub b: [byte; 32usize],
 }

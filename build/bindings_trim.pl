@@ -15,6 +15,10 @@ for (my $i = 0; $i <= $#file; $i++) {
         @file[$i-1] =~ s/,\s*Clone//;
         @file[$i-1] =~ s/,\s*Eq//;
         @file[$i-1] =~ s/,\s*PartialEq//;
+    } elsif (@file[$i] =~ m/struct\s+blst_scalar/) {
+        @file[$i-1] =~ s/,\s*Copy//;
+        @file[$i-1] =~ s/\)/, Zeroize\)/;
+        splice @file, $i, 0, "#[zeroize(drop)]\n"; $i++;
     }
 }
 

@@ -11,6 +11,7 @@ use std::mem::{transmute, MaybeUninit};
 use std::sync::{atomic::*, mpsc::channel, Arc, Mutex, Once};
 use std::{ptr, slice};
 use threadpool::ThreadPool;
+use zeroize::Zeroize;
 
 fn da_pool() -> ThreadPool {
     static INIT: Once = Once::new();
@@ -284,7 +285,8 @@ macro_rules! sig_variant_impl {
         $sig_add_or_dbl_aff:ident,
     ) => {
         /// Secret Key
-        #[derive(Default, Debug, Clone)]
+        #[derive(Default, Debug, Clone, Zeroize)]
+        #[zeroize(drop)]
         pub struct SecretKey {
             pub value: blst_scalar,
         }
