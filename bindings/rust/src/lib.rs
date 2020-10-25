@@ -374,6 +374,9 @@ macro_rules! sig_variant_impl {
             // deserialize
             pub fn deserialize(sk_in: &[u8]) -> Result<Self, BLST_ERROR> {
                 let mut sk = blst_scalar::default();
+                if sk_in.len() != 32 {
+                    return Err(BLST_ERROR::BLST_BAD_ENCODING);
+                }
                 unsafe {
                     blst_scalar_from_bendian(&mut sk, sk_in.as_ptr());
                     if !blst_scalar_fr_check(&sk) {
