@@ -163,7 +163,8 @@ static void ptype##_mult_w##SZ(ptype *ret, const ptype *point, \
         wval &= wmask; \
         wval = booth_encode(wval, SZ); \
         ptype##_gather_booth_w##SZ(temp, table, wval); \
-        ptype##_add(ret, ret, temp); \
+        if (bits > 0) ptype##_add(ret, ret, temp); \
+        else          ptype##_dadd(ret, ret, temp, NULL); \
     } \
 }
 
