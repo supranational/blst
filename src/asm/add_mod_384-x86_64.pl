@@ -28,8 +28,6 @@ my @acc=map("%r$_",(8..15, "ax", "bx", "bp"));
 
 $code.=<<___;
 .text
-.extern	BLS12_381_P
-.hidden	BLS12_381_P
 
 .globl	add_mod_384
 .hidden	add_mod_384
