@@ -1,8 +1,5 @@
 .text
 
-
-.hidden	BLS12_381_P
-
 .globl	add_mod_384
 .hidden	add_mod_384
 .type	add_mod_384,%function

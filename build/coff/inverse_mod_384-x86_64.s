@@ -32,7 +32,7 @@ eucl_inverse_mod_384:
 
 	pushq	%r15
 
-	subq	$216,%rsp
+	subq	$536,%rsp
 
 .LSEH_body_eucl_inverse_mod_384:
 
@@ -57,7 +57,9 @@ eucl_inverse_mod_384:
 	orq	%r13,%rax
 	jz	.Labort
 
-	leaq	16(%rsp),%rsi
+	leaq	8+255(%rsp),%rsi
+	andq	$-256,%rsi
+
 	movq	0(%rcx),%r14
 	movq	8(%rcx),%r15
 	movq	16(%rcx),%rax
@@ -72,7 +74,7 @@ eucl_inverse_mod_384:
 	movq	%r12,32(%rsi)
 	movq	%r13,40(%rsi)
 
-	leaq	112(%rsp),%rcx
+	leaq	128(%rsi),%rcx
 	movq	0(%rdx),%r8
 	movq	8(%rdx),%r9
 	movq	16(%rdx),%r10
@@ -105,14 +107,14 @@ eucl_inverse_mod_384:
 
 .p2align	5
 .Loop_inv:
-	leaq	112(%rsp),%rsi
+
+
 	call	__remove_powers_of_2
 
-	leaq	16(%rsp),%rsi
-	call	__remove_powers_of_2
+	movq	$128,%rcx
+	xorq	%rsi,%rcx
 
-	leaq	112(%rsp),%rcx
-	subq	112+0(%rsp),%r8
+	subq	0(%rcx),%r8
 	sbbq	8(%rcx),%r9
 	sbbq	16(%rcx),%r10
 	sbbq	24(%rcx),%r11
@@ -153,26 +155,31 @@ eucl_inverse_mod_384:
 	sbbq	88(%rcx),%rdi
 
 	movq	%r8,0(%rsi)
-	sbbq	%r8,%r8
+	sbbq	%rcx,%rcx
 	movq	%r9,8(%rsi)
-	movq	%r8,%r9
+	orq	%r9,%r8
+	movq	%rcx,%r9
 	movq	%r10,16(%rsi)
-	movq	%r8,%r10
+	orq	%r10,%r8
+	movq	%rcx,%r10
 	movq	%r11,24(%rsi)
-	movq	%r8,%r11
+	orq	%r11,%r8
+	movq	%rcx,%r11
 	movq	%r12,32(%rsi)
-	movq	%r8,%r12
+	orq	%r12,%r8
+	movq	%rcx,%r12
 	movq	%r13,40(%rsi)
-	movq	%r8,%r13
+	orq	%r13,%r8
+	movq	%rcx,%r13
 
-	andq	0(%rdx),%r8
+	andq	0(%rdx),%rcx
 	andq	8(%rdx),%r9
 	andq	16(%rdx),%r10
 	andq	24(%rdx),%r11
 	andq	32(%rdx),%r12
 	andq	40(%rdx),%r13
 
-	addq	%r8,%r14
+	addq	%rcx,%r14
 	adcq	%r9,%r15
 	adcq	%r10,%rax
 	adcq	%r11,%rbx
@@ -186,19 +193,10 @@ eucl_inverse_mod_384:
 	movq	%rbp,80(%rsi)
 	movq	%rdi,88(%rsi)
 
-	movq	16+0(%rsp),%r8
-	movq	16+8(%rsp),%r9
-	movq	16+16(%rsp),%r10
-	movq	16+24(%rsp),%r11
-	orq	%r9,%r8
-	orq	16+32(%rsp),%r10
-	orq	16+40(%rsp),%r11
-.byte	0x67
-	orq	%r10,%r8
-	orq	%r11,%r8
+	testq	%r8,%r8
 	jnz	.Loop_inv
 
-	leaq	112(%rsp),%rsi
+	xorq	$128,%rsi
 	movq	0(%rsp),%rdi
 	movl	$1,%eax
 
@@ -217,7 +215,7 @@ eucl_inverse_mod_384:
 	movq	%r12,32(%rdi)
 	movq	%r13,40(%rdi)
 
-	leaq	216(%rsp),%r8
+	leaq	536(%rsp),%r8
 	movq	0(%r8),%r15
 
 	movq	8(%r8),%r14
@@ -395,15 +393,15 @@ __remove_powers_of_2:
 .byte	0,0
 .LSEH_info_eucl_inverse_mod_384_body:
 .byte	1,0,18,0
-.byte	0x00,0xf4,0x1b,0x00
-.byte	0x00,0xe4,0x1c,0x00
-.byte	0x00,0xd4,0x1d,0x00
-.byte	0x00,0xc4,0x1e,0x00
-.byte	0x00,0x34,0x1f,0x00
-.byte	0x00,0x54,0x20,0x00
-.byte	0x00,0x74,0x22,0x00
-.byte	0x00,0x64,0x23,0x00
-.byte	0x00,0x01,0x21,0x00
+.byte	0x00,0xf4,0x43,0x00
+.byte	0x00,0xe4,0x44,0x00
+.byte	0x00,0xd4,0x45,0x00
+.byte	0x00,0xc4,0x46,0x00
+.byte	0x00,0x34,0x47,0x00
+.byte	0x00,0x54,0x48,0x00
+.byte	0x00,0x74,0x4a,0x00
+.byte	0x00,0x64,0x4b,0x00
+.byte	0x00,0x01,0x49,0x00
 .LSEH_info_eucl_inverse_mod_384_epilogue:
 .byte	1,0,4,0
 .byte	0x00,0x74,0x01,0x00

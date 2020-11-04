@@ -1,8 +1,5 @@
 .text
 
-
-.private_extern	_BLS12_381_P
-
 .globl	_add_mod_384
 .private_extern	_add_mod_384
 

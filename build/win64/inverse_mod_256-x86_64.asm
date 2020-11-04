@@ -26,7 +26,7 @@ $L$SEH_begin_eucl_inverse_mod_256::
 
 	push	rbx
 
-	sub	rsp,152
+	sub	rsp,280
 
 $L$SEH_body_eucl_inverse_mod_256::
 
@@ -47,7 +47,9 @@ $L$SEH_body_eucl_inverse_mod_256::
 	or	rax,r11
 	jz	$L$abort_256
 
-	lea	rsi,QWORD PTR[16+rsp]
+	lea	rsi,QWORD PTR[((8+127))+rsp]
+	and	rsi,-128
+
 	mov	rax,QWORD PTR[rcx]
 	mov	rbx,QWORD PTR[8+rcx]
 	mov	rbp,QWORD PTR[16+rcx]
@@ -58,7 +60,7 @@ $L$SEH_body_eucl_inverse_mod_256::
 	mov	QWORD PTR[16+rsi],r10
 	mov	QWORD PTR[24+rsi],r11
 
-	lea	rcx,QWORD PTR[80+rsp]
+	lea	rcx,QWORD PTR[64+rsi]
 	mov	r8,QWORD PTR[rdx]
 	mov	r9,QWORD PTR[8+rdx]
 	mov	r10,QWORD PTR[16+rdx]
@@ -83,14 +85,14 @@ $L$SEH_body_eucl_inverse_mod_256::
 
 ALIGN	32
 $L$oop_inv_256::
-	lea	rsi,QWORD PTR[80+rsp]
+
+
 	call	__remove_powers_of_2_256
 
-	lea	rsi,QWORD PTR[16+rsp]
-	call	__remove_powers_of_2_256
+	mov	rcx,64
+	xor	rcx,rsi
 
-	lea	rcx,QWORD PTR[80+rsp]
-	sub	r8,QWORD PTR[((80+0))+rsp]
+	sub	r8,QWORD PTR[rcx]
 	sbb	r9,QWORD PTR[8+rcx]
 	sbb	r10,QWORD PTR[16+rcx]
 	sbb	r11,QWORD PTR[24+rcx]
@@ -121,20 +123,23 @@ $L$u_greater_than_v_256::
 	sbb	rdi,QWORD PTR[56+rcx]
 
 	mov	QWORD PTR[rsi],r8
-	sbb	r8,r8
+	sbb	rcx,rcx
 	mov	QWORD PTR[8+rsi],r9
-	mov	r9,r8
+	or	r8,r9
+	mov	r9,rcx
 	mov	QWORD PTR[16+rsi],r10
-	mov	r10,r8
+	or	r8,r10
+	mov	r10,rcx
 	mov	QWORD PTR[24+rsi],r11
-	mov	r11,r8
+	or	r8,r11
+	mov	r11,rcx
 
-	and	r8,QWORD PTR[rdx]
+	and	rcx,QWORD PTR[rdx]
 	and	r9,QWORD PTR[8+rdx]
 	and	r10,QWORD PTR[16+rdx]
 	and	r11,QWORD PTR[24+rdx]
 
-	add	rax,r8
+	add	rax,rcx
 	adc	rbx,r9
 	adc	rbp,r10
 	adc	rdi,r11
@@ -144,16 +149,10 @@ $L$u_greater_than_v_256::
 	mov	QWORD PTR[48+rsi],rbp
 	mov	QWORD PTR[56+rsi],rdi
 
-	mov	r8,QWORD PTR[((16+0))+rsp]
-	mov	r9,QWORD PTR[((16+8))+rsp]
-	mov	r10,QWORD PTR[((16+16))+rsp]
-	mov	r11,QWORD PTR[((16+24))+rsp]
-	or	r8,r9
-	or	r8,r10
-	or	r8,r11
+	test	r8,r8
 	jnz	$L$oop_inv_256
 
-	lea	rsi,QWORD PTR[80+rsp]
+	xor	rsi,64
 	mov	rdi,QWORD PTR[rsp]
 	mov	eax,1
 
@@ -168,7 +167,7 @@ $L$abort_256::
 	mov	QWORD PTR[16+rdi],r10
 	mov	QWORD PTR[24+rdi],r11
 
-	lea	r8,QWORD PTR[152+rsp]
+	lea	r8,QWORD PTR[280+rsp]
 	mov	rbx,QWORD PTR[r8]
 
 	mov	rbp,QWORD PTR[8+r8]
@@ -308,11 +307,11 @@ DB	0,003h
 DB	0,0
 $L$SEH_info_eucl_inverse_mod_256_body::
 DB	1,0,10,0
-DB	000h,034h,013h,000h
-DB	000h,054h,014h,000h
-DB	000h,074h,016h,000h
-DB	000h,064h,017h,000h
-DB	000h,001h,015h,000h
+DB	000h,034h,023h,000h
+DB	000h,054h,024h,000h
+DB	000h,074h,026h,000h
+DB	000h,064h,027h,000h
+DB	000h,001h,025h,000h
 $L$SEH_info_eucl_inverse_mod_256_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h

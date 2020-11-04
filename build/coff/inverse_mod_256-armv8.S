@@ -28,36 +28,37 @@ eucl_inverse_mod_256:
 	orr	x10,x8,x9
 	cbz	x10,.Labort_256		// abort if |inp|==0
 
+	add	x1, sp, #0
+
 	ldp	x8,x9,[x3]
 	ldp	x10,x11,[x3,#16]
 
 	ldp	x12,x13,[x2]
 	ldp	x14,x15,[x2,#16]
 
-	stp	x4,x5,[sp,#0]	// copy |inp| to U
-	stp	x6,x7,[sp,#0+16]
+	add	x2, sp, #64
 
-	stp	x8,x9,[sp,#0+32]	// copy |one| to X
-	stp	x10,x11,[sp,#0+48]
+	stp	x4,x5,[x1,#0]	// copy |inp| to U
+	stp	x6,x7,[x1,#16]
 
-	stp	x12,x13,[sp,#64]	// copy |mod| to V
-	stp	x14,x15,[sp,#64+16]
+	stp	x8,x9,[x1,#32]	// copy |one| to X
+	stp	x10,x11,[x1,#48]
 
-	stp	xzr,xzr,[sp,#64+32]		// clear Y
-	stp	xzr,xzr,[sp,#64+48]
+	stp	x12,x13,[x2,#0]	// copy |mod| to V
+	stp	x14,x15,[x2,#16]
+
+	stp	xzr,xzr,[x2,#32]		// clear Y
+	stp	xzr,xzr,[x2,#48]
 	b	.Loop_inv_256
 
 .p2align	4
 .Loop_inv_256:
-	add	x1,sp,#64
+	####### *x2 is always odd at this point, no need to check...
+
 	bl	__remove_powers_of_2_256
 
-	add	x1,sp,#0
-	bl	__remove_powers_of_2_256
-
-	ldp	x8,x9,[sp,#64]
-	add	x2,sp,#64
-	ldp	x10,x11,[sp,#64+16]
+	ldp	x8,x9,[x2]
+	ldp	x10,x11,[x2,#16]
 	subs	x4,x4,x8		// U-V
 	sbcs	x5,x5,x9
 	sbcs	x6,x6,x10
@@ -78,8 +79,11 @@ eucl_inverse_mod_256:
 
 .Lu_greater_than_v_256:
 	stp	x4,x5,[x1]
+	orr	x3,x4,x5
 	ldp	x4,x5,[x2,#32]
+	orr	x3,x3,x6
 	ldp	x8,x9,[x1,#32]
+	orr	x3,x3,x7
 	stp	x6,x7,[x1,#16]
 	ldp	x6,x7,[x2,#48]
 	subs	x8,x8,x4		// X-Y		# [alt. Y-X]
@@ -96,21 +100,15 @@ eucl_inverse_mod_256:
 	adcs	x9,x9,x5
 	and	x7,x15,x7
 	adcs	x10,x10,x6
-	ldp	x4,x5,[sp,#0]
-	adc	x11,x11,x7
-	ldp	x6,x7,[sp,#0+16]
-
-	orr	x4,x4,x5
-	orr	x6,x6,x7
 	stp	x8,x9,[x1,#32]
-	orr	x4,x4,x6
+	adc	x11,x11,x7
 	stp	x10,x11,[x1,#48]
 
-	cbnz	x4,.Loop_inv_256		// U!=0?
+	cbnz	x3,.Loop_inv_256		// U!=0?
 
 	ldr	x30,[x29,#8]
-	ldp	x4,x5,[sp,#64+32]	// return Y
-	ldp	x6,x7,[sp,#64+48]
+	ldp	x4,x5,[x2,#32]	// return Y
+	ldp	x6,x7,[x2,#48]
 	mov	x10,#1
 
 .Labort_256:

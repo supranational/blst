@@ -24,7 +24,7 @@ eucl_inverse_mod_256:
 
 	pushq	%rbx
 
-	subq	$152,%rsp
+	subq	$280,%rsp
 
 .LSEH_body_eucl_inverse_mod_256:
 
@@ -45,7 +45,9 @@ eucl_inverse_mod_256:
 	orq	%r11,%rax
 	jz	.Labort_256
 
-	leaq	16(%rsp),%rsi
+	leaq	8+127(%rsp),%rsi
+	andq	$-128,%rsi
+
 	movq	0(%rcx),%rax
 	movq	8(%rcx),%rbx
 	movq	16(%rcx),%rbp
@@ -56,7 +58,7 @@ eucl_inverse_mod_256:
 	movq	%r10,16(%rsi)
 	movq	%r11,24(%rsi)
 
-	leaq	80(%rsp),%rcx
+	leaq	64(%rsi),%rcx
 	movq	0(%rdx),%r8
 	movq	8(%rdx),%r9
 	movq	16(%rdx),%r10
@@ -81,14 +83,14 @@ eucl_inverse_mod_256:
 
 .p2align	5
 .Loop_inv_256:
-	leaq	80(%rsp),%rsi
+
+
 	call	__remove_powers_of_2_256
 
-	leaq	16(%rsp),%rsi
-	call	__remove_powers_of_2_256
+	movq	$64,%rcx
+	xorq	%rsi,%rcx
 
-	leaq	80(%rsp),%rcx
-	subq	80+0(%rsp),%r8
+	subq	0(%rcx),%r8
 	sbbq	8(%rcx),%r9
 	sbbq	16(%rcx),%r10
 	sbbq	24(%rcx),%r11
@@ -119,20 +121,23 @@ eucl_inverse_mod_256:
 	sbbq	56(%rcx),%rdi
 
 	movq	%r8,0(%rsi)
-	sbbq	%r8,%r8
+	sbbq	%rcx,%rcx
 	movq	%r9,8(%rsi)
-	movq	%r8,%r9
+	orq	%r9,%r8
+	movq	%rcx,%r9
 	movq	%r10,16(%rsi)
-	movq	%r8,%r10
+	orq	%r10,%r8
+	movq	%rcx,%r10
 	movq	%r11,24(%rsi)
-	movq	%r8,%r11
+	orq	%r11,%r8
+	movq	%rcx,%r11
 
-	andq	0(%rdx),%r8
+	andq	0(%rdx),%rcx
 	andq	8(%rdx),%r9
 	andq	16(%rdx),%r10
 	andq	24(%rdx),%r11
 
-	addq	%r8,%rax
+	addq	%rcx,%rax
 	adcq	%r9,%rbx
 	adcq	%r10,%rbp
 	adcq	%r11,%rdi
@@ -142,16 +147,10 @@ eucl_inverse_mod_256:
 	movq	%rbp,48(%rsi)
 	movq	%rdi,56(%rsi)
 
-	movq	16+0(%rsp),%r8
-	movq	16+8(%rsp),%r9
-	movq	16+16(%rsp),%r10
-	movq	16+24(%rsp),%r11
-	orq	%r9,%r8
-	orq	%r10,%r8
-	orq	%r11,%r8
+	testq	%r8,%r8
 	jnz	.Loop_inv_256
 
-	leaq	80(%rsp),%rsi
+	xorq	$64,%rsi
 	movq	0(%rsp),%rdi
 	movl	$1,%eax
 
@@ -166,7 +165,7 @@ eucl_inverse_mod_256:
 	movq	%r10,16(%rdi)
 	movq	%r11,24(%rdi)
 
-	leaq	152(%rsp),%r8
+	leaq	280(%rsp),%r8
 	movq	0(%r8),%rbx
 
 	movq	8(%r8),%rbp
@@ -304,11 +303,11 @@ __remove_powers_of_2_256:
 .byte	0,0
 .LSEH_info_eucl_inverse_mod_256_body:
 .byte	1,0,10,0
-.byte	0x00,0x34,0x13,0x00
-.byte	0x00,0x54,0x14,0x00
-.byte	0x00,0x74,0x16,0x00
-.byte	0x00,0x64,0x17,0x00
-.byte	0x00,0x01,0x15,0x00
+.byte	0x00,0x34,0x23,0x00
+.byte	0x00,0x54,0x24,0x00
+.byte	0x00,0x74,0x26,0x00
+.byte	0x00,0x64,0x27,0x00
+.byte	0x00,0x01,0x25,0x00
 .LSEH_info_eucl_inverse_mod_256_epilogue:
 .byte	1,0,4,0
 .byte	0x00,0x74,0x01,0x00

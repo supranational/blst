@@ -31,6 +31,8 @@ _eucl_inverse_mod_384:
 	orr	x10,x10,x12
 	cbz	x10,Labort			// abort if |inp|==0
 
+	add	x1, sp, #0
+
 	ldp	x10,x11,[x3]
 	ldp	x12,x13,[x3,#16]
 	ldp	x14,x15,[x3,#32]
@@ -39,36 +41,35 @@ _eucl_inverse_mod_384:
 	ldp	x19,x20,[x2,#16]
 	ldp	x21,x22,[x2,#32]
 
-	stp	x4,x5,[sp,#0]	// copy |inp| to U
-	stp	x6,x7,[sp,#0+16]
-	stp	x8,x9,[sp,#0+32]
+	add	x2, sp, #96
 
-	stp	x10,x11,[sp,#0+48]	// copy |one| to X
-	stp	x12,x13,[sp,#0+64]
-	stp	x14,x15,[sp,#0+80]
+	stp	x4,x5,[x1,#0]	// copy |inp| to U
+	stp	x6,x7,[x1,#16]
+	stp	x8,x9,[x1,#32]
 
-	stp	x16,x17,[sp,#96]	// copy |mod| to V
-	stp	x19,x20,[sp,#96+16]
-	stp	x21,x22,[sp,#96+32]
+	stp	x10,x11,[x1,#48]	// copy |one| to X
+	stp	x12,x13,[x1,#64]
+	stp	x14,x15,[x1,#80]
 
-	stp	xzr,xzr,[sp,#96+48]		// clear Y
-	stp	xzr,xzr,[sp,#96+64]
-	stp	xzr,xzr,[sp,#96+80]
+	stp	x16,x17,[x2,#0]	// copy |mod| to V
+	stp	x19,x20,[x2,#16]
+	stp	x21,x22,[x2,#32]
+
+	stp	xzr,xzr,[x2,#48]		// clear Y
+	stp	xzr,xzr,[x2,#64]
+	stp	xzr,xzr,[x2,#80]
 	b	Loop_inv
 
 .align	5
 Loop_inv:
-	add	x1,sp,#96
+	####### *x2 is always odd at this point, no need to check...
+
 	bl	__remove_powers_of_2
 
-	add	x1,sp,#0
-	bl	__remove_powers_of_2
-
-	ldp	x10,x11,[sp,#96]
-	add	x2,sp,#96
-	ldp	x12,x13,[sp,#96+16]
+	ldp	x10,x11,[x2,#0]
+	ldp	x12,x13,[x2,#16]
 	subs	x4,x4,x10		// U-V
-	ldp	x14,x15,[sp,#96+32]
+	ldp	x14,x15,[x2,#32]
 	sbcs	x5,x5,x11
 	sbcs	x6,x6,x12
 	sbcs	x7,x7,x13
@@ -93,10 +94,15 @@ Loop_inv:
 	adc	x9,x9,xzr
 
 Lu_greater_than_v:
+	orr	x3,x4,x5
 	stp	x4,x5,[x1]
+	orr	x3,x3,x6
 	ldp	x4,x5,[x2,#48]
+	orr	x3,x3,x7
 	ldp	x10,x11,[x1,#48]
+	orr	x3,x3,x8
 	stp	x6,x7,[x1,#16]
+	orr	x3,x3,x9
 	ldp	x6,x7,[x2,#64]
 	subs	x10,x10,x4		// X-Y		# [alt. Y-X]
 	ldp	x12,x13,[x1,#64]
@@ -120,27 +126,18 @@ Lu_greater_than_v:
 	and	x8,x21,x9
 	adcs	x13,x13,x7
 	and	x9,x22,x9
-	ldp	x4,x5,[sp,#0]
 	adcs	x14,x14,x8
-	ldp	x6,x7,[sp,#0+16]
-	adc	x15,x15,x9
-	ldp	x8,x9,[sp,#0+32]
-
-	orr	x4,x4,x5
-	orr	x6,x6,x7
-	orr	x8,x8,x9
 	stp	x10,x11,[x1,#48]
-	orr	x4,x4,x6
+	adc	x15,x15,x9
 	stp	x12,x13,[x1,#64]
-	orr	x4,x4,x8
 	stp	x14,x15,[x1,#80]
 
-	cbnz	x4,Loop_inv		// U!=0?
+	cbnz	x3,Loop_inv		// U!=0?
 
 	ldr	x30,[x29,#8]
-	ldp	x4,x5,[sp,#96+48]	// return Y
-	ldp	x6,x7,[sp,#96+64]
-	ldp	x8,x9,[sp,#96+80]
+	ldp	x4,x5,[x2,#48]	// return Y
+	ldp	x6,x7,[x2,#64]
+	ldp	x8,x9,[x2,#80]
 	mov	x10,#1
 
 Labort:

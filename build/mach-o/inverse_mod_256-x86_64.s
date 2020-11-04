@@ -19,8 +19,8 @@ _eucl_inverse_mod_256:
 	pushq	%rbx
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbx,-24
-	subq	$152,%rsp
-.cfi_adjust_cfa_offset	152
+	subq	$280,%rsp
+.cfi_adjust_cfa_offset	280
 
 
 	movq	%rdi,0(%rsp)
@@ -39,7 +39,9 @@ _eucl_inverse_mod_256:
 	orq	%r11,%rax
 	jz	L$abort_256
 
-	leaq	16(%rsp),%rsi
+	leaq	8+127(%rsp),%rsi
+	andq	$-128,%rsi
+
 	movq	0(%rcx),%rax
 	movq	8(%rcx),%rbx
 	movq	16(%rcx),%rbp
@@ -50,7 +52,7 @@ _eucl_inverse_mod_256:
 	movq	%r10,16(%rsi)
 	movq	%r11,24(%rsi)
 
-	leaq	80(%rsp),%rcx
+	leaq	64(%rsi),%rcx
 	movq	0(%rdx),%r8
 	movq	8(%rdx),%r9
 	movq	16(%rdx),%r10
@@ -75,14 +77,14 @@ _eucl_inverse_mod_256:
 
 .p2align	5
 L$oop_inv_256:
-	leaq	80(%rsp),%rsi
+
+
 	call	__remove_powers_of_2_256
 
-	leaq	16(%rsp),%rsi
-	call	__remove_powers_of_2_256
+	movq	$64,%rcx
+	xorq	%rsi,%rcx
 
-	leaq	80(%rsp),%rcx
-	subq	80+0(%rsp),%r8
+	subq	0(%rcx),%r8
 	sbbq	8(%rcx),%r9
 	sbbq	16(%rcx),%r10
 	sbbq	24(%rcx),%r11
@@ -113,20 +115,23 @@ L$u_greater_than_v_256:
 	sbbq	56(%rcx),%rdi
 
 	movq	%r8,0(%rsi)
-	sbbq	%r8,%r8
+	sbbq	%rcx,%rcx
 	movq	%r9,8(%rsi)
-	movq	%r8,%r9
+	orq	%r9,%r8
+	movq	%rcx,%r9
 	movq	%r10,16(%rsi)
-	movq	%r8,%r10
+	orq	%r10,%r8
+	movq	%rcx,%r10
 	movq	%r11,24(%rsi)
-	movq	%r8,%r11
+	orq	%r11,%r8
+	movq	%rcx,%r11
 
-	andq	0(%rdx),%r8
+	andq	0(%rdx),%rcx
 	andq	8(%rdx),%r9
 	andq	16(%rdx),%r10
 	andq	24(%rdx),%r11
 
-	addq	%r8,%rax
+	addq	%rcx,%rax
 	adcq	%r9,%rbx
 	adcq	%r10,%rbp
 	adcq	%r11,%rdi
@@ -136,16 +141,10 @@ L$u_greater_than_v_256:
 	movq	%rbp,48(%rsi)
 	movq	%rdi,56(%rsi)
 
-	movq	16+0(%rsp),%r8
-	movq	16+8(%rsp),%r9
-	movq	16+16(%rsp),%r10
-	movq	16+24(%rsp),%r11
-	orq	%r9,%r8
-	orq	%r10,%r8
-	orq	%r11,%r8
+	testq	%r8,%r8
 	jnz	L$oop_inv_256
 
-	leaq	80(%rsp),%rsi
+	xorq	$64,%rsi
 	movq	0(%rsp),%rdi
 	movl	$1,%eax
 
@@ -160,13 +159,13 @@ L$abort_256:
 	movq	%r10,16(%rdi)
 	movq	%r11,24(%rdi)
 
-	leaq	152(%rsp),%r8
+	leaq	280(%rsp),%r8
 	movq	0(%r8),%rbx
 .cfi_restore	%rbx
 	movq	8(%r8),%rbp
 .cfi_restore	%rbp
 	leaq	16(%r8),%rsp
-.cfi_adjust_cfa_offset	-152-8*2
+.cfi_adjust_cfa_offset	-280-8*2
 
 	.byte	0xf3,0xc3
 .cfi_endproc	

@@ -1,7 +1,5 @@
 .text	
 
-
-
 .globl	add_mod_384
 
 .def	add_mod_384;	.scl 2;	.type 32;	.endef
