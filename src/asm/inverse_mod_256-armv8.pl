@@ -32,10 +32,6 @@ if ($flavour && $flavour ne "void") {
 @mod=map("x$_",(12..15));
 
 $frame=4*256/8;
-$U=0;
-$X=$U+256/8;
-$V=$X+256/8;
-$Y=$V+256/8;
 
 $code.=<<___;
 .text
@@ -66,36 +62,37 @@ eucl_inverse_mod_256:
 	orr	@acc[6],@acc[4],@acc[5]
 	cbz	@acc[6],.Labort_256		// abort if |inp|==0
 
+	add	$ux_ptr, sp, #0
+
 	ldp	@acc[4],@acc[5],[$one]
 	ldp	@acc[6],@acc[7],[$one,#16]
 
 	ldp	@mod[0],@mod[1],[$n_ptr]
 	ldp	@mod[2],@mod[3],[$n_ptr,#16]
 
-	stp	@acc[0],@acc[1],[sp,#$U]	// copy |inp| to U
-	stp	@acc[2],@acc[3],[sp,#$U+16]
+	add	$vy_ptr, sp, #64
 
-	stp	@acc[4],@acc[5],[sp,#$U+32]	// copy |one| to X
-	stp	@acc[6],@acc[7],[sp,#$U+48]
+	stp	@acc[0],@acc[1],[$ux_ptr,#0]	// copy |inp| to U
+	stp	@acc[2],@acc[3],[$ux_ptr,#16]
 
-	stp	@mod[0],@mod[1],[sp,#$V]	// copy |mod| to V
-	stp	@mod[2],@mod[3],[sp,#$V+16]
+	stp	@acc[4],@acc[5],[$ux_ptr,#32]	// copy |one| to X
+	stp	@acc[6],@acc[7],[$ux_ptr,#48]
 
-	stp	xzr,xzr,[sp,#$V+32]		// clear Y
-	stp	xzr,xzr,[sp,#$V+48]
+	stp	@mod[0],@mod[1],[$vy_ptr,#0]	// copy |mod| to V
+	stp	@mod[2],@mod[3],[$vy_ptr,#16]
+
+	stp	xzr,xzr,[$vy_ptr,#32]		// clear Y
+	stp	xzr,xzr,[$vy_ptr,#48]
 	b	.Loop_inv_256
 
 .align	4
 .Loop_inv_256:
-	add	$ux_ptr,sp,#$V
+	####### *$vy_ptr is always odd at this point, no need to check...
+
 	bl	__remove_powers_of_2_256
 
-	add	$ux_ptr,sp,#$U
-	bl	__remove_powers_of_2_256
-
-	ldp	@acc[4],@acc[5],[sp,#$V]
-	add	$vy_ptr,sp,#$V
-	ldp	@acc[6],@acc[7],[sp,#$V+16]
+	ldp	@acc[4],@acc[5],[$vy_ptr]
+	ldp	@acc[6],@acc[7],[$vy_ptr,#16]
 	subs	@acc[0],@acc[0],@acc[4]		// U-V
 	sbcs	@acc[1],@acc[1],@acc[5]
 	sbcs	@acc[2],@acc[2],@acc[6]
@@ -116,8 +113,11 @@ eucl_inverse_mod_256:
 
 .Lu_greater_than_v_256:
 	 stp	@acc[0],@acc[1],[$ux_ptr]
+	 orr	$cnt,@acc[0],@acc[1]
 	ldp	@acc[0],@acc[1],[$vy_ptr,#32]
+	 orr	$cnt,$cnt,@acc[2]
 	ldp	@acc[4],@acc[5],[$ux_ptr,#32]
+	 orr	$cnt,$cnt,@acc[3]
 	 stp	@acc[2],@acc[3],[$ux_ptr,#16]
 	ldp	@acc[2],@acc[3],[$vy_ptr,#48]
 	subs	@acc[4],@acc[4],@acc[0]		// X-Y		# [alt. Y-X]
@@ -134,21 +134,15 @@ eucl_inverse_mod_256:
 	adcs	@acc[5],@acc[5],@acc[1]
 	 and	@acc[3],@mod[3],@acc[3]
 	adcs	@acc[6],@acc[6],@acc[2]
-	ldp	@acc[0],@acc[1],[sp,#$U]
-	adc	@acc[7],@acc[7],@acc[3]
-	ldp	@acc[2],@acc[3],[sp,#$U+16]
-
-	orr	@acc[0],@acc[0],@acc[1]
-	orr	@acc[2],@acc[2],@acc[3]
 	 stp	@acc[4],@acc[5],[$ux_ptr,#32]
-	orr	@acc[0],@acc[0],@acc[2]
+	adc	@acc[7],@acc[7],@acc[3]
 	 stp	@acc[6],@acc[7],[$ux_ptr,#48]
 
-	cbnz	@acc[0],.Loop_inv_256		// U!=0?
+	cbnz	$cnt,.Loop_inv_256		// U!=0?
 
 	ldr	x30,[x29,#8]
-	ldp	@acc[0],@acc[1],[sp,#$V+32]	// return Y
-	ldp	@acc[2],@acc[3],[sp,#$V+48]
+	ldp	@acc[0],@acc[1],[$vy_ptr,#32]	// return Y
+	ldp	@acc[2],@acc[3],[$vy_ptr,#48]
 	mov	@acc[6],#1
 
 .Labort_256:

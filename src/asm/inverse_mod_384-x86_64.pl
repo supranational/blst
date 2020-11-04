@@ -41,11 +41,7 @@ open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
 @acc=(map("%r$_",(8..15)),"%rax","%rbx","%rbp",$r_ptr);
 ($ux_ptr, $vy_ptr) = ($a_ptr, $one);
 
-$frame=8*3+4*384/8;
-$U=16;
-$X=$U+384/8;
-$V=$X+384/8;
-$Y=$V+384/8;
+$frame=8*3+256+2*128;
 
 $code.=<<___;
 .text
@@ -96,7 +92,9 @@ eucl_inverse_mod_384:
 	or	@acc[5], %rax
 	jz	.Labort			# abort if |inp|==0
 
-	lea	$U(%rsp), $ux_ptr
+	lea	8*1+255(%rsp), $ux_ptr	# find closest 256-byte-aligned spot
+	and	\$-256, $ux_ptr		# in the frame...
+
 	mov	8*0($one), @acc[6]
 	mov	8*1($one), @acc[7]
 	mov	8*2($one), @acc[8]
@@ -111,7 +109,7 @@ eucl_inverse_mod_384:
 	mov	@acc[4], 8*4($ux_ptr)
 	mov	@acc[5], 8*5($ux_ptr)
 
-	lea	$V(%rsp), $vy_ptr
+	lea	128($ux_ptr), $vy_ptr
 	mov	8*0($n_ptr), @acc[0]
 	mov	8*1($n_ptr), @acc[1]
 	mov	8*2($n_ptr), @acc[2]
@@ -144,14 +142,14 @@ eucl_inverse_mod_384:
 
 .align	32
 .Loop_inv:
-	lea	$V(%rsp), $ux_ptr
+	####### *$vy_ptr is always odd at this point, no need to check...
+
 	call	__remove_powers_of_2
 
-	lea	$U(%rsp), $ux_ptr
-	call	__remove_powers_of_2
+	mov	\$128, $vy_ptr
+	xor	$ux_ptr, $vy_ptr	# recover $vy_ptr
 
-	lea	$V(%rsp), $vy_ptr
-	sub	$V+8*0(%rsp), @acc[0]	# U-V
+	sub	8*0($vy_ptr), @acc[0]	# U-V
 	sbb	8*1($vy_ptr), @acc[1]
 	sbb	8*2($vy_ptr), @acc[2]
 	sbb	8*3($vy_ptr), @acc[3]
@@ -192,26 +190,31 @@ eucl_inverse_mod_384:
 	sbb	8*11($vy_ptr), @acc[11]
 
 	mov	@acc[0], 8*0($ux_ptr)
-	sbb	@acc[0], @acc[0]	# borrow -> mask
+	sbb	$vy_ptr, $vy_ptr	# borrow -> mask
 	mov	@acc[1], 8*1($ux_ptr)
-	mov	@acc[0], @acc[1]
+	or	@acc[1], @acc[0]
+	mov	$vy_ptr, @acc[1]
 	mov	@acc[2], 8*2($ux_ptr)
-	mov	@acc[0], @acc[2]
+	or	@acc[2], @acc[0]
+	mov	$vy_ptr, @acc[2]
 	mov	@acc[3], 8*3($ux_ptr)
-	mov	@acc[0], @acc[3]
+	or	@acc[3], @acc[0]
+	mov	$vy_ptr, @acc[3]
 	mov	@acc[4], 8*4($ux_ptr)
-	mov	@acc[0], @acc[4]
+	or	@acc[4], @acc[0]
+	mov	$vy_ptr, @acc[4]
 	mov	@acc[5], 8*5($ux_ptr)
-	mov	@acc[0], @acc[5]
+	or	@acc[5], @acc[0]
+	mov	$vy_ptr, @acc[5]
 
-	and	8*0($n_ptr), @acc[0]
+	and	8*0($n_ptr), $vy_ptr
 	and	8*1($n_ptr), @acc[1]
 	and	8*2($n_ptr), @acc[2]
 	and	8*3($n_ptr), @acc[3]
 	and	8*4($n_ptr), @acc[4]
 	and	8*5($n_ptr), @acc[5]
 
-	add	@acc[0], @acc[6]	# reduce if X<Y # [alt. Y<X]
+	add	$vy_ptr, @acc[6]	# reduce if X<Y # [alt. Y<X]
 	adc	@acc[1], @acc[7]
 	adc	@acc[2], @acc[8]
 	adc	@acc[3], @acc[9]
@@ -225,19 +228,10 @@ eucl_inverse_mod_384:
 	mov	@acc[10], 8*10($ux_ptr)
 	mov	@acc[11], 8*11($ux_ptr)
 
-	mov	$U+8*0(%rsp), @acc[0]
-	mov	$U+8*1(%rsp), @acc[1]
-	mov	$U+8*2(%rsp), @acc[2]
-	mov	$U+8*3(%rsp), @acc[3]
-	or	@acc[1], @acc[0]
-	or	$U+8*4(%rsp), @acc[2]
-	or	$U+8*5(%rsp), @acc[3]
-	.byte	0x67
-	or	@acc[2], @acc[0]
-	or	@acc[3], @acc[0]
+	test	@acc[0], @acc[0]
 	jnz	.Loop_inv		# U!=0?
 
-	lea	$V(%rsp), $ux_ptr	# return Y
+	xor	\$128, $ux_ptr		# recover $vy_ptr and return Y
 	mov	8*0(%rsp), $r_ptr
 	mov	\$1,%eax		# return value
 
