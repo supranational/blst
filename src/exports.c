@@ -97,7 +97,7 @@ void blst_fp_from_uint32(vec384 ret, const unsigned int a[12])
     if (sizeof(limb_t) == 8) {
         int i;
         for (i = 0; i < 6; i++)
-            ret[i] = a[2*i] | ((limb_t)a[2*i+1] << 32);
+            ret[i] = a[2*i] | ((limb_t)a[2*i+1] << (32 & (8*sizeof(limb_t)-1)));
         a = (const unsigned int *)ret;
     }
     mul_fp(ret, (const limb_t *)a, BLS12_381_RR);
@@ -115,7 +115,7 @@ void blst_uint32_from_fp(unsigned int ret[12], const vec384 a)
         for (i = 0; i < 6; i++) {
             limb_t limb = out[i];
             ret[2*i]   = (unsigned int)limb;
-            ret[2*i+1] = (unsigned int)(limb >> 32);
+            ret[2*i+1] = (unsigned int)(limb >> (32 & (8*sizeof(limb_t)-1)));
         }
     }
 }

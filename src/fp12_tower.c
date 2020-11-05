@@ -15,7 +15,7 @@
 static inline void mul_by_u_plus_1_fp2(vec384x ret, const vec384x a)
 {   mul_by_1_plus_i_mod_384x(ret, a, BLS12_381_P);   }
 
-#if 1
+#if 1 && !defined(__BLST_NO_ASM__)
 #define __FP2x2__
 /*
  * Fp2x2 is a "widened" version of Fp2, which allows to consolidate

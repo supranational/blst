@@ -25,6 +25,7 @@ typedef unsigned long limb_t;
 #   define LIMB_T_BITS   64
 #  else
 #   define LIMB_T_BITS   32
+#   define __BLST_NO_ASM__
 #  endif
 #endif
 
@@ -245,11 +246,15 @@ void vec_select_288(void *ret, const void *a, const void *b, limb_t sel_a);
 static inline void vec_select(void *ret, const void *a, const void *b,
                               size_t num, limb_t sel_a)
 {
+#ifndef __BLST_NO_ASM__
     if (num == 48)          vec_select_48(ret, a, b, sel_a);
     else if (num == 96)     vec_select_96(ret, a, b, sel_a);
     else if (num == 144)    vec_select_144(ret, a, b, sel_a);
     else if (num == 192)    vec_select_192(ret, a, b, sel_a);
     else if (num == 288)    vec_select_288(ret, a, b, sel_a);
+#else
+    if (0) ;
+#endif
     else {
         limb_t bi, *rp = (limb_t *)ret;
         const limb_t *ap = (const limb_t *)a;
@@ -417,6 +422,10 @@ static inline void le_bytes_from_limbs(unsigned char *out, const limb_t *in,
 # pragma GCC diagnostic ignored "-Wpedantic"
 #elif defined(_MSC_VER)
 # pragma warning(disable: 4127 4189)
+#endif
+
+#if defined(__clang__)
+# pragma GCC diagnostic ignored "-Wstatic-in-inline"
 #endif
 
 #include <stdlib.h>

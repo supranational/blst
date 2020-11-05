@@ -6,6 +6,10 @@
 
 #include "vect.h"
 
+#ifdef __BLST_NO_ASM__
+# include "no_asm.h"
+#endif
+
 /*
  * Following are some reference C implementations to assist new
  * assembly modules development, as starting-point stand-ins and for
