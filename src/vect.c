@@ -130,7 +130,7 @@ void sqr_mont_384x(vec384x ret, const vec384x a, const vec384 mod, limb_t n0)
 }
 #endif
 
-limb_t div_3_limbs(limb_t *dividend_top, limb_t d_lo, limb_t d_hi);
+limb_t div_3_limbs(const limb_t dividend_top[2], limb_t d_lo, limb_t d_hi);
 limb_t quot_rem_128(limb_t *quot_rem, const limb_t *divisor, limb_t quotient);
 limb_t quot_rem_64(limb_t *quot_rem, const limb_t *divisor, limb_t quotient);
 
