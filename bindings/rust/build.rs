@@ -60,6 +60,7 @@ fn main() {
     let build_dir = blst_base_dir + "/build/";
 
     file_vec.push(Path::new(&c_src_dir).join("server.c"));
+    #[cfg(all(target_pointer_width = "64"))]
     assembly(&mut file_vec, &build_dir);
 
     // Set CC environment variable to choose alternative C compiler.

@@ -97,6 +97,8 @@
 #  include "mach-o/inverse_mod_256-armv8.S"
 #  include "mach-o/div3w-armv8.S"
 # endif
+#elif defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__==4
+/* inaccurate way to detect 32-bit processor, but it's close enough */
 #else
 # error "unsupported platform"
 #endif
