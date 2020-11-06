@@ -494,9 +494,10 @@ static void POINTonE1_times_zz_minus_1_div_by_3(POINTonE1 *out,
 }
 #endif
 
+static void sigma(POINTonE1 *out, const POINTonE1 *in);
+
 static limb_t POINTonE1_in_G1(const POINTonE1_affine *p)
 {
-    void sigma(POINTonE1 *out, const POINTonE1 *in);
     POINTonE1 t0, t1, t2;
 
     vec_copy(t2.X, p->X, 2*sizeof(t0.X));

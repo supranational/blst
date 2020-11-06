@@ -166,7 +166,10 @@ static void div_by_z(limb_t val[])
     size_t loop, z_len = sizeof(z)/sizeof(z[0]);
     limb_t d_lo, d_hi;
 
-    d_lo = z_len > 1 ? z[z_len - 2] : 0;
+    if (z_len == 1)
+        d_lo = 0;
+    else
+        d_lo = z[z_len - 2];
     d_hi = z[z_len - 1];
     for (loop = z_len, z_len--; loop--;) {
         limb_t q = div_3_limbs(val + loop + z_len, d_lo, d_hi);

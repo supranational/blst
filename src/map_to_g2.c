@@ -324,9 +324,10 @@ static void POINTonE2_times_minus_z(POINTonE2 *out, const POINTonE2 *in)
     POINTonE2_add_n_dbl(out, in, 16);   /* 52..68: ..0xd201000000010000 */
 }
 
+static void psi(POINTonE2 *out, const POINTonE2 *in);
+
 static void clear_cofactor(POINTonE2 *out, const POINTonE2 *p)
 {
-    void psi(POINTonE2 *out, const POINTonE2 *in);
     POINTonE2 t0, t1;
 
     /* A.Budroni, F.Pintore, "Efficient hash maps to G2 on BLS curves"  */
