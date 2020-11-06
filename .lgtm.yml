@@ -7,9 +7,9 @@ extraction:
   cpp:
     index:
       build_command:
-      - ./build.sh
+      - ./build.sh -m32
   go:
     index:
       build_command:
-      - (cd bindings/go; go build)
+      - (cd bindings/go; go test -c)
 
