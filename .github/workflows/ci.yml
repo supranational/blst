@@ -25,8 +25,8 @@ jobs:
           ~/.cargo/registry
           **/Cargo.lock
           **/bindings/rust/target
-        key: ${{ runner.os }}-cargo-4
-        restore-keys: ${{ runner.os }}-cargo-3
+        key: ${{ runner.os }}-cargo-5
+        restore-keys: ${{ runner.os }}-cargo-4
 
     - uses: actions/cache@v2
       with:
