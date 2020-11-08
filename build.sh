@@ -35,6 +35,7 @@ esac
 while [ "x$1" != "x" ]; do
     case $1 in
         -shared)    shared=1;;
+        -target*)   CFLAGS="$CFLAGS $1";;
         -*)         cflags="$cflags $1";;
         *=*)        eval "$1";;
     esac
