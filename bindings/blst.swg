@@ -109,6 +109,13 @@
 #endif
 
 #elif defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_V8)
+%header %{
+#if V8_MAJOR_VERSION >= 8
+# define GetData() GetBackingStore()->Data()
+#else
+# define GetData() GetContents().Data()
+#endif
+%}
 
 %typemap(throws) BLST_ERROR %{ SWIG_V8_Raise(BLST_ERROR_str[$1]); SWIG_fail; %};
 
@@ -116,7 +123,7 @@
     if ($input->IsArrayBufferView()) {
         auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
         auto buf = av->Buffer();
-        $1 = ($1_ltype)buf->GetContents().Data() + av->ByteOffset();
+        $1 = ($1_ltype)buf->GetData() + av->ByteOffset();
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                             "expecting <Buffer>");
@@ -133,7 +140,7 @@
             SWIG_exception_fail(SWIG_IndexError, "in method '$symname', "
                                                  "expecting $1_dim0 bytes");
         auto buf = av->Buffer();
-        $1 = ($1_ltype)buf->GetContents().Data() + av->ByteOffset();
+        $1 = ($1_ltype)buf->GetData() + av->ByteOffset();
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                             "expecting <Buffer>");
@@ -144,7 +151,7 @@
     if ($input->IsArrayBufferView()) {
         auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
         auto buf = av->Buffer();
-        $1 = ($1_ltype)buf->GetContents().Data() + av->ByteOffset();
+        $1 = ($1_ltype)buf->GetData() + av->ByteOffset();
         $2 = av->ByteLength();
     } else if ($input->IsString()) {
         auto str = SWIGV8_TO_STRING($input);
@@ -187,7 +194,7 @@
     }
 #elif defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_V8)
     auto ab = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), $1_dim0);
-    memcpy(ab->GetContents().Data(), $1, $1_dim0);
+    memcpy(ab->GetData(), $1, $1_dim0);
     $result = v8::Uint8Array::New(ab, 0, $1_dim0);
 #else // TODO: figure out more language-specific ways to return multi-values...
     if ($result == NULL)
@@ -297,6 +304,15 @@ static const char *const BLST_ERROR_str [] = {
 };
 
 #define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
+
+%header %{
+#ifdef _WIN32
+# include <malloc.h>
+# ifndef alloca
+#  define alloca(s) _alloca(s)
+# endif
+#endif
 %}
 
 #if defined(SWIGPYTHON) || defined(SWIGPERL)
