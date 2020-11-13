@@ -598,7 +598,7 @@ macro_rules! sig_variant_impl {
                 pks: &[&PublicKey],
             ) -> BLST_ERROR {
                 let n_elems = pks.len();
-                if msgs.len() != n_elems {
+                if n_elems == 0 || msgs.len() != n_elems {
                     return BLST_ERROR::BLST_VERIFY_FAIL;
                 }
 
@@ -714,7 +714,8 @@ macro_rules! sig_variant_impl {
                 rand_bits: usize,
             ) -> BLST_ERROR {
                 let n_elems = pks.len();
-                if msgs.len() != n_elems
+                if n_elems == 0
+                    || msgs.len() != n_elems
                     || sigs.len() != n_elems
                     || rands.len() != n_elems
                 {
