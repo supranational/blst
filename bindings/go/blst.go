@@ -297,12 +297,13 @@ func (sig *P2Affine) AggregateVerify(pks []*P1Affine, msgs []Message,
 	optional ...interface{}) bool { // useHash bool, augs [][]byte
 
 	// sanity checks and argument parsing
-	if len(pks) != len(msgs) {
+	n := len(pks)
+	if n == 0 || len(msgs) != n {
 		return false
 	}
 	_, augs, useHash, ok := parseOpts(optional...)
 	useAugs := len(augs) != 0
-	if !ok || (useAugs && len(augs) != len(msgs)) {
+	if !ok || (useAugs && len(augs) != n) {
 		return false
 	}
 
@@ -384,7 +385,7 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 
 	n := len(msgs)
 	if n == 0 {
-		return true
+		return false
 	}
 
 	useHash := true
@@ -505,12 +506,13 @@ func (dummy *P2Affine) MultipleAggregateVerify(sigs []*P2Affine,
 	optional ...interface{}) bool { // useHash
 
 	// Sanity checks and argument parsing
-	if len(pks) != len(msgs) || len(pks) != len(sigs) {
+	n := len(pks)
+	if n == 0 || len(msgs) != n || len(sigs) != n {
 		return false
 	}
 	_, augs, useHash, ok := parseOpts(optional...)
 	useAugs := len(augs) != 0
-	if !ok || (useAugs && len(augs) != len(msgs)) {
+	if !ok || (useAugs && len(augs) != n) {
 		return false
 	}
 
@@ -537,7 +539,7 @@ func multipleAggregateVerifyPkInG1(paramsFn mulAggGetterPkInG1, msgs []Message,
 	optional ...bool) bool { // useHash
 	n := len(msgs)
 	if n == 0 {
-		return true
+		return false
 	}
 
 	useHash := true
@@ -850,12 +852,13 @@ func (sig *P1Affine) AggregateVerify(pks []*P2Affine, msgs []Message,
 	optional ...interface{}) bool { // useHash bool, augs [][]byte
 
 	// sanity checks and argument parsing
-	if len(pks) != len(msgs) {
+	n := len(pks)
+	if n == 0 || len(msgs) != n {
 		return false
 	}
 	_, augs, useHash, ok := parseOpts(optional...)
 	useAugs := len(augs) != 0
-	if !ok || (useAugs && len(augs) != len(msgs)) {
+	if !ok || (useAugs && len(augs) != n) {
 		return false
 	}
 
@@ -937,7 +940,7 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 
 	n := len(msgs)
 	if n == 0 {
-		return true
+		return false
 	}
 
 	useHash := true
@@ -1058,12 +1061,13 @@ func (dummy *P1Affine) MultipleAggregateVerify(sigs []*P1Affine,
 	optional ...interface{}) bool { // useHash
 
 	// Sanity checks and argument parsing
-	if len(pks) != len(msgs) || len(pks) != len(sigs) {
+	n := len(pks)
+	if n == 0 || len(msgs) != n || len(sigs) != n {
 		return false
 	}
 	_, augs, useHash, ok := parseOpts(optional...)
 	useAugs := len(augs) != 0
-	if !ok || (useAugs && len(augs) != len(msgs)) {
+	if !ok || (useAugs && len(augs) != n) {
 		return false
 	}
 
@@ -1090,7 +1094,7 @@ func multipleAggregateVerifyPkInG2(paramsFn mulAggGetterPkInG2, msgs []Message,
 	optional ...bool) bool { // useHash
 	n := len(msgs)
 	if n == 0 {
-		return true
+		return false
 	}
 
 	useHash := true
