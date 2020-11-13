@@ -251,6 +251,40 @@ sub_mod_256:
 
 	ret
 .size	sub_mod_256,.-sub_mod_256
+
+.globl	check_mod_256
+.hidden	check_mod_256
+.type	check_mod_256,%function
+.align	5
+check_mod_256:
+	ldp	@a[0],@a[1],[$r_ptr]
+	ldp	@a[2],@a[3],[$r_ptr,#16]
+	ldp	@mod[0],@mod[1],[$a_ptr]
+	ldp	@mod[2],@mod[3],[$a_ptr,#16]
+
+#ifdef	__AARCH64EB__
+	rev	@a[0],@a[0]
+	rev	@a[1],@a[1]
+	rev	@a[2],@a[2]
+	rev	@a[3],@a[3]
+#endif
+
+	subs	xzr,@a[0],@mod[0]
+	sbcs	xzr,@a[1],@mod[1]
+	orr	@a[0],@a[0],@a[1]
+	sbcs	xzr,@a[2],@mod[2]
+	orr	@a[0],@a[0],@a[2]
+	sbcs	xzr,@a[3],@mod[3]
+	orr	@a[0],@a[0],@a[3]
+	sbc	$a_ptr,xzr,xzr
+
+	cmp	@a[0],#0
+	mov	x0,#1
+	csel	x0,x0,xzr,ne
+	and	x0,x0,$a_ptr
+
+	ret
+.size	check_mod_256,.-check_mod_256
 ___
 
 print $code;

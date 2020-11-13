@@ -385,6 +385,35 @@ sub_mod_256:
 	ret
 .cfi_endproc
 .size	sub_mod_256,.-sub_mod_256
+
+########################################################################
+.globl	check_mod_256
+.hidden	check_mod_256
+.type	check_mod_256,\@function,2,"unwind"
+.align	32
+check_mod_256:
+	mov	8*0($r_ptr), %rax
+	mov	8*1($r_ptr), @acc[1]
+	mov	8*2($r_ptr), @acc[2]
+	mov	8*3($r_ptr), @acc[3]
+
+	mov	%rax, @acc[0]		# see if it's zero
+	or	@acc[1], %rax
+	or	@acc[2], %rax
+	or	@acc[3], %rax
+
+	sub	8*0($a_ptr), @acc[0]	# does subtracting modulus borrow?
+	sbb	8*1($a_ptr), @acc[1]
+	sbb	8*2($a_ptr), @acc[2]
+	sbb	8*3($a_ptr), @acc[3]
+	sbb	$a_ptr, $a_ptr
+
+	mov	\$1, %rdx
+	cmp	\$0, %rax
+	cmovne	%rdx, %rax
+	and	$a_ptr, %rax
+	ret
+.size	check_mod_256,.-check_mod_256
 ___
 }
 

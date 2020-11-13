@@ -415,6 +415,9 @@ limb_t blst_scalar_fr_check(const pow256 a)
     return ret;
 }
 
+limb_t blst_sk_check(const pow256 a)
+{   return check_mod_256(a, BLS12_381_r);   }
+
 void blst_fr_from_uint64(vec256 ret, const unsigned long long a[4])
 {
     const union {
