@@ -288,7 +288,7 @@ macro_rules! sig_variant_impl {
         #[derive(Default, Debug, Clone, Zeroize)]
         #[zeroize(drop)]
         pub struct SecretKey {
-            pub value: blst_scalar,
+            value: blst_scalar,
         }
 
         impl SecretKey {
@@ -397,7 +397,7 @@ macro_rules! sig_variant_impl {
 
         #[derive(Default, Debug, Clone, Copy)]
         pub struct PublicKey {
-            pub point: $pk_aff,
+            point: $pk_aff,
         }
 
         impl PublicKey {
@@ -503,7 +503,7 @@ macro_rules! sig_variant_impl {
 
         #[derive(Debug, Clone, Copy)]
         pub struct AggregatePublicKey {
-            pub point: $pk,
+            point: $pk,
         }
 
         impl AggregatePublicKey {
@@ -576,7 +576,7 @@ macro_rules! sig_variant_impl {
 
         #[derive(Debug, Clone, Copy)]
         pub struct Signature {
-            pub point: $sig_aff,
+            point: $sig_aff,
         }
 
         impl Signature {
@@ -910,7 +910,7 @@ macro_rules! sig_variant_impl {
 
         #[derive(Debug, Clone, Copy)]
         pub struct AggregateSignature {
-            pub point: $sig,
+            point: $sig,
         }
 
         impl AggregateSignature {
