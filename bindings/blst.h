@@ -69,6 +69,7 @@ void blst_bendian_from_scalar(byte out[32], const blst_scalar *a);
 void blst_scalar_from_lendian(blst_scalar *out, const byte a[32]);
 void blst_lendian_from_scalar(byte out[32], const blst_scalar *a);
 bool blst_scalar_fr_check(const blst_scalar *a);
+bool blst_sk_check(const blst_scalar *a);
 
 #ifndef SWIG
 /*
