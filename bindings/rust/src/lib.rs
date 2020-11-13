@@ -379,7 +379,7 @@ macro_rules! sig_variant_impl {
                 }
                 unsafe {
                     blst_scalar_from_bendian(&mut sk, sk_in.as_ptr());
-                    if !blst_scalar_fr_check(&sk) {
+                    if !blst_sk_check(&sk) {
                         return Err(BLST_ERROR::BLST_BAD_ENCODING);
                     }
                 }

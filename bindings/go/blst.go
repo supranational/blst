@@ -1738,14 +1738,14 @@ func (s *Scalar) Deserialize(in []byte) *Scalar {
 		return nil
 	}
 	C.blst_scalar_from_bendian(s, (*C.byte)(&in[0]))
-	if !C.blst_scalar_fr_check(s) {
+	if !C.blst_sk_check(s) {
 		return nil
 	}
 	return s
 }
 
 func (s *Scalar) Valid() bool {
-	return bool(C.blst_scalar_fr_check(s))
+	return bool(C.blst_sk_check(s))
 }
 
 //
