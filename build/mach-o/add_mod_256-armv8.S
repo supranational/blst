@@ -223,3 +223,37 @@ _sub_mod_256:
 
 	ret
 
+
+.globl	_check_mod_256
+.private_extern	_check_mod_256
+
+.align	5
+_check_mod_256:
+	ldp	x8,x9,[x0]
+	ldp	x10,x11,[x0,#16]
+	ldp	x4,x5,[x1]
+	ldp	x6,x7,[x1,#16]
+
+#ifdef	__AARCH64EB__
+	rev	x8,x8
+	rev	x9,x9
+	rev	x10,x10
+	rev	x11,x11
+#endif
+
+	subs	xzr,x8,x4
+	sbcs	xzr,x9,x5
+	orr	x8,x8,x9
+	sbcs	xzr,x10,x6
+	orr	x8,x8,x10
+	sbcs	xzr,x11,x7
+	orr	x8,x8,x11
+	sbc	x1,xzr,xzr
+
+	cmp	x8,#0
+	mov	x0,#1
+	csel	x0,x0,xzr,ne
+	and	x0,x0,x1
+
+	ret
+

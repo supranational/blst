@@ -454,6 +454,45 @@ $L$SEH_epilogue_sub_mod_256::
 
 $L$SEH_end_sub_mod_256::
 sub_mod_256	ENDP
+
+
+PUBLIC	check_mod_256
+
+
+ALIGN	32
+check_mod_256	PROC PUBLIC
+	DB	243,15,30,250
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	r11,rsp
+$L$SEH_begin_check_mod_256::
+	mov	rdi,rcx
+	mov	rsi,rdx
+
+
+	mov	rax,QWORD PTR[rdi]
+	mov	r9,QWORD PTR[8+rdi]
+	mov	r10,QWORD PTR[16+rdi]
+	mov	r11,QWORD PTR[24+rdi]
+
+	mov	r8,rax
+	or	rax,r9
+	or	rax,r10
+	or	rax,r11
+
+	sub	r8,QWORD PTR[rsi]
+	sbb	r9,QWORD PTR[8+rsi]
+	sbb	r10,QWORD PTR[16+rsi]
+	sbb	r11,QWORD PTR[24+rsi]
+	sbb	rsi,rsi
+
+	mov	rdx,1
+	cmp	rax,0
+	cmovne	rax,rdx
+	and	rax,rsi
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_check_mod_256::
+check_mod_256	ENDP
 .text$	ENDS
 .pdata	SEGMENT READONLY ALIGN(4)
 ALIGN	4

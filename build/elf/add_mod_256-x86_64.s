@@ -395,6 +395,39 @@ sub_mod_256:
 .cfi_endproc	
 .size	sub_mod_256,.-sub_mod_256
 
+
+.globl	check_mod_256
+.hidden	check_mod_256
+.type	check_mod_256,@function
+.align	32
+check_mod_256:
+.cfi_startproc
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	movq	0(%rdi),%rax
+	movq	8(%rdi),%r9
+	movq	16(%rdi),%r10
+	movq	24(%rdi),%r11
+
+	movq	%rax,%r8
+	orq	%r9,%rax
+	orq	%r10,%rax
+	orq	%r11,%rax
+
+	subq	0(%rsi),%r8
+	sbbq	8(%rsi),%r9
+	sbbq	16(%rsi),%r10
+	sbbq	24(%rsi),%r11
+	sbbq	%rsi,%rsi
+
+	movq	$1,%rdx
+	cmpq	$0,%rax
+	cmovneq	%rdx,%rax
+	andq	%rsi,%rax
+	.byte	0xf3,0xc3
+.cfi_endproc
+.size	check_mod_256,.-check_mod_256
+
 .section	.note.GNU-stack,"",@progbits
 .section	.note.gnu.property,"a",@note
 	.long	4,2f-1f,5

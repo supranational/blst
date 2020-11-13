@@ -210,6 +210,9 @@ extern "C" {
     pub fn blst_scalar_fr_check(a: *const blst_scalar) -> bool;
 }
 extern "C" {
+    pub fn blst_sk_check(a: *const blst_scalar) -> bool;
+}
+extern "C" {
     pub fn blst_fr_add(ret: *mut blst_fr, a: *const blst_fr, b: *const blst_fr);
 }
 extern "C" {

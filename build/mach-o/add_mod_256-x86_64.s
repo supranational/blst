@@ -394,3 +394,36 @@ _sub_mod_256:
 	.byte	0xf3,0xc3
 .cfi_endproc	
 
+
+
+.globl	_check_mod_256
+.private_extern	_check_mod_256
+
+.p2align	5
+_check_mod_256:
+.cfi_startproc
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	movq	0(%rdi),%rax
+	movq	8(%rdi),%r9
+	movq	16(%rdi),%r10
+	movq	24(%rdi),%r11
+
+	movq	%rax,%r8
+	orq	%r9,%rax
+	orq	%r10,%rax
+	orq	%r11,%rax
+
+	subq	0(%rsi),%r8
+	sbbq	8(%rsi),%r9
+	sbbq	16(%rsi),%r10
+	sbbq	24(%rsi),%r11
+	sbbq	%rsi,%rsi
+
+	movq	$1,%rdx
+	cmpq	$0,%rax
+	cmovneq	%rdx,%rax
+	andq	%rsi,%rax
+	.byte	0xf3,0xc3
+.cfi_endproc
+
