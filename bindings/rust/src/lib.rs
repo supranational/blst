@@ -407,12 +407,13 @@ macro_rules! sig_variant_impl {
             // key_validate
             pub fn key_validate(key: &[u8]) -> Result<Self, BLST_ERROR> {
                 let pk = PublicKey::from_bytes(key)?;
-                let ok: bool;
                 unsafe {
-                    ok = $pk_in_group(&pk.point) & !$pk_is_inf(&pk.point);
-                }
-                if !ok {
-                    return Err(BLST_ERROR::BLST_POINT_NOT_IN_GROUP);
+                    if !$pk_is_inf(&pk.point) {
+                        return Err(BLST_ERROR::BLST_PK_IS_INFINITY);
+                    }
+                    if !$pk_in_group(&pk.point) {
+                        return Err(BLST_ERROR::BLST_POINT_NOT_IN_GROUP);
+                    }
                 }
                 Ok(pk)
             }
