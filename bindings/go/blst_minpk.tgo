@@ -14,6 +14,11 @@ func (pk *P1Affine) From(s *Scalar) *P1Affine {
     return pk
 }
 
+func (pk *P1Affine) KeyValidate() bool {
+    return !bool(C.blst_p1_affine_is_inf(pk)) &&
+            bool(C.blst_p1_affine_in_g1(pk))
+}
+
 //
 // Sign
 //

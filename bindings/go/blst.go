@@ -234,6 +234,11 @@ func (pk *P1Affine) From(s *Scalar) *P1Affine {
 	return pk
 }
 
+func (pk *P1Affine) KeyValidate() bool {
+	return !bool(C.blst_p1_affine_is_inf(pk)) &&
+		bool(C.blst_p1_affine_in_g1(pk))
+}
+
 //
 // Sign
 //
@@ -780,6 +785,11 @@ func (agg *P2Aggregate) aggregate(getter aggGetterP2, n int) bool {
 func (pk *P2Affine) From(s *Scalar) *P2Affine {
 	C.blst_sk_to_pk2_in_g2(nil, pk, s)
 	return pk
+}
+
+func (pk *P2Affine) KeyValidate() bool {
+	return !bool(C.blst_p2_affine_is_inf(pk)) &&
+		bool(C.blst_p2_affine_in_g2(pk))
 }
 
 //
