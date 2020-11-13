@@ -392,6 +392,7 @@ sub_mod_256:
 .type	check_mod_256,\@function,2,"unwind"
 .align	32
 check_mod_256:
+.cfi_startproc
 	mov	8*0($r_ptr), %rax
 	mov	8*1($r_ptr), @acc[1]
 	mov	8*2($r_ptr), @acc[2]
@@ -412,7 +413,9 @@ check_mod_256:
 	cmp	\$0, %rax
 	cmovne	%rdx, %rax
 	and	$a_ptr, %rax
+.cfi_epilogue
 	ret
+.cfi_endproc
 .size	check_mod_256,.-check_mod_256
 ___
 }
