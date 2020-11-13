@@ -404,6 +404,7 @@ check_mod_256:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
+
 	movq	0(%rdi),%rax
 	movq	8(%rdi),%r9
 	movq	16(%rdi),%r10
@@ -424,8 +425,9 @@ check_mod_256:
 	cmpq	$0,%rax
 	cmovneq	%rdx,%rax
 	andq	%rsi,%rax
+
 	.byte	0xf3,0xc3
-.cfi_endproc
+.cfi_endproc	
 .size	check_mod_256,.-check_mod_256
 
 .section	.note.GNU-stack,"",@progbits

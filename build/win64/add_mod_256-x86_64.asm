@@ -470,6 +470,7 @@ $L$SEH_begin_check_mod_256::
 	mov	rsi,rdx
 
 
+
 	mov	rax,QWORD PTR[rdi]
 	mov	r9,QWORD PTR[8+rdi]
 	mov	r10,QWORD PTR[16+rdi]
@@ -490,7 +491,12 @@ $L$SEH_begin_check_mod_256::
 	cmp	rax,0
 	cmovne	rax,rdx
 	and	rax,rsi
+$L$SEH_epilogue_check_mod_256::
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+
 	DB	0F3h,0C3h		;repret
+
 $L$SEH_end_check_mod_256::
 check_mod_256	ENDP
 .text$	ENDS
@@ -567,6 +573,10 @@ ALIGN	4
 	DD	imagerel $L$SEH_epilogue_sub_mod_256
 	DD	imagerel $L$SEH_end_sub_mod_256
 	DD	imagerel $L$SEH_info_sub_mod_256_epilogue
+
+	DD	imagerel $L$SEH_epilogue_check_mod_256
+	DD	imagerel $L$SEH_end_check_mod_256
+	DD	imagerel $L$SEH_info_check_mod_256_epilogue
 
 .pdata	ENDS
 .xdata	SEGMENT READONLY ALIGN(8)
@@ -689,6 +699,12 @@ DB	000h,064h,005h,000h
 DB	000h,022h
 DB	000h,000h
 $L$SEH_info_sub_mod_256_epilogue::
+DB	1,0,4,0
+DB	000h,074h,001h,000h
+DB	000h,064h,002h,000h
+DB	000h,000h,000h,000h
+
+$L$SEH_info_check_mod_256_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
 DB	000h,064h,002h,000h

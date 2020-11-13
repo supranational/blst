@@ -457,6 +457,7 @@ check_mod_256:
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 
+
 	movq	0(%rdi),%rax
 	movq	8(%rdi),%r9
 	movq	16(%rdi),%r10
@@ -477,7 +478,12 @@ check_mod_256:
 	cmpq	$0,%rax
 	cmovneq	%rdx,%rax
 	andq	%rsi,%rax
+.LSEH_epilogue_check_mod_256:
+	mov	8(%rsp),%rdi
+	mov	16(%rsp),%rsi
+
 	.byte	0xf3,0xc3
+
 .LSEH_end_check_mod_256:
 .section	.pdata
 .p2align	2
@@ -552,6 +558,10 @@ check_mod_256:
 .rva	.LSEH_epilogue_sub_mod_256
 .rva	.LSEH_end_sub_mod_256
 .rva	.LSEH_info_sub_mod_256_epilogue
+
+.rva	.LSEH_epilogue_check_mod_256
+.rva	.LSEH_end_check_mod_256
+.rva	.LSEH_info_check_mod_256_epilogue
 
 .section	.xdata
 .p2align	3
@@ -673,6 +683,12 @@ check_mod_256:
 .byte	0x00,0x22
 .byte	0x00,0x00
 .LSEH_info_sub_mod_256_epilogue:
+.byte	1,0,4,0
+.byte	0x00,0x74,0x01,0x00
+.byte	0x00,0x64,0x02,0x00
+.byte	0x00,0x00,0x00,0x00
+
+.LSEH_info_check_mod_256_epilogue:
 .byte	1,0,4,0
 .byte	0x00,0x74,0x01,0x00
 .byte	0x00,0x64,0x02,0x00
