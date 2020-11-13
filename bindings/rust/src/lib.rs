@@ -283,6 +283,7 @@ macro_rules! sig_variant_impl {
         $pk_add_or_dbl_aff:ident,
         $sig_add_or_dbl:ident,
         $sig_add_or_dbl_aff:ident,
+        $pk_is_inf:ident,
     ) => {
         /// Secret Key
         #[derive(Default, Debug, Clone, Zeroize)]
@@ -406,11 +407,11 @@ macro_rules! sig_variant_impl {
             // key_validate
             pub fn key_validate(key: &[u8]) -> Result<Self, BLST_ERROR> {
                 let pk = PublicKey::from_bytes(key)?;
-                let err: bool;
+                let ok: bool;
                 unsafe {
-                    err = $pk_in_group(&pk.point);
+                    ok = $pk_in_group(&pk.point) & !$pk_is_inf(&pk.point);
                 }
-                if err != true {
+                if !ok {
                     return Err(BLST_ERROR::BLST_POINT_NOT_IN_GROUP);
                 }
                 Ok(pk)
@@ -1318,6 +1319,7 @@ pub mod min_pk {
         blst_p1_add_or_double_affine,
         blst_p2_add_or_double,
         blst_p2_add_or_double_affine,
+        blst_p1_affine_is_inf,
     );
 }
 
@@ -1359,5 +1361,6 @@ pub mod min_sig {
         blst_p2_add_or_double_affine,
         blst_p1_add_or_double,
         blst_p1_add_or_double_affine,
+        blst_p2_affine_is_inf,
     );
 }
