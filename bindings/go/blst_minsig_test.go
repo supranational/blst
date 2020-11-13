@@ -47,9 +47,11 @@ func TestSerdesMinSig(t *testing.T) {
         0xed, 0xfe, 0x2b, 0x60, 0xa6, 0x3c, 0x48, 0x99}
 
     sk := KeyGen(ikm[:])
+    defer sk.Zeroize()
 
     // Serialize/deserialize sk
     sk2 := new(SecretKey).Deserialize(sk.Serialize())
+    defer sk2.Zeroize()
     if !sk.Equals(sk2) {
         t.Errorf("sk2 != sk")
     }
@@ -338,6 +340,7 @@ func BenchmarkCoreSignMinSig(b *testing.B) {
         0xed, 0xfe, 0x2b, 0x60, 0xa6, 0x3c, 0x48, 0x99}
 
     sk := KeyGen(ikm[:])
+    defer sk.Zeroize()
     msg := []byte("hello foo")
     for i := 0; i < b.N; i++ {
         new(SignatureMinSig).Sign(sk, msg, dstMinSig)
@@ -352,6 +355,7 @@ func BenchmarkCoreVerifyMinSig(b *testing.B) {
         0xed, 0xfe, 0x2b, 0x60, 0xa6, 0x3c, 0x48, 0x99}
 
     sk := KeyGen(ikm[:])
+    defer sk.Zeroize()
     pk := new(PublicKeyMinSig).From(sk)
     msg := []byte("hello foo")
     sig := new(SignatureMinSig).Sign(sk, msg, dstMinSig)

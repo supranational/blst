@@ -65,6 +65,11 @@ func SetMaxProcs(max int) {
 //
 // Secret key
 //
+func (sk *SecretKey) Zeroize() {
+	var zero SecretKey
+	*sk = zero
+}
+
 func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
 	var sk SecretKey
 	var info []byte
@@ -78,6 +83,9 @@ func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
 	}
 	C.blst_keygen(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
 		infoP, C.size_t(len(info)))
+	// Postponing secret key zeroing till garbage collection can be too
+	// late to be effective, but every little bit helps...
+	runtime.SetFinalizer(&sk, func(sk *SecretKey) { sk.Zeroize() })
 	return &sk
 }
 
