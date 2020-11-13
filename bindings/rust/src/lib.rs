@@ -543,15 +543,16 @@ macro_rules! sig_variant_impl {
             pub fn aggregate_serialized(
                 pks: &[&[u8]],
             ) -> Result<Self, BLST_ERROR> {
-                // TODO - handle case of zero length array?
                 // TODO - subgroup check
                 // TODO - threading
+                if pks.len() == 0 {
+                    return Err(BLST_ERROR::BLST_AGGR_TYPE_MISMATCH);
+                }
                 let mut pk = PublicKey::from_bytes(pks[0])?;
                 let mut agg_pk = AggregatePublicKey::from_public_key(&pk);
                 for s in pks.iter().skip(1) {
                     pk = PublicKey::from_bytes(s)?;
                     unsafe {
-                        // TODO - does this need add_or_double?
                         $pk_add_or_dbl_aff(
                             &mut agg_pk.point,
                             &agg_pk.point,
@@ -937,7 +938,6 @@ macro_rules! sig_variant_impl {
                 let mut agg_sig = AggregateSignature::from_signature(sigs[0]);
                 for s in sigs.iter().skip(1) {
                     unsafe {
-                        // TODO - does this need add_or_double?
                         $sig_add_or_dbl_aff(
                             &mut agg_sig.point,
                             &agg_sig.point,
@@ -951,9 +951,11 @@ macro_rules! sig_variant_impl {
             pub fn aggregate_serialized(
                 sigs: &[&[u8]],
             ) -> Result<Self, BLST_ERROR> {
-                // TODO - handle case of zero length array?
                 // TODO - subgroup check
                 // TODO - threading
+                if sigs.len() == 0 {
+                    return Err(BLST_ERROR::BLST_AGGR_TYPE_MISMATCH);
+                }
                 let mut sig = Signature::from_bytes(sigs[0])?;
                 let mut agg_sig = AggregateSignature::from_signature(&sig);
                 for s in sigs.iter().skip(1) {
