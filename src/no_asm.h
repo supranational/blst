@@ -259,6 +259,29 @@ inline void cneg_mod_##bits(vec##bits ret, const vec##bits a, limb_t flag, \
 CNEG_MOD_IMPL(256)
 CNEG_MOD_IMPL(384)
 
+static limb_t check_mod_n(const byte a[], const limb_t p[], size_t n)
+{
+    llimb_t limbx;
+    limb_t borrow, ai, acc;
+    size_t i, j;
+
+    for (acc=borrow=0, i=0; i<n; i++) {
+        for (ai=0, j=0; j<8*sizeof(limb_t); j+=8)
+            ai |= (limb_t)(*a++) << j;
+        acc |= ai;
+        limbx = ai - (p[i] + (llimb_t)borrow);
+        borrow = (limb_t)(limbx >> LIMB_T_BITS) & 1;
+    }
+
+    return borrow & (((~acc & (acc - 1)) >> (LIMB_T_BITS - 1)) ^ 1);
+}
+
+#define CHECK_MOD_IMPL(bits) \
+inline limb_t check_mod_##bits(const pow##bits a, const vec##bits p) \
+{   return check_mod_n(a, p, NLIMBS(bits));   }
+
+CHECK_MOD_IMPL(256)
+
 static void from_mont_n(limb_t ret[], const limb_t a[],
                         const limb_t p[], limb_t n0, size_t n)
 {
