@@ -4,6 +4,8 @@ import os
 import sys
 import subprocess
 import re
+import json
+import glob
 
 here = re.split(r'/(?=[^/]*$)', sys.argv[0])
 if len(here) > 1:
@@ -111,5 +113,43 @@ if not pk.in_group() :		# vet the public key
     raise AssertionError("disaster")
 if sig.core_verify(pk, True, msg, DST) != blst.BLST_SUCCESS :
     raise AssertionError("disaster")
+
+########################################################################
+# test vectors from draft-irtf-cfrg-hash-to-curve
+
+coord = re.compile(r'0x([0-9a-f]+)(?:\s*,\s*0x([0-9a-f]+))?', re.IGNORECASE)
+
+def serialize_json_point(P):
+    ret = b''
+    x = coord.search(P['x'])
+    if x.group(2):
+        ret += bytes.fromhex(x.group(2))
+    ret += bytes.fromhex(x.group(1))
+    y = coord.search(P['y'])
+    if y.group(2):
+        ret += bytes.fromhex(y.group(2))
+    ret += bytes.fromhex(y.group(1))
+    return ret
+
+for file in glob.glob("../vectors/hash_to_curve/*.json"):
+    print(file)
+    data = json.load(open(file))
+
+    if data['curve'] == "BLS12-381 G1":
+        point = blst.P1()
+    else:
+        point = blst.P2()
+
+    DST = bytes(data['dst'], 'ascii')
+
+    if data['randomOracle']:
+        func = "point.hash_to(msg, DST).serialize()"
+    else:
+        func = "point.encode_to(msg, DST).serialize()"
+
+    for vec in data['vectors']:
+        msg = bytes(vec['msg'], 'ascii')
+        if eval(func) != serialize_json_point(vec['P']):
+            raise AssertionError(msg)
 
 print("OK")
