@@ -34,7 +34,7 @@ func decodeP1(m map[string]interface{}) *P1Affine {
 }
 
 func TestG1HashToCurve(t *testing.T) {
-	vfile, err := os.Open("hash_to_curve/BLS12381G1_XMD_SHA-256_SSWU_RO_.json")
+	vfile, err := os.Open("../vectors/hash_to_curve/BLS12381G1_XMD_SHA-256_SSWU_RO_.json")
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -105,7 +105,7 @@ func decodeP2(m map[string]interface{}) *P2Affine {
 }
 
 func TestG2HashToCurve(t *testing.T) {
-	vfile, err := os.Open("hash_to_curve/BLS12381G2_XMD_SHA-256_SSWU_RO_.json")
+	vfile, err := os.Open("../vectors/hash_to_curve/BLS12381G2_XMD_SHA-256_SSWU_RO_.json")
 	if err != nil {
 		t.Errorf(err.Error())
 	}
