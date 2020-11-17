@@ -82,7 +82,8 @@ jobs:
 
     - name: Node.js
       run: |
-        if [ -x bindings/node.js/run.me ]; then
+        node_js=bindings/node.js
+        if [ -x $node_js/run.me ]; then
             if [ ! -x ~/swig/bin/swig ]; then
               ( git clone -b pr/new-node-fixes https://github.com/yegorich/swig;
                 cd swig;
@@ -93,5 +94,17 @@ jobs:
               )
             fi
             env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2 \
-                bindings/node.js/run.me
+                $node_js/run.me
+        fi
+        if [ -f $node_js/binding.gyp -a -f $node_js/blst_wrap.cpp ]; then
+            if which npm > /dev/null 2>&1; then
+              npm install --global node-gyp || true
+            fi
+            if which node-gyp > /dev/null 2>&1; then
+              ( cd $node_js;
+                node-gyp configure;
+                node-gyp build;
+                env NODE_PATH=build/Release: node runnable.js;
+              ) || true
+            fi
         fi
