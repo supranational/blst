@@ -90,11 +90,19 @@ fn bench_verify_multi_aggregate(c: &mut Criterion) {
             // Aggregate signature
             let sig_refs_i =
                 sigs_i.iter().map(|s| s).collect::<Vec<&Signature>>();
-            let agg_i = AggregateSignature::aggregate(&sig_refs_i);
+            let agg_i = match AggregateSignature::aggregate(&sig_refs_i, false)
+            {
+                Ok(agg_i) => agg_i,
+                Err(err) => panic!("aggregate failure: {:?}", err),
+            };
             sigs.push(agg_i.to_signature());
 
             // aggregate public keys and push into vec
-            let agg_pk_i = AggregatePublicKey::aggregate(&pks_refs_i);
+            let agg_pk_i =
+                match AggregatePublicKey::aggregate(&pks_refs_i, false) {
+                    Ok(agg_pk_i) => agg_pk_i,
+                    Err(err) => panic!("aggregate failure: {:?}", err),
+                };
             pks.push(agg_pk_i.to_public_key());
 
             // create random values
@@ -119,7 +127,7 @@ fn bench_verify_multi_aggregate(c: &mut Criterion) {
             |b, (s, p, m, d, r)| {
                 b.iter(|| {
                     Signature::verify_multiple_aggregate_signatures(
-                        &m, *d, &p, &s, &r, 64,
+                        &m, *d, &p, false, &s, false, &r, 64,
                     )
                 });
             },
@@ -154,10 +162,16 @@ fn bench_fast_aggregate_verify(c: &mut Criterion) {
             .map(|s| &s.sig)
             .collect::<Vec<&Signature>>();
 
-        let agg = AggregateSignature::aggregate(&sig_refs);
+        let agg = match AggregateSignature::aggregate(&sig_refs, false) {
+            Ok(agg) => agg,
+            Err(err) => panic!("aggregate failure: {:?}", err),
+        };
         let agg_sig = agg.to_signature();
 
-        let agg_pks = AggregatePublicKey::aggregate(&pks_refs);
+        let agg_pks = match AggregatePublicKey::aggregate(&pks_refs, false) {
+            Ok(agg_pks) => agg_pks,
+            Err(err) => panic!("aggregate failure: {:?}", err),
+        };
         let agg_pk = agg_pks.to_public_key();
 
         let agg_ver = (agg_sig, pks_refs, &bds[0].msg, &bds[0].dst);
@@ -215,7 +229,10 @@ fn bench_aggregate_verify(c: &mut Criterion) {
             .map(|s| &s.sig)
             .collect::<Vec<&Signature>>();
 
-        let agg = AggregateSignature::aggregate(&sig_refs);
+        let agg = match AggregateSignature::aggregate(&sig_refs, false) {
+            Ok(agg) => agg,
+            Err(err) => panic!("aggregate failure: {:?}", err),
+        };
         let agg_sig = agg.to_signature();
         let agg_ver = (agg_sig, pks_refs, msgs_refs, &bds[0].dst);
 
@@ -223,7 +240,7 @@ fn bench_aggregate_verify(c: &mut Criterion) {
             BenchmarkId::new("aggregate_verify", size),
             &agg_ver,
             |b, (a, p, m, d)| {
-                b.iter(|| a.aggregate_verify(&m, &d, &p));
+                b.iter(|| a.aggregate_verify(true, &m, &d, &p, false));
             },
         );
     }
@@ -252,7 +269,7 @@ fn bench_aggregate(c: &mut Criterion) {
             BenchmarkId::new("aggregate_signature", size),
             &sig_refs,
             |b, s| {
-                b.iter(|| AggregateSignature::aggregate(&s));
+                b.iter(|| AggregateSignature::aggregate(&s, false));
             },
         );
 
@@ -266,7 +283,7 @@ fn bench_aggregate(c: &mut Criterion) {
             BenchmarkId::new("aggregate_public_key", size),
             &pks_refs,
             |b, p| {
-                b.iter(|| AggregatePublicKey::aggregate(&p));
+                b.iter(|| AggregatePublicKey::aggregate(&p, false));
             },
         );
     }
@@ -286,7 +303,7 @@ fn bench_single_message(c: &mut Criterion) {
     });
 
     group.bench_function("verify", |b| {
-        b.iter(|| bd.sig.verify(&bd.msg, &bd.dst, &[], &bd.pk))
+        b.iter(|| bd.sig.verify(true, &bd.msg, &bd.dst, &[], &bd.pk, false))
     });
 
     group.finish();
@@ -319,14 +336,26 @@ fn bench_serdes(c: &mut Criterion) {
     let mut p2_ser = [0; 192];
 
     unsafe {
-        blst_p1_from_affine(pk_jac.as_mut_ptr(), &pk.point);
-        blst_p2_from_affine(sig_jac.as_mut_ptr(), &sig.point);
-
-        blst_p1_double(pk_jac.as_mut_ptr(), pk_jac.as_ptr()); // Make Z != 1
-        blst_p2_double(sig_jac.as_mut_ptr(), sig_jac.as_ptr()); // Make Z != 1
-
-        pk_jac.assume_init();
-        sig_jac.assume_init();
+        let mut junk = [0u8; 32];
+        rng.fill_bytes(&mut junk);
+        blst_encode_to_g1(
+            pk_jac.as_mut_ptr(),
+            junk.as_ptr(),
+            junk.len(),
+            "junk".as_ptr(),
+            4,
+            std::ptr::null(),
+            0,
+        );
+        blst_encode_to_g2(
+            sig_jac.as_mut_ptr(),
+            junk.as_ptr(),
+            junk.len(),
+            "junk".as_ptr(),
+            4,
+            std::ptr::null(),
+            0,
+        );
     }
 
     group.bench_function("secret_key_serialize", |b| b.iter(|| sk.serialize()));
