@@ -97,22 +97,26 @@ impl Pairing {
     pub fn aggregate(
         &mut self,
         pk: &dyn Any,
+        pk_validate: bool,
         sig: &dyn Any,
+        sig_groupcheck: bool,
         msg: &[u8],
         aug: &[u8],
     ) -> BLST_ERROR {
         if pk.is::<blst_p1_affine>() {
             unsafe {
-                blst_pairing_aggregate_pk_in_g1(
+                blst_pairing_chk_n_aggr_pk_in_g1(
                     self.ctx(),
                     match pk.downcast_ref::<blst_p1_affine>() {
                         Some(pk) => pk,
                         None => ptr::null(),
                     },
+                    pk_validate,
                     match sig.downcast_ref::<blst_p2_affine>() {
                         Some(sig) => sig,
                         None => ptr::null(),
                     },
+                    sig_groupcheck,
                     msg.as_ptr(),
                     msg.len(),
                     aug.as_ptr(),
@@ -121,16 +125,18 @@ impl Pairing {
             }
         } else if pk.is::<blst_p2_affine>() {
             unsafe {
-                blst_pairing_aggregate_pk_in_g2(
+                blst_pairing_chk_n_aggr_pk_in_g2(
                     self.ctx(),
                     match pk.downcast_ref::<blst_p2_affine>() {
                         Some(pk) => pk,
                         None => ptr::null(),
                     },
+                    pk_validate,
                     match sig.downcast_ref::<blst_p1_affine>() {
                         Some(sig) => sig,
                         None => ptr::null(),
                     },
+                    sig_groupcheck,
                     msg.as_ptr(),
                     msg.len(),
                     aug.as_ptr(),
@@ -145,7 +151,9 @@ impl Pairing {
     pub fn mul_n_aggregate(
         &mut self,
         pk: &dyn Any,
+        pk_validate: bool,
         sig: &dyn Any,
+        sig_groupcheck: bool,
         scalar: &[u8],
         nbits: usize,
         msg: &[u8],
@@ -153,16 +161,18 @@ impl Pairing {
     ) -> BLST_ERROR {
         if pk.is::<blst_p1_affine>() {
             unsafe {
-                blst_pairing_mul_n_aggregate_pk_in_g1(
+                blst_pairing_chk_n_mul_n_aggr_pk_in_g1(
                     self.ctx(),
                     match pk.downcast_ref::<blst_p1_affine>() {
                         Some(pk) => pk,
                         None => ptr::null(),
                     },
+                    pk_validate,
                     match sig.downcast_ref::<blst_p2_affine>() {
                         Some(sig) => sig,
                         None => ptr::null(),
                     },
+                    sig_groupcheck,
                     scalar.as_ptr(),
                     nbits,
                     msg.as_ptr(),
@@ -173,16 +183,18 @@ impl Pairing {
             }
         } else if pk.is::<blst_p2_affine>() {
             unsafe {
-                blst_pairing_mul_n_aggregate_pk_in_g2(
+                blst_pairing_chk_n_mul_n_aggr_pk_in_g2(
                     self.ctx(),
                     match pk.downcast_ref::<blst_p2_affine>() {
                         Some(pk) => pk,
                         None => ptr::null(),
                     },
+                    pk_validate,
                     match sig.downcast_ref::<blst_p1_affine>() {
                         Some(sig) => sig,
                         None => ptr::null(),
                     },
+                    sig_groupcheck,
                     scalar.as_ptr(),
                     nbits,
                     msg.as_ptr(),
@@ -284,6 +296,7 @@ macro_rules! sig_variant_impl {
         $sig_add_or_dbl:ident,
         $sig_add_or_dbl_aff:ident,
         $pk_is_inf:ident,
+        $sig_is_inf:ident,
     ) => {
         /// Secret Key
         #[derive(Default, Debug, Clone, Zeroize)]
@@ -405,16 +418,21 @@ macro_rules! sig_variant_impl {
             // Core operations
 
             // key_validate
-            pub fn key_validate(key: &[u8]) -> Result<Self, BLST_ERROR> {
-                let pk = PublicKey::from_bytes(key)?;
+            pub fn validate(&self) -> Result<(), BLST_ERROR> {
                 unsafe {
-                    if !$pk_is_inf(&pk.point) {
+                    if $pk_is_inf(&self.point) {
                         return Err(BLST_ERROR::BLST_PK_IS_INFINITY);
                     }
-                    if !$pk_in_group(&pk.point) {
+                    if !$pk_in_group(&self.point) {
                         return Err(BLST_ERROR::BLST_POINT_NOT_IN_GROUP);
                     }
                 }
+                Ok(())
+            }
+
+            pub fn key_validate(key: &[u8]) -> Result<Self, BLST_ERROR> {
+                let pk = PublicKey::from_bytes(key)?;
+                pk.validate()?;
                 Ok(pk)
             }
 
@@ -526,10 +544,21 @@ macro_rules! sig_variant_impl {
             }
 
             // Aggregate
-            pub fn aggregate(pks: &[&PublicKey]) -> Self {
-                // TODO - handle case of zero length array? What to return then?
+            pub fn aggregate(
+                pks: &[&PublicKey],
+                pks_validate: bool,
+            ) -> Result<Self, BLST_ERROR> {
+                if pks.len() == 0 {
+                    return Err(BLST_ERROR::BLST_AGGR_TYPE_MISMATCH);
+                }
+                if pks_validate {
+                    pks[0].validate()?;
+                }
                 let mut agg_pk = AggregatePublicKey::from_public_key(pks[0]);
                 for s in pks.iter().skip(1) {
+                    if pks_validate {
+                        pks[0].validate()?;
+                    }
                     unsafe {
                         $pk_add_or_dbl_aff(
                             &mut agg_pk.point,
@@ -538,21 +567,29 @@ macro_rules! sig_variant_impl {
                         );
                     }
                 }
-                agg_pk
+                Ok(agg_pk)
             }
 
             pub fn aggregate_serialized(
                 pks: &[&[u8]],
+                pks_validate: bool,
             ) -> Result<Self, BLST_ERROR> {
-                // TODO - subgroup check
                 // TODO - threading
                 if pks.len() == 0 {
                     return Err(BLST_ERROR::BLST_AGGR_TYPE_MISMATCH);
                 }
-                let mut pk = PublicKey::from_bytes(pks[0])?;
+                let mut pk = if pks_validate {
+                    PublicKey::key_validate(pks[0])?
+                } else {
+                    PublicKey::from_bytes(pks[0])?
+                };
                 let mut agg_pk = AggregatePublicKey::from_public_key(&pk);
                 for s in pks.iter().skip(1) {
-                    pk = PublicKey::from_bytes(s)?;
+                    pk = if pks_validate {
+                        PublicKey::key_validate(s)?
+                    } else {
+                        PublicKey::from_bytes(s)?
+                    };
                     unsafe {
                         $pk_add_or_dbl_aff(
                             &mut agg_pk.point,
@@ -570,10 +607,18 @@ macro_rules! sig_variant_impl {
                 }
             }
 
-            pub fn add_public_key(&mut self, pk: &PublicKey) {
+            pub fn add_public_key(
+                &mut self,
+                pk: &PublicKey,
+                pk_validate: bool,
+            ) -> Result<(), BLST_ERROR> {
+                if pk_validate {
+                    pk.validate()?;
+                }
                 unsafe {
                     $pk_add_or_dbl_aff(&mut self.point, &self.point, &pk.point);
                 }
+                Ok(())
             }
         }
 
@@ -583,22 +628,60 @@ macro_rules! sig_variant_impl {
         }
 
         impl Signature {
+            // sig_infcheck, check for infinity, is a way to avoid going
+            // into resource-consuming verification. Passing 'false' is
+            // always cryptographically safe, but application might want
+            // to guard against obviously bogus individual[!] signatures.
+            pub fn validate(
+                &self,
+                sig_infcheck: bool,
+            ) -> Result<(), BLST_ERROR> {
+                unsafe {
+                    if sig_infcheck && $sig_is_inf(&self.point) {
+                        return Err(BLST_ERROR::BLST_PK_IS_INFINITY);
+                    }
+                    if !$sig_in_group(&self.point) {
+                        return Err(BLST_ERROR::BLST_POINT_NOT_IN_GROUP);
+                    }
+                }
+                Ok(())
+            }
+
+            pub fn sig_validate(
+                sig: &[u8],
+                sig_infcheck: bool,
+            ) -> Result<Self, BLST_ERROR> {
+                let sig = Signature::from_bytes(sig)?;
+                sig.validate(sig_infcheck)?;
+                Ok(sig)
+            }
+
             pub fn verify(
                 &self,
+                sig_groupcheck: bool,
                 msg: &[u8],
                 dst: &[u8],
                 aug: &[u8],
                 pk: &PublicKey,
+                pk_validate: bool,
             ) -> BLST_ERROR {
                 let aug_msg = [aug, msg].concat();
-                self.aggregate_verify(&[aug_msg.as_slice()], dst, &[pk])
+                self.aggregate_verify(
+                    sig_groupcheck,
+                    &[aug_msg.as_slice()],
+                    dst,
+                    &[pk],
+                    pk_validate,
+                )
             }
 
             pub fn aggregate_verify(
                 &self,
+                sig_groupcheck: bool,
                 msgs: &[&[u8]],
                 dst: &[u8],
                 pks: &[&PublicKey],
+                pks_validate: bool,
             ) -> BLST_ERROR {
                 let n_elems = pks.len();
                 if n_elems == 0 || msgs.len() != n_elems {
@@ -652,7 +735,9 @@ macro_rules! sig_variant_impl {
                             }
                             if pairing.aggregate(
                                 &pks[work].point,
+                                pks_validate,
                                 &unsafe { ptr::null::<$sig_aff>().as_ref() },
+                                false,
                                 &msgs[work],
                                 &[],
                             ) != BLST_ERROR::BLST_SUCCESS
@@ -666,6 +751,13 @@ macro_rules! sig_variant_impl {
                         }
                         tx.send(pairing).expect("disaster");
                     });
+                }
+
+                if sig_groupcheck && valid.load(Ordering::Relaxed) {
+                    match self.validate(false) {
+                        Err(_err) => valid.store(false, Ordering::Relaxed),
+                        _ => (),
+                    }
                 }
 
                 let mut gtsig = blst_fp12::default();
@@ -687,24 +779,37 @@ macro_rules! sig_variant_impl {
                 }
             }
 
+            // pks are assumed to be verified for proof of possession,
+            // which implies that they are already group-checked
             pub fn fast_aggregate_verify(
                 &self,
+                sig_groupcheck: bool,
                 msg: &[u8],
                 dst: &[u8],
                 pks: &[&PublicKey],
             ) -> BLST_ERROR {
-                let agg_pk = AggregatePublicKey::aggregate(pks);
+                let agg_pk = match AggregatePublicKey::aggregate(pks, false) {
+                    Ok(agg_sig) => agg_sig,
+                    Err(err) => return err,
+                };
                 let pk = agg_pk.to_public_key();
-                self.aggregate_verify(&[msg], dst, &[&pk])
+                self.aggregate_verify(
+                    sig_groupcheck,
+                    &[msg],
+                    dst,
+                    &[&pk],
+                    false,
+                )
             }
 
             pub fn fast_aggregate_verify_pre_aggregated(
                 &self,
+                sig_groupcheck: bool,
                 msg: &[u8],
                 dst: &[u8],
                 pk: &PublicKey,
             ) -> BLST_ERROR {
-                self.aggregate_verify(&[msg], dst, &[pk])
+                self.aggregate_verify(sig_groupcheck, &[msg], dst, &[pk], false)
             }
 
             // https://ethresear.ch/t/fast-verification-of-multiple-bls-signatures/5407
@@ -712,7 +817,9 @@ macro_rules! sig_variant_impl {
                 msgs: &[&[u8]],
                 dst: &[u8],
                 pks: &[&PublicKey],
+                pks_validate: bool,
                 sigs: &[&Signature],
+                sigs_groupcheck: bool,
                 rands: &[blst_scalar],
                 rand_bits: usize,
             ) -> BLST_ERROR {
@@ -726,7 +833,6 @@ macro_rules! sig_variant_impl {
                 }
 
                 // TODO - check msg uniqueness?
-                // TODO - since already in object form, any need to subgroup check?
 
                 let pool = da_pool();
                 let (tx, rx) = channel();
@@ -795,7 +901,9 @@ macro_rules! sig_variant_impl {
 
                             if pairing.mul_n_aggregate(
                                 &pks[work].point,
+                                pks_validate,
                                 &sigs[work].point,
+                                sigs_groupcheck,
                                 &rands[work].b,
                                 rand_bits,
                                 msgs[work],
@@ -934,10 +1042,24 @@ macro_rules! sig_variant_impl {
             }
 
             // Aggregate
-            pub fn aggregate(sigs: &[&Signature]) -> Self {
-                // TODO - handle case of zero length array?
+            pub fn aggregate(
+                sigs: &[&Signature],
+                sigs_groupcheck: bool,
+            ) -> Result<Self, BLST_ERROR> {
+                if sigs.len() == 0 {
+                    return Err(BLST_ERROR::BLST_AGGR_TYPE_MISMATCH);
+                }
+                if sigs_groupcheck {
+                    // We can't actually judge if input is individual or
+                    // aggregated signature, so we can't enforce infinitiy
+                    // check.
+                    sigs[0].validate(false)?;
+                }
                 let mut agg_sig = AggregateSignature::from_signature(sigs[0]);
                 for s in sigs.iter().skip(1) {
+                    if sigs_groupcheck {
+                        s.validate(false)?;
+                    }
                     unsafe {
                         $sig_add_or_dbl_aff(
                             &mut agg_sig.point,
@@ -946,23 +1068,30 @@ macro_rules! sig_variant_impl {
                         );
                     }
                 }
-                agg_sig
+                Ok(agg_sig)
             }
 
             pub fn aggregate_serialized(
                 sigs: &[&[u8]],
+                sigs_groupcheck: bool,
             ) -> Result<Self, BLST_ERROR> {
-                // TODO - subgroup check
                 // TODO - threading
                 if sigs.len() == 0 {
                     return Err(BLST_ERROR::BLST_AGGR_TYPE_MISMATCH);
                 }
-                let mut sig = Signature::from_bytes(sigs[0])?;
+                let mut sig = if sigs_groupcheck {
+                    Signature::sig_validate(sigs[0], false)?
+                } else {
+                    Signature::from_bytes(sigs[0])?
+                };
                 let mut agg_sig = AggregateSignature::from_signature(&sig);
                 for s in sigs.iter().skip(1) {
+                    sig = if sigs_groupcheck {
+                        Signature::sig_validate(s, false)?
+                    } else {
+                        Signature::from_bytes(s)?
+                    };
                     unsafe {
-                        sig = Signature::from_bytes(s)?;
-                        // TODO - does this need add_or_double?
                         $sig_add_or_dbl_aff(
                             &mut agg_sig.point,
                             &agg_sig.point,
@@ -983,7 +1112,14 @@ macro_rules! sig_variant_impl {
                 }
             }
 
-            pub fn add_signature(&mut self, sig: &Signature) {
+            pub fn add_signature(
+                &mut self,
+                sig: &Signature,
+                sig_groupcheck: bool,
+            ) -> Result<(), BLST_ERROR> {
+                if sig_groupcheck {
+                    sig.validate(false)?;
+                }
                 unsafe {
                     $sig_add_or_dbl_aff(
                         &mut self.point,
@@ -991,6 +1127,7 @@ macro_rules! sig_variant_impl {
                         &sig.point,
                     );
                 }
+                Ok(())
             }
         }
 
@@ -1030,7 +1167,7 @@ macro_rules! sig_variant_impl {
                 let msg = b"hello foo";
                 let sig = sk.sign(msg, dst, &[]);
 
-                let err = sig.verify(msg, dst, &[], &pk);
+                let err = sig.verify(true, msg, dst, &[], &pk, true);
                 assert_eq!(err, BLST_ERROR::BLST_SUCCESS);
             }
 
@@ -1075,7 +1212,7 @@ macro_rules! sig_variant_impl {
                     .iter()
                     .zip(msgs.iter())
                     .zip(pks.iter())
-                    .map(|((s, m), pk)| (s.verify(m, dst, &[], pk)))
+                    .map(|((s, m), pk)| (s.verify(true, m, dst, &[], pk, true)))
                     .collect::<Vec<BLST_ERROR>>();
                 assert_eq!(errs, vec![BLST_ERROR::BLST_SUCCESS; num_msgs]);
 
@@ -1084,21 +1221,25 @@ macro_rules! sig_variant_impl {
                     .iter()
                     .zip(msgs.iter())
                     .zip(pks.iter().rev())
-                    .map(|((s, m), pk)| (s.verify(m, dst, &[], pk)))
+                    .map(|((s, m), pk)| (s.verify(true, m, dst, &[], pk, true)))
                     .collect::<Vec<BLST_ERROR>>();
                 assert_ne!(errs, vec![BLST_ERROR::BLST_SUCCESS; num_msgs]);
 
                 let sig_refs =
                     sigs.iter().map(|s| s).collect::<Vec<&Signature>>();
-                let agg = AggregateSignature::aggregate(&sig_refs);
+                let agg = match AggregateSignature::aggregate(&sig_refs, true) {
+                    Ok(agg) => agg,
+                    Err(err) => panic!("aggregate failure: {:?}", err),
+                };
 
                 let agg_sig = agg.to_signature();
-                let mut result =
-                    agg_sig.aggregate_verify(&msgs_refs, dst, &pks_refs);
+                let mut result = agg_sig
+                    .aggregate_verify(false, &msgs_refs, dst, &pks_refs, false);
                 assert_eq!(result, BLST_ERROR::BLST_SUCCESS);
 
                 // Swap message/public key pairs to create bad signature
-                result = agg_sig.aggregate_verify(&msgs_refs, dst, &pks_rev);
+                result = agg_sig
+                    .aggregate_verify(false, &msgs_refs, dst, &pks_rev, false);
                 assert_ne!(result, BLST_ERROR::BLST_SUCCESS);
             }
 
@@ -1143,7 +1284,9 @@ macro_rules! sig_variant_impl {
                     let errs = sigs_i
                         .iter()
                         .zip(pks_i.iter())
-                        .map(|(s, pk)| (s.verify(&msgs[i], dst, &[], pk)))
+                        .map(|(s, pk)| {
+                            (s.verify(true, &msgs[i], dst, &[], pk, true))
+                        })
                         .collect::<Vec<BLST_ERROR>>();
                     assert_eq!(
                         errs,
@@ -1152,11 +1295,17 @@ macro_rules! sig_variant_impl {
 
                     let sig_refs_i =
                         sigs_i.iter().map(|s| s).collect::<Vec<&Signature>>();
-                    let agg_i = AggregateSignature::aggregate(&sig_refs_i);
+                    let agg_i =
+                        match AggregateSignature::aggregate(&sig_refs_i, false)
+                        {
+                            Ok(agg_i) => agg_i,
+                            Err(err) => panic!("aggregate failure: {:?}", err),
+                        };
 
                     // Test current aggregate signature
                     sigs.push(agg_i.to_signature());
                     let mut result = sigs[i].fast_aggregate_verify(
+                        false,
                         &msgs[i],
                         dst,
                         &pks_refs_i,
@@ -1166,6 +1315,7 @@ macro_rules! sig_variant_impl {
                     // negative test
                     if i != 0 {
                         result = sigs[i - 1].fast_aggregate_verify(
+                            false,
                             &msgs[i],
                             dst,
                             &pks_refs_i,
@@ -1174,12 +1324,17 @@ macro_rules! sig_variant_impl {
                     }
 
                     // aggregate public keys and push into vec
-                    let agg_pk_i = AggregatePublicKey::aggregate(&pks_refs_i);
+                    let agg_pk_i =
+                        match AggregatePublicKey::aggregate(&pks_refs_i, false)
+                        {
+                            Ok(agg_pk_i) => agg_pk_i,
+                            Err(err) => panic!("aggregate failure: {:?}", err),
+                        };
                     pks.push(agg_pk_i.to_public_key());
 
                     // Test current aggregate signature with aggregated pks
                     result = sigs[i].fast_aggregate_verify_pre_aggregated(
-                        &msgs[i], dst, &pks[i],
+                        false, &msgs[i], dst, &pks[i],
                     );
                     assert_eq!(result, BLST_ERROR::BLST_SUCCESS);
 
@@ -1187,7 +1342,7 @@ macro_rules! sig_variant_impl {
                     if i != 0 {
                         result = sigs[i - 1]
                             .fast_aggregate_verify_pre_aggregated(
-                                &msgs[i], dst, &pks[i],
+                                false, &msgs[i], dst, &pks[i],
                             );
                         assert_ne!(result, BLST_ERROR::BLST_SUCCESS);
                     }
@@ -1225,23 +1380,27 @@ macro_rules! sig_variant_impl {
 
                 let mut result =
                     Signature::verify_multiple_aggregate_signatures(
-                        &msgs_refs, dst, &pks_refs, &sig_refs, &rands, 64,
+                        &msgs_refs, dst, &pks_refs, false, &sig_refs, true,
+                        &rands, 64,
                     );
                 assert_eq!(result, BLST_ERROR::BLST_SUCCESS);
 
                 // negative tests (use reverse msgs, pks, and sigs)
                 result = Signature::verify_multiple_aggregate_signatures(
-                    &msgs_rev, dst, &pks_refs, &sig_refs, &rands, 64,
+                    &msgs_rev, dst, &pks_refs, false, &sig_refs, true, &rands,
+                    64,
                 );
                 assert_ne!(result, BLST_ERROR::BLST_SUCCESS);
 
                 result = Signature::verify_multiple_aggregate_signatures(
-                    &msgs_refs, dst, &pks_rev, &sig_refs, &rands, 64,
+                    &msgs_refs, dst, &pks_rev, false, &sig_refs, true, &rands,
+                    64,
                 );
                 assert_ne!(result, BLST_ERROR::BLST_SUCCESS);
 
                 result = Signature::verify_multiple_aggregate_signatures(
-                    &msgs_refs, dst, &pks_refs, &sig_rev, &rands, 64,
+                    &msgs_refs, dst, &pks_refs, false, &sig_rev, true, &rands,
+                    64,
                 );
                 assert_ne!(result, BLST_ERROR::BLST_SUCCESS);
             }
@@ -1327,6 +1486,7 @@ pub mod min_pk {
         blst_p2_add_or_double,
         blst_p2_add_or_double_affine,
         blst_p1_affine_is_inf,
+        blst_p2_affine_is_inf,
     );
 }
 
@@ -1369,5 +1529,6 @@ pub mod min_sig {
         blst_p1_add_or_double,
         blst_p1_add_or_double_affine,
         blst_p2_affine_is_inf,
+        blst_p1_affine_is_inf,
     );
 }
