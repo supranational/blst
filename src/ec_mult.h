@@ -58,7 +58,7 @@ static void ptype##_gather_booth_w##SZ(ptype *restrict p, \
     vec_zero(p, sizeof(ptype)); /* implicit infinity at table[-1] */\
     /* ~6% with -Os, ~2% with -O3 ... */\
     for (i = 1; i <= 1<<(SZ-1); i++) \
-        ptype##_ccopy(p, table + i - 1, i == booth_idx); \
+        ptype##_ccopy(p, table + i - 1, byte_is_zero((byte)(i ^ booth_idx))); \
 \
     ptype##_cneg(p, booth_sign); \
 } \
