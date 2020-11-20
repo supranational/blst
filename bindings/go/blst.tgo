@@ -94,8 +94,8 @@ func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
     return ctx
 }
 
-func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
-                            msg []byte,
+func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
+                            sig *P2Affine, sigGroupcheck bool, msg []byte,
                             optional ...[]byte) int { // aug
     var aug []byte
     var uaug *C.byte
@@ -110,15 +110,17 @@ func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
         umsg = (*C.byte)(&msg[0])
     }
 
-    r := C.blst_pairing_aggregate_pk_in_g1((*C.blst_pairing)(&ctx[0]), PK, sig,
-                                           umsg, C.size_t(len(msg)),
-                                           uaug, C.size_t(len(aug)))
+    r := C.blst_pairing_chk_n_aggr_pk_in_g1((*C.blst_pairing)(&ctx[0]),
+                                            PK, C.bool(pkValidate),
+                                            sig, C.bool(sigGroupcheck),
+                                            umsg, C.size_t(len(msg)),
+                                            uaug, C.size_t(len(aug)))
 
     return int(r)
 }
 
-func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
-                            msg []byte,
+func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
+                            sig *P1Affine, sigGroupcheck bool, msg []byte,
                             optional ...[]byte) int { // aug
     var aug []byte
     var uaug *C.byte
@@ -133,14 +135,17 @@ func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
         umsg = (*C.byte)(&msg[0])
     }
 
-    r := C.blst_pairing_aggregate_pk_in_g2((*C.blst_pairing)(&ctx[0]), PK, sig,
-                                           umsg, C.size_t(len(msg)),
-                                           uaug, C.size_t(len(aug)))
+    r := C.blst_pairing_chk_n_aggr_pk_in_g2((*C.blst_pairing)(&ctx[0]),
+                                            PK, C.bool(pkValidate),
+                                            sig, C.bool(sigGroupcheck),
+                                            umsg, C.size_t(len(msg)),
+                                            uaug, C.size_t(len(aug)))
 
     return int(r)
 }
 
-func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
+func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
+                                sig *P2Affine, sigGroupcheck bool,
                                 rand *Scalar, randBits int, msg []byte,
                                 optional ...[]byte) int { // aug
     var aug []byte
@@ -156,16 +161,18 @@ func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
         umsg = (*C.byte)(&msg[0])
     }
 
-    r := C.blst_pairing_mul_n_aggregate_pk_in_g1((*C.blst_pairing)(&ctx[0]),
-                                                 PK, sig,
-                                                 &rand.b[0], C.size_t(randBits),
-                                                 umsg, C.size_t(len(msg)),
-                                                 uaug, C.size_t(len(aug)))
+    r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g1((*C.blst_pairing)(&ctx[0]),
+                                                  PK, C.bool(pkValidate),
+                                                  sig, C.bool(sigGroupcheck),
+                                                  &rand.b[0], C.size_t(randBits),
+                                                  umsg, C.size_t(len(msg)),
+                                                  uaug, C.size_t(len(aug)))
 
     return int(r)
 }
 
-func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
+func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
+                                sig *P1Affine, sigGroupcheck bool,
                                 rand *Scalar, randBits int, msg []byte,
                                 optional ...[]byte) int { // aug
     var aug []byte
@@ -181,11 +188,12 @@ func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
         umsg = (*C.byte)(&msg[0])
     }
 
-    r := C.blst_pairing_mul_n_aggregate_pk_in_g2((*C.blst_pairing)(&ctx[0]),
-                                                 PK, sig,
-                                                 &rand.b[0], C.size_t(randBits),
-                                                 umsg, C.size_t(len(msg)),
-                                                 uaug, C.size_t(len(aug)))
+    r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g2((*C.blst_pairing)(&ctx[0]),
+                                                  PK, C.bool(pkValidate),
+                                                  sig, C.bool(sigGroupcheck),
+                                                  &rand.b[0], C.size_t(randBits),
+                                                  umsg, C.size_t(len(msg)),
+                                                  uaug, C.size_t(len(aug)))
 
     return int(r)
 }

@@ -106,49 +106,54 @@ func TestSignVerifyMinSig(t *testing.T) {
     sig2 := new(SignatureMinSig).Sign(sk1, msg2, dstMinSig)
 
     // Verify
-    if !sig0.Verify(pk0, msg0, dstMinSig) {
+    if !sig0.Verify(true, pk0, false, msg0, dstMinSig) {
         t.Errorf("verify sig0")
     }
-    if !sig2.Verify(pk1, msg2, dstMinSig) {
+    if !sig2.Verify(true, pk1, false, msg2, dstMinSig) {
         t.Errorf("verify sig2")
     }
-    if !new(SignatureMinSig).VerifyCompressed(sig2.Compress(), pk1.Compress(),
-        msg2, dstMinSig) {
+    if !new(SignatureMinSig).VerifyCompressed(sig2.Compress(), true,
+                                             pk1.Compress(), false,
+                                             msg2, dstMinSig) {
         t.Errorf("verify sig2")
     }
     // Batch verify
-    if !sig0.AggregateVerify([]*PublicKeyMinSig{pk0}, []Message{msg0},
-        dstMinSig) {
+    if !sig0.AggregateVerify(true, []*PublicKeyMinSig{pk0}, false,
+                             []Message{msg0}, dstMinSig) {
         t.Errorf("aggregate verify sig0")
     }
     // Verify compressed inputs
-    if !new(SignatureMinSig).AggregateVerifyCompressed(sig0.Compress(),
-        [][]byte{pk0.Compress()}, []Message{msg0}, dstMinSig) {
+    if !new(SignatureMinSig).AggregateVerifyCompressed(sig0.Compress(), true,
+                                                      [][]byte{pk0.Compress()},
+                                                      false,
+                                                      []Message{msg0}, dstMinSig) {
         t.Errorf("aggregate verify sig0 compressed")
     }
 
     // Verify serialized inputs
-    if !new(SignatureMinSig).AggregateVerifyCompressed(sig0.Serialize(),
-        [][]byte{pk0.Serialize()}, []Message{msg0}, dstMinSig) {
+    if !new(SignatureMinSig).AggregateVerifyCompressed(sig0.Serialize(), true,
+                                                      [][]byte{pk0.Serialize()},
+                                                      false,
+                                                      []Message{msg0}, dstMinSig) {
         t.Errorf("aggregate verify sig0 serialized")
     }
 
     // Compressed with empty pk
     var emptyPk []byte
-    if new(SignatureMinSig).VerifyCompressed(sig0.Compress(), emptyPk, msg0,
-        dstMinSig) {
+    if new(SignatureMinSig).VerifyCompressed(sig0.Compress(), true,
+                                            emptyPk, false, msg0, dstMinSig) {
         t.Errorf("verify sig compressed inputs")
     }
     // Wrong message
-    if sig0.Verify(pk0, msg2, dstMinSig) {
+    if sig0.Verify(true, pk0, false, msg2, dstMinSig) {
         t.Errorf("Expected Verify to return false")
     }
     // Wrong key
-    if sig0.Verify(pk1, msg0, dstMinSig) {
+    if sig0.Verify(true, pk1, false, msg0, dstMinSig) {
         t.Errorf("Expected Verify to return false")
     }
     // Wrong sig
-    if sig2.Verify(pk0, msg0, dstMinSig) {
+    if sig2.Verify(true, pk0, false, msg0, dstMinSig) {
         t.Errorf("Expected Verify to return false")
     }
 }
@@ -159,14 +164,14 @@ func TestSignVerifyAugMinSig(t *testing.T) {
     msg := []byte("hello foo")
     aug := []byte("augmentation")
     sig := new(SignatureMinSig).Sign(sk, msg, dstMinSig, aug)
-    if !sig.Verify(pk, msg, dstMinSig, aug) {
+    if !sig.Verify(true, pk, false, msg, dstMinSig, aug) {
         t.Errorf("verify sig")
     }
     aug1 := []byte("augmentation2")
-    if sig.Verify(pk, msg, dstMinSig, aug1) {
+    if sig.Verify(true, pk, false, msg, dstMinSig, aug1) {
         t.Errorf("verify sig, wrong augmentation")
     }
-    if sig.Verify(pk, msg, dstMinSig) {
+    if sig.Verify(true, pk, false, msg, dstMinSig) {
         t.Errorf("verify sig, no augmentation")
     }
     // TODO: augmentation with aggregate verify
@@ -177,13 +182,13 @@ func TestSignVerifyEncodeMinSig(t *testing.T) {
     pk := new(PublicKeyMinSig).From(sk)
     msg := []byte("hello foo")
     sig := new(SignatureMinSig).Sign(sk, msg, dstMinSig, false)
-    if !sig.Verify(pk, msg, dstMinSig, false) {
+    if !sig.Verify(true, pk, false, msg, dstMinSig, false) {
         t.Errorf("verify sig")
     }
-    if sig.Verify(pk, msg, dstMinSig) {
+    if sig.Verify(true, pk, false, msg, dstMinSig) {
         t.Errorf("verify sig expected fail, wrong hashing engine")
     }
-    if sig.Verify(pk, msg, dstMinSig, 0) {
+    if sig.Verify(true, pk, false, msg, dstMinSig, 0) {
         t.Errorf("verify sig expected fail, illegal argument")
     }
 }
@@ -203,19 +208,19 @@ func TestSignVerifyAggregateMinSig(t *testing.T) {
             sigs = append(sigs, new(SignatureMinSig).Sign(sks[i], msgs[0],
                 dstMinSig))
         }
-        agProj := new(AggregateSignatureMinSig).Aggregate(sigs)
-        if agProj == nil {
+        agProj := new(AggregateSignatureMinSig)
+        if !agProj.Aggregate(sigs, false) {
             t.Errorf("Aggregate unexpectedly returned nil")
             return
         }
         agSig := agProj.ToAffine()
 
-        if !agSig.FastAggregateVerify(pubks, msgs[0], dstMinSig) {
+        if !agSig.FastAggregateVerify(false, pubks, msgs[0], dstMinSig) {
             t.Errorf("failed to verify size %d", size)
         }
 
         // Negative test
-        if agSig.FastAggregateVerify(pubks, msgs[0][1:], dstMinSig) {
+        if agSig.FastAggregateVerify(false, pubks, msgs[0][1:], dstMinSig) {
             t.Errorf("failed to not verify size %d", size)
         }
 
@@ -228,18 +233,18 @@ func TestSignVerifyAggregateMinSig(t *testing.T) {
                 compSigs[i] = sigs[i].Serialize()
             }
         }
-        agProj = new(AggregateSignatureMinSig).AggregateCompressed(compSigs)
-        if agProj == nil {
+        agProj = new(AggregateSignatureMinSig)
+        if !agProj.AggregateCompressed(compSigs, false) {
             t.Errorf("AggregateCompressed unexpectedly returned nil")
             return
         }
         agSig = agProj.ToAffine()
-        if !agSig.FastAggregateVerify(pubks, msgs[0], dstMinSig) {
+        if !agSig.FastAggregateVerify(false, pubks, msgs[0], dstMinSig) {
             t.Errorf("failed to verify size %d", size)
         }
 
         // Negative test
-        if agSig.FastAggregateVerify(pubks, msgs[0][1:], dstMinSig) {
+        if agSig.FastAggregateVerify(false, pubks, msgs[0][1:], dstMinSig) {
             t.Errorf("failed to not verify size %d", size)
         }
     }
@@ -272,18 +277,25 @@ func TestSignMultipleVerifyAggregateMinSig(t *testing.T) {
             sigsToAgg := make([]*SignatureMinSig, 0)
             pksToAgg := make([]*PublicKeyMinSig, 0)
             for j := 0; j < size; j++ {
-                sigsToAgg = append(sigsToAgg, new(SignatureMinSig).Sign(sks[j],
-                    msgs[i], dstMinSig))
+                sigsToAgg = append(sigsToAgg,
+                                   new(SignatureMinSig).Sign(sks[j], msgs[i],
+                                                            dstMinSig))
                 pksToAgg = append(pksToAgg, pks[j])
             }
 
-            agSig := new(AggregateSignatureMinSig).Aggregate(sigsToAgg).ToAffine()
-            agPk := new(AggregatePublicKeyMinSig).Aggregate(pksToAgg).ToAffine()
-            aggSigs = append(aggSigs, agSig)
-            aggPks = append(aggPks, agPk)
+            agSig := new(AggregateSignatureMinSig)
+            if !agSig.Aggregate(sigsToAgg, true) {
+                t.Errorf("failed to aggregate")
+            }
+            afSig := agSig.ToAffine()
+            agPk := new(AggregatePublicKeyMinSig)
+            agPk.Aggregate(pksToAgg, false)
+            afPk := agPk.ToAffine()
+            aggSigs = append(aggSigs, afSig)
+            aggPks = append(aggPks, afPk)
 
             // Verify aggregated signature and pk
-            if !agSig.Verify(agPk, msgs[i], dstMinSig) {
+            if !afSig.Verify(false, afPk, false, msgs[i], dstMinSig) {
                 t.Errorf("failed to verify single aggregate size %d", size)
             }
 
@@ -297,14 +309,18 @@ func TestSignMultipleVerifyAggregateMinSig(t *testing.T) {
 
         // Verify
         randBits := 64
-        if !new(SignatureMinSig).MultipleAggregateVerify(aggSigs, aggPks, msgs,
-            dstMinSig, randFn, randBits) {
+        if !new(SignatureMinSig).MultipleAggregateVerify(aggSigs, true,
+                                                        aggPks, false,
+                                                        msgs, dstMinSig,
+                                                        randFn, randBits) {
             t.Errorf("failed to verify multiple aggregate size %d", size)
         }
 
         // Negative test
-        if new(SignatureMinSig).MultipleAggregateVerify(aggSigs, aggPks, msgs,
-            dstMinSig[1:], randFn, randBits) {
+        if new(SignatureMinSig).MultipleAggregateVerify(aggSigs, true,
+                                                       aggPks, false,
+                                                       msgs, dstMinSig[1:],
+                                                       randFn, randBits) {
             t.Errorf("failed to not verify multiple aggregate size %d", size)
         }
     }
@@ -362,7 +378,7 @@ func BenchmarkCoreVerifyMinSig(b *testing.B) {
 
     // Verify
     for i := 0; i < b.N; i++ {
-        if !sig.Verify(pk, msg, dstMinSig) {
+        if !sig.Verify(true, pk, false, msg, dstMinSig) {
             b.Fatal("verify sig")
         }
     }
@@ -377,8 +393,9 @@ func BenchmarkCoreVerifyAggregateMinSig(b *testing.B) {
             }
             b.ResetTimer()
             for i := 0; i < b.N; i++ {
-                if !new(SignatureMinSig).AggregateVerifyCompressed(agsig, pubks,
-                    msgs, dstMinSig) {
+                if !new(SignatureMinSig).AggregateVerifyCompressed(agsig, true,
+                                                                  pubks, false,
+                                                                  msgs, dstMinSig) {
                     b.Fatal("failed to verify")
                 }
             }
@@ -404,7 +421,7 @@ func BenchmarkVerifyAggregateUncompressedMinSig(b *testing.B) {
             }
             b.ResetTimer()
             for i := 0; i < b.N; i++ {
-                if !agsig.AggregateVerify(pubks, msgs, dstMinSig) {
+                if !agsig.AggregateVerify(true, pubks, false, msgs, dstMinSig) {
                     b.Fatal("failed to verify")
                 }
             }
@@ -430,7 +447,7 @@ func BenchmarkCoreAggregateMinSig(b *testing.B) {
             b.ResetTimer()
             for i := 0; i < b.N; i++ {
                 var agg AggregateSignatureMinSig
-                agg.AggregateCompressed(sigs)
+                agg.AggregateCompressed(sigs, true)
             }
         }
     }
@@ -466,8 +483,8 @@ func generateBatchTestDataMinSig(size int) (msgs []Message,
             Compress())
         pubks = append(pubks, new(PublicKeyMinSig).From(priv).Compress())
     }
-    agProj := new(AggregateSignatureMinSig).AggregateCompressed(sigs)
-    if agProj == nil {
+    agProj := new(AggregateSignatureMinSig)
+    if !agProj.AggregateCompressed(sigs, true) {
         fmt.Println("AggregateCompressed unexpectedly returned nil")
         err = true
         return
@@ -494,8 +511,8 @@ func generateBatchTestDataUncompressedMinSig(size int) (sks []*SecretKey,
         sigs = append(sigs, new(SignatureMinSig).Sign(priv, msg, dstMinSig))
         pubks = append(pubks, new(PublicKeyMinSig).From(priv))
     }
-    agProj := new(AggregateSignatureMinSig).Aggregate(sigs)
-    if agProj == nil {
+    agProj := new(AggregateSignatureMinSig)
+    if !agProj.Aggregate(sigs, true) {
         fmt.Println("Aggregate unexpectedly returned nil")
         err = true
         return
@@ -556,14 +573,14 @@ func TestSignVerifyAggregateValidatesInfinitePubkeyMinSig(t *testing.T) {
     // Single message: Infinite pubkeys and signature
     zeroKey := new(PublicKeyMinSig)
     zeroSig := new(SignatureMinSig)
-    agProj := new(AggregateSignatureMinSig).Aggregate([]*SignatureMinSig{zeroSig})
-    if agProj == nil {
+    agProj := new(AggregateSignatureMinSig)
+    if !agProj.Aggregate([]*SignatureMinSig{zeroSig}, false) {
         t.Errorf("Aggregate unexpectedly returned nil")
         return
     }
     agSig := agProj.ToAffine()
 
-    if agSig.AggregateVerify([]*PublicKeyMinSig{zeroKey},
+    if agSig.AggregateVerify(false, []*PublicKeyMinSig{zeroKey}, false,
                              [][]byte{msgs[0]}, dstMinSig) {
         t.Errorf("failed to NOT verify signature")
     }
@@ -571,14 +588,14 @@ func TestSignVerifyAggregateValidatesInfinitePubkeyMinSig(t *testing.T) {
     // Replace firstkey with infinite pubkey.
     pubks[0] = zeroKey
     sigs[0] = zeroSig
-    agProj = new(AggregateSignatureMinSig).Aggregate(sigs)
-    if agProj == nil {
+    agProj = new(AggregateSignatureMinSig)
+    if !agProj.Aggregate(sigs, false) {
         t.Errorf("Aggregate unexpectedly returned nil")
         return
     }
     agSig = agProj.ToAffine()
 
-    if agSig.AggregateVerify(pubks, msgs, dstMinSig) {
+    if agSig.AggregateVerify(false, pubks, false, msgs, dstMinSig) {
         t.Errorf("failed to NOT verify signature")
     }
 }
