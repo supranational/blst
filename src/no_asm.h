@@ -669,28 +669,56 @@ void sqr_mont_382x(vec384x ret, const vec384x a,
  * is only one limb, it is to be passed in |d_hi| with zero in |d_lo|.
  * The divisor is required to be "bitwise left-aligned," and dividend's
  * top limbs to be smaller than the divisor's. The latter limitation can
- * be problematic only in the first iteration. The subroutine considers
- * four limbs, two of which are "overlapping," hence the name...
+ * be problematic only in the first iteration of multi-precision division.
+ * The subroutine considers four limbs, two of which are "overlapping,"
+ * hence the name... Another way to look at it is to think of the pair
+ * of the dividend's limbs being suffixed with a zero:
+ *   +-------+-------+-------+
+ * R |       |       |   0   |
+ *   +-------+-------+-------+
+ *           +-------+-------+
+ * D         |       |       |
+ *           +-------+-------+
  */
 limb_t div_3_limbs(const limb_t div_top[2], limb_t d_lo, limb_t d_hi)
 {
-    llimb_t R = ((llimb_t)div_top[1] << LIMB_T_BITS) | div_top[0];
-    llimb_t D = ((llimb_t)d_hi << LIMB_T_BITS) | d_lo;
-    limb_t Q = 0, mask;
+    llimb_t Rx;
+    limb_t r_lo = div_top[0], r_hi = div_top[1];
+    limb_t Q = 0, mask, borrow, rx;
     size_t i;
 
     for (i = 0; i < LIMB_T_BITS; i++) {
+        /* borrow, Rx = R - D; */
+        Rx = (llimb_t)r_lo - d_lo;
+        rx = (limb_t)Rx;
+        borrow = (limb_t)(Rx >> LIMB_T_BITS) & 1;
+        Rx = r_hi - (d_hi + (llimb_t)borrow);
+        borrow = (limb_t)(Rx >> LIMB_T_BITS) & 1;
+
+        /* if (R >= D) R -= D; */
+        r_lo = ((r_lo ^ rx) & (0 - borrow)) ^ rx;
+        rx = (limb_t)Rx;
+        r_hi = ((r_hi ^ rx) & (0 - borrow)) ^ rx;
+
         Q <<= 1;
-        mask = (R >= D);
-        Q |= mask;
-        R -= (D & ((llimb_t)0 - mask));
-        D >>= 1;
+        Q |= borrow ^ 1;
+
+        /* D >>= 1; */
+        d_lo >>= 1; d_lo |= d_hi << (LIMB_T_BITS - 1);
+        d_hi >>= 1;
     }
 
     mask = 0 - (Q >> (LIMB_T_BITS - 1));    /* does it overflow? */
 
+    /* borrow, Rx = R - D; */
+    Rx = (llimb_t)r_lo - d_lo;
+    rx = (limb_t)Rx;
+    borrow = (limb_t)(Rx >> LIMB_T_BITS) & 1;
+    Rx = r_hi - (d_hi + (llimb_t)borrow);
+    borrow = (limb_t)(Rx >> LIMB_T_BITS) & 1;
+
     Q <<= 1;
-    Q |= (R >= D);
+    Q |= borrow ^ 1;
 
     return (Q | mask);
 }
