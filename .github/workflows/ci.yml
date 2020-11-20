@@ -1,4 +1,4 @@
-name: ubuntu-latest
+name: build
 
 on:
   push:
@@ -12,9 +12,12 @@ on:
     - master
 
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    runs-on: ubuntu-latest
+  rust-n-go:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
 
     steps:
     - uses: actions/checkout@v2
@@ -27,6 +30,47 @@ jobs:
           **/bindings/rust/target
         key: ${{ runner.os }}-cargo-5
         restore-keys: ${{ runner.os }}-cargo-4
+
+    - name: Environment
+      shell: bash
+      run: |
+        lscpu 2>/dev/null && echo --- || true
+        env | sort
+
+    - name: Rust
+      shell: bash
+      run: |
+        rustc --version
+        cd bindings/rust
+        if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+            cargo update
+        fi
+        cargo test --release
+        cargo clean -p blst
+        cargo clean -p blst --release
+        rm -rf target/.rustc_info.json
+        rm -rf target/{debug,release}/*/blst-*
+        rm -rf target/{debug,release}/incremental
+        rm -rf target/{debug,release}/build/src
+        rm -rf target/{debug,release}/build/build
+        rm -rf ~/.cargo/registry/src
+        rm -rf ~/.cargo/registry/index/*/.cache
+
+    - name: Go
+      shell: bash
+      run: |
+        go version
+        if ! (grep -q -e '^flags.*\badx\b' /proc/cpuinfo) 2>/dev/null; then
+            export CGO_CFLAGS="-O -D__BLST_PORTABLE__"
+        fi
+        cd bindings/go
+        go test -test.v
+
+  misc-ubuntu-latest:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
 
     - uses: actions/cache@v2
       with:
@@ -46,33 +90,6 @@ jobs:
         lscpu
         echo ---
         env | sort
-
-    - name: Rust
-      run: |
-        rustc --version
-        cd bindings/rust
-        if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
-            cargo update
-        fi
-        cargo test --release
-        cargo clean -p blst
-        cargo clean -p blst --release
-        rm -rf target/.rustc_info.json
-        rm -rf target/{debug,release}/*/blst-*
-        rm -rf target/{debug,release}/incremental
-        rm -rf target/{debug,release}/build/src
-        rm -rf target/{debug,release}/build/build
-        rm -rf ~/.cargo/registry/src
-        rm -rf ~/.cargo/registry/index/*/.cache
-
-    - name: Go
-      run: |
-        go version
-        if ! (grep -q -e '^flags.*\badx\b' /proc/cpuinfo) 2>/dev/null; then
-            export CGO_CFLAGS="-O -D__BLST_PORTABLE__"
-        fi
-        cd bindings/go
-        go test -test.v
 
     - name: Python
       run: if [ -x bindings/python/run.me ]; then bindings/python/run.me; fi
