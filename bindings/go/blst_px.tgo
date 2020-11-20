@@ -14,12 +14,7 @@ func (p1 *P1Affine) Deserialize(in []byte) *P1Affine {
     if len(in) != BLST_P1_SERIALIZE_BYTES {
         return nil
     }
-    if C.blst_p1_deserialize(p1,
-        (*C.byte)(&in[0])) != C.BLST_SUCCESS {
-        return nil
-    }
-
-    if !bool(C.blst_p1_affine_in_g1(p1)) {
+    if C.blst_p1_deserialize(p1, (*C.byte)(&in[0])) != C.BLST_SUCCESS {
         return nil
     }
     return p1
@@ -34,12 +29,7 @@ func (p1 *P1Affine) Uncompress(in []byte) *P1Affine {
     if len(in) != BLST_P1_COMPRESS_BYTES {
         return nil
     }
-    if C.blst_p1_uncompress(p1,
-        (*C.byte)(&in[0])) != C.BLST_SUCCESS {
-        return nil
-    }
-
-    if !bool(C.blst_p1_affine_in_g1(p1)) {
+    if C.blst_p1_uncompress(p1, (*C.byte)(&in[0])) != C.BLST_SUCCESS {
         return nil
     }
     return p1

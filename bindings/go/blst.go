@@ -103,8 +103,8 @@ func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
 	return ctx
 }
 
-func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
-	msg []byte,
+func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
+	sig *P2Affine, sigGroupcheck bool, msg []byte,
 	optional ...[]byte) int { // aug
 	var aug []byte
 	var uaug *C.byte
@@ -119,15 +119,17 @@ func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
 		umsg = (*C.byte)(&msg[0])
 	}
 
-	r := C.blst_pairing_aggregate_pk_in_g1((*C.blst_pairing)(&ctx[0]), PK, sig,
+	r := C.blst_pairing_chk_n_aggr_pk_in_g1((*C.blst_pairing)(&ctx[0]),
+		PK, C.bool(pkValidate),
+		sig, C.bool(sigGroupcheck),
 		umsg, C.size_t(len(msg)),
 		uaug, C.size_t(len(aug)))
 
 	return int(r)
 }
 
-func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
-	msg []byte,
+func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
+	sig *P1Affine, sigGroupcheck bool, msg []byte,
 	optional ...[]byte) int { // aug
 	var aug []byte
 	var uaug *C.byte
@@ -142,14 +144,17 @@ func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
 		umsg = (*C.byte)(&msg[0])
 	}
 
-	r := C.blst_pairing_aggregate_pk_in_g2((*C.blst_pairing)(&ctx[0]), PK, sig,
+	r := C.blst_pairing_chk_n_aggr_pk_in_g2((*C.blst_pairing)(&ctx[0]),
+		PK, C.bool(pkValidate),
+		sig, C.bool(sigGroupcheck),
 		umsg, C.size_t(len(msg)),
 		uaug, C.size_t(len(aug)))
 
 	return int(r)
 }
 
-func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
+func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
+	sig *P2Affine, sigGroupcheck bool,
 	rand *Scalar, randBits int, msg []byte,
 	optional ...[]byte) int { // aug
 	var aug []byte
@@ -165,8 +170,9 @@ func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
 		umsg = (*C.byte)(&msg[0])
 	}
 
-	r := C.blst_pairing_mul_n_aggregate_pk_in_g1((*C.blst_pairing)(&ctx[0]),
-		PK, sig,
+	r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g1((*C.blst_pairing)(&ctx[0]),
+		PK, C.bool(pkValidate),
+		sig, C.bool(sigGroupcheck),
 		&rand.b[0], C.size_t(randBits),
 		umsg, C.size_t(len(msg)),
 		uaug, C.size_t(len(aug)))
@@ -174,7 +180,8 @@ func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, sig *P2Affine,
 	return int(r)
 }
 
-func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
+func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
+	sig *P1Affine, sigGroupcheck bool,
 	rand *Scalar, randBits int, msg []byte,
 	optional ...[]byte) int { // aug
 	var aug []byte
@@ -190,8 +197,9 @@ func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, sig *P1Affine,
 		umsg = (*C.byte)(&msg[0])
 	}
 
-	r := C.blst_pairing_mul_n_aggregate_pk_in_g2((*C.blst_pairing)(&ctx[0]),
-		PK, sig,
+	r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g2((*C.blst_pairing)(&ctx[0]),
+		PK, C.bool(pkValidate),
+		sig, C.bool(sigGroupcheck),
 		&rand.b[0], C.size_t(randBits),
 		umsg, C.size_t(len(msg)),
 		uaug, C.size_t(len(aug)))
@@ -239,6 +247,15 @@ func (pk *P1Affine) KeyValidate() bool {
 		bool(C.blst_p1_affine_in_g1(pk))
 }
 
+// sigInfcheck, check for infinity, is a way to avoid going
+// into resource-consuming verification. Passing 'false' is
+// always cryptographically safe, but application might want
+// to guard against obviously bogus individual[!] signatures.
+func (sig *P2Affine) SigValidate(sigInfcheck bool) bool {
+	return (sigInfcheck && !bool(C.blst_p2_affine_is_inf(sig))) ||
+		bool(C.blst_p2_affine_in_g2(sig))
+}
+
 //
 // Sign
 //
@@ -270,30 +287,32 @@ type sigGetterP2 func() *P2Affine
 type pkGetterP1 func(i uint32, temp *P1Affine) (*P1Affine, []byte)
 
 // Single verify with decompressed pk
-func (sig *P2Affine) Verify(pk *P1Affine, msg Message, dst []byte,
+func (sig *P2Affine) Verify(sigGroupcheck bool, pk *P1Affine, pkValidate bool,
+	msg Message, dst []byte,
 	optional ...interface{}) bool { // useHash bool, aug []byte
 
 	aug, _, useHash, ok := parseOpts(optional...)
 	if !ok {
 		return false
 	}
-	return sig.AggregateVerify([]*P1Affine{pk}, []Message{msg}, dst,
-		useHash, [][]byte{aug})
+	return sig.AggregateVerify(sigGroupcheck, []*P1Affine{pk}, pkValidate,
+		[]Message{msg}, dst, useHash, [][]byte{aug})
 }
 
 // Single verify with compressed pk
 // Uses a dummy signature to get the correct type
-func (dummy *P2Affine) VerifyCompressed(sig []byte, pk []byte,
-	msg Message, dst []byte,
+func (dummy *P2Affine) VerifyCompressed(sig []byte, sigGroupcheck bool,
+	pk []byte, pkValidate bool, msg Message, dst []byte,
 	optional ...bool) bool { // useHash bool, usePksAsAugs bool
 
-	return dummy.AggregateVerifyCompressed(sig, [][]byte{pk},
+	return dummy.AggregateVerifyCompressed(sig, sigGroupcheck,
+		[][]byte{pk}, pkValidate,
 		[]Message{msg}, dst, optional...)
 }
 
 // Aggregate verify with uncompressed signature and public keys
-func (sig *P2Affine) AggregateVerify(pks []*P1Affine, msgs []Message,
-	dst []byte,
+func (sig *P2Affine) AggregateVerify(sigGroupcheck bool,
+	pks []*P1Affine, pksVerify bool, msgs []Message, dst []byte,
 	optional ...interface{}) bool { // useHash bool, augs [][]byte
 
 	// sanity checks and argument parsing
@@ -319,13 +338,14 @@ func (sig *P2Affine) AggregateVerify(pks []*P1Affine, msgs []Message,
 		}
 	}
 
-	return coreAggregateVerifyPkInG1(sigFn, pkFn, msgs, dst, useHash)
+	return coreAggregateVerifyPkInG1(sigFn, sigGroupcheck, pkFn, pksVerify,
+		msgs, dst, useHash)
 }
 
 // Aggregate verify with compressed signature and public keys
 // Uses a dummy signature to get the correct type
-func (dummy *P2Affine) AggregateVerifyCompressed(sig []byte, pks [][]byte,
-	msgs []Message, dst []byte,
+func (dummy *P2Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
+	pks [][]byte, pksVerify bool, msgs []Message, dst []byte,
 	optional ...bool) bool { // useHash bool, usePksAsAugs bool
 
 	// sanity checks and argument parsing
@@ -375,12 +395,13 @@ func (dummy *P2Affine) AggregateVerifyCompressed(sig []byte, pks [][]byte,
 		}
 		return pk, nil
 	}
-	return coreAggregateVerifyPkInG1(sigFn, pkFn, msgs, dst, useHash)
+	return coreAggregateVerifyPkInG1(sigFn, sigGroupcheck, pkFn, pksVerify,
+		msgs, dst, useHash)
 }
 
 // TODO: check message uniqueness
-func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
-	msgs []Message, dst []byte,
+func coreAggregateVerifyPkInG1(sigFn sigGetterP2, sigGroupcheck bool,
+	pkFn pkGetterP1, pkValidate bool, msgs []Message, dst []byte,
 	optional ...bool) bool { // useHash
 
 	n := len(msgs)
@@ -437,8 +458,8 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 				}
 
 				// Pairing and accumulate
-				ret := PairingAggregatePkInG1(pairing, curPk, nil, msgs[work],
-					aug)
+				ret := PairingAggregatePkInG1(pairing, curPk, pkValidate,
+					nil, false, msgs[work], aug)
 				if ret != C.BLST_SUCCESS {
 					atomic.StoreInt32(&valid, 0)
 					break
@@ -461,7 +482,12 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 	sig := sigFn()
 	if sig == nil {
 		atomic.StoreInt32(&valid, 0)
-	} else {
+	}
+	if atomic.LoadInt32(&valid) > 0 && sigGroupcheck &&
+		!sig.SigValidate(false) {
+		atomic.StoreInt32(&valid, 0)
+	}
+	if atomic.LoadInt32(&valid) > 0 {
 		C.blst_aggregated_in_g2(&gtsig, sig)
 	}
 	mutex.Unlock()
@@ -488,8 +514,10 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 	return PairingFinalVerify(pairings, &gtsig)
 }
 
-func (sig *P2Affine) FastAggregateVerify(pks []*P1Affine, msg Message,
-	dst []byte,
+// pks are assumed to be verified for proof of possession,
+// which implies that they are already group-checked
+func (sig *P2Affine) FastAggregateVerify(sigGroupcheck bool,
+	pks []*P1Affine, msg Message, dst []byte,
 	optional ...interface{}) bool { // pass-through to Verify
 	n := len(pks)
 
@@ -498,19 +526,19 @@ func (sig *P2Affine) FastAggregateVerify(pks []*P1Affine, msg Message,
 		return false
 	}
 
-	aggregator := new(P1Aggregate).Aggregate(pks)
-	if aggregator == nil {
+	aggregator := new(P1Aggregate)
+	if !aggregator.Aggregate(pks, false) {
 		return false
 	}
 	pkAff := aggregator.ToAffine()
 
 	// Verify
-	return sig.Verify(pkAff, msg, dst, optional...)
+	return sig.Verify(sigGroupcheck, pkAff, false, msg, dst, optional...)
 }
 
 func (dummy *P2Affine) MultipleAggregateVerify(sigs []*P2Affine,
-	pks []*P1Affine, msgs []Message, dst []byte, randFn func(*Scalar),
-	randBits int,
+	sigsGroupcheck bool, pks []*P1Affine, pksVerify bool,
+	msgs []Message, dst []byte, randFn func(*Scalar), randBits int,
 	optional ...interface{}) bool { // useHash
 
 	// Sanity checks and argument parsing
@@ -535,14 +563,15 @@ func (dummy *P2Affine) MultipleAggregateVerify(sigs []*P2Affine,
 			return sigs[work], pks[work], rand, aug
 		}
 
-	return multipleAggregateVerifyPkInG1(paramsFn, msgs, dst,
-		randBits, useHash)
+	return multipleAggregateVerifyPkInG1(paramsFn, sigsGroupcheck, pksVerify,
+		msgs, dst, randBits, useHash)
 }
 
 type mulAggGetterPkInG1 func(work uint32, sig *P2Affine, pk *P1Affine,
 	rand *Scalar) (*P2Affine, *P1Affine, *Scalar, []byte)
 
-func multipleAggregateVerifyPkInG1(paramsFn mulAggGetterPkInG1, msgs []Message,
+func multipleAggregateVerifyPkInG1(paramsFn mulAggGetterPkInG1,
+	sigsGroupcheck bool, pksVerify bool, msgs []Message,
 	dst []byte, randBits int,
 	optional ...bool) bool { // useHash
 	n := len(msgs)
@@ -587,7 +616,8 @@ func multipleAggregateVerifyPkInG1(paramsFn mulAggGetterPkInG1, msgs []Message,
 				curSig, curPk, curRand, aug := paramsFn(work, &tempSig,
 					&tempPk, &tempRand)
 
-				if PairingMulNAggregatePkInG1(pairing, curPk, curSig, curRand,
+				if PairingMulNAggregatePkInG1(pairing, curPk, pksVerify,
+					curSig, sigsGroupcheck, curRand,
 					randBits, msgs[work], aug) !=
 					C.BLST_SUCCESS {
 					atomic.StoreInt32(&valid, 0)
@@ -638,21 +668,23 @@ type P2Aggregate struct {
 }
 
 // Aggregate uncompressed elements
-func (agg *P2Aggregate) Aggregate(elmts []*P2Affine) *P2Aggregate {
+func (agg *P2Aggregate) Aggregate(elmts []*P2Affine,
+	groupcheck bool) bool {
 	if len(elmts) == 0 {
-		return agg
+		return true
 	}
 	getter := func(i uint32, _ *P2Affine) *P2Affine { return elmts[i] }
-	if !agg.aggregate(getter, len(elmts)) {
-		return nil
+	if !agg.aggregate(getter, groupcheck, len(elmts)) {
+		return false
 	}
-	return agg
+	return true
 }
 
 // Aggregate compressed elements
-func (agg *P2Aggregate) AggregateCompressed(elmts [][]byte) *P2Aggregate {
+func (agg *P2Aggregate) AggregateCompressed(elmts [][]byte,
+	groupcheck bool) bool {
 	if len(elmts) == 0 {
-		return agg
+		return true
 	}
 	getter := func(i uint32, p *P2Affine) *P2Affine {
 		bytes := elmts[i]
@@ -671,13 +703,13 @@ func (agg *P2Aggregate) AggregateCompressed(elmts [][]byte) *P2Aggregate {
 		}
 		return p
 	}
-	if !agg.aggregate(getter, len(elmts)) {
-		return nil
+	if !agg.aggregate(getter, groupcheck, len(elmts)) {
+		return false
 	}
-	return agg
+	return true
 }
 
-func (agg *P2Aggregate) AddAggregate(other *P2Aggregate) *P2Aggregate {
+func (agg *P2Aggregate) AddAggregate(other *P2Aggregate) {
 	if other.v == nil {
 		// do nothing
 	} else if agg.v == nil {
@@ -685,17 +717,19 @@ func (agg *P2Aggregate) AddAggregate(other *P2Aggregate) *P2Aggregate {
 	} else {
 		C.blst_p2_add(agg.v, agg.v, other.v)
 	}
-	return agg
 }
 
-func (agg *P2Aggregate) Add(elmt *P2Affine) *P2Aggregate {
+func (agg *P2Aggregate) Add(elmt *P2Affine, groupcheck bool) bool {
+	if groupcheck && !bool(C.blst_p2_affine_in_g2(elmt)) {
+		return false
+	}
 	if agg.v == nil {
 		agg.v = new(P2)
 		C.blst_p2_from_affine(agg.v, elmt)
 	} else {
 		C.blst_p2_add_or_double_affine(agg.v, agg.v, elmt)
 	}
-	return agg
+	return true
 }
 
 func (agg *P2Aggregate) ToAffine() *P2Affine {
@@ -705,7 +739,9 @@ func (agg *P2Aggregate) ToAffine() *P2Affine {
 	return agg.v.ToAffine()
 }
 
-func (agg *P2Aggregate) aggregate(getter aggGetterP2, n int) bool {
+func (agg *P2Aggregate) aggregate(getter aggGetterP2, groupcheck bool,
+	n int) bool {
+
 	if n == 0 {
 		return true
 	}
@@ -738,6 +774,10 @@ func (agg *P2Aggregate) aggregate(getter aggGetterP2, n int) bool {
 				// Signature validate
 				curElmt := getter(work, &temp)
 				if curElmt == nil {
+					atomic.StoreInt32(&valid, 0)
+					break
+				}
+				if groupcheck && !bool(C.blst_p2_affine_in_g2(curElmt)) {
 					atomic.StoreInt32(&valid, 0)
 					break
 				}
@@ -805,6 +845,15 @@ func (pk *P2Affine) KeyValidate() bool {
 		bool(C.blst_p2_affine_in_g2(pk))
 }
 
+// sigInfcheck, check for infinity, is a way to avoid going
+// into resource-consuming verification. Passing 'false' is
+// always cryptographically safe, but application might want
+// to guard against obviously bogus individual[!] signatures.
+func (sig *P1Affine) SigValidate(sigInfcheck bool) bool {
+	return (sigInfcheck && !bool(C.blst_p1_affine_is_inf(sig))) ||
+		bool(C.blst_p1_affine_in_g1(sig))
+}
+
 //
 // Sign
 //
@@ -836,30 +885,32 @@ type sigGetterP1 func() *P1Affine
 type pkGetterP2 func(i uint32, temp *P2Affine) (*P2Affine, []byte)
 
 // Single verify with decompressed pk
-func (sig *P1Affine) Verify(pk *P2Affine, msg Message, dst []byte,
+func (sig *P1Affine) Verify(sigGroupcheck bool, pk *P2Affine, pkValidate bool,
+	msg Message, dst []byte,
 	optional ...interface{}) bool { // useHash bool, aug []byte
 
 	aug, _, useHash, ok := parseOpts(optional...)
 	if !ok {
 		return false
 	}
-	return sig.AggregateVerify([]*P2Affine{pk}, []Message{msg}, dst,
-		useHash, [][]byte{aug})
+	return sig.AggregateVerify(sigGroupcheck, []*P2Affine{pk}, pkValidate,
+		[]Message{msg}, dst, useHash, [][]byte{aug})
 }
 
 // Single verify with compressed pk
 // Uses a dummy signature to get the correct type
-func (dummy *P1Affine) VerifyCompressed(sig []byte, pk []byte,
-	msg Message, dst []byte,
+func (dummy *P1Affine) VerifyCompressed(sig []byte, sigGroupcheck bool,
+	pk []byte, pkValidate bool, msg Message, dst []byte,
 	optional ...bool) bool { // useHash bool, usePksAsAugs bool
 
-	return dummy.AggregateVerifyCompressed(sig, [][]byte{pk},
+	return dummy.AggregateVerifyCompressed(sig, sigGroupcheck,
+		[][]byte{pk}, pkValidate,
 		[]Message{msg}, dst, optional...)
 }
 
 // Aggregate verify with uncompressed signature and public keys
-func (sig *P1Affine) AggregateVerify(pks []*P2Affine, msgs []Message,
-	dst []byte,
+func (sig *P1Affine) AggregateVerify(sigGroupcheck bool,
+	pks []*P2Affine, pksVerify bool, msgs []Message, dst []byte,
 	optional ...interface{}) bool { // useHash bool, augs [][]byte
 
 	// sanity checks and argument parsing
@@ -885,13 +936,14 @@ func (sig *P1Affine) AggregateVerify(pks []*P2Affine, msgs []Message,
 		}
 	}
 
-	return coreAggregateVerifyPkInG2(sigFn, pkFn, msgs, dst, useHash)
+	return coreAggregateVerifyPkInG2(sigFn, sigGroupcheck, pkFn, pksVerify,
+		msgs, dst, useHash)
 }
 
 // Aggregate verify with compressed signature and public keys
 // Uses a dummy signature to get the correct type
-func (dummy *P1Affine) AggregateVerifyCompressed(sig []byte, pks [][]byte,
-	msgs []Message, dst []byte,
+func (dummy *P1Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
+	pks [][]byte, pksVerify bool, msgs []Message, dst []byte,
 	optional ...bool) bool { // useHash bool, usePksAsAugs bool
 
 	// sanity checks and argument parsing
@@ -941,12 +993,13 @@ func (dummy *P1Affine) AggregateVerifyCompressed(sig []byte, pks [][]byte,
 		}
 		return pk, nil
 	}
-	return coreAggregateVerifyPkInG2(sigFn, pkFn, msgs, dst, useHash)
+	return coreAggregateVerifyPkInG2(sigFn, sigGroupcheck, pkFn, pksVerify,
+		msgs, dst, useHash)
 }
 
 // TODO: check message uniqueness
-func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
-	msgs []Message, dst []byte,
+func coreAggregateVerifyPkInG2(sigFn sigGetterP1, sigGroupcheck bool,
+	pkFn pkGetterP2, pkValidate bool, msgs []Message, dst []byte,
 	optional ...bool) bool { // useHash
 
 	n := len(msgs)
@@ -1003,8 +1056,8 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 				}
 
 				// Pairing and accumulate
-				ret := PairingAggregatePkInG2(pairing, curPk, nil, msgs[work],
-					aug)
+				ret := PairingAggregatePkInG2(pairing, curPk, pkValidate,
+					nil, false, msgs[work], aug)
 				if ret != C.BLST_SUCCESS {
 					atomic.StoreInt32(&valid, 0)
 					break
@@ -1027,7 +1080,12 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 	sig := sigFn()
 	if sig == nil {
 		atomic.StoreInt32(&valid, 0)
-	} else {
+	}
+	if atomic.LoadInt32(&valid) > 0 && sigGroupcheck &&
+		!sig.SigValidate(false) {
+		atomic.StoreInt32(&valid, 0)
+	}
+	if atomic.LoadInt32(&valid) > 0 {
 		C.blst_aggregated_in_g1(&gtsig, sig)
 	}
 	mutex.Unlock()
@@ -1054,8 +1112,10 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 	return PairingFinalVerify(pairings, &gtsig)
 }
 
-func (sig *P1Affine) FastAggregateVerify(pks []*P2Affine, msg Message,
-	dst []byte,
+// pks are assumed to be verified for proof of possession,
+// which implies that they are already group-checked
+func (sig *P1Affine) FastAggregateVerify(sigGroupcheck bool,
+	pks []*P2Affine, msg Message, dst []byte,
 	optional ...interface{}) bool { // pass-through to Verify
 	n := len(pks)
 
@@ -1064,19 +1124,19 @@ func (sig *P1Affine) FastAggregateVerify(pks []*P2Affine, msg Message,
 		return false
 	}
 
-	aggregator := new(P2Aggregate).Aggregate(pks)
-	if aggregator == nil {
+	aggregator := new(P2Aggregate)
+	if !aggregator.Aggregate(pks, false) {
 		return false
 	}
 	pkAff := aggregator.ToAffine()
 
 	// Verify
-	return sig.Verify(pkAff, msg, dst, optional...)
+	return sig.Verify(sigGroupcheck, pkAff, false, msg, dst, optional...)
 }
 
 func (dummy *P1Affine) MultipleAggregateVerify(sigs []*P1Affine,
-	pks []*P2Affine, msgs []Message, dst []byte, randFn func(*Scalar),
-	randBits int,
+	sigsGroupcheck bool, pks []*P2Affine, pksVerify bool,
+	msgs []Message, dst []byte, randFn func(*Scalar), randBits int,
 	optional ...interface{}) bool { // useHash
 
 	// Sanity checks and argument parsing
@@ -1101,14 +1161,15 @@ func (dummy *P1Affine) MultipleAggregateVerify(sigs []*P1Affine,
 			return sigs[work], pks[work], rand, aug
 		}
 
-	return multipleAggregateVerifyPkInG2(paramsFn, msgs, dst,
-		randBits, useHash)
+	return multipleAggregateVerifyPkInG2(paramsFn, sigsGroupcheck, pksVerify,
+		msgs, dst, randBits, useHash)
 }
 
 type mulAggGetterPkInG2 func(work uint32, sig *P1Affine, pk *P2Affine,
 	rand *Scalar) (*P1Affine, *P2Affine, *Scalar, []byte)
 
-func multipleAggregateVerifyPkInG2(paramsFn mulAggGetterPkInG2, msgs []Message,
+func multipleAggregateVerifyPkInG2(paramsFn mulAggGetterPkInG2,
+	sigsGroupcheck bool, pksVerify bool, msgs []Message,
 	dst []byte, randBits int,
 	optional ...bool) bool { // useHash
 	n := len(msgs)
@@ -1153,7 +1214,8 @@ func multipleAggregateVerifyPkInG2(paramsFn mulAggGetterPkInG2, msgs []Message,
 				curSig, curPk, curRand, aug := paramsFn(work, &tempSig,
 					&tempPk, &tempRand)
 
-				if PairingMulNAggregatePkInG2(pairing, curPk, curSig, curRand,
+				if PairingMulNAggregatePkInG2(pairing, curPk, pksVerify,
+					curSig, sigsGroupcheck, curRand,
 					randBits, msgs[work], aug) !=
 					C.BLST_SUCCESS {
 					atomic.StoreInt32(&valid, 0)
@@ -1204,21 +1266,23 @@ type P1Aggregate struct {
 }
 
 // Aggregate uncompressed elements
-func (agg *P1Aggregate) Aggregate(elmts []*P1Affine) *P1Aggregate {
+func (agg *P1Aggregate) Aggregate(elmts []*P1Affine,
+	groupcheck bool) bool {
 	if len(elmts) == 0 {
-		return agg
+		return true
 	}
 	getter := func(i uint32, _ *P1Affine) *P1Affine { return elmts[i] }
-	if !agg.aggregate(getter, len(elmts)) {
-		return nil
+	if !agg.aggregate(getter, groupcheck, len(elmts)) {
+		return false
 	}
-	return agg
+	return true
 }
 
 // Aggregate compressed elements
-func (agg *P1Aggregate) AggregateCompressed(elmts [][]byte) *P1Aggregate {
+func (agg *P1Aggregate) AggregateCompressed(elmts [][]byte,
+	groupcheck bool) bool {
 	if len(elmts) == 0 {
-		return agg
+		return true
 	}
 	getter := func(i uint32, p *P1Affine) *P1Affine {
 		bytes := elmts[i]
@@ -1237,13 +1301,13 @@ func (agg *P1Aggregate) AggregateCompressed(elmts [][]byte) *P1Aggregate {
 		}
 		return p
 	}
-	if !agg.aggregate(getter, len(elmts)) {
-		return nil
+	if !agg.aggregate(getter, groupcheck, len(elmts)) {
+		return false
 	}
-	return agg
+	return true
 }
 
-func (agg *P1Aggregate) AddAggregate(other *P1Aggregate) *P1Aggregate {
+func (agg *P1Aggregate) AddAggregate(other *P1Aggregate) {
 	if other.v == nil {
 		// do nothing
 	} else if agg.v == nil {
@@ -1251,17 +1315,19 @@ func (agg *P1Aggregate) AddAggregate(other *P1Aggregate) *P1Aggregate {
 	} else {
 		C.blst_p1_add(agg.v, agg.v, other.v)
 	}
-	return agg
 }
 
-func (agg *P1Aggregate) Add(elmt *P1Affine) *P1Aggregate {
+func (agg *P1Aggregate) Add(elmt *P1Affine, groupcheck bool) bool {
+	if groupcheck && !bool(C.blst_p1_affine_in_g1(elmt)) {
+		return false
+	}
 	if agg.v == nil {
 		agg.v = new(P1)
 		C.blst_p1_from_affine(agg.v, elmt)
 	} else {
 		C.blst_p1_add_or_double_affine(agg.v, agg.v, elmt)
 	}
-	return agg
+	return true
 }
 
 func (agg *P1Aggregate) ToAffine() *P1Affine {
@@ -1271,7 +1337,9 @@ func (agg *P1Aggregate) ToAffine() *P1Affine {
 	return agg.v.ToAffine()
 }
 
-func (agg *P1Aggregate) aggregate(getter aggGetterP1, n int) bool {
+func (agg *P1Aggregate) aggregate(getter aggGetterP1, groupcheck bool,
+	n int) bool {
+
 	if n == 0 {
 		return true
 	}
@@ -1304,6 +1372,10 @@ func (agg *P1Aggregate) aggregate(getter aggGetterP1, n int) bool {
 				// Signature validate
 				curElmt := getter(work, &temp)
 				if curElmt == nil {
+					atomic.StoreInt32(&valid, 0)
+					break
+				}
+				if groupcheck && !bool(C.blst_p1_affine_in_g1(curElmt)) {
 					atomic.StoreInt32(&valid, 0)
 					break
 				}
@@ -1368,12 +1440,7 @@ func (p1 *P1Affine) Deserialize(in []byte) *P1Affine {
 	if len(in) != BLST_P1_SERIALIZE_BYTES {
 		return nil
 	}
-	if C.blst_p1_deserialize(p1,
-		(*C.byte)(&in[0])) != C.BLST_SUCCESS {
-		return nil
-	}
-
-	if !bool(C.blst_p1_affine_in_g1(p1)) {
+	if C.blst_p1_deserialize(p1, (*C.byte)(&in[0])) != C.BLST_SUCCESS {
 		return nil
 	}
 	return p1
@@ -1388,12 +1455,7 @@ func (p1 *P1Affine) Uncompress(in []byte) *P1Affine {
 	if len(in) != BLST_P1_COMPRESS_BYTES {
 		return nil
 	}
-	if C.blst_p1_uncompress(p1,
-		(*C.byte)(&in[0])) != C.BLST_SUCCESS {
-		return nil
-	}
-
-	if !bool(C.blst_p1_affine_in_g1(p1)) {
+	if C.blst_p1_uncompress(p1, (*C.byte)(&in[0])) != C.BLST_SUCCESS {
 		return nil
 	}
 	return p1
@@ -1560,12 +1622,7 @@ func (p2 *P2Affine) Deserialize(in []byte) *P2Affine {
 	if len(in) != BLST_P2_SERIALIZE_BYTES {
 		return nil
 	}
-	if C.blst_p2_deserialize(p2,
-		(*C.byte)(&in[0])) != C.BLST_SUCCESS {
-		return nil
-	}
-
-	if !bool(C.blst_p2_affine_in_g2(p2)) {
+	if C.blst_p2_deserialize(p2, (*C.byte)(&in[0])) != C.BLST_SUCCESS {
 		return nil
 	}
 	return p2
@@ -1580,12 +1637,7 @@ func (p2 *P2Affine) Uncompress(in []byte) *P2Affine {
 	if len(in) != BLST_P2_COMPRESS_BYTES {
 		return nil
 	}
-	if C.blst_p2_uncompress(p2,
-		(*C.byte)(&in[0])) != C.BLST_SUCCESS {
-		return nil
-	}
-
-	if !bool(C.blst_p2_affine_in_g2(p2)) {
+	if C.blst_p2_uncompress(p2, (*C.byte)(&in[0])) != C.BLST_SUCCESS {
 		return nil
 	}
 	return p2
