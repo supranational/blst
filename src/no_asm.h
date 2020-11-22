@@ -688,14 +688,14 @@ limb_t div_3_limbs(const limb_t div_top[2], limb_t d_lo, limb_t d_hi)
     size_t i;
 
     for (i = 0; i < LIMB_T_BITS; i++) {
-        /* borrow, Rx = R - D; */
+        /* "borrow, Rx = R - D" */
         Rx = (llimb_t)r_lo - d_lo;
         rx = (limb_t)Rx;
         borrow = (limb_t)(Rx >> LIMB_T_BITS) & 1;
         Rx = r_hi - (d_hi + (llimb_t)borrow);
         borrow = (limb_t)(Rx >> LIMB_T_BITS) & 1;
 
-        /* if (R >= D) R -= D; */
+        /* "if (R >= D) R -= D" */
         r_lo = ((r_lo ^ rx) & (0 - borrow)) ^ rx;
         rx = (limb_t)Rx;
         r_hi = ((r_hi ^ rx) & (0 - borrow)) ^ rx;
@@ -703,14 +703,14 @@ limb_t div_3_limbs(const limb_t div_top[2], limb_t d_lo, limb_t d_hi)
         Q <<= 1;
         Q |= borrow ^ 1;
 
-        /* D >>= 1; */
+        /* "D >>= 1" */
         d_lo >>= 1; d_lo |= d_hi << (LIMB_T_BITS - 1);
         d_hi >>= 1;
     }
 
     mask = 0 - (Q >> (LIMB_T_BITS - 1));    /* does it overflow? */
 
-    /* borrow, Rx = R - D; */
+    /* "borrow, Rx = R - D" */
     Rx = (llimb_t)r_lo - d_lo;
     rx = (limb_t)Rx;
     borrow = (limb_t)(Rx >> LIMB_T_BITS) & 1;
