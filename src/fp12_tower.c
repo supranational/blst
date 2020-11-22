@@ -538,9 +538,7 @@ static void inverse_fp2(vec384x ret, const vec384x a)
     sqr_fp(t0, a[0]);
     sqr_fp(t1, a[1]);
     add_fp(t0, t0, t1);
-    /* It's assumed that "higher-dimension" operations are performed
-     * on public data, hence no requirement for constant-time-ness. */
-    eucl_inverse_fp(t1, t0);
+    reciprocal_fp(t1, t0);
 
     mul_fp(ret[0], a[0], t1);
     mul_fp(ret[1], a[1], t1);

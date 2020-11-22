@@ -95,12 +95,14 @@ static void sqr_n_mul_fp(vec384 out, const vec384 a, size_t count,
 # define mul(ret,a,b)		mul_fp(ret,a,b)
 # define sqr_n_mul(ret,a,n,b)	sqr_n_mul_fp(ret,a,n,b)
 
-# include "recip-addchain.h"
 static void reciprocal_fp(vec384 out, const vec384 inp)
 {
-    RECIPROCAL_MOD_BLS12_381_P(out, inp, vec384);
+    vec768 temp;
+
+    ct_inverse_mod_383(temp, inp, BLS12_381_P);
+    redc_mont_384(out, temp, BLS12_381_P, p0);
+    mul_mont_384(out, out, BLS12_381_RR, BLS12_381_P, p0);
 }
-# undef RECIPROCAL_MOD_BLS12_381_P
 
 # include "sqrt-addchain.h"
 static void recip_sqrt_fp_3mod4(vec384 out, const vec384 inp)
