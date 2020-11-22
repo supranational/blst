@@ -5,10 +5,22 @@
       'sources': [
         'blst_wrap.cpp',
         '../../src/server.c',
-        '../../build/assembly.S'
       ],
       'include_dirs': [ '..' ],
-      'cflags_cc': [ '-fexceptions' ],
+      'conditions': [
+        [ 'OS=="win"', {
+            'cflags_cc': [ '/EHsc' ],
+            'sources':   [ '../../build/win64/*-x86_64.asm' ],
+          }, {
+            'cflags_cc': [ '-fexceptions' ],
+            'sources':   [ '../../build/assembly.S' ],
+          }
+        ],
+        [ 'OS=="linux"', {
+            'ldflags': [ '-Wl,-Bsymbolic' ],
+          }
+        ],
+      ],
     },
   ]
 }
