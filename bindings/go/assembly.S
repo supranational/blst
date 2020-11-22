@@ -5,6 +5,11 @@
 #  else
 #   include "elf/sha256-x86_64.s"
 #  endif
+#  if defined(__ADX__) && !defined(__BLST_PORTABLE__)
+#   include "elf/ctx_inverse_mod_384-x86_64.s"
+#  else
+#   include "elf/ctq_inverse_mod_384-x86_64.s"
+#  endif
 #  include "elf/inverse_mod_384-x86_64.s"
 #  include "elf/add_mod_384-x86_64.s"
 #  include "elf/add_mod_384x384-x86_64.s"
@@ -27,6 +32,11 @@
 #  else
 #   include "coff/sha256-x86_64.s"
 #  endif
+#  if defined(__ADX__) && !defined(__BLST_PORTABLE__)
+#   include "coff/ctx_inverse_mod_384-x86_64.s"
+#  else
+#   include "coff/ctq_inverse_mod_384-x86_64.s"
+#  endif
 #  include "coff/inverse_mod_384-x86_64.s"
 #  include "coff/add_mod_384-x86_64.s"
 #  include "coff/add_mod_384x384-x86_64.s"
@@ -45,6 +55,11 @@
 #  include "coff/div3w-x86_64.s"
 # elif defined(__APPLE__)
 #  include "mach-o/sha256-x86_64.s"
+#  if defined(__ADX__) && !defined(__BLST_PORTABLE__)
+#   include "mach-o/ctx_inverse_mod_384-x86_64.s"
+#  else
+#   include "mach-o/ctq_inverse_mod_384-x86_64.s"
+#  endif
 #  include "mach-o/inverse_mod_384-x86_64.s"
 #  include "mach-o/add_mod_384-x86_64.s"
 #  include "mach-o/add_mod_384x384-x86_64.s"
@@ -65,6 +80,7 @@
 #elif defined(__aarch64__)
 # if defined(__ELF__)
 #  include "elf/sha256-armv8.S"
+#  include "elf/ct_inverse_mod_384-armv8.S"
 #  include "elf/inverse_mod_384-armv8.S"
 #  include "elf/add_mod_384-armv8.S"
 #  define __add_mod_384     __add_mont_384
@@ -76,6 +92,7 @@
 #  include "elf/div3w-armv8.S"
 # elif defined(_WIN64)
 #  include "coff/sha256-armv8.S"
+#  include "coff/ct_inverse_mod_384-armv8.S"
 #  include "coff/inverse_mod_384-armv8.S"
 #  include "coff/add_mod_384-armv8.S"
 #  define __add_mod_384     __add_mont_384
@@ -87,6 +104,7 @@
 #  include "coff/div3w-armv8.S"
 # elif defined(__APPLE__)
 #  include "mach-o/sha256-armv8.S"
+#  include "mach-o/ct_inverse_mod_384-armv8.S"
 #  include "mach-o/inverse_mod_384-armv8.S"
 #  include "mach-o/add_mod_384-armv8.S"
 #  define __add_mod_384     __add_mont_384
@@ -98,7 +116,7 @@
 #  include "mach-o/div3w-armv8.S"
 # endif
 #elif defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__==4
-/* inaccurate way to detect 32-bit processor, but it's close enough */
+/* inaccurate way to detect a 32-bit processor, but it's close enough */
 #else
 # error "unsupported platform"
 #endif
