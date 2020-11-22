@@ -272,6 +272,9 @@ static inline void vec_select(void *ret, const void *a, const void *b,
     }
 }
 
+static inline limb_t is_zero(limb_t l)
+{   return (~l & (l - 1)) >> (LIMB_T_BITS - 1);   }
+
 static inline limb_t vec_is_zero(const void *a, size_t num)
 {
     const limb_t *ap = (const limb_t *)a;
@@ -283,7 +286,7 @@ static inline limb_t vec_is_zero(const void *a, size_t num)
     for (acc = 0, i = 0; i < num; i++)
         acc |= ap[i];
 
-    return (~acc & (acc - 1)) >> (LIMB_T_BITS - 1);
+    return is_zero(acc);
 }
 
 static inline limb_t vec_is_equal(const void *a, const void *b, size_t num)
@@ -298,7 +301,7 @@ static inline limb_t vec_is_equal(const void *a, const void *b, size_t num)
     for (acc = 0, i = 0; i < num; i++)
         acc |= ap[i] ^ bp[i];
 
-    return (~acc & (acc - 1)) >> (LIMB_T_BITS - 1);
+    return is_zero(acc);
 }
 
 static inline void cneg_mod_384x(vec384x ret, const vec384x a, limb_t flag,
