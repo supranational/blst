@@ -12,7 +12,6 @@ os:
     - osx
 
 arch:
-    - amd64
     - arm64
 
 before_script:
@@ -43,14 +42,12 @@ script:
 
 matrix:
     include:
-      - os: windows
-        language: rust
-        rust: stable-msvc
-      - os: windows
-        language: go
       - os: linux
         arch: arm64
         language: go
+      - os: osx
+        arch: amd64
+        language: rust
 
 notifications:
     email: false
