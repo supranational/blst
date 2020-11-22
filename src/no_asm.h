@@ -6,6 +6,8 @@
 
 #if LIMB_T_BITS==32
 typedef unsigned long long llimb_t;
+typedef long long sllimb_t;
+typedef int slimb_t;
 #endif
 
 static void mul_mont_n(limb_t ret[], const limb_t a[], const limb_t b[],
@@ -273,7 +275,7 @@ static limb_t check_mod_n(const byte a[], const limb_t p[], size_t n)
         borrow = (limb_t)(limbx >> LIMB_T_BITS) & 1;
     }
 
-    return borrow & (((~acc & (acc - 1)) >> (LIMB_T_BITS - 1)) ^ 1);
+    return borrow & (is_zero(acc) ^ 1);
 }
 
 #define CHECK_MOD_IMPL(bits) \
@@ -390,7 +392,7 @@ static void rshift_mod_n(limb_t ret[], const limb_t a[], size_t count,
             next = ret[i+1];
             ret[i] = limb | next << (LIMB_T_BITS-1);
         }
-	ret[i] = next >> 1 | carry << (LIMB_T_BITS-1);
+        ret[i] = next >> 1 | carry << (LIMB_T_BITS-1);
 
         a = ret;
     }
@@ -663,6 +665,293 @@ void sqr_mont_382x(vec384x ret, const vec384x a,
     }
 }
 
+#define MSB(x) ((x) >> (LIMB_T_BITS-1))
+
+static size_t num_bits(limb_t l)
+{
+    limb_t x, mask;
+    size_t bits = is_zero(l) ^ 1;
+
+    if (sizeof(limb_t) == 8) {
+        x = l >> (32 & (8*sizeof(limb_t)-1));
+        mask = 0 - MSB(0 - x);
+        bits += 32 & mask;
+        l ^= (x ^ l) & mask;
+    }
+
+    x = l >> 16;
+    mask = 0 - MSB(0 - x);
+    bits += 16 & mask;
+    l ^= (x ^ l) & mask;
+
+    x = l >> 8;
+    mask = 0 - MSB(0 - x);
+    bits += 8 & mask;
+    l ^= (x ^ l) & mask;
+
+    x = l >> 4;
+    mask = 0 - MSB(0 - x);
+    bits += 4 & mask;
+    l ^= (x ^ l) & mask;
+
+    x = l >> 2;
+    mask = 0 - MSB(0 - x);
+    bits += 2 & mask;
+    l ^= (x ^ l) & mask;
+
+    bits += l >> 1;
+
+    return bits;
+}
+
+/*
+ * https://eprint.iacr.org/2020/972 with 'k' being LIMB_T_BITS-1.
+ */
+static void ab_approximation_n(limb_t a_[2], const limb_t a[],
+                               limb_t b_[2], const limb_t b[], size_t n)
+{
+    limb_t a_hi, a_lo, b_hi, b_lo, mask;
+    size_t i;
+
+    i = n-1;
+    a_hi = a[i],    a_lo = a[i-1];
+    b_hi = b[i],    b_lo = b[i-1];
+    for (i--; --i;) {
+        mask = 0 - is_zero(a_hi | b_hi);
+        a_hi = ((a_lo ^ a_hi) & mask) ^ a_hi;
+        b_hi = ((b_lo ^ b_hi) & mask) ^ b_hi;
+        a_lo = ((a[i] ^ a_lo) & mask) ^ a_lo;
+        b_lo = ((b[i] ^ b_lo) & mask) ^ b_lo;
+    }
+    i = num_bits(a_hi | b_hi) & (LIMB_T_BITS-1);
+    /* |i| can be 0 if all a[2..]|b[2..] were zeros */
+    mask = 0 - (is_zero(i)^1);
+    a_hi <<= (0-i) & (LIMB_T_BITS-1); a_hi |= (a_lo & mask) >> i;
+    b_hi <<= (0-i) & (LIMB_T_BITS-1); b_hi |= (b_lo & mask) >> i;
+    mask = 0 - MSB(a_hi | b_hi);
+    /* if a[2..]|b[2..] were zeros, bring *[1] into *_hi... */
+    a_hi = ((a_hi ^ a_lo) & mask) ^ a_lo;
+    b_hi = ((b_hi ^ b_lo) & mask) ^ b_lo;
+    mask = 0 - MSB(a_hi | b_hi);
+    /* zero |mask| means that |a_| and |b_| values will be exact, and
+     * as for non-zero, two possibilities:
+     * a) a[2..]|b[2..] were non-zero and we have bitwise left-aligned
+     *    values in a_hi/b_hi;
+     * b) a[1]|b[1] has most significant bit set.
+     */
+    i = (size_t)(2 & mask);
+    a_hi >>= i; a_lo = a[0] << i;
+    b_hi >>= i; b_lo = b[0] << i;
+    a_lo >>= i; a_lo |= (a_hi & mask) << ((LIMB_T_BITS-2) & mask);
+    b_lo >>= i; b_lo |= (b_hi & mask) << ((LIMB_T_BITS-2) & mask);
+    a_hi >>= i;
+    b_hi >>= i;
+
+    a_[0] = a_lo, a_[1] = a_hi;
+    b_[0] = b_lo, b_[1] = b_hi;
+}
+
+typedef struct { limb_t f0, g0, f1, g1; } factors;
+
+static void inner_loop_n(factors *fg, const limb_t a_[2], const limb_t b_[2],
+                         size_t n)
+{
+    llimb_t limbx;
+    limb_t f0 = 1, g0 = 0, f1 = 0, g1 = 1;
+    limb_t a_lo, a_hi, b_lo, b_hi, t_lo, t_hi, odd, borrow, xorm;
+
+    a_lo = a_[0], a_hi = a_[1];
+    b_lo = b_[0], b_hi = b_[1];
+
+    while(n--) {
+        odd = 0 - (a_lo&1);
+
+        /* a_ -= b_ & odd; */
+        t_lo = a_lo, t_hi = a_hi;
+        limbx = a_lo - (llimb_t)(b_lo & odd);
+        a_lo = (limb_t)limbx;
+        borrow = (limb_t)(limbx >> LIMB_T_BITS) & 1;
+        limbx = a_hi - ((llimb_t)(b_hi & odd) + borrow);
+        a_hi = (limb_t)limbx;
+        borrow = (limb_t)(limbx >> LIMB_T_BITS);
+
+        /* negate a_-b_ if it borrowed */
+        a_lo ^= borrow;
+        a_hi ^= borrow;
+        limbx = a_lo + (llimb_t)(borrow & 1);
+        a_lo = (limb_t)limbx;
+        a_hi += (limb_t)(limbx >> LIMB_T_BITS) & 1;
+
+        /* b_=a_ if a_-b_ borrowed */
+        b_lo = ((t_lo ^ b_lo) & borrow) ^ b_lo;
+        b_hi = ((t_hi ^ b_hi) & borrow) ^ b_hi;
+
+        /* exchange f0 and f1 if a_-b_ borrowed */
+        xorm = (f0 ^ f1) & borrow;
+        f0 ^= xorm;
+        f1 ^= xorm;
+
+        /* exchange g0 and g1 if a_-b_ borrowed */
+        xorm = (g0 ^ g1) & borrow;
+        g0 ^= xorm;
+        g1 ^= xorm;
+
+        f0 -= f1 & odd;
+        g0 -= g1 & odd;
+        f1 <<= 1;
+        g1 <<= 1;
+        a_lo >>= 1; a_lo |= a_hi << (LIMB_T_BITS-1);
+        a_hi >>= 1;
+    }
+
+    fg->f0 = f0, fg->g0 = g0, fg->f1 = f1, fg->g1= g1;
+}
+
+static void cneg_n(limb_t ret[], const limb_t a[], limb_t neg, size_t n)
+{
+    llimb_t limbx;
+    limb_t carry;
+    size_t i;
+
+    for (carry=neg&1, i=0; i<n; i++) {
+        limbx = (llimb_t)(a[i] ^ neg) + carry;
+        ret[i] = (limb_t)limbx;
+        carry = (limb_t)(limbx >> LIMB_T_BITS);
+    }
+}
+
+static void add_n(limb_t ret[], const limb_t a[], limb_t b[], size_t n)
+{
+    llimb_t limbx;
+    limb_t carry;
+    size_t i;
+
+    for (carry=0, i=0; i<n; i++) {
+        limbx = a[i] + (b[i] + (llimb_t)carry);
+        ret[i] = (limb_t)limbx;
+        carry = (limb_t)(limbx >> LIMB_T_BITS);
+    }
+}
+
+static limb_t umul_n(limb_t ret[], const limb_t a[], limb_t b, size_t n)
+{
+    llimb_t limbx;
+    limb_t hi;
+    size_t i;
+
+    for (hi=0, i=0; i<n; i++) {
+        limbx = (b * (llimb_t)a[i]) + hi;
+        ret[i] = (limb_t)limbx;
+        hi = (limb_t)(limbx >> LIMB_T_BITS);
+    }
+
+    return hi;
+}
+
+static void smul_n_shift_n(limb_t ret[], const limb_t a[], limb_t *f_,
+                                         const limb_t b[], limb_t *g_, size_t n)
+{
+    llimb_t limbx;
+    limb_t a_[n+1], b_[n+1], f, g, neg, carry, hi;
+    size_t i;
+
+    /* |a|*|f_| */
+    f = *f_;
+    neg = 0 - MSB(f);
+    f = (f ^ neg) - neg;            /* ensure |f| is positive */
+    cneg_n(a_, a, neg, n);
+    hi = umul_n(a_, a_, f, n-1);
+    limbx = (llimb_t)((slimb_t)f * (sllimb_t)(slimb_t)a_[n-1]) + hi;
+    a_[n-1] = (limb_t)limbx;
+    a_[n] = (limb_t)(limbx >> LIMB_T_BITS);
+
+    /* |b|*|g_| */
+    g = *g_;
+    neg = 0 - MSB(g);
+    g = (g ^ neg) - neg;            /* ensure |g| is positive */
+    cneg_n(b_, b, neg, n);
+    hi = umul_n(b_, b_, g, n-1);
+    limbx = (llimb_t)((slimb_t)g * (sllimb_t)(slimb_t)b_[n-1]) + hi;
+    b_[n-1] = (limb_t)limbx;
+    b_[n] = (limb_t)(limbx >> LIMB_T_BITS);
+
+    /* |a|*|f_| + |b|*|g_| */
+    add_n(a_, a_, b_, n+1);
+
+    /* (|a|*|f_| + |b|*|g_|) >> k */
+    for (carry=a_[0], i=0; i<n; i++) {
+        hi = carry >> (LIMB_T_BITS-2);
+        carry = a_[i+1];
+        ret[i] = hi | (carry << 2);
+    }
+
+    /* ensure result is non-negative, fix up |f_| and |g_| accordingly */
+    neg = 0 - MSB(carry);
+    *f_ = (*f_ ^ neg) - neg;
+    *g_ = (*g_ ^ neg) - neg;
+    cneg_n(ret, ret, neg, n);
+}
+
+static void smul_2n(limb_t ret[], const limb_t u[], limb_t f,
+                                  const limb_t v[], limb_t g, size_t n)
+{
+    limb_t u_[n], v_[n], neg;
+
+    /* |u|*|f_| */
+    neg = 0 - MSB(f);
+    f = (f ^ neg) - neg;            /* ensure |f| is positive */
+    cneg_n(u_, u, neg, n);
+    umul_n(u_, u_, f, n);
+
+    /* |v|*|g_| */
+    neg = 0 - MSB(g);
+    g = (g ^ neg) - neg;            /* ensure |g| is positive */
+    cneg_n(v_, v, neg, n);
+    umul_n(v_, v_, g, n);
+
+    /* |u|*|f_| + |v|*|g_| */
+    add_n(ret, u_, v_, n);
+}
+
+static void ct_inverse_mod_n(limb_t ret[], const limb_t inp[],
+                             const limb_t mod[], size_t n)
+{
+    llimb_t limbx;
+    limb_t a[n], b[n], u[2*n], v[2*n], t[2*n];
+    limb_t a_[2], b_[2], sign, carry;
+    factors fg;
+    size_t i;
+
+    vec_copy(a, inp, sizeof(a));
+    vec_copy(b, mod, sizeof(b));
+    vec_zero(u, sizeof(u)); u[0] = 1;
+    vec_zero(v, sizeof(v));
+
+    for (i=0; i<(2*n*LIMB_T_BITS)/(LIMB_T_BITS-2); i++) {
+        ab_approximation_n(a_, a, b_, b, n);
+        inner_loop_n(&fg, a_, b_, LIMB_T_BITS-2);
+        smul_n_shift_n(t, a, &fg.f0, b, &fg.g0, n);
+        smul_n_shift_n(b, a, &fg.f1, b, &fg.g1, n);
+        vec_copy(a, t, sizeof(a));
+        smul_2n(t, u, fg.f0, v, fg.g0, 2*n);
+        smul_2n(v, u, fg.f1, v, fg.g1, 2*n);
+        vec_copy(u, t, sizeof(u));
+    }
+
+    inner_loop_n(&fg, a, b, (2*n*LIMB_T_BITS)%(LIMB_T_BITS-2));
+    smul_2n(ret, u, fg.f1, v, fg.g1, 2*n);
+
+    sign = 0 - MSB(ret[2*n-1]);
+    for (carry=0, i=0; i<n; i++) {
+        limbx = ret[n+i] + ((mod[i] & sign) + (llimb_t)carry);
+        ret[n+i] = (limb_t)limbx;
+        carry = (limb_t)(limbx >> LIMB_T_BITS);
+    }
+}
+
+inline void ct_inverse_mod_383(vec768 ret, const vec384 inp, const vec384 mod)
+{   ct_inverse_mod_n(ret, inp, mod, sizeof(vec384)/sizeof(limb_t));   }
+
 /*
  * |div_top| points at two most significant limbs of the dividend, |d_hi|
  * and |d_lo| are two most significant limbs of the divisor. If divisor
@@ -693,22 +982,22 @@ limb_t div_3_limbs(const limb_t div_top[2], limb_t d_lo, limb_t d_hi)
         rx = (limb_t)Rx;
         borrow = (limb_t)(Rx >> LIMB_T_BITS) & 1;
         Rx = r_hi - (d_hi + (llimb_t)borrow);
-        borrow = (limb_t)(Rx >> LIMB_T_BITS) & 1;
+        borrow = (limb_t)(Rx >> LIMB_T_BITS);
 
         /* "if (R >= D) R -= D" */
-        r_lo = ((r_lo ^ rx) & (0 - borrow)) ^ rx;
+        r_lo = ((r_lo ^ rx) & borrow) ^ rx;
         rx = (limb_t)Rx;
-        r_hi = ((r_hi ^ rx) & (0 - borrow)) ^ rx;
+        r_hi = ((r_hi ^ rx) & borrow) ^ rx;
 
         Q <<= 1;
-        Q |= borrow ^ 1;
+        Q |= ~borrow & 1;
 
         /* "D >>= 1" */
         d_lo >>= 1; d_lo |= d_hi << (LIMB_T_BITS - 1);
         d_hi >>= 1;
     }
 
-    mask = 0 - (Q >> (LIMB_T_BITS - 1));    /* does it overflow? */
+    mask = 0 - MSB(Q);  /* does it overflow? */
 
     /* "borrow, Rx = R - D" */
     Rx = (llimb_t)r_lo - d_lo;
