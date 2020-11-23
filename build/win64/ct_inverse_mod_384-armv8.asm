@@ -698,10 +698,10 @@
 	mov	x19, #1		// |g1|=1
 
 |$Loop_62|
-	tst	x3, #1	// if |a_| is odd, then we'll be subtracting
+	sbfx	x28, x3, #0, #1	// if |a_| is odd, then we'll be subtracting
 	sub	x2, x2, #1
-	cselne	x22,x9,xzr
-	cselne	x23,x14,xzr
+	and	x22, x9, x28
+	and	x23, x14, x28
 	subs	x24, x9, x3	// |b_|-|a_|
 	mov	x26, x3
 	sbc	x25, x14, x8
@@ -719,10 +719,9 @@
 	cselhs	x16,x16,x19
 	cselhs	x19,x19,x23
 	extr	x3, x8, x3, #1
-	tst	x26, #1	// if |a_| was odd, then we'll be subtracting...
 	lsr	x8, x8, #1
-	cselne	x22,x17,xzr
-	cselne	x23,x19,xzr
+	and	x22, x17, x28
+	and	x23, x19, x28
 	add	x17, x17, x17		// |f1|<<=1
 	add	x19, x19, x19		// |g1|<<=1
 	sub	x15, x15, x22		// |f0|-=|f1| (or |f0-=0| if |a_| was even)
