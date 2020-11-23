@@ -726,18 +726,20 @@ static void ab_approximation_n(limb_t a_[2], const limb_t a[],
     i = num_bits(a_hi | b_hi) & (LIMB_T_BITS-1);
     /* |i| can be 0 if all a[2..]|b[2..] were zeros */
     mask = 0 - (is_zero(i)^1);
+    /* bitwise align |hi|lo| pairs to the left */
     a_hi <<= (0-i) & (LIMB_T_BITS-1); a_hi |= (a_lo & mask) >> i;
     b_hi <<= (0-i) & (LIMB_T_BITS-1); b_hi |= (b_lo & mask) >> i;
-    mask = 0 - MSB(a_hi | b_hi);
     /* if a[2..]|b[2..] were zeros, bring *[1] into *_hi... */
     a_hi = ((a_hi ^ a_lo) & mask) ^ a_lo;
     b_hi = ((b_hi ^ b_lo) & mask) ^ b_lo;
+    /* ... and recalculate the |mask| */
     mask = 0 - MSB(a_hi | b_hi);
     /* zero |mask| means that |a_| and |b_| values will be exact, and
      * as for non-zero, two possibilities:
      * a) a[2..]|b[2..] were non-zero and we have bitwise left-aligned
      *    values in a_hi/b_hi;
-     * b) a[1]|b[1] has most significant bit set.
+     * b) a[2..]|b[2..] were zeros and a[1]|b[1] has most significant
+     *    bit set.
      */
     i = (size_t)(2 & mask);
     a_hi >>= i; a_lo = a[0] << i;
@@ -766,7 +768,7 @@ static void inner_loop_n(factors *fg, const limb_t a_[2], const limb_t b_[2],
     while(n--) {
         odd = 0 - (a_lo&1);
 
-        /* a_ -= b_ & odd; */
+        /* a_ -= b_ if a_ is odd; */
         t_lo = a_lo, t_hi = a_hi;
         limbx = a_lo - (llimb_t)(b_lo & odd);
         a_lo = (limb_t)limbx;
@@ -796,8 +798,10 @@ static void inner_loop_n(factors *fg, const limb_t a_[2], const limb_t b_[2],
         g0 ^= xorm;
         g1 ^= xorm;
 
+        /* subtract if a_ was odd */
         f0 -= f1 & odd;
         g0 -= g1 & odd;
+
         f1 <<= 1;
         g1 <<= 1;
         a_lo >>= 1; a_lo |= a_hi << (LIMB_T_BITS-1);
