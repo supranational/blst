@@ -89,7 +89,9 @@ const void *blst_pairing_get_dst(const PAIRING *ctx)
  */
 static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
                                              const POINTonE2_affine *PK,
+                                             size_t pk_groupcheck,
                                              const POINTonE1_affine *sig,
+                                             size_t sig_groupcheck,
                                              const byte *scalar, size_t nbits,
                                              const void *msg, size_t msg_len,
                                              const void *aug, size_t aug_len)
@@ -108,7 +110,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
     if (sig != NULL && !vec_is_zero(sig, sizeof(*sig))) {
         POINTonE1 *S = &ctx->AggrSign.e1;
 
-        if (!POINTonE1_in_G1(sig))
+        if (sig_groupcheck && !POINTonE1_in_G1(sig))
             return BLST_POINT_NOT_IN_GROUP;
 
         if (ctx->ctrl & AGGR_SIGN_SET) {
@@ -138,6 +140,9 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
          */
         if (vec_is_zero(PK, sizeof(*PK)))
             return BLST_PK_IS_INFINITY;
+
+        if (pk_groupcheck && !POINTonE2_in_G2(PK))
+            return BLST_POINT_NOT_IN_GROUP;
 
         if (ctx->ctrl & AGGR_HASH_OR_ENCODE)
             Hash_to_G1(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
@@ -174,7 +179,7 @@ BLST_ERROR blst_pairing_aggregate_pk_in_g2(PAIRING *ctx,
                                            const POINTonE1_affine *signature,
                                            const void *msg, size_t msg_len,
                                            const void *aug, size_t aug_len)
-{   return PAIRING_Aggregate_PK_in_G2(ctx, PK, signature, NULL, 0,
+{   return PAIRING_Aggregate_PK_in_G2(ctx, PK, 0, signature, 1, NULL, 0,
                                       msg, msg_len, aug, aug_len);
 }
 
@@ -187,13 +192,42 @@ BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g2(PAIRING *ctx,
                                                  size_t msg_len,
                                                  const void *aug,
                                                  size_t aug_len)
-{   return PAIRING_Aggregate_PK_in_G2(ctx, PK, sig, scalar, nbits,
+{   return PAIRING_Aggregate_PK_in_G2(ctx, PK, 0, sig, 1, scalar, nbits,
+                                      msg, msg_len, aug, aug_len);
+}
+
+BLST_ERROR blst_pairing_chk_n_aggr_pk_in_g2(PAIRING *ctx,
+                                            const POINTonE2_affine *PK,
+                                            size_t pk_grpchk,
+                                            const POINTonE1_affine *signature,
+                                            size_t sig_grpchk,
+                                            const void *msg, size_t msg_len,
+                                            const void *aug, size_t aug_len)
+{   return PAIRING_Aggregate_PK_in_G2(ctx, PK, pk_grpchk, signature, sig_grpchk,
+                                      NULL, 0, msg, msg_len, aug, aug_len);
+}
+
+BLST_ERROR blst_pairing_chk_n_mul_n_aggr_pk_in_g2(PAIRING *ctx,
+                                                  const POINTonE2_affine *PK,
+                                                  size_t pk_grpchk,
+                                                  const POINTonE1_affine *sig,
+                                                  size_t sig_grpchk,
+                                                  const byte *scalar,
+                                                  size_t nbits,
+                                                  const void *msg,
+                                                  size_t msg_len,
+                                                  const void *aug,
+                                                  size_t aug_len)
+{   return PAIRING_Aggregate_PK_in_G2(ctx, PK, pk_grpchk, sig, sig_grpchk,
+                                      scalar, nbits,
                                       msg, msg_len, aug, aug_len);
 }
 
 static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
                                              const POINTonE1_affine *PK,
+                                             size_t pk_groupcheck,
                                              const POINTonE2_affine *sig,
+                                             size_t sig_groupcheck,
                                              const byte *scalar, size_t nbits,
                                              const void *msg, size_t msg_len,
                                              const void *aug, size_t aug_len)
@@ -212,7 +246,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
     if (sig != NULL && !vec_is_zero(sig, sizeof(*sig))) {
         POINTonE2 *S = &ctx->AggrSign.e2;
 
-        if (!POINTonE2_in_G2(sig))
+        if (sig_groupcheck && !POINTonE2_in_G2(sig))
             return BLST_POINT_NOT_IN_GROUP;
 
         if (ctx->ctrl & AGGR_SIGN_SET) {
@@ -242,6 +276,9 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
          */
         if (vec_is_zero(PK, sizeof(*PK)))
             return BLST_PK_IS_INFINITY;
+
+        if (pk_groupcheck && !POINTonE1_in_G1(PK))
+            return BLST_POINT_NOT_IN_GROUP;
 
         if (ctx->ctrl & AGGR_HASH_OR_ENCODE)
             Hash_to_G2(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
@@ -284,7 +321,7 @@ BLST_ERROR blst_pairing_aggregate_pk_in_g1(PAIRING *ctx,
                                            const POINTonE2_affine *signature,
                                            const void *msg, size_t msg_len,
                                            const void *aug, size_t aug_len)
-{   return PAIRING_Aggregate_PK_in_G1(ctx, PK, signature, NULL, 0,
+{   return PAIRING_Aggregate_PK_in_G1(ctx, PK, 0, signature, 1, NULL, 0,
                                       msg, msg_len, aug, aug_len);
 }
 
@@ -297,7 +334,34 @@ BLST_ERROR blst_pairing_mul_n_aggregate_pk_in_g1(PAIRING *ctx,
                                                  size_t msg_len,
                                                  const void *aug,
                                                  size_t aug_len)
-{   return PAIRING_Aggregate_PK_in_G1(ctx, PK, sig, scalar, nbits,
+{   return PAIRING_Aggregate_PK_in_G1(ctx, PK, 0, sig, 1, scalar, nbits,
+                                      msg, msg_len, aug, aug_len);
+}
+
+BLST_ERROR blst_pairing_chk_n_aggr_pk_in_g1(PAIRING *ctx,
+                                            const POINTonE1_affine *PK,
+                                            size_t pk_grpchk,
+                                            const POINTonE2_affine *signature,
+                                            size_t sig_grpchk,
+                                            const void *msg, size_t msg_len,
+                                            const void *aug, size_t aug_len)
+{   return PAIRING_Aggregate_PK_in_G1(ctx, PK, pk_grpchk, signature, sig_grpchk,
+                                      NULL, 0, msg, msg_len, aug, aug_len);
+}
+
+BLST_ERROR blst_pairing_chk_n_mul_n_aggr_pk_in_g1(PAIRING *ctx,
+                                                  const POINTonE1_affine *PK,
+                                                  size_t pk_grpchk,
+                                                  const POINTonE2_affine *sig,
+                                                  size_t sig_grpchk,
+                                                  const byte *scalar,
+                                                  size_t nbits,
+                                                  const void *msg,
+                                                  size_t msg_len,
+                                                  const void *aug,
+                                                  size_t aug_len)
+{   return PAIRING_Aggregate_PK_in_G1(ctx, PK, pk_grpchk, sig, sig_grpchk,
+                                      scalar, nbits,
                                       msg, msg_len, aug, aug_len);
 }
 
@@ -512,7 +576,7 @@ BLST_ERROR blst_core_verify_pk_in_g1(const POINTonE1_affine *pk,
     ctx.DST = DST;
     ctx.DST_len = DST_len;
 
-    ret = PAIRING_Aggregate_PK_in_G1(&ctx, pk, signature, NULL, 0,
+    ret = PAIRING_Aggregate_PK_in_G1(&ctx, pk, 1, signature, 1, NULL, 0,
                                      msg, msg_len, aug, aug_len);
     if (ret != BLST_SUCCESS)
         return ret;
@@ -537,7 +601,7 @@ BLST_ERROR blst_core_verify_pk_in_g2(const POINTonE2_affine *pk,
     ctx.DST = DST;
     ctx.DST_len = DST_len;
 
-    ret = PAIRING_Aggregate_PK_in_G2(&ctx, pk, signature, NULL, 0,
+    ret = PAIRING_Aggregate_PK_in_G2(&ctx, pk, 1, signature, 1, NULL, 0,
                                      msg, msg_len, aug, aug_len);
     if (ret != BLST_SUCCESS)
         return ret;
