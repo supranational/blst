@@ -582,10 +582,10 @@ __inner_loop_62:
 	mov	$g1, #1		// |g1|=1
 
 .Loop_62:
-	tst	$a_lo, #1	// if |a_| is odd, then we'll be subtracting
+	sbfx	@t[6], $a_lo, #0, #1	// if |a_| is odd, then we'll be subtracting
 	sub	$cnt, $cnt, #1
-	csel	@t[0], $b_lo, xzr, ne
-	csel	@t[1], $b_hi, xzr, ne
+	and	@t[0], $b_lo, @t[6]
+	and	@t[1], $b_hi, @t[6]
 	subs	@t[2], $b_lo, $a_lo	// |b_|-|a_|
 	mov	@t[4], $a_lo
 	sbc	@t[3], $b_hi, $a_hi
@@ -603,10 +603,9 @@ __inner_loop_62:
 	csel	$g0, $g0, $g1,       hs	// exchange |g0| and |g1|
 	csel	$g1, $g1, @t[1],     hs
 	extr	$a_lo, $a_hi, $a_lo, #1
-	tst	@t[4], #1	// if |a_| was odd, then we'll be subtracting...
 	lsr	$a_hi, $a_hi, #1
-	csel	@t[0], $f1, xzr, ne
-	csel	@t[1], $g1, xzr, ne
+	and	@t[0], $f1, @t[6]
+	and	@t[1], $g1, @t[6]
 	add	$f1, $f1, $f1		// |f1|<<=1
 	add	$g1, $g1, $g1		// |g1|<<=1
 	sub	$f0, $f0, @t[0]		// |f0|-=|f1| (or |f0-=0| if |a_| was even)
