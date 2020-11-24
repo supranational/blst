@@ -310,7 +310,7 @@ func TestBatchUncompressMinPk(t *testing.T) {
     size := 128
     var points []*P2Affine
     var compPoints [][]byte
-    
+
     for i := 0; i < size; i++ {
         msg := Message(fmt.Sprintf("blst is a blast!! %d", i))
         p2 := HashToG2(msg, dstMinPk).ToAffine()
@@ -503,7 +503,7 @@ func generateBatchTestDataUncompressedMinPk(size int) (sks []*SecretKey,
 func BenchmarkBatchUncompressMinPk(b *testing.B) {
     size := 128
     var compPoints [][]byte
-    
+
     for i := 0; i < size; i++ {
         msg := Message(fmt.Sprintf("blst is a blast!! %d", i))
         p2 := HashToG2(msg, dstMinPk).ToAffine()
@@ -531,4 +531,50 @@ func BenchmarkBatchUncompressMinPk(b *testing.B) {
             }
         }
     })
+}
+
+func TestSignVerifyAggregateValidatesInfinitePubkeyMinPk(t *testing.T) {
+    size := 20
+    sks, msgs, _, pubks, _, err :=
+      generateBatchTestDataUncompressedMinPk(size)
+    if err {
+        t.Errorf("Error generating test data")
+        return
+    }
+
+    // All signers sign the same message
+    sigs := make([]*SignatureMinPk, 0)
+    for i := 0; i < size; i++ {
+        sigs = append(sigs, new(SignatureMinPk).Sign(sks[i], msgs[i],
+          dstMinPk))
+    }
+
+    // Single message: Infinite pubkeys and signature
+    zeroKey := new(PublicKeyMinPk)
+    zeroSig := new(SignatureMinPk)
+    agProj := new(AggregateSignatureMinPk).Aggregate([]*SignatureMinPk{zeroSig})
+    if agProj == nil {
+        t.Errorf("Aggregate unexpectedly returned nil")
+        return
+    }
+    agSig := agProj.ToAffine()
+
+    if agSig.AggregateVerify([]*PublicKeyMinPk{zeroKey},
+                             [][]byte{msgs[0]}, dstMinPk) {
+        t.Errorf("failed to NOT verify signature")
+    }
+
+    // Replace firstkey with infinite pubkey.
+    pubks[0] = zeroKey
+    sigs[0] = zeroSig
+    agProj = new(AggregateSignatureMinPk).Aggregate(sigs)
+    if agProj == nil {
+        t.Errorf("Aggregate unexpectedly returned nil")
+        return
+    }
+    agSig = agProj.ToAffine()
+
+    if agSig.AggregateVerify(pubks, msgs, dstMinPk) {
+        t.Errorf("failed to NOT verify signature")
+    }
 }

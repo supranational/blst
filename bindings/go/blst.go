@@ -437,7 +437,12 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 				}
 
 				// Pairing and accumulate
-				PairingAggregatePkInG1(pairing, curPk, nil, msgs[work], aug)
+				ret := PairingAggregatePkInG1(pairing, curPk, nil, msgs[work],
+					aug)
+				if ret != C.BLST_SUCCESS {
+					atomic.StoreInt32(&valid, 0)
+					break
+				}
 
 				// application might have some async work to do
 				runtime.Gosched()
@@ -469,7 +474,11 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 			if pairings == nil {
 				pairings = msg
 			} else {
-				PairingMerge(pairings, msg)
+				ret := PairingMerge(pairings, msg)
+				if ret != C.BLST_SUCCESS {
+					atomic.StoreInt32(&valid, 0)
+					break
+				}
 			}
 		}
 	}
@@ -606,7 +615,11 @@ func multipleAggregateVerifyPkInG1(paramsFn mulAggGetterPkInG1, msgs []Message,
 			if pairings == nil {
 				pairings = msg
 			} else {
-				PairingMerge(pairings, msg)
+				ret := PairingMerge(pairings, msg)
+				if ret != C.BLST_SUCCESS {
+					atomic.StoreInt32(&valid, 0)
+					break
+				}
 			}
 		}
 	}
@@ -992,7 +1005,12 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 				}
 
 				// Pairing and accumulate
-				PairingAggregatePkInG2(pairing, curPk, nil, msgs[work], aug)
+				ret := PairingAggregatePkInG2(pairing, curPk, nil, msgs[work],
+					aug)
+				if ret != C.BLST_SUCCESS {
+					atomic.StoreInt32(&valid, 0)
+					break
+				}
 
 				// application might have some async work to do
 				runtime.Gosched()
@@ -1024,7 +1042,11 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 			if pairings == nil {
 				pairings = msg
 			} else {
-				PairingMerge(pairings, msg)
+				ret := PairingMerge(pairings, msg)
+				if ret != C.BLST_SUCCESS {
+					atomic.StoreInt32(&valid, 0)
+					break
+				}
 			}
 		}
 	}
@@ -1161,7 +1183,11 @@ func multipleAggregateVerifyPkInG2(paramsFn mulAggGetterPkInG2, msgs []Message,
 			if pairings == nil {
 				pairings = msg
 			} else {
-				PairingMerge(pairings, msg)
+				ret := PairingMerge(pairings, msg)
+				if ret != C.BLST_SUCCESS {
+					atomic.StoreInt32(&valid, 0)
+					break
+				}
 			}
 		}
 	}
