@@ -132,9 +132,13 @@ EXPORTS
 	blst_pairing_get_dst
 	blst_pairing_commit
 	blst_pairing_aggregate_pk_in_g2
+	blst_pairing_chk_n_aggr_pk_in_g2
 	blst_pairing_mul_n_aggregate_pk_in_g2
+	blst_pairing_chk_n_mul_n_aggr_pk_in_g2
 	blst_pairing_aggregate_pk_in_g1
+	blst_pairing_chk_n_aggr_pk_in_g1
 	blst_pairing_mul_n_aggregate_pk_in_g1
+	blst_pairing_chk_n_mul_n_aggr_pk_in_g1
 	blst_pairing_merge
 	blst_pairing_finalverify
 	blst_aggregate_in_g1

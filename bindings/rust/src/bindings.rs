@@ -854,10 +854,38 @@ extern "C" {
     ) -> BLST_ERROR;
 }
 extern "C" {
+    pub fn blst_pairing_chk_n_aggr_pk_in_g2(
+        ctx: *mut blst_pairing,
+        PK: *const blst_p2_affine,
+        pk_grpchk: bool,
+        signature: *const blst_p1_affine,
+        sig_grpchk: bool,
+        msg: *const byte,
+        msg_len: usize,
+        aug: *const byte,
+        aug_len: usize,
+    ) -> BLST_ERROR;
+}
+extern "C" {
     pub fn blst_pairing_mul_n_aggregate_pk_in_g2(
         ctx: *mut blst_pairing,
         PK: *const blst_p2_affine,
         sig: *const blst_p1_affine,
+        scalar: *const byte,
+        nbits: usize,
+        msg: *const byte,
+        msg_len: usize,
+        aug: *const byte,
+        aug_len: usize,
+    ) -> BLST_ERROR;
+}
+extern "C" {
+    pub fn blst_pairing_chk_n_mul_n_aggr_pk_in_g2(
+        ctx: *mut blst_pairing,
+        PK: *const blst_p2_affine,
+        pk_grpchk: bool,
+        sig: *const blst_p1_affine,
+        sig_grpchk: bool,
         scalar: *const byte,
         nbits: usize,
         msg: *const byte,
@@ -878,10 +906,38 @@ extern "C" {
     ) -> BLST_ERROR;
 }
 extern "C" {
+    pub fn blst_pairing_chk_n_aggr_pk_in_g1(
+        ctx: *mut blst_pairing,
+        PK: *const blst_p1_affine,
+        pk_grpchk: bool,
+        signature: *const blst_p2_affine,
+        sig_grpchk: bool,
+        msg: *const byte,
+        msg_len: usize,
+        aug: *const byte,
+        aug_len: usize,
+    ) -> BLST_ERROR;
+}
+extern "C" {
     pub fn blst_pairing_mul_n_aggregate_pk_in_g1(
         ctx: *mut blst_pairing,
         PK: *const blst_p1_affine,
         sig: *const blst_p2_affine,
+        scalar: *const byte,
+        nbits: usize,
+        msg: *const byte,
+        msg_len: usize,
+        aug: *const byte,
+        aug_len: usize,
+    ) -> BLST_ERROR;
+}
+extern "C" {
+    pub fn blst_pairing_chk_n_mul_n_aggr_pk_in_g1(
+        ctx: *mut blst_pairing,
+        PK: *const blst_p1_affine,
+        pk_grpchk: bool,
+        sig: *const blst_p2_affine,
+        sig_grpchk: bool,
         scalar: *const byte,
         nbits: usize,
         msg: *const byte,
