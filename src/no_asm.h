@@ -768,7 +768,7 @@ static void inner_loop_n(factors *fg, const limb_t a_[2], const limb_t b_[2],
     while(n--) {
         odd = 0 - (a_lo&1);
 
-        /* a_ -= b_ if a_ is odd; */
+        /* a_ -= b_ if a_ is odd */
         t_lo = a_lo, t_hi = a_hi;
         limbx = a_lo - (llimb_t)(b_lo & odd);
         a_lo = (limb_t)limbx;
