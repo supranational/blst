@@ -7,7 +7,7 @@
 #![allow(non_snake_case)]
 
 use std::any::Any;
-use std::mem::{transmute, MaybeUninit};
+use std::mem::transmute;
 use std::sync::{atomic::*, mpsc::channel, Arc, Mutex, Once};
 use std::{ptr, slice};
 use threadpool::ThreadPool;
@@ -249,8 +249,6 @@ impl Pairing {
     }
 }
 
-// TODO - add group checks after deserialization
-
 pub fn print_bytes(bytes: &[u8], name: &str) {
     print!("{} ", name);
     for b in bytes.iter() {
@@ -448,21 +446,17 @@ macro_rules! sig_variant_impl {
             // Serdes
 
             pub fn compress(&self) -> [u8; $pk_comp_size] {
-                let mut pk = <$pk>::default();
-                let mut pk_comp = [0u8; $pk_comp_size]; // TODO - no need to initialize
+                let mut pk_comp = [0u8; $pk_comp_size];
                 unsafe {
-                    $pk_from_aff(&mut pk, &self.point);
-                    $pk_comp(pk_comp.as_mut_ptr(), &pk);
+                    $pk_comp(pk_comp.as_mut_ptr(), &self.point);
                 }
                 pk_comp
             }
 
             pub fn serialize(&self) -> [u8; $pk_ser_size] {
-                let mut pk = <$pk>::default();
                 let mut pk_out = [0u8; $pk_ser_size];
                 unsafe {
-                    $pk_from_aff(&mut pk, &self.point);
-                    $pk_ser(pk_out.as_mut_ptr(), &pk);
+                    $pk_ser(pk_out.as_mut_ptr(), &self.point);
                 }
                 pk_out
             }
@@ -690,7 +684,6 @@ macro_rules! sig_variant_impl {
                 }
 
                 // TODO - check msg uniqueness?
-                // TODO - since already in object form, any need to subgroup check?
 
                 let pool = da_pool();
                 let (tx, rx) = channel();
@@ -945,10 +938,7 @@ macro_rules! sig_variant_impl {
             pub fn compress(&self) -> [u8; $sig_comp_size] {
                 let mut sig_comp = [0; $sig_comp_size];
                 unsafe {
-                    let mut sig = MaybeUninit::<$sig>::uninit();
-                    $sig_from_aff(sig.as_mut_ptr(), &self.point);
-                    $sig_comp(sig_comp.as_mut_ptr(), sig.as_ptr());
-                    //$sig_comp(sig_comp.as_mut_ptr(), &self.point);
+                    $sig_comp(sig_comp.as_mut_ptr(), &self.point);
                 }
                 sig_comp
             }
@@ -956,10 +946,7 @@ macro_rules! sig_variant_impl {
             pub fn serialize(&self) -> [u8; $sig_ser_size] {
                 let mut sig_out = [0; $sig_ser_size];
                 unsafe {
-                    let mut sig = MaybeUninit::<$sig>::uninit();
-                    $sig_from_aff(sig.as_mut_ptr(), &self.point);
-                    $sig_ser(sig_out.as_mut_ptr(), sig.as_ptr());
-                    //$sig_ser(sig_out.as_mut_ptr(), &self.point);
+                    $sig_ser(sig_out.as_mut_ptr(), &self.point);
                 }
                 sig_out
             }
@@ -1363,7 +1350,8 @@ macro_rules! sig_variant_impl {
                         // Reject zero as it is used for multiplication.
                         vals[0] = rng.next_u64();
                     }
-                    let mut rand_i = MaybeUninit::<blst_scalar>::uninit();
+                    let mut rand_i =
+                        std::mem::MaybeUninit::<blst_scalar>::uninit();
                     unsafe {
                         blst_scalar_from_uint64(
                             rand_i.as_mut_ptr(),
@@ -1475,8 +1463,8 @@ pub mod min_pk {
         blst_p1_affine_in_g1,
         blst_p1_to_affine,
         blst_p1_from_affine,
-        blst_p1_serialize,
-        blst_p1_compress,
+        blst_p1_affine_serialize,
+        blst_p1_affine_compress,
         blst_p1_deserialize,
         blst_p1_uncompress,
         48,
@@ -1484,8 +1472,8 @@ pub mod min_pk {
         blst_p2_affine_in_g2,
         blst_p2_to_affine,
         blst_p2_from_affine,
-        blst_p2_serialize,
-        blst_p2_compress,
+        blst_p2_affine_serialize,
+        blst_p2_affine_compress,
         blst_p2_deserialize,
         blst_p2_uncompress,
         96,
@@ -1519,8 +1507,8 @@ pub mod min_sig {
         blst_p2_affine_in_g2,
         blst_p2_to_affine,
         blst_p2_from_affine,
-        blst_p2_serialize,
-        blst_p2_compress,
+        blst_p2_affine_serialize,
+        blst_p2_affine_compress,
         blst_p2_deserialize,
         blst_p2_uncompress,
         96,
@@ -1528,8 +1516,8 @@ pub mod min_sig {
         blst_p1_affine_in_g1,
         blst_p1_to_affine,
         blst_p1_from_affine,
-        blst_p1_serialize,
-        blst_p1_compress,
+        blst_p1_affine_serialize,
+        blst_p1_affine_compress,
         blst_p1_deserialize,
         blst_p1_uncompress,
         48,
