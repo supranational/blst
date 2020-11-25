@@ -74,6 +74,7 @@ EXPORTS
 	blst_p1_to_affine
 	blst_p1_from_affine
 	blst_p1_on_curve
+	blst_p1_in_g1
 	blst_p1_is_equal
 	blst_p1_is_inf
 	blst_p1_generator
@@ -92,6 +93,7 @@ EXPORTS
 	blst_p2_to_affine
 	blst_p2_from_affine
 	blst_p2_on_curve
+	blst_p2_in_g2
 	blst_p2_is_equal
 	blst_p2_is_inf
 	blst_p2_generator

@@ -504,6 +504,9 @@ extern "C" {
     pub fn blst_p1_on_curve(p: *const blst_p1) -> bool;
 }
 extern "C" {
+    pub fn blst_p1_in_g1(p: *const blst_p1) -> bool;
+}
+extern "C" {
     pub fn blst_p1_is_equal(a: *const blst_p1, b: *const blst_p1) -> bool;
 }
 extern "C" {
@@ -654,6 +657,9 @@ extern "C" {
 }
 extern "C" {
     pub fn blst_p2_on_curve(p: *const blst_p2) -> bool;
+}
+extern "C" {
+    pub fn blst_p2_in_g2(p: *const blst_p2) -> bool;
 }
 extern "C" {
     pub fn blst_p2_is_equal(a: *const blst_p2, b: *const blst_p2) -> bool;
