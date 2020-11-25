@@ -324,6 +324,7 @@ void blst_pairing_commit(PAIRING *ctx)
 BLST_ERROR blst_pairing_merge(PAIRING *ctx, const PAIRING *ctx1)
 {
     if ((ctx->ctrl & MIN_SIG_OR_PK) != AGGR_UNDEFINED
+        && (ctx1->ctrl & MIN_SIG_OR_PK) != AGGR_UNDEFINED
         && (ctx->ctrl & ctx1->ctrl & MIN_SIG_OR_PK) == 0)
         return BLST_AGGR_TYPE_MISMATCH;
 
