@@ -477,7 +477,6 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, pkFn pkGetterP1,
 				ret := PairingMerge(pairings, msg)
 				if ret != C.BLST_SUCCESS {
 					atomic.StoreInt32(&valid, 0)
-					break
 				}
 			}
 		}
@@ -618,7 +617,6 @@ func multipleAggregateVerifyPkInG1(paramsFn mulAggGetterPkInG1, msgs []Message,
 				ret := PairingMerge(pairings, msg)
 				if ret != C.BLST_SUCCESS {
 					atomic.StoreInt32(&valid, 0)
-					break
 				}
 			}
 		}
@@ -1045,7 +1043,6 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, pkFn pkGetterP2,
 				ret := PairingMerge(pairings, msg)
 				if ret != C.BLST_SUCCESS {
 					atomic.StoreInt32(&valid, 0)
-					break
 				}
 			}
 		}
@@ -1186,7 +1183,6 @@ func multipleAggregateVerifyPkInG2(paramsFn mulAggGetterPkInG2, msgs []Message,
 				ret := PairingMerge(pairings, msg)
 				if ret != C.BLST_SUCCESS {
 					atomic.StoreInt32(&valid, 0)
-					break
 				}
 			}
 		}
