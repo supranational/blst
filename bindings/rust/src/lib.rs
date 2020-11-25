@@ -1017,6 +1017,15 @@ macro_rules! sig_variant_impl {
         }
 
         impl AggregateSignature {
+            pub fn validate(&self) -> Result<(), BLST_ERROR> {
+                unsafe {
+                    if !$sig_aggr_in_group(&self.point) {
+                        return Err(BLST_ERROR::BLST_POINT_NOT_IN_GROUP);
+                    }
+                }
+                Ok(())
+            }
+
             pub fn from_signature(sig: &Signature) -> Self {
                 let mut agg_sig = <$sig>::default();
                 unsafe {
