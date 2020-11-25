@@ -297,6 +297,7 @@ macro_rules! sig_variant_impl {
         $sig_add_or_dbl_aff:ident,
         $pk_is_inf:ident,
         $sig_is_inf:ident,
+        $sig_aggr_in_group:ident,
     ) => {
         /// Secret Key
         #[derive(Default, Debug, Clone, Zeroize)]
@@ -1005,6 +1006,10 @@ macro_rules! sig_variant_impl {
             pub fn to_bytes(&self) -> [u8; $sig_comp_size] {
                 self.compress()
             }
+
+            pub fn subgroup_check(&self) -> bool {
+                unsafe { $sig_in_group(&self.point) }
+            }
         }
 
         // Trait for equality comparisons which are equivalence relations.
@@ -1128,6 +1133,10 @@ macro_rules! sig_variant_impl {
                     );
                 }
                 Ok(())
+            }
+
+            pub fn subgroup_check(&self) -> bool {
+                unsafe { $sig_aggr_in_group(&self.point) }
             }
         }
 
@@ -1487,6 +1496,7 @@ pub mod min_pk {
         blst_p2_add_or_double_affine,
         blst_p1_affine_is_inf,
         blst_p2_affine_is_inf,
+        blst_p2_in_g2,
     );
 }
 
@@ -1530,5 +1540,6 @@ pub mod min_sig {
         blst_p1_add_or_double_affine,
         blst_p2_affine_is_inf,
         blst_p1_affine_is_inf,
+        blst_p1_in_g1,
     );
 }
