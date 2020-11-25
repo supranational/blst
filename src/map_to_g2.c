@@ -402,26 +402,33 @@ void blst_hash_to_g2(POINTonE2 *p, const unsigned char *msg, size_t msg_len,
                                    const unsigned char *aug, size_t aug_len)
 {   Hash_to_G2(p, msg, msg_len, DST, DST_len, aug, aug_len);   }
 
-static limb_t POINTonE2_in_G2(const POINTonE2_affine *p)
+static limb_t POINTonE2_in_G2(const POINTonE2 *P)
 {
     POINTonE2 t0, t1, t2;
 
-    vec_copy(t0.X, p->X, 2*sizeof(t0.X));
-    vec_select(t0.Z, p->X, BLS12_381_Rx.p2, sizeof(t0.Z),
-                     vec_is_zero(p, sizeof(*p)));
-
     /* Bowe, S., "Faster subgroup checks for BLS12-381"                 */
-    psi(&t0, &t0);                      /* Ψ(P)                         */
+    psi(&t0, P);                        /* Ψ(P)                         */
     psi(&t0, &t0);                      /* Ψ²(P)                        */
     psi(&t1, &t0);                      /* Ψ³(P)                        */
 
     POINTonE2_times_minus_z(&t2, &t1);
     POINTonE2_add(&t0, &t0, &t2);
     POINTonE2_cneg(&t0, 1);
-    POINTonE2_add_affine(&t0, &t0, p);  /* [z]Ψ³(P) - Ψ²(P) + P         */
+    POINTonE2_add(&t0, &t0, P);         /* [z]Ψ³(P) - Ψ²(P) + P         */
 
     return vec_is_zero(t0.Z, sizeof(t0.Z));
 }
 
-limb_t blst_p2_affine_in_g2(const POINTonE2_affine *p)
+limb_t blst_p2_in_g2(const POINTonE2 *p)
 {   return POINTonE2_in_G2(p);   }
+
+limb_t blst_p2_affine_in_g2(const POINTonE2_affine *p)
+{
+    POINTonE2 P;
+
+    vec_copy(P.X, p->X, 2*sizeof(P.X));
+    vec_select(P.Z, p->X, BLS12_381_Rx.p, sizeof(P.Z),
+                     vec_is_zero(p, sizeof(*p)));
+
+    return POINTonE2_in_G2(&P);
+}

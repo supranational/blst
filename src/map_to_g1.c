@@ -496,20 +496,16 @@ static void POINTonE1_times_zz_minus_1_div_by_3(POINTonE1 *out,
 
 static void sigma(POINTonE1 *out, const POINTonE1 *in);
 
-static limb_t POINTonE1_in_G1(const POINTonE1_affine *p)
+static limb_t POINTonE1_in_G1(const POINTonE1 *P)
 {
     POINTonE1 t0, t1, t2;
 
-    vec_copy(t2.X, p->X, 2*sizeof(t0.X));
-    vec_select(t2.Z, p->X, BLS12_381_Rx.p, sizeof(t2.Z),
-                     vec_is_zero(p, sizeof(*p)));
-
     /* Bowe, S., "Faster subgroup checks for BLS12-381"                 */
-    sigma(&t0, &t2);                    /* σ(P)                         */
+    sigma(&t0, P);                      /* σ(P)                         */
     sigma(&t1, &t0);                    /* σ²(P)                        */
 
     POINTonE1_double(&t0, &t0);         /* 2σ(P)                        */
-    POINTonE1_add_affine(&t2, &t1, p);  /* P +  σ²(P)                   */
+    POINTonE1_add(&t2, &t1, P);         /* P +  σ²(P)                   */
     POINTonE1_cneg(&t2, 1);             /* - P - σ²(P)                  */
     POINTonE1_add(&t2, &t2, &t0);       /* 2σ(P) - P - σ²(P)            */
     POINTonE1_times_zz_minus_1_div_by_3(&t0, &t2);
@@ -519,5 +515,16 @@ static limb_t POINTonE1_in_G1(const POINTonE1_affine *p)
     return vec_is_zero(t0.Z, sizeof(t0.Z));
 }
 
-limb_t blst_p1_affine_in_g1(const POINTonE1_affine *p)
+limb_t blst_p1_in_g1(const POINTonE1 *p)
 {   return POINTonE1_in_G1(p);   }
+
+limb_t blst_p1_affine_in_g1(const POINTonE1_affine *p)
+{
+    POINTonE1 P;
+
+    vec_copy(P.X, p->X, 2*sizeof(P.X));
+    vec_select(P.Z, p->X, BLS12_381_Rx.p, sizeof(P.Z),
+                     vec_is_zero(p, sizeof(*p)));
+
+    return POINTonE1_in_G1(&P);
+}
