@@ -38,9 +38,6 @@ static inline void cneg_fp(vec384 ret, const vec384 a, limb_t flag)
 
 #define neg_fp(r,a) cneg_fp((r),(a),1)
 
-static inline void eucl_inverse_fp(vec384 ret, const vec384 a)
-{   eucl_inverse_mod_384(ret, a, BLS12_381_P, BLS12_381_RR);   }
-
 static inline void from_fp(vec384 ret, const vec384 a)
 {   from_mont_384(ret, a, BLS12_381_P, p0);   }
 

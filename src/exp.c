@@ -7,6 +7,18 @@
 #include "vect.h"
 #include "fields.h"
 
+static void reciprocal_fp(vec384 out, const vec384 inp)
+{
+    vec768 temp;
+
+    ct_inverse_mod_383(temp, inp, BLS12_381_P);
+    redc_mont_384(out, temp, BLS12_381_P, p0);
+    mul_mont_384(out, out, BLS12_381_RR, BLS12_381_P, p0);
+}
+
+void blst_fp_inverse(vec384 out, const vec384 inp)
+{   reciprocal_fp(out, inp);   }
+
 /*
  * |out| = |inp|^|pow|, small footprint, public exponent
  */
@@ -41,23 +53,6 @@ static void exp_mont_384(vec384 out, const vec384 inp, const byte *pow,
 }
 
 #ifdef __OPTIMIZE_SIZE__
-/*
- * 608 multiplications for scalar inversion modulo BLS12-381 prime, 32%
- * more than corresponding optimal addition-chain, plus mispredicted
- * branch penalties on top of that... The addition chain below was
- * measured to be >50% faster.
- */
-static void reciprocal_fp(vec384 out, const vec384 inp)
-{
-    static const byte BLS12_381_P_minus_2[] = {
-        TO_BYTES(0xb9feffffffffaaa9), TO_BYTES(0x1eabfffeb153ffff),
-        TO_BYTES(0x6730d2a0f6b0f624), TO_BYTES(0x64774b84f38512bf),
-        TO_BYTES(0x4b1ba7b6434bacd7), TO_BYTES(0x1a0111ea397fe69a)
-    };
-
-    exp_mont_384(out, inp, BLS12_381_P_minus_2, 381, BLS12_381_P, p0);
-}
-
 static void recip_sqrt_fp_3mod4(vec384 out, const vec384 inp)
 {
     static const byte BLS_12_381_P_minus_3_div_4[] = {
@@ -94,15 +89,6 @@ static void sqr_n_mul_fp(vec384 out, const vec384 a, size_t count,
 # define sqr(ret,a)		sqr_fp(ret,a)
 # define mul(ret,a,b)		mul_fp(ret,a,b)
 # define sqr_n_mul(ret,a,n,b)	sqr_n_mul_fp(ret,a,n,b)
-
-static void reciprocal_fp(vec384 out, const vec384 inp)
-{
-    vec768 temp;
-
-    ct_inverse_mod_383(temp, inp, BLS12_381_P);
-    redc_mont_384(out, temp, BLS12_381_P, p0);
-    mul_mont_384(out, out, BLS12_381_RR, BLS12_381_P, p0);
-}
 
 # include "sqrt-addchain.h"
 static void recip_sqrt_fp_3mod4(vec384 out, const vec384 inp)
@@ -148,6 +134,3 @@ static limb_t sqrt_fp(vec384 out, const vec384 inp)
 
 limb_t blst_fp_sqrt(vec384 out, const vec384 inp)
 {   return sqrt_fp(out, inp);   }
-
-void blst_fp_inverse(vec384 out, const vec384 inp)
-{   reciprocal_fp(out, inp);   }

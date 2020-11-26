@@ -81,7 +81,7 @@ void blst_fp_cneg(vec384 ret, const vec384 a, size_t flag)
 {   cneg_fp(ret, a, flag);   }
 
 void blst_fp_eucl_inverse(vec384 ret, const vec384 a)
-{   eucl_inverse_fp(ret, a);   }
+{   reciprocal_fp(ret, a);   }
 
 void blst_fp_to(vec384 ret, const vec384 a)
 {   mul_fp(ret, a, BLS12_381_RR);   }
