@@ -10,7 +10,6 @@
 #  else
 #   include "elf/ctq_inverse_mod_384-x86_64.s"
 #  endif
-#  include "elf/inverse_mod_384-x86_64.s"
 #  include "elf/add_mod_384-x86_64.s"
 #  include "elf/add_mod_384x384-x86_64.s"
 #  define __add_mod_384     __add_mont_384
@@ -37,7 +36,6 @@
 #  else
 #   include "coff/ctq_inverse_mod_384-x86_64.s"
 #  endif
-#  include "coff/inverse_mod_384-x86_64.s"
 #  include "coff/add_mod_384-x86_64.s"
 #  include "coff/add_mod_384x384-x86_64.s"
 #  define __add_mod_384     __add_mont_384
@@ -60,7 +58,6 @@
 #  else
 #   include "mach-o/ctq_inverse_mod_384-x86_64.s"
 #  endif
-#  include "mach-o/inverse_mod_384-x86_64.s"
 #  include "mach-o/add_mod_384-x86_64.s"
 #  include "mach-o/add_mod_384x384-x86_64.s"
 #  define __add_mod_384     __add_mont_384
@@ -81,7 +78,6 @@
 # if defined(__ELF__)
 #  include "elf/sha256-armv8.S"
 #  include "elf/ct_inverse_mod_384-armv8.S"
-#  include "elf/inverse_mod_384-armv8.S"
 #  include "elf/add_mod_384-armv8.S"
 #  define __add_mod_384     __add_mont_384
 #  define __sub_mod_384     __sub_mont_384
@@ -93,7 +89,6 @@
 # elif defined(_WIN64)
 #  include "coff/sha256-armv8.S"
 #  include "coff/ct_inverse_mod_384-armv8.S"
-#  include "coff/inverse_mod_384-armv8.S"
 #  include "coff/add_mod_384-armv8.S"
 #  define __add_mod_384     __add_mont_384
 #  define __sub_mod_384     __sub_mont_384
@@ -105,7 +100,6 @@
 # elif defined(__APPLE__)
 #  include "mach-o/sha256-armv8.S"
 #  include "mach-o/ct_inverse_mod_384-armv8.S"
-#  include "mach-o/inverse_mod_384-armv8.S"
 #  include "mach-o/add_mod_384-armv8.S"
 #  define __add_mod_384     __add_mont_384
 #  define __sub_mod_384     __sub_mont_384
