@@ -222,7 +222,7 @@ static void map_to_isogenous_E2(POINTonE2 *p, const vec384x u)
 # define Zuu    x2n
 #endif
 #define sgn0_fp2(a) (sgn0_pty_mont_384x((a), BLS12_381_P, p0) & 1)
-    limb_t e1, e2;
+    bool_t e1, e2;
 
     /*
      * as per map_to_curve() from poc/sswu_opt.sage at
@@ -402,7 +402,7 @@ void blst_hash_to_g2(POINTonE2 *p, const unsigned char *msg, size_t msg_len,
                                    const unsigned char *aug, size_t aug_len)
 {   Hash_to_G2(p, msg, msg_len, DST, DST_len, aug, aug_len);   }
 
-static limb_t POINTonE2_in_G2(const POINTonE2 *P)
+static bool_t POINTonE2_in_G2(const POINTonE2 *P)
 {
     POINTonE2 t0, t1, t2;
 

@@ -27,11 +27,11 @@ static void ptype##_to_affine(ptype##_affine *out, const ptype *in);	\
 static void ptype##_from_Jacobian(ptype *out, const ptype *in);		\
 \
 static inline void ptype##_cswap(ptype *restrict a,			\
-                                 ptype *restrict b, limb_t cbit) {	\
+                                 ptype *restrict b, bool_t cbit) {	\
     vec_cswap(a, b, sizeof(ptype), cbit);				\
 } \
 static inline void ptype##_ccopy(ptype *restrict a,			\
-                                 const ptype *restrict b, limb_t cbit) {\
+                                 const ptype *restrict b, bool_t cbit) {\
     vec_select(a, b, a, sizeof(ptype), cbit);				\
 }
 
@@ -46,7 +46,7 @@ static void ptype##xz_ladder_post(ptype *ret,				\
                                   const ptype##xz *p, const vec##bits Y1);\
 \
 static inline void ptype##xz_cswap(ptype##xz *restrict a,		\
-                                   ptype##xz *restrict b, limb_t cbit) {\
+                                   ptype##xz *restrict b, bool_t cbit) {\
     vec_cswap(a, b, sizeof(ptype##xz), cbit);				\
 }
 

@@ -102,10 +102,10 @@ static void recip_sqrt_fp_3mod4(vec384 out, const vec384 inp)
 # undef mul
 #endif
 
-static limb_t recip_sqrt_fp(vec384 out, const vec384 inp)
+static bool_t recip_sqrt_fp(vec384 out, const vec384 inp)
 {
     vec384 t0, t1;
-    limb_t ret;
+    bool_t ret;
 
     recip_sqrt_fp_3mod4(t0, inp);
 
@@ -117,10 +117,10 @@ static limb_t recip_sqrt_fp(vec384 out, const vec384 inp)
     return ret;
 }
 
-static limb_t sqrt_fp(vec384 out, const vec384 inp)
+static bool_t sqrt_fp(vec384 out, const vec384 inp)
 {
     vec384 t0, t1;
-    limb_t ret;
+    bool_t ret;
 
     recip_sqrt_fp_3mod4(t0, inp);
 

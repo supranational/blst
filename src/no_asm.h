@@ -237,11 +237,11 @@ inline void lshift_mod_##bits(vec##bits ret, const vec##bits a, size_t count, \
 LSHIFT_MOD_IMPL(256)
 LSHIFT_MOD_IMPL(384)
 
-static void cneg_mod_n(limb_t ret[], const limb_t a[], limb_t flag,
+static void cneg_mod_n(limb_t ret[], const limb_t a[], bool_t flag,
                        const limb_t p[], size_t n)
 {
     llimb_t limbx;
-    limb_t borrow, tmp[n];
+    limb_t borrow, mask, tmp[n];
     size_t i;
 
     for (borrow=0, i=0; i<n; i++) {
@@ -251,14 +251,14 @@ static void cneg_mod_n(limb_t ret[], const limb_t a[], limb_t flag,
     }
 
     flag &= vec_is_zero(a, sizeof(tmp)) ^ 1;
-    flag = 0 - flag;
+    mask = (limb_t)0 - flag;
 
     for(i=0; i<n; i++)
         ret[i] = (a[i] & ~flag) | (tmp[i] & flag);
 }
 
 #define CNEG_MOD_IMPL(bits) \
-inline void cneg_mod_##bits(vec##bits ret, const vec##bits a, limb_t flag, \
+inline void cneg_mod_##bits(vec##bits ret, const vec##bits a, bool_t flag, \
                             const vec##bits p) \
 {   cneg_mod_n(ret, a, flag, p, NLIMBS(bits));   }
 
@@ -432,14 +432,15 @@ static void remove_powers_of_2_n(limb_t u[], limb_t x[], const limb_t p[],
     }
 }
 
-static limb_t eucl_inverse_mod_n(limb_t out[], const limb_t a[],
+static bool_t eucl_inverse_mod_n(limb_t out[], const limb_t a[],
                                  const limb_t p[], const limb_t one[],
                                  size_t n)
 {
     limb_t UX[2][n], VY[2][n];
     limb_t (*ux)[n] = UX, (*vy)[n] = VY;
-    limb_t borrow, ret = 0;
+    limb_t borrow;
     llimb_t limbx;
+    bool_t ret = 0;
     size_t i;
 
     vec_copy(ux[0], a, sizeof(ux[0]));
@@ -478,7 +479,7 @@ static limb_t eucl_inverse_mod_n(limb_t out[], const limb_t a[],
 }
 
 #define EUCL_INVERSE_IMPL(bits) \
-inline limb_t eucl_inverse_mod_##bits(vec##bits out, const vec##bits a, \
+inline bool_t eucl_inverse_mod_##bits(vec##bits out, const vec##bits a, \
                                       const vec##bits p, const vec##bits one) \
 {   return eucl_inverse_mod_n(out, a, p, one, NLIMBS(bits));   }
 
@@ -528,11 +529,11 @@ inline limb_t sgn0_pty_mod_384x(const vec384x a, const vec384 p)
     im = sgn0_pty_mod_n(a[1], p, NLIMBS(384));
 
     /* a->im!=0 ? sgn0(a->im) : sgn0(a->re) */
-    sign = 0 - vec_is_zero(a[1], sizeof(vec384));
+    sign = (limb_t)0 - vec_is_zero(a[1], sizeof(vec384));
     sign = (re & sign) | (im & ~sign);
 
     /* a->re==0 ? prty(a->im) : prty(a->re) */
-    prty = 0 - vec_is_zero(a[0], sizeof(vec384));
+    prty = (limb_t)0 - vec_is_zero(a[0], sizeof(vec384));
     prty = (im & prty) | (re & ~prty);
 
     return (sign & 2) | (prty & 1);

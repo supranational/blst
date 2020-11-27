@@ -43,7 +43,7 @@ static void ptype##_dadd(ptype *out, const ptype *p1, const ptype *p2, \
 { \
     ptype p3; /* starts as (U1, S1, zz) from addition side */\
     struct { vec##bits H, R, sx; } add, dbl; \
-    limb_t p1inf, p2inf, is_dbl; \
+    bool_t p1inf, p2inf, is_dbl; \
 \
     add_##field(dbl.sx, p1->X, p1->X);  /* sx = X1+X1 */\
     sqr_##field(dbl.R, p1->X);          /* X1^2 */\
@@ -132,7 +132,7 @@ static void ptype##_dadd_affine(ptype *out, const ptype *p1, \
 { \
     ptype p3; /* starts as (,, H*Z1) from addition side */\
     struct { vec##bits H, R, sx; } add, dbl; \
-    limb_t p1inf, p2inf, is_dbl; \
+    bool_t p1inf, p2inf, is_dbl; \
 \
     p2inf = vec_is_zero(p2->X, 2*sizeof(p2->X)); \
     add_##field(dbl.sx, p2->X, p2->X);  /* sx = X2+X2 */\
@@ -187,7 +187,7 @@ static void ptype##_add(ptype *out, const ptype *p1, const ptype *p2) \
 { \
     ptype p3; \
     vec##bits Z1Z1, Z2Z2, U1, S1, H, I, J; \
-    limb_t p1inf, p2inf; \
+    bool_t p1inf, p2inf; \
 \
     p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
     sqr_##field(Z1Z1, p1->Z);           /* Z1Z1 = Z1^2 */\
@@ -248,7 +248,7 @@ static void ptype##_add_affine(ptype *out, const ptype *p1, \
 { \
     ptype p3; \
     vec##bits Z1Z1, H, HH, I, J; \
-    limb_t p1inf, p2inf; \
+    bool_t p1inf, p2inf; \
 \
     p1inf = vec_is_zero(p1->Z, sizeof(p1->Z)); \
 \
@@ -348,7 +348,7 @@ static void ptype##xz_ladder_step(ptype##xz *r, ptype##xz *s, \
 { \
     ptype##xz p5; \
     vec##bits A, B, C, D, XX, ZZ; \
-    limb_t r_inf, s_inf; \
+    bool_t r_inf, s_inf; \
                                         /* s += r */\
     mul_##field(A, r->X, s->X);         /* A = X2*X3 */\
     mul_##field(B, r->Z, s->Z);         /* B = Z2*Z3 */\
@@ -423,7 +423,7 @@ static void ptype##xz_ladder_post(ptype *p4, \
                                   const ptype##xz *p, const vec##bits Y1) \
 { \
     vec##bits Z3x2, Y1Z3x2, Z1Z2, X1Z2, X2Z1, A, B, C; \
-    limb_t s_inf; \
+    bool_t s_inf; \
 \
     add_##field(Z3x2, s->Z, s->Z);      /* Z3x2 = 2*Z3 */\
     mul_##field(Y1Z3x2, Y1, Z3x2);      /* Y1Z3x2 = Y1*Z3x2 */\
@@ -470,8 +470,8 @@ static limb_t ptype##_is_equal(const ptype *p1, const ptype *p2) \
 { \
     vec##bits Z1Z1, Z2Z2; \
     ptype##_affine a1, a2; \
-    limb_t is_inf1 = vec_is_zero(p1->Z, sizeof(p1->Z)); \
-    limb_t is_inf2 = vec_is_zero(p2->Z, sizeof(p2->Z)); \
+    bool_t is_inf1 = vec_is_zero(p1->Z, sizeof(p1->Z)); \
+    bool_t is_inf2 = vec_is_zero(p2->Z, sizeof(p2->Z)); \
 \
     sqr_##field(Z1Z1, p1->Z);           /* Z1Z1 = Z1^2 */\
     sqr_##field(Z2Z2, p2->Z);           /* Z2Z2 = Z2^2 */\

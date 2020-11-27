@@ -51,7 +51,7 @@ static inline void mul_by_b_onE1(vec384 out, const vec384 in)
 static inline void mul_by_4b_onE1(vec384 out, const vec384 in)
 {   lshift_fp(out, in, 4);   }
 
-static void POINTonE1_cneg(POINTonE1 *p, limb_t cbit)
+static void POINTonE1_cneg(POINTonE1 *p, bool_t cbit)
 {   cneg_fp(p->Y, p->Y, cbit);   }
 
 void blst_p1_cneg(POINTonE1 *a, int cbit)
@@ -98,7 +98,7 @@ void blst_p1_from_affine(POINTonE1 *out, const POINTonE1_affine *a)
                        vec_is_zero(a, sizeof(*a)));
 }
 
-static limb_t POINTonE1_affine_on_curve(const POINTonE1_affine *p)
+static bool_t POINTonE1_affine_on_curve(const POINTonE1_affine *p)
 {
     vec384 XXX, YY;
 
@@ -114,7 +114,7 @@ static limb_t POINTonE1_affine_on_curve(const POINTonE1_affine *p)
 int blst_p1_affine_on_curve(const POINTonE1_affine *p)
 {   return (int)POINTonE1_affine_on_curve(p);   }
 
-static limb_t POINTonE1_on_curve(const POINTonE1 *p)
+static bool_t POINTonE1_on_curve(const POINTonE1 *p)
 {
     vec384 XXX, YY, BZ6;
     limb_t inf = vec_is_zero(p->Z, sizeof(p->Z));

@@ -89,7 +89,7 @@ static void recip_sqrt_fp2_9mod16(vec384x out, const vec384x inp)
 # undef mul
 #endif
 
-static limb_t sqrt_align_fp2(vec384x out, const vec384x ret,
+static bool_t sqrt_align_fp2(vec384x out, const vec384x ret,
                              const vec384x sqrt, const vec384x inp)
 {
     static const vec384x sqrt_minus_1 = { { 0 }, { ONE_MONT_P } };
@@ -115,7 +115,7 @@ static limb_t sqrt_align_fp2(vec384x out, const vec384x ret,
         TO_LIMB_T(0x2da2596696cebc1d), TO_LIMB_T(0x0e2b7eedbbfd87d2) }
     };
     vec384x coeff, t0, t1;
-    limb_t is_sqrt, flag;
+    bool_t is_sqrt, flag;
 
     /*
      * Instead of multiple trial squarings we can perform just one
@@ -156,7 +156,7 @@ static limb_t sqrt_align_fp2(vec384x out, const vec384x ret,
     return is_sqrt;
 }
 
-static limb_t recip_sqrt_fp2(vec384x out, const vec384x inp)
+static bool_t recip_sqrt_fp2(vec384x out, const vec384x inp)
 {
     vec384x ret, sqrt;
 
@@ -170,7 +170,7 @@ static limb_t recip_sqrt_fp2(vec384x out, const vec384x inp)
     return sqrt_align_fp2(out, ret, sqrt, inp);
 }
 
-static limb_t sqrt_fp2(vec384x out, const vec384x inp)
+static bool_t sqrt_fp2(vec384x out, const vec384x inp)
 {
     vec384x ret;
 

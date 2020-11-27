@@ -447,7 +447,7 @@ BLST_ERROR blst_pairing_merge(PAIRING *ctx, const PAIRING *ctx1)
     return BLST_SUCCESS;
 }
 
-static limb_t PAIRING_FinalVerify(const PAIRING *ctx, const vec384fp12 GTsig)
+static bool_t PAIRING_FinalVerify(const PAIRING *ctx, const vec384fp12 GTsig)
 {
     vec384fp12 GT;
 

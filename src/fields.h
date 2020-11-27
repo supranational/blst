@@ -37,7 +37,7 @@ static inline void mul_fp(vec384 ret, const vec384 a, const vec384 b)
 static inline void sqr_fp(vec384 ret, const vec384 a)
 {   sqr_mont_384(ret, a, BLS12_381_P, p0);   }
 
-static inline void cneg_fp(vec384 ret, const vec384 a, limb_t flag)
+static inline void cneg_fp(vec384 ret, const vec384 a, bool_t flag)
 {   cneg_mod_384(ret, a, flag, BLS12_381_P);   }
 
 static inline void from_fp(vec384 ret, const vec384 a)
@@ -73,7 +73,7 @@ static inline void mul_fp2(vec384x ret, const vec384x a, const vec384x b)
 static inline void sqr_fp2(vec384x ret, const vec384x a)
 {   sqr_mont_384x(ret, a, BLS12_381_P, p0);   }
 
-static inline void cneg_fp2(vec384x ret, const vec384x a, limb_t flag)
+static inline void cneg_fp2(vec384x ret, const vec384x a, bool_t flag)
 {
     cneg_mod_384(ret[0], a[0], flag, BLS12_381_P);
     cneg_mod_384(ret[1], a[1], flag, BLS12_381_P);

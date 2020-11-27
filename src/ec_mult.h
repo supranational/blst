@@ -52,7 +52,7 @@ static void ptype##_gather_booth_w##SZ(ptype *restrict p, \
                                        limb_t booth_idx) \
 { \
     size_t i; \
-    limb_t booth_sign = (booth_idx >> SZ) & 1; \
+    bool_t booth_sign = (booth_idx >> SZ) & 1; \
 \
     booth_idx &= (1<<SZ) - 1; \
     vec_zero(p, sizeof(ptype)); /* implicit infinity at table[-1] */\
@@ -175,7 +175,7 @@ static void ptype##_mult_ladder(ptype *ret, const ptype *p, \
                                 const byte *scalar, size_t bits) \
 { \
     ptype sum[1]; \
-    limb_t bit, pbit = 0; \
+    bool_t bit, pbit = 0; \
 \
     vec_copy(sum, p, sizeof(ptype)); \
     vec_zero(ret, sizeof(ptype));   /* infinity */ \
@@ -199,7 +199,7 @@ static void ptype##_mult_ladder(ptype *out, const ptype *p, \
     ptype##xz sum[1]; \
     ptype##xz pxz[1]; \
     ptype##xz ret[1]; \
-    limb_t bit, pbit = 0; \
+    bool_t bit, pbit = 0; \
 \
     ptype##xz_ladder_pre(pxz, p); \
     vec_copy(sum, pxz, sizeof(ptype##xz)); \
@@ -247,7 +247,7 @@ static void ptype##_affine_mult_ladder(ptype *ret, \
                                        const byte *scalar, size_t bits) \
 { \
     ptype sum[1]; \
-    limb_t bit; \
+    bool_t bit; \
 \
     vec_zero(ret, sizeof(ptype));   /* infinity */ \
 \

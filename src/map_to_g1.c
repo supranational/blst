@@ -317,7 +317,7 @@ static void map_to_isogenous_E1(POINTonE1 *p, const vec384 u)
 # define tv4    y1
 #endif
 #define sgn0_fp(a) (sgn0_pty_mont_384((a), BLS12_381_P, p0) & 1)
-    limb_t e1, e2;
+    bool_t e1, e2;
 
     /*
      * as per map_to_curve() from poc/sswu_opt.sage at
@@ -496,7 +496,7 @@ static void POINTonE1_times_zz_minus_1_div_by_3(POINTonE1 *out,
 
 static void sigma(POINTonE1 *out, const POINTonE1 *in);
 
-static limb_t POINTonE1_in_G1(const POINTonE1 *P)
+static bool_t POINTonE1_in_G1(const POINTonE1 *P)
 {
     POINTonE1 t0, t1, t2;
 

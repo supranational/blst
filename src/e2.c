@@ -87,7 +87,7 @@ static void mul_by_4b_onE2(vec384x out, const vec384x in)
     lshift_fp(out[1], out[1], 4);
 }
 
-static void POINTonE2_cneg(POINTonE2 *p, limb_t cbit)
+static void POINTonE2_cneg(POINTonE2 *p, bool_t cbit)
 {   cneg_fp2(p->Y, p->Y, cbit);   }
 
 void blst_p2_cneg(POINTonE2 *a, int cbit)
@@ -134,7 +134,7 @@ void blst_p2_from_affine(POINTonE2 *out, const POINTonE2_affine *a)
                        vec_is_zero(a, sizeof(*a)));
 }
 
-static limb_t POINTonE2_affine_on_curve(const POINTonE2_affine *p)
+static bool_t POINTonE2_affine_on_curve(const POINTonE2_affine *p)
 {
     vec384x XXX, YY;
 
@@ -150,7 +150,7 @@ static limb_t POINTonE2_affine_on_curve(const POINTonE2_affine *p)
 int blst_p2_affine_on_curve(const POINTonE2_affine *p)
 {   return (int)POINTonE2_affine_on_curve(p);   }
 
-static limb_t POINTonE2_on_curve(const POINTonE2 *p)
+static bool_t POINTonE2_on_curve(const POINTonE2 *p)
 {
     vec384x XXX, YY, BZ6;
     limb_t inf = vec_is_zero(p->Z, sizeof(p->Z));
