@@ -54,14 +54,11 @@ notifications:
 
 before_cache:
     - if [ "$TRAVIS_LANGUAGE" = "rust" ]; then
-          (cd bindings/rust;
-           cargo clean -p blst; cargo clean -p blst --release;
-           rm -rf target/.rustc_info.json;
-           rm -rf target/{debug,release}/*/blst-*;
-           rm -rf target/{debug,release}/incremental;
-           rm -rf target/{debug,release}/build/src;
-           rm -rf target/{debug,release}/build/build;
-           mv -f Cargo.lock target)
+        ( cd bindings/rust;
+          cargo clean -p blst; cargo clean -p blst --release;
+          rm -rf target/.rustc_info.json;
+          rm -rf target/{debug,release}/incremental;
+          mv -f Cargo.lock target )
       fi
     - (cd "$TRAVIS_HOME"; rm -rf .cargo/registry/src)
     - (cd "$TRAVIS_HOME"; rm -rf .cargo/registry/index/*/.cache)
