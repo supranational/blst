@@ -965,8 +965,9 @@ inline void ct_inverse_mod_383(vec768 ret, const vec384 inp, const vec384 mod)
  * and |d_lo| are two most significant limbs of the divisor. If divisor
  * is only one limb, it is to be passed in |d_hi| with zero in |d_lo|.
  * The divisor is required to be "bitwise left-aligned," and dividend's
- * top limbs to be smaller than the divisor's. The latter limitation can
- * be problematic only in the first iteration of multi-precision division.
+ * top limbs to be not larger than the divisor's. The latter limitation
+ * can be problematic in the first iteration of multi-precision division,
+ * where in most general case the condition would have to be "smaller."
  * The subroutine considers four limbs, two of which are "overlapping,"
  * hence the name... Another way to look at it is to think of the pair
  * of the dividend's limbs being suffixed with a zero:
