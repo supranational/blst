@@ -10,6 +10,10 @@ typedef long long sllimb_t;
 typedef int slimb_t;
 #endif
 
+#if defined(__clang__)
+# pragma GCC diagnostic ignored "-Wstatic-in-inline"
+#endif
+
 static void mul_mont_n(limb_t ret[], const limb_t a[], const limb_t b[],
                        const limb_t p[], limb_t n0, size_t n)
 {
@@ -479,7 +483,6 @@ inline limb_t eucl_inverse_mod_##bits(vec##bits out, const vec##bits a, \
 {   return eucl_inverse_mod_n(out, a, p, one, NLIMBS(bits));   }
 
 EUCL_INVERSE_IMPL(256)
-EUCL_INVERSE_IMPL(384)
 
 static limb_t sgn0_pty_mod_n(const limb_t a[], const limb_t p[], size_t n)
 {
