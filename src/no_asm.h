@@ -6,8 +6,6 @@
 
 #if LIMB_T_BITS==32
 typedef unsigned long long llimb_t;
-typedef long long sllimb_t;
-typedef int slimb_t;
 #endif
 
 #if defined(__clang__)
@@ -859,7 +857,6 @@ static limb_t umul_n(limb_t ret[], const limb_t a[], limb_t b, size_t n)
 static void smul_n_shift_n(limb_t ret[], const limb_t a[], limb_t *f_,
                                          const limb_t b[], limb_t *g_, size_t n)
 {
-    llimb_t limbx;
     limb_t a_[n+1], b_[n+1], f, g, neg, carry, hi;
     size_t i;
 
@@ -868,20 +865,16 @@ static void smul_n_shift_n(limb_t ret[], const limb_t a[], limb_t *f_,
     neg = 0 - MSB(f);
     f = (f ^ neg) - neg;            /* ensure |f| is positive */
     cneg_n(a_, a, neg, n);
-    hi = umul_n(a_, a_, f, n-1);
-    limbx = (llimb_t)((slimb_t)f * (sllimb_t)(slimb_t)a_[n-1]) + hi;
-    a_[n-1] = (limb_t)limbx;
-    a_[n] = (limb_t)(limbx >> LIMB_T_BITS);
+    hi = umul_n(a_, a_, f, n);
+    a_[n] = hi - (f & neg);
 
     /* |b|*|g_| */
     g = *g_;
     neg = 0 - MSB(g);
     g = (g ^ neg) - neg;            /* ensure |g| is positive */
     cneg_n(b_, b, neg, n);
-    hi = umul_n(b_, b_, g, n-1);
-    limbx = (llimb_t)((slimb_t)g * (sllimb_t)(slimb_t)b_[n-1]) + hi;
-    b_[n-1] = (limb_t)limbx;
-    b_[n] = (limb_t)(limbx >> LIMB_T_BITS);
+    hi = umul_n(b_, b_, g, n);
+    b_[n] = hi - (g & neg);
 
     /* |a|*|f_| + |b|*|g_| */
     add_n(a_, a_, b_, n+1);
