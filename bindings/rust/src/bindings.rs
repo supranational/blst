@@ -234,7 +234,7 @@ extern "C" {
     pub fn blst_fr_sqr(ret: *mut blst_fr, a: *const blst_fr);
 }
 extern "C" {
-    pub fn blst_fr_cneg(ret: *mut blst_fr, a: *const blst_fr, flag: usize);
+    pub fn blst_fr_cneg(ret: *mut blst_fr, a: *const blst_fr, flag: bool);
 }
 extern "C" {
     pub fn blst_fr_eucl_inverse(ret: *mut blst_fr, a: *const blst_fr);
@@ -273,7 +273,7 @@ extern "C" {
     pub fn blst_fp_sqr(ret: *mut blst_fp, a: *const blst_fp);
 }
 extern "C" {
-    pub fn blst_fp_cneg(ret: *mut blst_fp, a: *const blst_fp, flag: usize);
+    pub fn blst_fp_cneg(ret: *mut blst_fp, a: *const blst_fp, flag: bool);
 }
 extern "C" {
     pub fn blst_fp_eucl_inverse(ret: *mut blst_fp, a: *const blst_fp);
@@ -330,7 +330,7 @@ extern "C" {
     pub fn blst_fp2_sqr(ret: *mut blst_fp2, a: *const blst_fp2);
 }
 extern "C" {
-    pub fn blst_fp2_cneg(ret: *mut blst_fp2, a: *const blst_fp2, flag: usize);
+    pub fn blst_fp2_cneg(ret: *mut blst_fp2, a: *const blst_fp2, flag: bool);
 }
 extern "C" {
     pub fn blst_fp2_eucl_inverse(ret: *mut blst_fp2, a: *const blst_fp2);
@@ -492,7 +492,7 @@ extern "C" {
     );
 }
 extern "C" {
-    pub fn blst_p1_cneg(p: *mut blst_p1, cbit: usize);
+    pub fn blst_p1_cneg(p: *mut blst_p1, cbit: bool);
 }
 extern "C" {
     pub fn blst_p1_to_affine(out: *mut blst_p1_affine, in_: *const blst_p1);
@@ -647,7 +647,7 @@ extern "C" {
     );
 }
 extern "C" {
-    pub fn blst_p2_cneg(p: *mut blst_p2, cbit: usize);
+    pub fn blst_p2_cneg(p: *mut blst_p2, cbit: bool);
 }
 extern "C" {
     pub fn blst_p2_to_affine(out: *mut blst_p2_affine, in_: *const blst_p2);

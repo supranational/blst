@@ -82,7 +82,7 @@ void blst_fr_lshift(blst_fr *ret, const blst_fr *a, size_t count);
 void blst_fr_rshift(blst_fr *ret, const blst_fr *a, size_t count);
 void blst_fr_mul(blst_fr *ret, const blst_fr *a, const blst_fr *b);
 void blst_fr_sqr(blst_fr *ret, const blst_fr *a);
-void blst_fr_cneg(blst_fr *ret, const blst_fr *a, size_t flag);
+void blst_fr_cneg(blst_fr *ret, const blst_fr *a, bool flag);
 void blst_fr_eucl_inverse(blst_fr *ret, const blst_fr *a);
 
 void blst_fr_from_uint64(blst_fr *ret, const uint64_t a[4]);
@@ -100,7 +100,7 @@ void blst_fp_mul_by_8(blst_fp *ret, const blst_fp *a);
 void blst_fp_lshift(blst_fp *ret, const blst_fp *a, size_t count);
 void blst_fp_mul(blst_fp *ret, const blst_fp *a, const blst_fp *b);
 void blst_fp_sqr(blst_fp *ret, const blst_fp *a);
-void blst_fp_cneg(blst_fp *ret, const blst_fp *a, size_t flag);
+void blst_fp_cneg(blst_fp *ret, const blst_fp *a, bool flag);
 void blst_fp_eucl_inverse(blst_fp *ret, const blst_fp *a);
 void blst_fp_inverse(blst_fp *ret, const blst_fp *a);
 bool blst_fp_sqrt(blst_fp *ret, const blst_fp *a);
@@ -124,7 +124,7 @@ void blst_fp2_mul_by_8(blst_fp2 *ret, const blst_fp2 *a);
 void blst_fp2_lshift(blst_fp2 *ret, const blst_fp2 *a, size_t count);
 void blst_fp2_mul(blst_fp2 *ret, const blst_fp2 *a, const blst_fp2 *b);
 void blst_fp2_sqr(blst_fp2 *ret, const blst_fp2 *a);
-void blst_fp2_cneg(blst_fp2 *ret, const blst_fp2 *a, size_t flag);
+void blst_fp2_cneg(blst_fp2 *ret, const blst_fp2 *a, bool flag);
 void blst_fp2_eucl_inverse(blst_fp2 *ret, const blst_fp2 *a);
 void blst_fp2_inverse(blst_fp2 *ret, const blst_fp2 *a);
 bool blst_fp2_sqrt(blst_fp2 *ret, const blst_fp2 *a);
@@ -161,7 +161,7 @@ void blst_p1_add_or_double_affine(blst_p1 *out, const blst_p1 *a,
 void blst_p1_double(blst_p1 *out, const blst_p1 *a);
 void blst_p1_mult(blst_p1 *out, const blst_p1 *p,
                                 const blst_scalar *scalar, size_t nbits);
-void blst_p1_cneg(blst_p1 *p, size_t cbit);
+void blst_p1_cneg(blst_p1 *p, bool cbit);
 void blst_p1_to_affine(blst_p1_affine *out, const blst_p1 *in);
 void blst_p1_from_affine(blst_p1 *out, const blst_p1_affine *in);
 bool blst_p1_on_curve(const blst_p1 *p);
@@ -188,7 +188,7 @@ void blst_p2_add_or_double_affine(blst_p2 *out, const blst_p2 *a,
 void blst_p2_double(blst_p2 *out, const blst_p2 *a);
 void blst_p2_mult(blst_p2 *out, const blst_p2 *p,
                                 const blst_scalar *scalar, size_t nbits);
-void blst_p2_cneg(blst_p2 *p, size_t cbit);
+void blst_p2_cneg(blst_p2 *p, bool cbit);
 void blst_p2_to_affine(blst_p2_affine *out, const blst_p2 *in);
 void blst_p2_from_affine(blst_p2 *out, const blst_p2_affine *in);
 bool blst_p2_on_curve(const blst_p2 *p);
