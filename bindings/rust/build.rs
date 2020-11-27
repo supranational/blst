@@ -3,30 +3,31 @@
 extern crate cc;
 
 use std::env;
-use std::path::Path;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[cfg(all(target_env = "msvc", target_arch = "x86_64"))]
-fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &str) {
-    let files = glob::glob(&(base_dir.to_owned() + "win64/*-x86_64.asm"))
-        .expect("disaster");
+fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path) {
+    let files =
+        glob::glob(&format!("{}/win64/*-x86_64.asm", base_dir.display()))
+            .expect("unable to collect assembly files");
     for file in files {
         file_vec.push(file.unwrap());
     }
 }
 
 #[cfg(all(target_env = "msvc", target_arch = "aarch64"))]
-fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &str) {
-    let files = glob::glob(&(base_dir.to_owned() + "win64/*-armv8.asm"))
-        .expect("disaster");
+fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path) {
+    let files =
+        glob::glob(&format!("{}/win64/*-armv8.asm", base_dir.display()))
+            .expect("unable to collect assembly files");
     for file in files {
         file_vec.push(file.unwrap());
     }
 }
 
 #[cfg(all(target_pointer_width = "64", not(target_env = "msvc")))]
-fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &str) {
-    file_vec.push(Path::new(base_dir).join("assembly.S"))
+fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path) {
+    file_vec.push(base_dir.join("assembly.S"))
 }
 
 fn main() {
@@ -44,25 +45,35 @@ fn main() {
 
     let mut file_vec = Vec::new();
 
-    let _out_dir = env::var_os("OUT_DIR").unwrap();
-
     let blst_base_dir = match env::var("BLST_SRC_DIR") {
-        Ok(val) => val,
+        Ok(val) => PathBuf::from(val),
         Err(_) => {
-            if Path::new("blst").exists() {
-                "blst".to_string()
+            let local_blst = PathBuf::from("blst");
+            if local_blst.exists() {
+                local_blst
             } else {
-                "../..".to_string()
+                // Reach out to ../.., which is the root of the blst repo.
+                // Use an absolute path to avoid issues with relative paths
+                // being treated as strings by `cc` and getting concatenated
+                // in ways that reach out of the OUT_DIR.
+                env::current_dir()
+                    .expect("can't access current directory")
+                    .parent()
+                    .and_then(|dir| dir.parent())
+                    .expect(
+                        "can't access parent of parent of current directory",
+                    )
+                    .into()
             }
         }
     };
-    println!("Using blst source directory {:?}", blst_base_dir);
+    println!("Using blst source directory {}", blst_base_dir.display());
 
-    let c_src_dir = blst_base_dir.clone() + "/src/";
+    let c_src_dir = blst_base_dir.join("src");
 
-    file_vec.push(Path::new(&c_src_dir).join("server.c"));
+    file_vec.push(c_src_dir.join("server.c"));
     #[cfg(all(target_pointer_width = "64"))]
-    assembly(&mut file_vec, &(blst_base_dir + "/build/"));
+    assembly(&mut file_vec, &blst_base_dir.join("build"));
 
     // Set CC environment variable to choose alternative C compiler.
     // Optimization level depends on whether or not --release is passed
@@ -102,21 +113,4 @@ fn main() {
         cc.opt_level(2);
     }
     cc.files(&file_vec).compile("libblst.a");
-
-    /*
-    let binding_src_dir = blst_base_dir + "/bindings/";
-    let bindings = bindgen::Builder::default()
-        .header(binding_src_dir + "blst.h")
-        .opaque_type("blst_pairing")
-        .size_t_is_usize(true)
-        .rustified_enum("BLST_ERROR")
-        .generate()
-        .expect("Unable to generate bindings");
-
-    // Write the bindings to the $OUT_DIR/bindings.rs file.
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    bindings
-        .write_to_file(out_path.join("bindings.rs"))
-        .expect("Couldn't write bindings!");
-    */
 }
