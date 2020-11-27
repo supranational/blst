@@ -773,13 +773,13 @@ void blst_fp12_inverse(vec384fp12 ret, const vec384fp12 a)
 void blst_fp12_frobenius_map(vec384fp12 ret, const vec384fp12 a, size_t n)
 {   frobenius_map_fp12(ret, a, n);   }
 
-limb_t blst_fp12_is_equal(const vec384fp12 a, const vec384fp12 b)
-{   return vec_is_equal(a, b, sizeof(vec384fp12));   }
+int blst_fp12_is_equal(const vec384fp12 a, const vec384fp12 b)
+{   return (int)vec_is_equal(a, b, sizeof(vec384fp12));   }
 
-limb_t blst_fp12_is_one(const vec384fp12 a)
+int blst_fp12_is_one(const vec384fp12 a)
 {
-    return vec_is_equal(a[0][0], BLS12_381_Rx.p2, sizeof(a[0][0])) &
-           vec_is_zero(a[0][1], sizeof(vec384fp12) - sizeof(a[0][0]));
+    return (int)(vec_is_equal(a[0][0], BLS12_381_Rx.p2, sizeof(a[0][0])) &
+                 vec_is_zero(a[0][1], sizeof(vec384fp12) - sizeof(a[0][0])));
 }
 
 const vec384fp12 *blst_fp12_one()

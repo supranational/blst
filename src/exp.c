@@ -132,5 +132,5 @@ static limb_t sqrt_fp(vec384 out, const vec384 inp)
     return ret;
 }
 
-limb_t blst_fp_sqrt(vec384 out, const vec384 inp)
-{   return sqrt_fp(out, inp);   }
+int blst_fp_sqrt(vec384 out, const vec384 inp)
+{   return (int)sqrt_fp(out, inp);   }

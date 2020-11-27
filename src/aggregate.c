@@ -490,8 +490,8 @@ static limb_t PAIRING_FinalVerify(const PAIRING *ctx, const vec384fp12 GTsig)
            vec_is_zero(GT[0][1], sizeof(GT) - sizeof(GT[0][0]));
 }
 
-limb_t blst_pairing_finalverify(const PAIRING *ctx, const vec384fp12 GTsig)
-{   return PAIRING_FinalVerify(ctx, GTsig);   }
+int blst_pairing_finalverify(const PAIRING *ctx, const vec384fp12 GTsig)
+{   return (int)PAIRING_FinalVerify(ctx, GTsig);   }
 
 /*
  * PAIRING context-free entry points.

@@ -90,8 +90,8 @@ static void mul_by_4b_onE2(vec384x out, const vec384x in)
 static void POINTonE2_cneg(POINTonE2 *p, limb_t cbit)
 {   cneg_fp2(p->Y, p->Y, cbit);   }
 
-void blst_p2_cneg(POINTonE2 *a, size_t cbit)
-{   POINTonE2_cneg(a, cbit);   }
+void blst_p2_cneg(POINTonE2 *a, int cbit)
+{   POINTonE2_cneg(a, is_zero(cbit) ^ 1);   }
 
 static void POINTonE2_from_Jacobian(POINTonE2 *out, const POINTonE2 *in)
 {
@@ -147,8 +147,8 @@ static limb_t POINTonE2_affine_on_curve(const POINTonE2_affine *p)
     return vec_is_equal(XXX, YY, sizeof(XXX)) | vec_is_zero(p, sizeof(*p));
 }
 
-limb_t blst_p2_affine_on_curve(const POINTonE2_affine *p)
-{   return POINTonE2_affine_on_curve(p);   }
+int blst_p2_affine_on_curve(const POINTonE2_affine *p)
+{   return (int)POINTonE2_affine_on_curve(p);   }
 
 static limb_t POINTonE2_on_curve(const POINTonE2 *p)
 {
@@ -169,8 +169,8 @@ static limb_t POINTonE2_on_curve(const POINTonE2 *p)
     return vec_is_equal(XXX, YY, sizeof(XXX)) | inf;
 }
 
-limb_t blst_p2_on_curve(const POINTonE2 *p)
-{   return POINTonE2_on_curve(p);   }
+int blst_p2_on_curve(const POINTonE2 *p)
+{   return (int)POINTonE2_on_curve(p);   }
 
 static limb_t POINTonE2_affine_Serialize_BE(unsigned char out[192],
                                             const POINTonE2_affine *in)
@@ -411,8 +411,8 @@ POINT_ADD_AFFINE_IMPL(POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
 POINT_DOUBLE_IMPL_A0(POINTonE2, 384x, fp2)
 POINT_IS_EQUAL_IMPL(POINTonE2, 384x, fp2)
 
-limb_t blst_p2_is_equal(const POINTonE2 *a, const POINTonE2 *b)
-{   return POINTonE2_is_equal(a, b);   }
+int blst_p2_is_equal(const POINTonE2 *a, const POINTonE2 *b)
+{   return (int)POINTonE2_is_equal(a, b);   }
 
 #include "ec_mult.h"
 POINT_MULT_SCALAR_WX_IMPL(POINTonE2, 4)
@@ -531,14 +531,14 @@ void blst_sign_pk2_in_g1(unsigned char out[192], POINTonE2_affine *sig,
     }
 }
 
-limb_t blst_p2_is_inf(const POINTonE2 *p)
-{   return vec_is_zero(p->Z, sizeof(p->Z));   }
+int blst_p2_is_inf(const POINTonE2 *p)
+{   return (int)vec_is_zero(p->Z, sizeof(p->Z));   }
 
 const POINTonE2 *blst_p2_generator()
 {   return &BLS12_381_G2;   }
 
-limb_t blst_p2_affine_is_inf(const POINTonE2_affine *p)
-{   return vec_is_zero(p, sizeof(*p));   }
+int blst_p2_affine_is_inf(const POINTonE2_affine *p)
+{   return (int)vec_is_zero(p, sizeof(*p));   }
 
 const POINTonE2_affine *blst_p2_affine_generator()
 {   return (const POINTonE2_affine *)&BLS12_381_G2;   }

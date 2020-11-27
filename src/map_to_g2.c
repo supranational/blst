@@ -419,10 +419,10 @@ static limb_t POINTonE2_in_G2(const POINTonE2 *P)
     return vec_is_zero(t0.Z, sizeof(t0.Z));
 }
 
-limb_t blst_p2_in_g2(const POINTonE2 *p)
-{   return POINTonE2_in_G2(p);   }
+int blst_p2_in_g2(const POINTonE2 *p)
+{   return (int)POINTonE2_in_G2(p);   }
 
-limb_t blst_p2_affine_in_g2(const POINTonE2_affine *p)
+int blst_p2_affine_in_g2(const POINTonE2_affine *p)
 {
     POINTonE2 P;
 
@@ -430,5 +430,5 @@ limb_t blst_p2_affine_in_g2(const POINTonE2_affine *p)
     vec_select(P.Z, p->X, BLS12_381_Rx.p, sizeof(P.Z),
                      vec_is_zero(p, sizeof(*p)));
 
-    return POINTonE2_in_G2(&P);
+    return (int)POINTonE2_in_G2(&P);
 }

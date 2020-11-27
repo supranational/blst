@@ -41,8 +41,8 @@ void blst_fr_mul(vec256 ret, const vec256 a, const vec256 b)
 void blst_fr_sqr(vec256 ret, const vec256 a)
 {   sqr_mont_sparse_256(ret, a, BLS12_381_r, r0);   }
 
-void blst_fr_cneg(vec256 ret, const vec256 a, size_t flag)
-{   cneg_mod_256(ret, a, flag, BLS12_381_r);   }
+void blst_fr_cneg(vec256 ret, const vec256 a, int flag)
+{   cneg_mod_256(ret, a, is_zero(flag) ^ 1, BLS12_381_r);   }
 
 void blst_fr_to(vec256 ret, const vec256 a)
 {   mul_mont_sparse_256(ret, a, BLS12_381_rRR, BLS12_381_r, r0);   }
@@ -77,8 +77,8 @@ void blst_fp_mul(vec384 ret, const vec384 a, const vec384 b)
 void blst_fp_sqr(vec384 ret, const vec384 a)
 {   sqr_fp(ret, a);   }
 
-void blst_fp_cneg(vec384 ret, const vec384 a, size_t flag)
-{   cneg_fp(ret, a, flag);   }
+void blst_fp_cneg(vec384 ret, const vec384 a, int flag)
+{   cneg_fp(ret, a, is_zero(flag) ^ 1);   }
 
 void blst_fp_eucl_inverse(vec384 ret, const vec384 a)
 {   reciprocal_fp(ret, a);   }
@@ -214,8 +214,8 @@ void blst_fp2_mul(vec384x ret, const vec384x a, const vec384x b)
 void blst_fp2_sqr(vec384x ret, const vec384x a)
 {   sqr_fp2(ret, a);   }
 
-void blst_fp2_cneg(vec384x ret, const vec384x a, size_t flag)
-{   cneg_fp2(ret, a, flag);   }
+void blst_fp2_cneg(vec384x ret, const vec384x a, int flag)
+{   cneg_fp2(ret, a, is_zero(flag) ^ 1);   }
 
 /*
  * BLS12-381-specifc point operations.
@@ -242,9 +242,9 @@ void blst_p1_mult(POINTonE1 *out, const POINTonE1 *a,
                                   const byte *scalar, size_t nbits)
 {   POINTonE1_mult_w5(out, a, scalar, nbits);   }
 
-limb_t blst_p1_affine_is_equal(const POINTonE1_affine *a,
-                               const POINTonE1_affine *b)
-{   return vec_is_equal(a, b, sizeof(*a));   }
+int blst_p1_affine_is_equal(const POINTonE1_affine *a,
+                            const POINTonE1_affine *b)
+{   return (int)vec_is_equal(a, b, sizeof(*a));   }
 
 void blst_p2_add(POINTonE2 *out, const POINTonE2 *a, const POINTonE2 *b)
 {   POINTonE2_add(out, a, b);   }
@@ -268,9 +268,9 @@ void blst_p2_mult(POINTonE2 *out, const POINTonE2 *a,
                                   const byte *scalar, size_t nbits)
 {   POINTonE2_mult_w5(out, a, scalar, nbits);   }
 
-limb_t blst_p2_affine_is_equal(const POINTonE2_affine *a,
-                               const POINTonE2_affine *b)
-{   return vec_is_equal(a, b, sizeof(*a));   }
+int blst_p2_affine_is_equal(const POINTonE2_affine *a,
+                            const POINTonE2_affine *b)
+{   return (int)vec_is_equal(a, b, sizeof(*a));   }
 
 /*
  * Scalar serialization/deseriazation
@@ -401,7 +401,7 @@ void blst_lendian_from_scalar(unsigned char ret[32], const pow256 a)
         ret[i] = a[i];
 }
 
-limb_t blst_scalar_fr_check(const pow256 a)
+int blst_scalar_fr_check(const pow256 a)
 {
     vec256 value, zero = { 0 };
     limb_t ret;
@@ -412,11 +412,11 @@ limb_t blst_scalar_fr_check(const pow256 a)
     vec_zero(zero, sizeof(zero));
     vec_zero(value, sizeof(value));
 
-    return ret;
+    return (int)ret;
 }
 
-limb_t blst_sk_check(const pow256 a)
-{   return check_mod_256(a, BLS12_381_r);   }
+int blst_sk_check(const pow256 a)
+{   return (int)check_mod_256(a, BLS12_381_r);   }
 
 void blst_fr_from_uint64(vec256 ret, const unsigned long long a[4])
 {
