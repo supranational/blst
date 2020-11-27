@@ -254,7 +254,7 @@ static void cneg_mod_n(limb_t ret[], const limb_t a[], bool_t flag,
     mask = (limb_t)0 - flag;
 
     for(i=0; i<n; i++)
-        ret[i] = (a[i] & ~flag) | (tmp[i] & flag);
+        ret[i] = (a[i] & ~mask) | (tmp[i] & mask);
 }
 
 #define CNEG_MOD_IMPL(bits) \
