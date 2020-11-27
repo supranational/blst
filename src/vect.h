@@ -19,6 +19,11 @@ typedef unsigned long long limb_t;
 typedef unsigned __int64 limb_t;
 # define LIMB_T_BITS    64
 
+#elif defined(__wasm64__)
+typedef unsigned int limb_t;
+# define LIMB_T_BITS    32
+# define __BLST_NO_ASM__
+
 # else                  /* 32 bits on 32-bit platforms, 64 - on 64-bit */
 typedef unsigned long limb_t;
 #  ifdef _LP64
