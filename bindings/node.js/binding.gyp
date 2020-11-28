@@ -9,7 +9,7 @@
       'include_dirs': [ '..' ],
       'cflags_cc': [ '-fexceptions' ],
       'xcode_settings': { 'GCC_ENABLE_CPP_EXCEPTIONS': 'YES' },
-      'msvs_settings':  { 'VCCLCompilerTool': { 'ExceptionHandling': 'true' } },
+      'msvs_settings':  { 'VCCLCompilerTool': { 'ExceptionHandling': '1' } },
       'conditions': [
         [ 'OS=="win"', {
             'sources': [ '../../build/win64/*-x86_64.asm' ],
