@@ -127,7 +127,7 @@ ctx_inverse_mod_383:
 	movq	%r9,72(%rdi)
 	movq	%r9,80(%rdi)
 	movq	%r9,88(%rdi)
-	leaq	96(%rdi),%rdi
+	leaq	96(%rsi),%rsi
 
 	movq	%r10,%rax
 	imulq	%rbx
@@ -137,14 +137,14 @@ ctx_inverse_mod_383:
 	imulq	%rcx
 	addq	%rax,%r8
 	adcq	%rdx,%r9
-	movq	%r8,0(%rdi)
-	movq	%r9,8(%rdi)
+	movq	%r8,96(%rdi)
+	movq	%r9,104(%rdi)
 	sarq	$63,%r9
-	movq	%r9,16(%rdi)
-	movq	%r9,24(%rdi)
-	movq	%r9,32(%rdi)
-	movq	%r9,40(%rdi)
-	xorq	$256,%rsi
+	movq	%r9,112(%rdi)
+	movq	%r9,120(%rdi)
+	movq	%r9,128(%rdi)
+	movq	%r9,136(%rdi)
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -169,14 +169,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_383x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -201,14 +200,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_383x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -233,14 +231,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_383x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -265,14 +262,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_383x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -297,14 +293,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_383x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -329,14 +324,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_383x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -361,14 +355,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_383x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -393,14 +386,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_383x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -425,14 +417,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_383x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -457,13 +448,12 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
-	leaq	-96(%rsi),%rsi
+	call	__smulx_383x63
 	sarq	$63,%r13
 	movq	%r13,48(%rdi)
 	movq	%r13,56(%rdi)
@@ -471,7 +461,7 @@ ctx_inverse_mod_383:
 	movq	%r13,72(%rdi)
 	movq	%r13,80(%rdi)
 	movq	%r13,88(%rdi)
-	xorq	$256,%rsi
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -496,14 +486,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_767x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -528,14 +517,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_767x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -560,14 +548,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_767x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -592,14 +579,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_767x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -624,14 +610,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_767x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -656,14 +641,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_767x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -688,46 +672,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
-	movl	$31,%edi
-	call	__ab_approximation_31
-
-
-	movq	%r12,72(%rsp)
-	movq	%r13,80(%rsp)
-
-	movq	$256,%rdi
-	xorq	%rsi,%rdi
-	call	__smulx_191_n_shift_by_31
-	movq	%rdx,56(%rsp)
-	movq	%rcx,64(%rsp)
-
-	movq	72(%rsp),%rdx
-	movq	80(%rsp),%rcx
-	leaq	48(%rdi),%rdi
-	call	__smulx_191_n_shift_by_31
-	movq	%rdx,72(%rsp)
-	movq	%rcx,80(%rsp)
-
-	movq	56(%rsp),%rdx
-	movq	64(%rsp),%rcx
-	leaq	96(%rsi),%rsi
-	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
-
-	movq	72(%rsp),%rdx
-	movq	80(%rsp),%rcx
-	leaq	48(%rdi),%rdi
-	call	__smulx_767x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_767x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -752,14 +703,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_767x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -784,14 +734,13 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x62
-	leaq	-96(%rsi),%rsi
-	xorq	$256,%rsi
+	call	__smulx_767x63
+	xorq	$256+96,%rsi
 	movl	$31,%edi
 	call	__ab_approximation_31
 
@@ -816,21 +765,51 @@ ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x62
-	leaq	-96(%rsi),%rsi
+	call	__smulx_767x63
+	xorq	$256+96,%rsi
+	movl	$31,%edi
+	call	__ab_approximation_31
 
-	xorq	$256,%rsi
+
+	movq	%r12,72(%rsp)
+	movq	%r13,80(%rsp)
+
+	movq	$256,%rdi
+	xorq	%rsi,%rdi
+	call	__smulx_191_n_shift_by_31
+	movq	%rdx,56(%rsp)
+	movq	%rcx,64(%rsp)
+
+	movq	72(%rsp),%rdx
+	movq	80(%rsp),%rcx
+	leaq	48(%rdi),%rdi
+	call	__smulx_191_n_shift_by_31
+	movq	%rdx,72(%rsp)
+	movq	%rcx,80(%rsp)
+
+	movq	56(%rsp),%rdx
+	movq	64(%rsp),%rcx
+	leaq	96(%rsi),%rsi
+	leaq	48(%rdi),%rdi
+	call	__smulx_383x63
+
+	movq	72(%rsp),%rdx
+	movq	80(%rsp),%rcx
+	leaq	48(%rdi),%rdi
+	call	__smulx_767x63
+
+	xorq	$256+96,%rsi
 	movl	$55,%edi
 
 	movq	0(%rsi),%r8
-	xorq	%r9,%r9
+
 	movq	48(%rsi),%r10
-	xorq	%r11,%r11
+
 	call	__inner_loop_62
 
 
@@ -848,7 +827,7 @@ ctx_inverse_mod_383:
 	movq	%r12,%rdx
 	movq	%r13,%rcx
 	movq	32(%rsp),%rdi
-	call	__smulx_767x62
+	call	__smulx_767x63
 
 	movq	40(%rsp),%rsi
 	movq	%rax,%rdx
@@ -899,9 +878,9 @@ ctx_inverse_mod_383:
 	.byte	0xf3,0xc3
 .cfi_endproc	
 .size	ctx_inverse_mod_383,.-ctx_inverse_mod_383
-.type	__smulx_767x62,@function
+.type	__smulx_767x63,@function
 .align	32
-__smulx_767x62:
+__smulx_767x63:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -960,10 +939,6 @@ __smulx_767x62:
 	movq	%rdx,48(%rdi)
 	sarq	$63,%rdx
 	movq	%rdx,56(%rdi)
-	movq	%rdx,64(%rdi)
-	movq	%rdx,72(%rdi)
-	movq	%rdx,80(%rdi)
-	movq	%rdx,88(%rdi)
 	movq	%rcx,%rdx
 	movq	%rcx,%rax
 
@@ -1045,11 +1020,12 @@ __smulx_767x62:
 	adcq	32(%rdx),%r12
 	adcq	40(%rdx),%r13
 	adcq	48(%rdx),%r14
-	adcq	56(%rdx),%r15
-	adcq	64(%rdx),%rbx
-	adcq	72(%rdx),%rbp
-	adcq	80(%rdx),%rcx
-	adcq	88(%rdx),%rax
+	movq	56(%rdx),%rdi
+	adcq	%rdi,%r15
+	adcq	%rdi,%rbx
+	adcq	%rdi,%rbp
+	adcq	%rdi,%rcx
+	adcq	%rdi,%rax
 
 	movq	%rdx,%rdi
 
@@ -1068,10 +1044,10 @@ __smulx_767x62:
 
 	.byte	0xf3,0xc3
 .cfi_endproc
-.size	__smulx_767x62,.-__smulx_767x62
-.type	__smulx_383x62,@function
+.size	__smulx_767x63,.-__smulx_767x63
+.type	__smulx_383x63,@function
 .align	32
-__smulx_383x62:
+__smulx_383x63:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1178,7 +1154,7 @@ __smulx_383x62:
 
 	.byte	0xf3,0xc3
 .cfi_endproc
-.size	__smulx_383x62,.-__smulx_383x62
+.size	__smulx_383x63,.-__smulx_383x63
 .type	__smulx_383_n_shift_by_31,@function
 .align	32
 __smulx_383_n_shift_by_31:
@@ -1562,22 +1538,14 @@ __inner_loop_62:
 
 .Loop_62:
 	xorq	%rax,%rax
-	xorq	%rbx,%rbx
 	testq	$1,%r8
-	movq	%r10,%rbp
-	movq	%r11,%r14
+	movq	%r10,%rbx
 	cmovnzq	%r10,%rax
-	cmovnzq	%r11,%rbx
-	subq	%r8,%rbp
-	sbbq	%r9,%r14
-	movq	%r8,%r15
+	subq	%r8,%rbx
+	movq	%r8,%rbp
 	subq	%rax,%r8
-	movq	%r9,%rax
-	sbbq	%rbx,%r9
-	cmovcq	%rbp,%r8
-	cmovcq	%r14,%r9
-	cmovcq	%r15,%r10
-	cmovcq	%rax,%r11
+	cmovcq	%rbx,%r8
+	cmovcq	%rbp,%r10
 	movq	%rdx,%rax
 	cmovcq	%r12,%rdx
 	cmovcq	%rax,%r12
@@ -1586,9 +1554,8 @@ __inner_loop_62:
 	cmovcq	%rbx,%r13
 	xorq	%rax,%rax
 	xorq	%rbx,%rbx
-	shrdq	$1,%r9,%r8
-	shrq	$1,%r9
-	testq	$1,%r15
+	shrq	$1,%r8
+	testq	$1,%rbp
 	cmovnzq	%r12,%rax
 	cmovnzq	%r13,%rbx
 	addq	%r12,%r12

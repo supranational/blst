@@ -102,12 +102,12 @@ ct_inverse_mod_383:
 	bl	__smul_383_n_shift_by_62
 
 	add	x0, x0, #8*6	// pointer to destination |u|
-	bl	__smul_383x62
+	bl	__smul_383x63
 
 	mov	x20, x15			// corrected |f1|
 	mov	x21, x16			// corrected |g1|
 	add	x0, x0, #8*6	// pointer to destination |v|
-	bl	__smul_383x62
+	bl	__smul_383x63
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 	mov	x2, #62
 	bl	__ab_approximation_62
@@ -123,12 +123,12 @@ ct_inverse_mod_383:
 	bl	__smul_383_n_shift_by_62
 
 	add	x0, x0, #8*6	// pointer to destination |u|
-	bl	__smul_383x62
+	bl	__smul_383x63
 
 	mov	x20, x15			// corrected |f1|
 	mov	x21, x16			// corrected |g1|
 	add	x0, x0, #8*6	// pointer to destination |v|
-	bl	__smul_383x62
+	bl	__smul_383x63
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 	mov	x2, #62
 	bl	__ab_approximation_62
@@ -144,12 +144,12 @@ ct_inverse_mod_383:
 	bl	__smul_383_n_shift_by_62
 
 	add	x0, x0, #8*6	// pointer to destination |u|
-	bl	__smul_383x62
+	bl	__smul_383x63
 
 	mov	x20, x15			// corrected |f1|
 	mov	x21, x16			// corrected |g1|
 	add	x0, x0, #8*6	// pointer to destination |v|
-	bl	__smul_383x62
+	bl	__smul_383x63
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 	mov	x2, #62
 	bl	__ab_approximation_62
@@ -165,12 +165,12 @@ ct_inverse_mod_383:
 	bl	__smul_383_n_shift_by_62
 
 	add	x0, x0, #8*6	// pointer to destination |u|
-	bl	__smul_383x62
+	bl	__smul_383x63
 
 	mov	x20, x15			// corrected |f1|
 	mov	x21, x16			// corrected |g1|
 	add	x0, x0, #8*6	// pointer to destination |v|
-	bl	__smul_383x62
+	bl	__smul_383x63
 	asr	x27, x27, #63		// sign extension
 	stp	x27, x27, [x0,#8*6]
 	stp	x27, x27, [x0,#8*8]
@@ -190,13 +190,13 @@ ct_inverse_mod_383:
 	bl	__smul_383_n_shift_by_62
 
 	add	x0, x0, #8*6	// pointer to destination |u|
-	bl	__smul_383x62
+	bl	__smul_383x63
 
 	mov	x20, x15			// corrected |f1|
 	mov	x21, x16			// corrected |g1|
 	add	x0, x0, #8*6	// pointer to destination |v|
-	bl	__smul_383x62
-	bl	__smul_767x62_tail
+	bl	__smul_383x63
+	bl	__smul_767x63_tail
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 	mov	x2, #62
 	bl	__ab_approximation_62
@@ -212,13 +212,13 @@ ct_inverse_mod_383:
 	bl	__smul_383_n_shift_by_62
 
 	add	x0, x0, #8*6	// pointer to destination |u|
-	bl	__smul_383x62
+	bl	__smul_383x63
 
 	mov	x20, x15			// corrected |f1|
 	mov	x21, x16			// corrected |g1|
 	add	x0, x0, #8*6	// pointer to destination |v|
-	bl	__smul_383x62
-	bl	__smul_767x62_tail
+	bl	__smul_383x63
+	bl	__smul_767x63_tail
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 	mov	x2, #62
 	bl	__ab_approximation_62
@@ -234,13 +234,13 @@ ct_inverse_mod_383:
 	bl	__smul_383_n_shift_by_62
 
 	add	x0, x0, #8*6	// pointer to destination |u|
-	bl	__smul_383x62
+	bl	__smul_383x63
 
 	mov	x20, x15			// corrected |f1|
 	mov	x21, x16			// corrected |g1|
 	add	x0, x0, #8*6	// pointer to destination |v|
-	bl	__smul_383x62
-	bl	__smul_767x62_tail
+	bl	__smul_383x63
+	bl	__smul_767x63_tail
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 	mov	x2, #62
 	bl	__ab_approximation_62
@@ -256,13 +256,13 @@ ct_inverse_mod_383:
 	bl	__smul_383_n_shift_by_62
 
 	add	x0, x0, #8*6	// pointer to destination |u|
-	bl	__smul_383x62
+	bl	__smul_383x63
 
 	mov	x20, x15			// corrected |f1|
 	mov	x21, x16			// corrected |g1|
 	add	x0, x0, #8*6	// pointer to destination |v|
-	bl	__smul_383x62
-	bl	__smul_767x62_tail
+	bl	__smul_383x63
+	bl	__smul_767x63_tail
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 	mov	x2, #62
 	bl	__ab_approximation_62
@@ -278,13 +278,13 @@ ct_inverse_mod_383:
 	bl	__smul_383_n_shift_by_62
 
 	add	x0, x0, #8*6	// pointer to destination |u|
-	bl	__smul_383x62
+	bl	__smul_383x63
 
 	mov	x20, x15			// corrected |f1|
 	mov	x21, x16			// corrected |g1|
 	add	x0, x0, #8*6	// pointer to destination |v|
-	bl	__smul_383x62
-	bl	__smul_767x62_tail
+	bl	__smul_383x63
+	bl	__smul_767x63_tail
 	////////////////////////////////////////// iteration before last
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 	mov	x2, #62
@@ -302,13 +302,13 @@ ct_inverse_mod_383:
 	mov	x15, x17
 	mov	x16, x19
 	add	x0, x0, #8*12	// pointer to dst |u|
-	bl	__smul_383x62
+	bl	__smul_383x63
 
 	mov	x20, x15			// exact |f1|
 	mov	x21, x16			// exact |g1|
 	add	x0, x0, #8*6	// pointer to dst |v|
-	bl	__smul_383x62
-	bl	__smul_767x62_tail
+	bl	__smul_383x63
+	bl	__smul_767x63_tail
 
 	////////////////////////////////////////// last iteration
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
@@ -323,8 +323,8 @@ ct_inverse_mod_383:
 	mov	x20, x17
 	mov	x21, x19
 	ldp	x0, x15, [sp]		// original out_ptr and n_ptr
-	bl	__smul_383x62
-	bl	__smul_767x62_tail
+	bl	__smul_383x63
+	bl	__smul_767x63_tail
 	ldr	x30, [x29,#8]
 
 	asr	x22, x8, #63		// sign as mask
@@ -359,11 +359,13 @@ ct_inverse_mod_383:
 	ret
 
 
-.def	__smul_383x62;
+////////////////////////////////////////////////////////////////////////
+// see corresponding commentary in ctx_inverse_mod_384-x86_64...
+.def	__smul_383x63;
 .type	32;
 .endef
 .p2align	5
-__smul_383x62:
+__smul_383x63:
 	ldp	x3, x4, [x1,#8*0+96]	// load |u| (or |v|)
 	asr	x17, x20, #63		// |f_|'s sign as mask (or |g_|'s)
 	ldp	x5, x6, [x1,#8*2+96]
@@ -423,7 +425,7 @@ __smul_383x62:
 	umulh	x24, x11, x21
 	adcs	x14, x14, xzr
 	umulh	x25, x12, x21
-	adc	x19, xzr, xzr		// used in __smul_767x62_tail
+	adc	x19, xzr, xzr		// used in __smul_767x63_tail
 	umulh	x26, x13, x21
 	mul	x9, x9, x21
 	mul	x10, x10, x21
@@ -447,16 +449,16 @@ __smul_383x62:
 	stp	x5, x6, [x0,#8*2]
 	adcs	x27,   x27,   x28
 	stp	x7, x27,   [x0,#8*4]
-	adc	x28,   x2,   xzr	// used in __smul_767x62_tail
+	adc	x28,   x2,   xzr	// used in __smul_767x63_tail
 
 	ret
 
 
-.def	__smul_767x62_tail;
+.def	__smul_767x63_tail;
 .type	32;
 .endef
 .p2align	5
-__smul_767x62_tail:
+__smul_767x63_tail:
 	smulh	x27,   x8, x20
 	ldp	x3, x4, [x1,#8*24]	// load rest of |v|
 	umulh	x14,x14, x21
