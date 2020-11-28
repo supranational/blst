@@ -19,6 +19,7 @@ def ct_inverse_mod_383(inp, mod):
     mask = (1 << k) - 1
 
     for i in range(0, 768 // k):
+        # __ab_approximation_31
         n = max(a.bit_length(), b.bit_length())
         if n < 64:
             a_, b_ = a, b
@@ -26,6 +27,7 @@ def ct_inverse_mod_383(inp, mod):
             a_ = (a & mask) | ((a >> (n-k)) << k)
             b_ = (b & mask) | ((b >> (n-k)) << k)
 
+        # __inner_loop_31
         f0, g0, f1, g1 = 1, 0, 0, 1
         for j in range(0, k):
             if a_ & 1:
@@ -34,12 +36,14 @@ def ct_inverse_mod_383(inp, mod):
                 a_, f0, g0 = a_-b_, f0-f1, g0-g1
             a_, f1, g1 = a_ >> 1, f1 << 1, g1 << 1
 
+        # __smulx_383_n_shift_by_31
         a, b = (a*f0 + b*g0) >> k, (a*f1 + b*g1) >> k
         if a < 0:
             a, f0, g0 = -a, -f0, -g0
         if b < 0:
             b, f1, g1 = -b, -f1, -g1
 
+        # __smulx_767x63
         u, v = u*f0 + v*g0, u*f1 + v*g1
 
     if 768 % k:
@@ -201,7 +205,7 @@ ctx_inverse_mod_383:
 	mov	@acc[1], 8*9($out_ptr)
 	mov	@acc[1], 8*10($out_ptr)
 	mov	@acc[1], 8*11($out_ptr)
-	lea	8*12($out_ptr),$out_ptr	# pointer to destination |v|
+	lea	8*12($in_ptr), $in_ptr	# make in_ptr "rewindable" with xor
 
 	mov	@acc[2], %rax
 	imulq	%rbx			# |u|*|f1|
@@ -211,21 +215,21 @@ ctx_inverse_mod_383:
 	imulq	%rcx			# |v|*|g1|
 	add	%rax, @acc[0]
 	adc	%rdx, @acc[1]
-	mov	@acc[0], 8*0($out_ptr)	# destination |v|
-	mov	@acc[1], 8*1($out_ptr)
+	mov	@acc[0], 8*12($out_ptr)	# destination |v|
+	mov	@acc[1], 8*13($out_ptr)
 	sar	\$63, @acc[1]		# sign extension
-	mov	@acc[1], 8*2($out_ptr)
-	mov	@acc[1], 8*3($out_ptr)
-	mov	@acc[1], 8*4($out_ptr)
-	mov	@acc[1], 8*5($out_ptr)
+	mov	@acc[1], 8*14($out_ptr)
+	mov	@acc[1], 8*15($out_ptr)
+	mov	@acc[1], 8*16($out_ptr)
+	mov	@acc[1], 8*17($out_ptr)
 ___
 for($i=2; $i<23; $i++) {
 my $smul_n_shift = $i<19 ? "__smulx_383_n_shift_by_31"
                          : "__smulx_191_n_shift_by_31";
-my $smul_767x62  = $i>11 ? "__smulx_767x62"
-                         : "__smulx_383x62";
+my $smul_767x63  = $i>11 ? "__smulx_767x63"
+                         : "__smulx_383x63";
 $code.=<<___;
-	xor	\$256, $in_ptr		# flip-flop pointer to source |a|b|u|v|
+	xor	\$256+8*12, $in_ptr	# flip-flop pointer to source |a|b|u|v|
 	mov	\$31, $cnt
 	call	__ab_approximation_31
 	#mov	$f0, 8*7(%rsp)
@@ -250,13 +254,12 @@ $code.=<<___;
 	mov	8*8(%rsp), $g0		# |g0|
 	lea	8*12($in_ptr), $in_ptr	# pointer to source |u|v|
 	lea	8*6($out_ptr), $out_ptr	# pointer to destination |u|
-	call	__smulx_383x62
+	call	__smulx_383x63
 
 	mov	8*9(%rsp), $f0		# |f1|
 	mov	8*10(%rsp), $g0		# |g1|
 	lea	8*6($out_ptr),$out_ptr	# pointer to destination |v|
-	call	$smul_767x62
-	lea	-8*12($in_ptr), $in_ptr	# rewind pointer to source |a|b|u|v|
+	call	$smul_767x63
 ___
 $code.=<<___	if ($i==11);
 	sar	\$63, @acc[5]		# sign extension
@@ -270,13 +273,13 @@ ___
 }
 $code.=<<___;
 	################################# two[!] last iterations in one go
-	xor	\$256, $in_ptr		# flip-flop pointer to source |a|b|u|v|
+	xor	\$256+8*12, $in_ptr	# flip-flop pointer to source |a|b|u|v|
 	mov	\$55, $cnt		# 31 + 768 % 31
 	#call	__ab_approximation_31	# |a| and |b| are exact, just load
 	mov	8*0($in_ptr), @acc[0]	# |a_lo|
-	xor	@acc[1],      @acc[1]	# |a_hi|
+	#xor	@acc[1],      @acc[1]	# |a_hi|
 	mov	8*6($in_ptr), @acc[2]	# |b_lo|
-	xor	@acc[3],      @acc[3]	# |b_hi|
+	#xor	@acc[3],      @acc[3]	# |b_hi|
 	call	__inner_loop_62
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
@@ -287,14 +290,14 @@ $code.=<<___;
 	#mov	8*8(%rsp), $g0		# |g0|
 	lea	8*12($in_ptr), $in_ptr	# pointer to source |u|v|
 	#lea	8*6($out_ptr), $out_ptr	# pointer to destination |u|
-	#call	__smulx_383x62
+	#call	__smulx_383x63
 
 	#mov	8*9(%rsp), $f0		# |f1|
 	#mov	8*10(%rsp), $g0		# |g1|
 	mov	$f1, $f0
 	mov	$g1, $g0
 	mov	8*4(%rsp), $out_ptr	# original out_ptr
-	call	__smulx_767x62
+	call	__smulx_767x63
 
 	mov	8*5(%rsp), $in_ptr	# original n_ptr
 	mov	%rax, %rdx		# top limb of the result
@@ -346,15 +349,27 @@ $code.=<<___;
 .cfi_endproc
 .size	ctx_inverse_mod_383,.-ctx_inverse_mod_383
 ___
+########################################################################
+# Signed |u|*|f?|+|v|*|g?| subroutines. "NNN" in "NNNx63" suffix refers
+# to the maximum bit-length of the *result*, and "63" - to the maximum
+# bit-length of the |f?| and |g?| single-limb multiplicands. However!
+# The latter should not be taken literally, as they are always chosen so
+# that "bad things" don't happen. For example, there comes a point when
+# |v| grows beyond 383 bits, while |u| remains 383 bits wide. Yet, we
+# always call __smul_383x63 to perform |u|*|f0|+|v|*|g0| step. This is
+# because past that point |f0| is always 1 and |g0| is always 0. And,
+# since |u| never grows beyond 383 bits, __smul_767x63 doesn't have to
+# perform full-width |u|*|f1| multiplication, half-width one with sign
+# extension is sufficient...
 {
 my ($out_ptr, $in_ptr, $f0, $g0) = ("%rdi", "%rsi", "%rdx", "%rcx");
 my @acc = map("%r$_",(8..15),"bx","bp","cx","di");
 my $fx = @acc[9];
 
 $code.=<<___;
-.type	__smulx_767x62,\@abi-omnipotent
+.type	__smulx_767x63,\@abi-omnipotent
 .align	32
-__smulx_767x62:
+__smulx_767x63:
 	mov	8*0($in_ptr), @acc[0]	# load |u|
 	mov	8*1($in_ptr), @acc[1]
 	mov	8*2($in_ptr), @acc[2]
@@ -413,10 +428,6 @@ $code.=<<___;
 	mov	%rdx,    8*6($out_ptr)
 	sar	\$63, %rdx		# sign extension
 	mov	%rdx, 8*7($out_ptr)
-	mov	%rdx, 8*8($out_ptr)
-	mov	%rdx, 8*9($out_ptr)
-	mov	%rdx, 8*10($out_ptr)
-	mov	%rdx, 8*11($out_ptr)
 ___
 {
 my $fx=$in_ptr;
@@ -493,11 +504,12 @@ $code.=<<___;
 	adc	8*4(%rdx), @acc[4]
 	adc	8*5(%rdx), @acc[5]
 	adc	8*6(%rdx), @acc[6]
-	adc	8*7(%rdx), @acc[7]
-	adc	8*8(%rdx), @acc[8]
-	adc	8*9(%rdx), @acc[9]
-	adc	8*10(%rdx), @acc[10]
-	adc	8*11(%rdx), %rax
+	mov	8*7(%rdx), @acc[11]	# sign extension
+	adc	@acc[11], @acc[7]
+	adc	@acc[11], @acc[8]
+	adc	@acc[11], @acc[9]
+	adc	@acc[11], @acc[10]
+	adc	@acc[11], %rax
 
 	mov	%rdx, $out_ptr		# restore original out_ptr
 
@@ -515,13 +527,13 @@ $code.=<<___;
 	mov	%rax,     8*11(%rdx)
 
 	ret
-.size	__smulx_767x62,.-__smulx_767x62
+.size	__smulx_767x63,.-__smulx_767x63
 ___
 }
 $code.=<<___;
-.type	__smulx_383x62,\@abi-omnipotent
+.type	__smulx_383x63,\@abi-omnipotent
 .align	32
-__smulx_383x62:
+__smulx_383x63:
 ___
 for($j=0; $j<2; $j++) {
 my $k = 8*6*$j;
@@ -597,8 +609,15 @@ $code.=<<___;
 	mov	@acc[5], 8*5($out_ptr)
 
 	ret
-.size	__smulx_383x62,.-__smulx_383x62
+.size	__smulx_383x63,.-__smulx_383x63
 ___
+########################################################################
+# Signed abs(|a|*|f?|+|b|*|g?|)>>k subroutines. "NNN" in the middle of
+# the names refers to maximum bit-lengths of |a| and |b|. As already
+# mentioned, |f?| and |g?| can be viewed as 63 bits wide, but are always
+# chosen so that "bad things" don't happen. For example, so that the
+# sum of the products doesn't overflow, and that the final result is
+# never wider than inputs...
 {
 $code.=<<___;
 .type	__smulx_383_n_shift_by_31,\@abi-omnipotent
@@ -944,22 +963,14 @@ __inner_loop_62:
 
 .Loop_62:
 	xor	$t0, $t0
-	xor	$t1, $t1
 	test	\$1, $a_lo	# if |a_| is odd, then we'll be subtracting |b_|
-	mov	$b_lo, $t2
-	mov	$b_hi, $t3
+	mov	$b_lo, $t1
 	cmovnz	$b_lo, $t0
-	cmovnz	$b_hi, $t1
-	sub	$a_lo, $t2	# |b_|-|a_|
-	sbb	$a_hi, $t3
-	mov	$a_lo, $t4
+	sub	$a_lo, $t1	# |b_|-|a_|
+	mov	$a_lo, $t2
 	sub	$t0, $a_lo	# |a_|-|b_| (or |a_|-0 if |a_| was even)
-	mov	$a_hi, $t0
-	sbb	$t1, $a_hi
-	cmovc	$t2, $a_lo	# borrow means |a_|<|b_|, replace with |b_|-|a_|
-	cmovc	$t3, $a_hi
-	cmovc	$t4, $b_lo	# |b_| = |a_|
-	cmovc	$t0, $b_hi
+	cmovc	$t1, $a_lo	# borrow means |a_|<|b_|, replace with |b_|-|a_|
+	cmovc	$t2, $b_lo	# |b_| = |a_|
 	mov	$f0, $t0	# exchange |f0| and |f1|
 	cmovc	$f1, $f0
 	cmovc	$t0, $f1
@@ -968,9 +979,8 @@ __inner_loop_62:
 	cmovc	$t1, $g1
 	xor	$t0, $t0
 	xor	$t1, $t1
-	shrd	\$1, $a_hi, $a_lo
-	shr	\$1, $a_hi
-	test	\$1, $t4	# if |a_| was odd, then we'll be subtracting...
+	shr	\$1, $a_lo
+	test	\$1, $t2	# if |a_| was odd, then we'll be subtracting...
 	cmovnz	$f1, $t0
 	cmovnz	$g1, $t1
 	add	$f1, $f1	# |f1|<<=1

@@ -19,6 +19,7 @@ def ct_inverse_mod_383(inp, mod):
     mask = (1 << k) - 1
 
     for i in range(0, 768 // k):
+        # __ab_approximation_62
         n = max(a.bit_length(), b.bit_length())
         if n < 128:
             a_, b_ = a, b
@@ -26,6 +27,7 @@ def ct_inverse_mod_383(inp, mod):
             a_ = (a & mask) | ((a >> (n-k)) << k)
             b_ = (b & mask) | ((b >> (n-k)) << k)
 
+        # __inner_loop_62
         f0, g0, f1, g1 = 1, 0, 0, 1
         for j in range(0, k):
             if a_ & 1:
@@ -34,12 +36,14 @@ def ct_inverse_mod_383(inp, mod):
                 a_, f0, g0 = a_-b_, f0-f1, g0-g1
             a_, f1, g1 = a_ >> 1, f1 << 1, g1 << 1
 
+        # __smulq_383_n_shift_by_62
         a, b = (a*f0 + b*g0) >> k, (a*f1 + b*g1) >> k
         if a < 0:
             a, f0, g0 = -a, -f0, -g0
         if b < 0:
             b, f1, g1 = -b, -f1, -g1
 
+        # __smulq_767x63
         u, v = u*f0 + v*g0, u*f1 + v*g1
 
     if 768 % k:
@@ -135,14 +139,12 @@ ct_inverse_mod_383:
 	mov	@acc[8], 8*8(%rax)
 	mov	@acc[9], 8*9(%rax)
 	mov	@acc[10], 8*10(%rax)
-	mov	%rax, $in_ptr
+	mov	%rax, $in_ptr		# pointer to source |a|b|1|0|
 	mov	@acc[11], 8*11(%rax)
 
 	################################# first iteration
 	mov	\$62, $cnt
-	mov	%rax, 8*6(%rsp)
 	call	__ab_approximation_62
-	mov	8*6(%rsp), $in_ptr	# pointer to source |a|b|1|0|
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	mov	$f1, 8*9(%rsp)
@@ -166,9 +168,7 @@ ct_inverse_mod_383:
 	################################# second iteration
 	xor	\$256, $in_ptr		# flip-flop pointer to source |a|b|u|v|
 	mov	\$62, $cnt
-	mov	$in_ptr, 8*6(%rsp)
 	call	__ab_approximation_62
-	mov	8*6(%rsp), $in_ptr	# pointer to source |a|b|u|v|
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	mov	$f1, 8*9(%rsp)
@@ -205,7 +205,7 @@ ct_inverse_mod_383:
 	mov	@acc[1], 8*9($out_ptr)
 	mov	@acc[1], 8*10($out_ptr)
 	mov	@acc[1], 8*11($out_ptr)
-	lea	8*12($out_ptr),$out_ptr	# pointer to destination |v|
+	lea	8*12($in_ptr),$in_ptr	# make in_ptr "rewindable" with xor
 
 	mov	@acc[2], %rax
 	imulq	%rbx			# |u|*|f1|
@@ -215,23 +215,21 @@ ct_inverse_mod_383:
 	imulq	%rcx			# |v|*|g1|
 	add	%rax, @acc[0]
 	adc	%rdx, @acc[1]
-	mov	@acc[0], 8*0($out_ptr)	# destination |v|
-	mov	@acc[1], 8*1($out_ptr)
+	mov	@acc[0], 8*12($out_ptr)	# destination |v|
+	mov	@acc[1], 8*13($out_ptr)
 	sar	\$63, @acc[1]		# sign extension
-	mov	@acc[1], 8*2($out_ptr)
-	mov	@acc[1], 8*3($out_ptr)
-	mov	@acc[1], 8*4($out_ptr)
-	mov	@acc[1], 8*5($out_ptr)
+	mov	@acc[1], 8*14($out_ptr)
+	mov	@acc[1], 8*15($out_ptr)
+	mov	@acc[1], 8*16($out_ptr)
+	mov	@acc[1], 8*17($out_ptr)
 ___
 for($i=2; $i<11; $i++) {
-my $smul_767x62  = $i>5 ? "__smulq_767x62"
-                        : "__smulq_383x62";
+my $smul_767x63  = $i>5 ? "__smulq_767x63"
+                        : "__smulq_383x63";
 $code.=<<___;
-	xor	\$256, $in_ptr		# flip-flop pointer to source |a|b|u|v|
+	xor	\$256+8*12, $in_ptr	# flip-flop pointer to source |a|b|u|v|
 	mov	\$62, $cnt
-	mov	$in_ptr, 8*6(%rsp)
 	call	__ab_approximation_62
-	mov	8*6(%rsp), $in_ptr	# pointer to source |a|b|u|v|
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	mov	$f1, 8*9(%rsp)
@@ -254,13 +252,12 @@ $code.=<<___;
 	mov	8*8(%rsp), $g0		# |g0|
 	lea	8*12($in_ptr), $in_ptr	# pointer to source |u|v|
 	lea	8*6($out_ptr), $out_ptr	# pointer to destination |u|
-	call	__smulq_383x62
+	call	__smulq_383x63
 
 	mov	8*9(%rsp), $f0		# |f1|
 	mov	8*10(%rsp), $g0		# |g1|
 	lea	8*6($out_ptr),$out_ptr	# pointer to destination |v|
-	call	$smul_767x62
-	lea	-8*12($in_ptr), $in_ptr	# rewind pointer to source |a|b|u|v|
+	call	$smul_767x63
 ___
 $code.=<<___	if ($i==5);
 	sar	\$63, @acc[5]		# sign extension
@@ -274,16 +271,14 @@ ___
 }
 $code.=<<___;
 	################################# iteration before last
-	xor	\$256, $in_ptr		# flip-flop pointer to source |a|b|u|v|
+	xor	\$256+8*12, $in_ptr	# flip-flop pointer to source |a|b|u|v|
 	mov	\$62, $cnt
-	mov	$in_ptr, 8*6(%rsp)
 	#call	__ab_approximation_62	# |a| and |b| are exact, just load
 	mov	8*0($in_ptr), @acc[0]	# |a_lo|
 	mov	8*1($in_ptr), @acc[1]	# |a_hi|
 	mov	8*6($in_ptr), @acc[2]	# |b_lo|
 	mov	8*7($in_ptr), @acc[3]	# |b_hi|
 	call	__inner_loop_62
-	mov	8*6(%rsp), $in_ptr	# pointer to source |a|b|u|v|
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	mov	$f1, 8*9(%rsp)
@@ -298,25 +293,22 @@ $code.=<<___;
 	#mov	8*8(%rsp), $g0		# |g0|
 	lea	8*12($in_ptr), $in_ptr	# pointer to source |u|v|
 	lea	8*12($out_ptr),$out_ptr	# pointer to destination |u|
-	call	__smulq_383x62
+	call	__smulq_383x63
 
 	mov	8*9(%rsp), $f0		# |f1|
 	mov	8*10(%rsp), $g0		# |g1|
 	lea	8*6($out_ptr),$out_ptr	# pointer to destination |v|
-	call	__smulq_767x62
-	lea	-8*12($in_ptr), $in_ptr	# rewind pointer to source |a|b|u|v|
+	call	__smulq_767x63
 
 	################################# last iteration
-	xor	\$256, $in_ptr		# flip-flop pointer to source |a|b|u|v|
+	xor	\$256+8*12, $in_ptr	# flip-flop pointer to source |a|b|u|v|
 	mov	\$24, $cnt		# 768 % 62
-	mov	$in_ptr, 8*6(%rsp)
 	#call	__ab_approximation_62	# |a| and |b| are exact, just load
 	mov	8*0($in_ptr), @acc[0]	# |a_lo|
 	xor	@acc[1],      @acc[1]	# |a_hi|
 	mov	8*6($in_ptr), @acc[2]	# |b_lo|
 	xor	@acc[3],   @acc[3]	# |b_hi|
 	call	__inner_loop_62
-	mov	8*6(%rsp), $in_ptr	# pointer to source |a|b|u|v|
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	#mov	$f1, 8*9(%rsp)
@@ -326,14 +318,14 @@ $code.=<<___;
 	#mov	8*8(%rsp), $g0		# |g0|
 	lea	8*12($in_ptr), $in_ptr	# pointer to source |u|v|
 	#lea	8*6($out_ptr), $out_ptr	# pointer to destination |u|
-	#call	__smulq_383x62
+	#call	__smulq_383x63
 
 	#mov	8*9(%rsp), $f0		# |f1|
 	#mov	8*10(%rsp), $g0		# |g1|
 	mov	$f1, $f0
 	mov	$g1, $g0
 	mov	8*4(%rsp), $out_ptr	# original out_ptr
-	call	__smulq_767x62
+	call	__smulq_767x63
 
 	mov	8*5(%rsp), $in_ptr	# original n_ptr
 	mov	%rax, %rdx		# top limb of the result
@@ -385,15 +377,17 @@ $code.=<<___;
 .cfi_endproc
 .size	ct_inverse_mod_383,.-ct_inverse_mod_383
 ___
+########################################################################
+# see corresponding commentary in ctx_inverse_mod_384-x86_64...
 {
 my ($out_ptr, $in_ptr, $f0, $g0) = ("%rdi", "%rsi", "%rdx", "%rcx");
 my @acc = map("%r$_",(8..15),"bx","bp","cx","di");
 my $fx = @acc[9];
 
 $code.=<<___;
-.type	__smulq_767x62,\@abi-omnipotent
+.type	__smulq_767x63,\@abi-omnipotent
 .align	32
-__smulq_767x62:
+__smulq_767x63:
 	mov	8*0($in_ptr), @acc[0]	# load |u|
 	mov	8*1($in_ptr), @acc[1]
 	mov	8*2($in_ptr), @acc[2]
@@ -448,12 +442,8 @@ $code.=<<___;
 
 	mov	@acc[5], 8*5($out_ptr)
 	mov	%rdx, 8*6($out_ptr)
-	sar	\$63, %rdx
+	sar	\$63, %rdx		# sign extension
 	mov	%rdx, 8*7($out_ptr)
-	mov	%rdx, 8*8($out_ptr)
-	mov	%rdx, 8*9($out_ptr)
-	mov	%rdx, 8*10($out_ptr)
-	mov	%rdx, 8*11($out_ptr)
 ___
 {
 my $fx=$in_ptr;
@@ -506,7 +496,7 @@ $code.=<<___;
 	adc	\$0, @acc[10]
 	adc	\$0, @acc[11]
 
-	mulq	$fx			# |u|*|f0| (or |v|*|g0|)
+	mulq	$fx			# |v|*|g0|
 	mov	%rax, @acc[0]
 	mov	@acc[1], %rax
 	mov	%rdx, @acc[1]
@@ -533,11 +523,12 @@ $code.=<<___;
 	adc	8*4(%rdx), @acc[4]
 	adc	8*5(%rdx), @acc[5]
 	adc	8*6(%rdx), @acc[6]
-	adc	8*7(%rdx), @acc[7]
-	adc	8*8(%rdx), @acc[8]
-	adc	8*9(%rdx), @acc[9]
-	adc	8*10(%rdx), @acc[10]
-	adc	8*11(%rdx), %rax
+	mov	8*7(%rdx), @acc[11]	# sign extension
+	adc	@acc[11], @acc[7]
+	adc	@acc[11], @acc[8]
+	adc	@acc[11], @acc[9]
+	adc	@acc[11], @acc[10]
+	adc	@acc[11], %rax
 
 	mov	%rdx, $out_ptr		# restore original out_ptr
 
@@ -555,13 +546,13 @@ $code.=<<___;
 	mov	%rax,     8*11(%rdx)
 
 	ret
-.size	__smulq_767x62,.-__smulq_767x62
+.size	__smulq_767x63,.-__smulq_767x63
 ___
 }
 $code.=<<___;
-.type	__smulq_383x62,\@abi-omnipotent
+.type	__smulq_383x63,\@abi-omnipotent
 .align	32
-__smulq_383x62:
+__smulq_383x63:
 ___
 for($j=0; $j<2; $j++) {
 $code.=<<___;
@@ -643,7 +634,7 @@ $code.=<<___;
 	mov	@acc[5], 8*5($out_ptr)
 
 	ret
-.size	__smulq_383x62,.-__smulq_383x62
+.size	__smulq_383x63,.-__smulq_383x63
 ___
 {
 $code.=<<___;
@@ -858,6 +849,7 @@ __inner_loop_62:
 	xor	$g0, $g0	# |g0|=0
 	xor	$f1, $f1	# |f1|=0
 	mov	\$1, $g1	# |g1|=1
+	mov	$in_ptr, 8(%rsp)
 
 .Loop_62:
 	xor	$t0, $t0
@@ -897,6 +889,7 @@ __inner_loop_62:
 	sub	\$1, $cnt
 	jnz	.Loop_62
 
+	mov	8(%rsp), $in_ptr
 	ret
 .size	__inner_loop_62,.-__inner_loop_62
 ___

@@ -19,6 +19,7 @@ def ct_inverse_mod_383(inp, mod):
     mask = (1 << k) - 1
 
     for i in range(0, 768 // k):
+        # __ab_approximation_62
         n = max(a.bit_length(), b.bit_length())
         if n < 128:
             a_, b_ = a, b
@@ -26,6 +27,7 @@ def ct_inverse_mod_383(inp, mod):
             a_ = (a & mask) | ((a >> (n-k)) << k)
             b_ = (b & mask) | ((b >> (n-k)) << k)
 
+        # __inner_loop_62
         f0, g0, f1, g1 = 1, 0, 0, 1
         for j in range(0, k):
             if a_ & 1:
@@ -34,12 +36,14 @@ def ct_inverse_mod_383(inp, mod):
                 a_, f0, g0 = a_-b_, f0-f1, g0-g1
             a_, f1, g1 = a_ >> 1, f1 << 1, g1 << 1
 
+        # __smul_383_n_shift_by_62
         a, b = (a*f0 + b*g0) >> k, (a*f1 + b*g1) >> k
         if a < 0:
             a, f0, g0 = -a, -f0, -g0
         if b < 0:
             b, f1, g1 = -b, -f1, -g1
 
+        # __smul_767x63
         u, v = u*f0 + v*g0, u*f1 + v*g1
 
     if 768 % k:
@@ -188,15 +192,15 @@ $code.=<<___;
 	bl	__smul_383_n_shift_by_62
 
 	add	$out_ptr, $out_ptr, #8*6	// pointer to destination |u|
-	bl	__smul_383x62
+	bl	__smul_383x63
 
 	mov	$f_, $f0			// corrected |f1|
 	mov	$g_, $g0			// corrected |g1|
 	add	$out_ptr, $out_ptr, #8*6	// pointer to destination |v|
-	bl	__smul_383x62
+	bl	__smul_383x63
 ___
 $code.=<<___	if ($i>5);
-	bl	__smul_767x62_tail
+	bl	__smul_767x63_tail
 ___
 $code.=<<___	if ($i==5);
 	asr	@t[5], @t[5], #63		// sign extension
@@ -223,13 +227,13 @@ $code.=<<___;
 	mov	$f0, $f1
 	mov	$g0, $g1
 	add	$out_ptr, $out_ptr, #8*12	// pointer to dst |u|
-	bl	__smul_383x62
+	bl	__smul_383x63
 
 	mov	$f_, $f0			// exact |f1|
 	mov	$g_, $g0			// exact |g1|
 	add	$out_ptr, $out_ptr, #8*6	// pointer to dst |v|
-	bl	__smul_383x62
-	bl	__smul_767x62_tail
+	bl	__smul_383x63
+	bl	__smul_767x63_tail
 
 	////////////////////////////////////////// last iteration
 	eor	$in_ptr, $in_ptr, #256		// flip-flop src |a|b|u|v|
@@ -244,8 +248,8 @@ $code.=<<___;
 	mov	$f_, $f1
 	mov	$g_, $g1
 	ldp	$out_ptr, $f0, [sp]		// original out_ptr and n_ptr
-	bl	__smul_383x62
-	bl	__smul_767x62_tail
+	bl	__smul_383x63
+	bl	__smul_767x63_tail
 	ldr	x30, [x29,#8]
 
 	asr	@t[0], @acc[5], #63		// sign as mask
@@ -280,9 +284,11 @@ $code.=<<___;
 	ret
 .size	ct_inverse_mod_383,.-ct_inverse_mod_383
 
-.type	__smul_383x62, %function
+////////////////////////////////////////////////////////////////////////
+// see corresponding commentary in ctx_inverse_mod_384-x86_64...
+.type	__smul_383x63, %function
 .align	5
-__smul_383x62:
+__smul_383x63:
 ___
 for($j=0; $j<2; $j++) {
 my $f_ = $f_;   $f_ = $g_          if ($j);
@@ -314,7 +320,7 @@ $code.=<<___;
 	 umulh	@t[3], @acc[3], $f_
 ___
 $code.=<<___	if ($j);
-	adc	$g1, xzr, xzr		// used in __smul_767x62_tail
+	adc	$g1, xzr, xzr		// used in __smul_767x63_tail
 ___
 $code.=<<___;
 	umulh	@t[4], @acc[4], $f_
@@ -346,14 +352,14 @@ $code.=<<___;
 	stp	@acc[2], @acc[3], [$out_ptr,#8*2]
 	adcs	@t[5],   @t[5],   @t[6]
 	stp	@acc[4], @t[5],   [$out_ptr,#8*4]
-	adc	@t[6],   @t[7],   xzr	// used in __smul_767x62_tail
+	adc	@t[6],   @t[7],   xzr	// used in __smul_767x63_tail
 
 	ret
-.size	__smul_383x62,.-__smul_383x62
+.size	__smul_383x63,.-__smul_383x63
 
-.type	__smul_767x62_tail, %function
+.type	__smul_767x63_tail, %function
 .align	5
-__smul_767x62_tail:
+__smul_767x63_tail:
 	smulh	@t[5],   @acc[5], $f_
 	ldp	@acc[0], @acc[1], [$in_ptr,#8*24]	// load rest of |v|
 	umulh	@acc[11],@acc[11], $g_
@@ -404,7 +410,7 @@ __smul_767x62_tail:
 	stp	@acc[4], @acc[5], [$out_ptr,#8*10]
 
 	ret
-.size	__smul_767x62_tail,.-__smul_767x62_tail
+.size	__smul_767x63_tail,.-__smul_767x63_tail
 
 .type	__smul_383_n_shift_by_62, %function
 .align	5
