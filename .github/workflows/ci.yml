@@ -94,33 +94,30 @@ jobs:
     - name: Java
       run: if [ -x bindings/java/run.me ]; then bindings/java/run.me; fi
 
-    - name: Node.js
+  nodejs:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup SWIG
       run: |
-        node_js=bindings/node.js
-        if [ -x $node_js/run.me ]; then
-            if [ ! -x ~/swig/bin/swig ]; then
-              ( git clone -b pr/new-node-fixes https://github.com/yegorich/swig;
-                cd swig;
-                ./autogen.sh;
-                ./configure --prefix=$HOME/swig;
-                make;
-                make install;
-              )
-            fi
-            env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2 \
-                $node_js/run.me
-        fi
-        if [ -f $node_js/binding.gyp -a -f $node_js/blst_wrap.cpp ]; then
-            echo ---
-            if which npm > /dev/null 2>&1; then
-                npm install --global node-gyp || true
-            fi
-            if which node-gyp > /dev/null 2>&1; then
-              ( export PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2;
-                cd $node_js;
-                node-gyp configure;
-                node-gyp build;
-                env NODE_PATH=build/Release: node runnable.js;
-              )
-            fi
-        fi
+        git clone -b pr/new-node-fixes https://github.com/yegorich/swig;
+        cd swig;
+        ./autogen.sh;
+        ./configure --prefix=$HOME/swig;
+        make;
+        make install;
+    - name: run.me
+      run: |
+        env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2 \
+          bindings/node.js/run.me
+    - name: Setup node-gyp
+      run: npm install --global node-gyp
+    - name: Build with node-gyp
+      run: |
+        cd bindings/node.js
+        node-gyp configure
+        node-gyp build
+        env NODE_PATH=build/Release: node runnable.js
