@@ -94,29 +94,51 @@ jobs:
     - name: Java
       run: if [ -x bindings/java/run.me ]; then bindings/java/run.me; fi
 
+  nodejs-build-swig:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup SWIG
+        run: |
+          git clone -b pr/new-node-fixes https://github.com/yegorich/swig;
+          cd swig;
+          ./autogen.sh;
+          ./configure --prefix=$HOME/swig;
+          make;
+          make install;
+      - name: Run.me
+        run: |
+          env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2 \
+            ./bindings/node.js/run.me
+      - name: Upload blst_wrap.cpp
+        uses: actions/upload-artifact@v2
+        with:
+          name: blst_wrap.cpp
+          path: bindings/node.js/blst_wrap.cpp
   nodejs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        node: [10, 12]
     steps:
     - uses: actions/checkout@v2
-    - name: Setup SWIG
-      run: |
-        git clone -b pr/new-node-fixes https://github.com/yegorich/swig;
-        cd swig;
-        ./autogen.sh;
-        ./configure --prefix=$HOME/swig;
-        make;
-        make install;
+    - name: Setup Node.js ${{matrix.node}}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{matrix.node}}
+    - name: Download blst_wrap.cpp
+      uses: actions/download-artifact@v2
+      with:
+        name: blst_wrap.cpp
+        path: bindings/node.js/
     - name: run.me
       run: |
         env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2 \
           bindings/node.js/run.me
-    - uses: actions/setup-node@v1
-      with:
-        node-version: 12
     - name: Setup node-gyp
       run: npm install --global node-gyp
     - name: Build with node-gyp
