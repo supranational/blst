@@ -3,7 +3,7 @@
     {
       'target_name': 'blst',
       'sources': [
-        'blst_wrap.cpp',
+        '<(INTERMEDIATE_DIR)/blst_wrap.cpp',
         '../../src/server.c',
       ],
       'include_dirs': [ '..' ],
@@ -21,6 +21,15 @@
             'ldflags': [ '-Wl,-Bsymbolic' ],
           }
         ],
+      ],
+      'actions' : [
+        {
+          'action_name': 'blst_wrap',
+          'variables': { 'cmd' : [ 'blst_wrap.py', '../blst.swg' ] },
+          'inputs':  [ '<@(cmd)' ],
+          'outputs': [ '<(INTERMEDIATE_DIR)/blst_wrap.cpp' ],
+          'action':  [ 'python', '<@(cmd)', '<@(_outputs)' ],
+        },
       ],
     },
   ]
