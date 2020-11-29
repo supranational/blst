@@ -28,8 +28,8 @@ jobs:
           ~/.cargo/registry
           **/Cargo.lock
           **/bindings/rust/target
-        key: ${{ runner.os }}-cargo-6
-        restore-keys: ${{ runner.os }}-cargo-5
+        key: ${{ runner.os }}-cargo-7
+        restore-keys: ${{ runner.os }}-cargo-6
 
     - name: Environment
       shell: bash
@@ -115,7 +115,8 @@ jobs:
               npm install --global node-gyp || true
             fi
             if which node-gyp > /dev/null 2>&1; then
-              ( cd $node_js;
+              ( export PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2;
+                cd $node_js;
                 node-gyp configure;
                 node-gyp build;
                 env NODE_PATH=build/Release: node runnable.js;
