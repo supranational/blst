@@ -118,6 +118,7 @@ jobs:
           name: blst_wrap.cpp
           path: bindings/node.js/blst_wrap.cpp
   nodejs:
+    needs: ["nodejs-build-swig"]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
