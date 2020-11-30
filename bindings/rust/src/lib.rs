@@ -462,7 +462,7 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn uncompress(pk_comp: &[u8]) -> Result<Self, BLST_ERROR> {
-                if pk_comp.len() == $pk_comp_size {
+                if pk_comp.len() == $pk_comp_size && (pk_comp[0] & 0x80) != 0 {
                     let mut pk = <$pk_aff>::default();
                     let err = unsafe { $pk_uncomp(&mut pk, pk_comp.as_ptr()) };
                     if err != BLST_ERROR::BLST_SUCCESS {
@@ -475,8 +475,8 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn deserialize(pk_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                if pk_in.len() == $pk_ser_size && (pk_in[0] & 0x80) == 0
-                    || pk_in.len() == $pk_comp_size && (pk_in[0] & 0x80) != 0
+                if (pk_in.len() == $pk_ser_size && (pk_in[0] & 0x80) == 0)
+                    || (pk_in.len() == $pk_comp_size && (pk_in[0] & 0x80) != 0)
                 {
                     let mut pk = <$pk_aff>::default();
                     let err = unsafe { $pk_deser(&mut pk, pk_in.as_ptr()) };
@@ -490,13 +490,7 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn from_bytes(pk_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                if (pk_in[0] & 0x80) == 0 {
-                    // Not compressed
-                    PublicKey::deserialize(pk_in)
-                } else {
-                    // compressed
-                    PublicKey::uncompress(pk_in)
-                }
+                PublicKey::deserialize(pk_in)
             }
 
             pub fn to_bytes(&self) -> [u8; $pk_comp_size] {
@@ -552,7 +546,7 @@ macro_rules! sig_variant_impl {
                 let mut agg_pk = AggregatePublicKey::from_public_key(pks[0]);
                 for s in pks.iter().skip(1) {
                     if pks_validate {
-                        pks[0].validate()?;
+                        s.validate()?;
                     }
                     unsafe {
                         $pk_add_or_dbl_aff(
@@ -952,7 +946,7 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn uncompress(sig_comp: &[u8]) -> Result<Self, BLST_ERROR> {
-                if sig_comp.len() == $sig_comp_size {
+                if sig_comp.len() == $sig_comp_size && (sig_comp[0] & 0x80) != 0 {
                     let mut sig = <$sig_aff>::default();
                     let err =
                         unsafe { $sig_uncomp(&mut sig, sig_comp.as_ptr()) };
@@ -966,8 +960,8 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn deserialize(sig_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                if sig_in.len() == $sig_ser_size && (sig_in[0] & 0x80) == 0
-                    || sig_in.len() == $sig_comp_size && (sig_in[0] & 0x80) != 0
+                if (sig_in.len() == $sig_ser_size && (sig_in[0] & 0x80) == 0)
+                    || (sig_in.len() == $sig_comp_size && (sig_in[0] & 0x80) != 0)
                 {
                     let mut sig = <$sig_aff>::default();
                     let err = unsafe { $sig_deser(&mut sig, sig_in.as_ptr()) };
@@ -981,13 +975,7 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn from_bytes(sig_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                if (sig_in[0] & 0x80) == 0 {
-                    // Not compressed
-                    Signature::deserialize(sig_in)
-                } else {
-                    // compressed
-                    Signature::uncompress(sig_in)
-                }
+                Signature::deserialize(sig_in)
             }
 
             pub fn to_bytes(&self) -> [u8; $sig_comp_size] {
