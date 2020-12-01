@@ -106,7 +106,7 @@ func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
         }
     }
     var umsg *C.byte
-    if msg != nil {
+    if msg != nil && len(msg) > 0 {
         umsg = (*C.byte)(&msg[0])
     }
 
@@ -131,7 +131,7 @@ func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
         }
     }
     var umsg *C.byte
-    if msg != nil {
+    if msg != nil && len(msg) > 0 {
         umsg = (*C.byte)(&msg[0])
     }
 
@@ -157,7 +157,7 @@ func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
         }
     }
     var umsg *C.byte
-    if msg != nil {
+    if msg != nil && len(msg) > 0 {
         umsg = (*C.byte)(&msg[0])
     }
 
@@ -184,7 +184,7 @@ func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
         }
     }
     var umsg *C.byte
-    if msg != nil {
+    if msg != nil && len(msg) > 0 {
         umsg = (*C.byte)(&msg[0])
     }
 

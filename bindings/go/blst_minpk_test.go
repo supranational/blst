@@ -595,3 +595,30 @@ func TestSignVerifyAggregateValidatesInfinitePubkeyMinPk(t *testing.T) {
         t.Errorf("failed to NOT verify signature")
     }
 }
+
+func TestEmptyMessageMinPk(t *testing.T) {
+    msg := []byte("")
+    var sk_bytes = []byte {99, 64, 58, 175, 15, 139, 113, 184, 37, 222, 127,
+        204, 233, 209, 34, 8, 61, 27, 85, 251, 68, 31, 255, 214, 8, 189, 190, 71,
+        198, 16, 210, 91};
+    sk := new(SecretKey).Deserialize(sk_bytes)
+    pk := new(PublicKeyMinPk).From(sk)
+    sig := new(SignatureMinPk).Sign(sk, msg, dstMinPk)
+    if !new(SignatureMinPk).VerifyCompressed(sig.Compress(), true,
+        pk.Compress(), false, msg, dstMinPk) {
+        t.Errorf("failed to verify empty message")
+    }
+}
+
+func TestEmptySignatureMinPk(t *testing.T) {
+    msg := []byte("message")
+    var sk_bytes = []byte {99, 64, 58, 175, 15, 139, 113, 184, 37, 222, 127,
+        204, 233, 209, 34, 8, 61, 27, 85, 251, 68, 31, 255, 214, 8, 189, 190, 71,
+        198, 16, 210, 91};
+    sk := new(SecretKey).Deserialize(sk_bytes)
+    pk := new(PublicKeyMinPk).From(sk)
+    var emptySig []byte
+    if new(SignatureMinPk).VerifyCompressed(emptySig, true, pk.Compress(), false, msg, dstMinPk) {
+        t.Errorf("failed to NOT verify empty signature")
+    }
+}

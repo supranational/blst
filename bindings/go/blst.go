@@ -115,7 +115,7 @@ func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
 		}
 	}
 	var umsg *C.byte
-	if msg != nil {
+	if msg != nil && len(msg) > 0 {
 		umsg = (*C.byte)(&msg[0])
 	}
 
@@ -140,7 +140,7 @@ func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
 		}
 	}
 	var umsg *C.byte
-	if msg != nil {
+	if msg != nil && len(msg) > 0 {
 		umsg = (*C.byte)(&msg[0])
 	}
 
@@ -166,7 +166,7 @@ func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
 		}
 	}
 	var umsg *C.byte
-	if msg != nil {
+	if msg != nil && len(msg) > 0 {
 		umsg = (*C.byte)(&msg[0])
 	}
 
@@ -193,7 +193,7 @@ func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
 		}
 	}
 	var umsg *C.byte
-	if msg != nil {
+	if msg != nil && len(msg) > 0 {
 		umsg = (*C.byte)(&msg[0])
 	}
 
@@ -363,32 +363,33 @@ func (dummy *P2Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
 
 	sigFn := func() *P2Affine {
 		sigP := new(P2Affine)
-		if sig[0]&0x80 == 0 {
+		if len(sig) == BLST_P2_SERIALIZE_BYTES && (sig[0]&0x80) == 0 {
 			// Not compressed
 			if sigP.Deserialize(sig) == nil {
 				return nil
 			}
-		} else {
+		} else if len(sig) == BLST_P2_COMPRESS_BYTES && (sig[0]&0x80) != 0 {
 			if sigP.Uncompress(sig) == nil {
 				return nil
 			}
+		} else {
+			return nil
 		}
 		return sigP
 	}
 	pkFn := func(i uint32, pk *P1Affine) (*P1Affine, []byte) {
 		bytes := pks[i]
-		if len(bytes) == 0 {
-			return nil, nil
-		}
-		if bytes[0]&0x80 == 0 {
+		if len(bytes) == BLST_P1_SERIALIZE_BYTES && (bytes[0]&0x80) == 0 {
 			// Not compressed
 			if pk.Deserialize(bytes) == nil {
 				return nil, nil
 			}
-		} else {
+		} else if len(bytes) == BLST_P1_COMPRESS_BYTES && (bytes[0]&0x80) != 0 {
 			if pk.Uncompress(bytes) == nil {
 				return nil, nil
 			}
+		} else {
+			return nil, nil
 		}
 		if usePksAsAugs {
 			return pk, bytes
@@ -961,32 +962,33 @@ func (dummy *P1Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
 
 	sigFn := func() *P1Affine {
 		sigP := new(P1Affine)
-		if sig[0]&0x80 == 0 {
+		if len(sig) == BLST_P1_SERIALIZE_BYTES && (sig[0]&0x80) == 0 {
 			// Not compressed
 			if sigP.Deserialize(sig) == nil {
 				return nil
 			}
-		} else {
+		} else if len(sig) == BLST_P1_COMPRESS_BYTES && (sig[0]&0x80) != 0 {
 			if sigP.Uncompress(sig) == nil {
 				return nil
 			}
+		} else {
+			return nil
 		}
 		return sigP
 	}
 	pkFn := func(i uint32, pk *P2Affine) (*P2Affine, []byte) {
 		bytes := pks[i]
-		if len(bytes) == 0 {
-			return nil, nil
-		}
-		if bytes[0]&0x80 == 0 {
+		if len(bytes) == BLST_P2_SERIALIZE_BYTES && (bytes[0]&0x80) == 0 {
 			// Not compressed
 			if pk.Deserialize(bytes) == nil {
 				return nil, nil
 			}
-		} else {
+		} else if len(bytes) == BLST_P2_COMPRESS_BYTES && (bytes[0]&0x80) != 0 {
 			if pk.Uncompress(bytes) == nil {
 				return nil, nil
 			}
+		} else {
+			return nil, nil
 		}
 		if usePksAsAugs {
 			return pk, bytes
