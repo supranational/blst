@@ -40,7 +40,7 @@ jobs:
     - name: Rust
       shell: bash
       run: |
-        rustc --version
+        rustc --version --verbose
         cd bindings/rust
         if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
             cargo update
@@ -111,8 +111,9 @@ jobs:
                 $node_js/run.me
         fi
         if [ -f $node_js/binding.gyp -a -f $node_js/blst_wrap.cpp ]; then
+            echo ---
             if which npm > /dev/null 2>&1; then
-              npm install --global node-gyp || true
+                npm install --global node-gyp || true
             fi
             if which node-gyp > /dev/null 2>&1; then
               ( export PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2;
@@ -120,6 +121,6 @@ jobs:
                 node-gyp configure;
                 node-gyp build;
                 env NODE_PATH=build/Release: node runnable.js;
-              ) || true
+              )
             fi
         fi
