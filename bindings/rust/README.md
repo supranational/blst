@@ -12,7 +12,7 @@ cargo test
 cargo bench
 ```
 
-If the test or target application crashes with an "illegal instruction" exception [after copying to an older system], set `CFLAGS` environment variable to `‑D__BLST_PORTABLE__` prior clean build. Alternatively, if you compile on an older Intel system, but will execute the binary on a newer one, consider instead `‑D__ADX__` for better performance.
+If the target application crashes with an "illegal instruction" exception [after copying to an older system], activate `portable` feature when building blst. Conversely, if you compile on an older Intel system, but will execute the binary on a newer one, consider instead activating `force-adx` feature. Though keep in mind that [cc](https://crates.io/crates/cc) passes the value of `CFLAGS` environment variable to the C compiler, and if set to contain specific flags, it can interfere with feature selection. `‑D__BLST_PORTABLE__` and `‑D__ADX__` are the said features' equivalents.
 
 ## Usage
 There are two primary modes of operation that can be chosen based on declaration path:
