@@ -6,11 +6,12 @@
 
 #include "keygen.c"
 #include "e2.c"
-#include "exp2.c"
 #include "hash_to_field.c"
 #include "map_to_g2.c"
 #include "e1.c"
 #include "exp.c"
+#include "recip.c"
+#include "sqrt.c"
 #include "consts.c"
 #include "vect.c"
 #include "exports.c"

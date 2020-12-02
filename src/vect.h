@@ -166,17 +166,8 @@ void sub_mod_384x384(vec768 ret, const vec768 a, const vec768 b,
  */
 static void exp_mont_384(vec384 out, const vec384 inp, const byte *pow,
                          size_t pow_bits, const vec384 p, limb_t n0);
-static void reciprocal_fp(vec384 out, const vec384 inp);
-static bool_t recip_sqrt_fp(vec384 out, const vec384 inp);
-static bool_t sqrt_fp(vec384 out, const vec384 inp);
-
 static void exp_mont_384x(vec384x out, const vec384x inp, const byte *pow,
                           size_t pow_bits, const vec384 p, limb_t n0);
-static void reciprocal_fp2(vec384x out, const vec384x inp);
-static bool_t recip_sqrt_fp2(vec384x out, const vec384x inp);
-static bool_t sqrt_fp2(vec384x out, const vec384x inp);
-static bool_t sqrt_align_fp2(vec384x out, const vec384x ret,
-                             const vec384x sqrt, const vec384x inp);
 static void div_by_zz(limb_t val[]);
 static void div_by_z(limb_t val[]);
 

@@ -84,6 +84,17 @@ static inline void cneg_fp2(vec384x ret, const vec384x a, bool_t flag)
 
 #define vec_load_global vec_copy
 
+static void reciprocal_fp(vec384 out, const vec384 inp);
+static bool_t recip_sqrt_fp(vec384 out, const vec384 inp);
+static bool_t sqrt_fp(vec384 out, const vec384 inp);
+
+static void reciprocal_fp2(vec384x out, const vec384x inp);
+static bool_t recip_sqrt_fp2(vec384x out, const vec384x inp,
+                             const vec384x recip_ZZZ, const vec384x magic_ZZZ);
+static bool_t sqrt_fp2(vec384x out, const vec384x inp);
+static bool_t sqrt_align_fp2(vec384x out, const vec384x ret,
+                             const vec384x sqrt, const vec384x inp);
+
 typedef vec384x   vec384fp2;
 typedef vec384fp2 vec384fp6[3];
 typedef vec384fp6 vec384fp12[2];

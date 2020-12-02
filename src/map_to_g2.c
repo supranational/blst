@@ -186,14 +186,6 @@ static void map_to_isogenous_E2(POINTonE2 *p, const vec384x u)
         TO_LIMB_T(0x07e83a49a2e99d69), TO_LIMB_T(0xeca8f3318332bb7a),
         TO_LIMB_T(0xef148d1ea0f4c069), TO_LIMB_T(0x040ab3263eff0206) }
     };
-    static const vec384x sqrt_ZZZ = {       /* (Z^3)^((P^2+7)/16) */
-      { TO_LIMB_T(0x019af5f980a3680c), TO_LIMB_T(0x4ed7da0e66063afa),
-        TO_LIMB_T(0x600354723b5d9972), TO_LIMB_T(0x8b2f958b20d09d72),
-        TO_LIMB_T(0x0474938f02d461db), TO_LIMB_T(0x0dcf8b9e0684ab1c) },
-      { TO_LIMB_T(0x486f252db11dd19c), TO_LIMB_T(0x791ffda2c3d18950),
-        TO_LIMB_T(0x5af6c27debf95eb4), TO_LIMB_T(0x73b1fd8f2a929cde),
-        TO_LIMB_T(0xfc59602a1a90b871), TO_LIMB_T(0x08d7daafa8baddb3) }
-    };
     static const vec384x recip_ZZZ = {      /* 1/(Z^3) */
       { TO_LIMB_T(0x65018f5c28f598eb), TO_LIMB_T(0xe6020417f022d916),
         TO_LIMB_T(0xd6327313288369c7), TO_LIMB_T(0x622ded8eb447156f),
@@ -201,6 +193,16 @@ static void map_to_isogenous_E2(POINTonE2 *p, const vec384x u)
       { TO_LIMB_T(0x2574eb851eb8619f), TO_LIMB_T(0xdba2e97912925604),
         TO_LIMB_T(0x67e495a909e7a18e), TO_LIMB_T(0xdf2da23b8145b8f7),
         TO_LIMB_T(0xcf5d3728310ebf6d), TO_LIMB_T(0x11be446236f4c116) }
+    };
+    static const vec384x magic_ZZZ = {      /* 1/Z^3 = a + b*i */
+                                            /* a^2 + b^2 */
+      { TO_LIMB_T(0xaa7eb851eb8508e0), TO_LIMB_T(0x1c54fdf360989374),
+        TO_LIMB_T(0xc87f2fc6e716c62e), TO_LIMB_T(0x0124aefb1f9efea7),
+        TO_LIMB_T(0xb2f8be63e844865c), TO_LIMB_T(0x08b47f775a7ef35a) },
+                                            /* (a^2 + b^2)^((P-3)/4) */
+      { TO_LIMB_T(0xe4132bbd838cf70a), TO_LIMB_T(0x01d769ac83772c19),
+        TO_LIMB_T(0xa83dd6e974c22e45), TO_LIMB_T(0xbc8ec3e777b08dff),
+        TO_LIMB_T(0xc035c2042ecf5da3), TO_LIMB_T(0x073929e97f0850bf) }
     };
     static const vec384x ZxA = {            /* 240 - 480*i */
       { TO_LIMB_T(0xe53a000003135242), TO_LIMB_T(0x01080c0fdef80285),
@@ -210,7 +212,7 @@ static void map_to_isogenous_E2(POINTonE2 *p, const vec384x u)
         TO_LIMB_T(0xff50678a26dffece), TO_LIMB_T(0xb24c28679aa8197a),
         TO_LIMB_T(0x908a1ebe5708d058), TO_LIMB_T(0x0fc0ba017f2b2466) }
     };
-    vec384x uu, tv2, tv3, tv4, x2n, gx1, gxd, y2;
+    vec384x uu, tv2, tv4, x2n, gx1, gxd, y2;
 #if 0
     vec384x xn, x1n, xd, y, y1, Zuu;
 #else
@@ -255,14 +257,10 @@ static void map_to_isogenous_E2(POINTonE2 *p, const vec384x u)
     sqr_fp2(tv4, gxd);                  /* tv4 = gxd^2                  */
     mul_fp2(tv2, gx1, gxd);             /* tv2 = gx1 * gxd              */
     mul_fp2(tv4, tv4, tv2);             /* tv4 = tv4 * tv2      # gx1*gxd^3 */
-    e2 = recip_sqrt_fp2(y1, tv4);       /* y1 = tv4^c1          # (gx1*gxd^3)^((p^2-9)/16) */
-    mul_fp2(y2, y1, sqrt_ZZZ);          /* y2 = y1 * c2         # y2 = y1*sqrt(Z^3) */
-    mul_fp2(tv4, tv4, recip_ZZZ);
-    mul_fp2(tv3, y2, tv4);
-    (void)sqrt_align_fp2(y2, y2, tv3, tv4);
+    e2 = recip_sqrt_fp2(y1, tv4,        /* y1 = tv4^c1          # (gx1*gxd^3)^((p^2-9)/16) */
+                        recip_ZZZ, magic_ZZZ);
     mul_fp2(y1, y1, tv2);               /* y1 = y1 * tv2        # gx1*gxd*y1 */
-    mul_fp2(y2, y2, tv2);               /* y2 = y2 * tv2        # gx1*gxd*y2 */
-    mul_fp2(y2, y2, uu);                /* y2 = y2 * uu                 */
+    mul_fp2(y2, y1, uu);                /* y2 = y1 * uu                 */
     mul_fp2(y2, y2, u);                 /* y2 = y2 * u                  */
 
     /* choose numerators                                                */
