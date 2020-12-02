@@ -15,10 +15,10 @@ if [ ! -d $include ]; then
     echo "$include not found" 1>&2
     exit 1
 fi
-include=`cd $include; pwd`
-[ -f $include/node/node.h ]       && INCS="-I$include/node"
-[ -f $include/v8/v8.h ]           && INCS="$INCS -I$include/v8"
-[ -f $include/nodejs/src/node.h ] && INCS="$INCS -I$include/nodejs/src"
+include=`cd $include/nodejs || cd $include; pwd`
+[ -f $include/node/node.h ]          && INCS="-I$include/node"
+[ -f $include/src/node.h ]           && INCS="$INCS -I$include/src"
+[ -f $include/deps/v8/include/v8.h ] && INCS="$INCS -I$include/deps/v8/include"
 
 if [ ! -f ../libblst.a -o ../blst.h -nt ../libblst.a ]; then
     (cd ..; ../build.sh)
