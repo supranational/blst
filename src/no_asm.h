@@ -408,6 +408,13 @@ inline void rshift_mod_##bits(vec##bits ret, const vec##bits a, size_t count, \
 RSHIFT_MOD_IMPL(256)
 RSHIFT_MOD_IMPL(384)
 
+#define DIV_BY_2_MOD_IMPL(bits) \
+inline void div_by_2_mod_##bits(vec##bits ret, const vec##bits a, \
+                                const vec##bits p) \
+{   rshift_mod_n(ret, a, 1, p, NLIMBS(bits));   }
+
+DIV_BY_2_MOD_IMPL(384)
+
 static void remove_powers_of_2_n(limb_t u[], limb_t x[], const limb_t p[],
                                  size_t n)
 {
