@@ -126,6 +126,7 @@ void mul_by_3_mod_384(vec384 ret, const vec384 a, const vec384 p);
 void cneg_mod_384(vec384 ret, const vec384 a, bool_t flag, const vec384 p);
 void lshift_mod_384(vec384 ret, const vec384 a, size_t count, const vec384 p);
 void rshift_mod_384(vec384 ret, const vec384 a, size_t count, const vec384 p);
+void div_by_2_mod_384(vec384 ret, const vec384 a, const vec384 p);
 bool_t eucl_inverse_mod_384(vec384 ret, const vec384 a, const vec384 p,
                             const vec384 one);
 void ct_inverse_mod_383(vec768 ret, const vec384 inp, const vec384 mod);

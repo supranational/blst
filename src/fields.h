@@ -31,6 +31,9 @@ static inline void lshift_fp(vec384 ret, const vec384 a, size_t count)
 static inline void rshift_fp(vec384 ret, const vec384 a, size_t count)
 {   rshift_mod_384(ret, a, count, BLS12_381_P);   }
 
+static inline void div_by_2_fp(vec384 ret, const vec384 a)
+{   div_by_2_mod_384(ret, a, BLS12_381_P);   }
+
 static inline void mul_fp(vec384 ret, const vec384 a, const vec384 b)
 {   mul_mont_384(ret, a, b, BLS12_381_P, p0);   }
 
