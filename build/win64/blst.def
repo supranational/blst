@@ -163,4 +163,7 @@ EXPORTS
 	blst_sign_pk2_in_g1
 	blst_sk_to_pk2_in_g2
 	blst_sign_pk2_in_g2
+	blst_uniq_sizeof
+	blst_uniq_init
+	blst_uniq_test
 
