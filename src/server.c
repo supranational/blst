@@ -19,3 +19,4 @@
 #include "consts.c"
 #include "vect.c"
 #include "exports.c"
+#include "rb_tree.c"
