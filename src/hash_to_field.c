@@ -56,7 +56,13 @@ static void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
     /*
      * compose template for 'strxor(b_0, b_(i-1)) || I2OSP(i, 1) || DST_prime'
      */
-    DST_len &= 0xff;    /* just in case */
+    if (DST_len > 255) {
+        sha256_init(&ctx);
+        sha256_update(&ctx, "H2C-OVERSIZE-DST-", 17);
+        sha256_update(&ctx, DST, DST_len);
+        sha256_final(b_0.c, &ctx);
+        DST = b_0.c, DST_len = 32;
+    }
     b_i_blocks = ((33 + DST_len + 1 + 9) + 63) & -64;
     vec_zero(b_i.c + b_i_blocks - 64, 64);
  
