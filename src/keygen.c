@@ -131,6 +131,11 @@ void blst_keygen(pow256 SK, const void *IKM, size_t IKM_len,
     unsigned char salt[32] = "BLS-SIG-KEYGEN-SALT-";
     size_t salt_len = 20;
 
+    if (IKM_len < 32) {
+        vec_zero(SK, sizeof(pow256));
+        return;
+    }
+
     /*
      * Vet |info| since some callers were caught to be sloppy, e.g.
      * SWIG-4.0-generated Python wrapper...
