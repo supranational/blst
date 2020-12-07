@@ -33,8 +33,8 @@ func decodeP1(m map[string]interface{}) *P1Affine {
 	return &p1
 }
 
-func TestG1HashToCurve(t *testing.T) {
-	vfile, err := os.Open("../vectors/hash_to_curve/BLS12381G1_XMD_SHA-256_SSWU_RO_.json")
+func testG1HashToCurve(t *testing.T, fname string) {
+	vfile, err := os.Open(fname)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -51,6 +51,7 @@ func TestG1HashToCurve(t *testing.T) {
 	}
 
 	dst := []byte(vectors["dst"].(string))
+	hash_or_encode := vectors["randomOracle"].(bool)
 
 	vectorsArr, ok := vectors["vectors"].([]interface{})
 	if !ok {
@@ -65,12 +66,22 @@ func TestG1HashToCurve(t *testing.T) {
 
 		msg := []byte(testMap["msg"].(string))
 		p1Expected := decodeP1(testMap["P"].(map[string]interface{}))
-		p1Hashed := HashToG1(msg, dst).ToAffine()
+		var p1Hashed *P1Affine
+		if hash_or_encode {
+			p1Hashed = HashToG1(msg, dst).ToAffine()
+		} else {
+			p1Hashed = EncodeToG1(msg, dst).ToAffine()
+		}
 
 		if !p1Hashed.Equals(p1Expected) {
 			t.Errorf("hashed != expected")
 		}
 	}
+}
+
+func TestG1HashToCurve(t *testing.T) {
+	testG1HashToCurve(t, "../vectors/hash_to_curve/BLS12381G1_XMD_SHA-256_SSWU_RO_.json")
+	testG1HashToCurve(t, "../vectors/hash_to_curve/BLS12381G1_XMD_SHA-256_SSWU_NU_.json")
 }
 
 func decodeP2(m map[string]interface{}) *P2Affine {
@@ -104,8 +115,8 @@ func decodeP2(m map[string]interface{}) *P2Affine {
 	return &p2
 }
 
-func TestG2HashToCurve(t *testing.T) {
-	vfile, err := os.Open("../vectors/hash_to_curve/BLS12381G2_XMD_SHA-256_SSWU_RO_.json")
+func testG2HashToCurve(t *testing.T, fname string) {
+	vfile, err := os.Open(fname)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -122,6 +133,7 @@ func TestG2HashToCurve(t *testing.T) {
 	}
 
 	dst := []byte(vectors["dst"].(string))
+	hash_or_encode := vectors["randomOracle"].(bool)
 
 	vectorsArr, ok := vectors["vectors"].([]interface{})
 	if !ok {
@@ -136,10 +148,20 @@ func TestG2HashToCurve(t *testing.T) {
 
 		msg := []byte(testMap["msg"].(string))
 		p2Expected := decodeP2(testMap["P"].(map[string]interface{}))
-		p2Hashed := HashToG2(msg, dst).ToAffine()
+		var p2Hashed *P2Affine
+		if hash_or_encode {
+			p2Hashed = HashToG2(msg, dst).ToAffine()
+		} else {
+			p2Hashed = EncodeToG2(msg, dst).ToAffine()
+		}
 
 		if !p2Hashed.Equals(p2Expected) {
 			t.Errorf("hashed != expected")
 		}
 	}
+}
+
+func TestG2HashToCurve(t *testing.T) {
+	testG2HashToCurve(t, "../vectors/hash_to_curve/BLS12381G2_XMD_SHA-256_SSWU_RO_.json")
+	testG2HashToCurve(t, "../vectors/hash_to_curve/BLS12381G2_XMD_SHA-256_SSWU_NU_.json")
 }
