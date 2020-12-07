@@ -946,7 +946,8 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn uncompress(sig_comp: &[u8]) -> Result<Self, BLST_ERROR> {
-                if sig_comp.len() == $sig_comp_size && (sig_comp[0] & 0x80) != 0 {
+                if sig_comp.len() == $sig_comp_size && (sig_comp[0] & 0x80) != 0
+                {
                     let mut sig = <$sig_aff>::default();
                     let err =
                         unsafe { $sig_uncomp(&mut sig, sig_comp.as_ptr()) };
@@ -961,7 +962,8 @@ macro_rules! sig_variant_impl {
 
             pub fn deserialize(sig_in: &[u8]) -> Result<Self, BLST_ERROR> {
                 if (sig_in.len() == $sig_ser_size && (sig_in[0] & 0x80) == 0)
-                    || (sig_in.len() == $sig_comp_size && (sig_in[0] & 0x80) != 0)
+                    || (sig_in.len() == $sig_comp_size
+                        && (sig_in[0] & 0x80) != 0)
                 {
                     let mut sig = <$sig_aff>::default();
                     let err = unsafe { $sig_deser(&mut sig, sig_in.as_ptr()) };
