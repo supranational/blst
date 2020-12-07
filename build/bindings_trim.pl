@@ -10,7 +10,7 @@ for (my $i = 0; $i <= $#file; $i++) {
     } elsif (@file[$i] =~ m/struct\s+blst_fp12/) {
         @file[$i-1] =~ s/,\s*Default//;
         @file[$i-1] =~ s/,\s*PartialEq//;
-    } elsif (@file[$i] =~ m/struct\s+blst_pairing/) {
+    } elsif (@file[$i] =~ m/struct\s+(blst_pairing|blst_uniq)/) {
         @file[$i-1] =~ s/,\s*Copy//;
         @file[$i-1] =~ s/,\s*Clone//;
         @file[$i-1] =~ s/,\s*Eq//;
