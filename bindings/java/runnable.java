@@ -8,7 +8,7 @@ public class runnable {
         final var DST = "MY-DST";
 
         var SK = new SecretKey();
-        SK.keygen("passw@rd".getBytes());
+        SK.keygen("*".repeat(32).getBytes());
 
         // generate public key and serialize it...
         var pk_ = new P1(SK);

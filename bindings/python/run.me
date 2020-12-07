@@ -48,7 +48,7 @@ msg = b"assertion"		# this what we're signing
 DST = b"MY-DST"			# domain separation tag
 
 SK = blst.SecretKey()
-SK.keygen(b"passw@rd")		# secret key
+SK.keygen(b"*"*32)		# secret key
 
 ########################################################################
 # generate public key and signature

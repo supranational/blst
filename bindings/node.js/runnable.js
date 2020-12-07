@@ -8,7 +8,7 @@ var msg = "assertion";          // this what we're signing
 var DST = "MY-DST";             // domain separation tag
 
 var SK = new blst.SecretKey();
-SK.keygen("passw@rd");
+SK.keygen("*".repeat(32));
 
 ////////////////////////////////////////////////////////////////////////
 // generate public key and signature
