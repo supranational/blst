@@ -454,6 +454,33 @@ void blst_sign_pk2_in_g2(unsigned char out[96], POINTonE1_affine *sig,
     }
 }
 
+void blst_p1_mult(POINTonE1 *out, const POINTonE1 *a,
+                                  const byte *scalar, size_t nbits)
+{
+    if (nbits < 192) {
+        POINTonE1_mult_w4(out, a, scalar, nbits);
+    } else if (nbits < 256) {
+        union { vec256 l; pow256 s; } val;
+        size_t i, j, top, mask = (size_t)0 - 1;
+
+        /* this is not about constant-time-ness, but branch optimization */
+        for (top = (nbits + 7)/8, i=0, j=0; i<sizeof(val.s);) {
+            val.s[i++] = scalar[j] & mask;
+            mask = 0 - ((i - top) >> (8*sizeof(top)-1));
+            j += 1 & mask;
+        }
+
+        if (check_mod_256(val.s, BLS12_381_r))  /* z^4 is the formal limit */
+            POINTonE1_mult_glv(out, a, val.s);
+        else    /* should never be the case, added for formal completeness */
+            POINTonE1_mult_w5(out, a, scalar, nbits);
+
+        vec_zero(val.l, sizeof(val));
+    } else {    /* should never be the case, added for formal completeness */
+        POINTonE1_mult_w5(out, a, scalar, nbits);
+    }
+}
+
 int blst_p1_is_inf(const POINTonE1 *p)
 {   return (int)vec_is_zero(p->Z, sizeof(p->Z));   }
 

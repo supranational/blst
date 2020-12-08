@@ -235,10 +235,6 @@ void blst_p1_add_or_double_affine(POINTonE1 *out, const POINTonE1 *a,
 void blst_p1_double(POINTonE1 *out, const POINTonE1 *a)
 {   POINTonE1_double(out, a);   }
 
-void blst_p1_mult(POINTonE1 *out, const POINTonE1 *a,
-                                  const byte *scalar, size_t nbits)
-{   POINTonE1_mult_w5(out, a, scalar, nbits);   }
-
 int blst_p1_affine_is_equal(const POINTonE1_affine *a,
                             const POINTonE1_affine *b)
 {   return (int)vec_is_equal(a, b, sizeof(*a));   }
@@ -260,10 +256,6 @@ void blst_p2_add_or_double_affine(POINTonE2 *out, const POINTonE2 *a,
 
 void blst_p2_double(POINTonE2 *out, const POINTonE2 *a)
 {   POINTonE2_double(out, a);   }
-
-void blst_p2_mult(POINTonE2 *out, const POINTonE2 *a,
-                                  const byte *scalar, size_t nbits)
-{   POINTonE2_mult_w5(out, a, scalar, nbits);   }
 
 int blst_p2_affine_is_equal(const POINTonE2_affine *a,
                             const POINTonE2_affine *b)
