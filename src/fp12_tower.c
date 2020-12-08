@@ -530,21 +530,6 @@ static void sqr_fp12(vec384fp12 ret, const vec384fp12 a)
 static void conjugate_fp12(vec384fp12 a)
 {   neg_fp6(a[1], a[1]);   }
 
-static void inverse_fp2(vec384x ret, const vec384x a)
-{
-    vec384 t0, t1;
-
-    /* 1/(a0^2 + a1^2) */
-    sqr_fp(t0, a[0]);
-    sqr_fp(t1, a[1]);
-    add_fp(t0, t0, t1);
-    reciprocal_fp(t1, t0);
-
-    mul_fp(ret[0], a[0], t1);
-    mul_fp(ret[1], a[1], t1);
-    neg_fp(ret[1], ret[1]);
-}
-
 static void inverse_fp6(vec384fp6 ret, const vec384fp6 a)
 {
     vec384x c0, c1, c2, t0, t1;
@@ -574,7 +559,7 @@ static void inverse_fp6(vec384fp6 ret, const vec384fp6 a)
     mul_fp2(t1, c0, a[0]);
     add_fp2(t0, t0, t1);
 
-    inverse_fp2(t1, t0);
+    reciprocal_fp2(t1, t0);
 
     mul_fp2(ret[0], c0, t1);
     mul_fp2(ret[1], c1, t1);
