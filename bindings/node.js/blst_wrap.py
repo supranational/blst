@@ -16,7 +16,7 @@ try:
 except OSError as e:
     if e.errno != 2:    # not "no such file or directory"
         raise e
-    sys.exit(e.errno)   # or do something else, say ...
+#   sys.exit(e.errno)   # or do something else, say ...
 
 here = re.split(r'[/\\](?=[^/\\]*$)', sys.argv[0])
 if len(here) == 1:

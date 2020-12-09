@@ -100,14 +100,21 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
+      - uses: actions/cache@v2
+        with:
+          path: ~/swig
+          key: ${{ runner.os }}-swig-pr1746
       - name: Setup SWIG
         run: |
-          git clone -b pr/new-node-fixes https://github.com/yegorich/swig;
-          cd swig;
-          ./autogen.sh;
-          ./configure --prefix=$HOME/swig;
-          make;
-          make install;
+          if [ ! -x ~/swig/bin/swig ]; then
+            ( git clone -b pr/new-node-fixes https://github.com/yegorich/swig;
+              cd swig;
+              ./autogen.sh;
+              ./configure --prefix=$HOME/swig;
+              make;
+              make install;
+            )
+          fi
       - name: Run.me
         run: |
           env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2 \
@@ -127,6 +134,10 @@ jobs:
         node: [10, 12]
     steps:
     - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: ~/swig
+          key: ${{ runner.os }}-swig-pr1746
     - name: Setup Node.js ${{matrix.node}}
       uses: actions/setup-node@v1
       with:
@@ -136,15 +147,17 @@ jobs:
       with:
         name: blst_wrap.cpp
         path: bindings/node.js/
-    - name: run.me
-      run: |
-        env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2 \
-          bindings/node.js/run.me
     - name: Setup node-gyp
       run: npm install --global node-gyp
     - name: Build with node-gyp
+      shell: bash
       run: |
         cd bindings/node.js
+        if [ "$RUNNER_OS" = "Linux" ]; then
+            export PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2
+        elif [ -f blst_wrap.cpp ]; then # rename the downloaded artefact
+            mv -f blst_wrap.cpp blst_wrap.v12.cpp
+        fi
         node-gyp configure
         node-gyp build
-        env NODE_PATH=build/Release: node runnable.js
+        env NODE_PATH=build/Release node runnable.js
