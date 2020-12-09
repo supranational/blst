@@ -134,10 +134,10 @@ jobs:
         node: [10, 12]
     steps:
     - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: ~/swig
-          key: ${{ runner.os }}-swig-pr1746
+    - uses: actions/cache@v2
+      with:
+        path: ~/swig
+        key: ${{ runner.os }}-swig-pr1746
     - name: Setup Node.js ${{matrix.node}}
       uses: actions/setup-node@v1
       with:
