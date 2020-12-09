@@ -25,7 +25,7 @@ static const app__string_view None;
 #if __cplusplus < 201103L
 # ifdef __GNUG__
 #  define nullptr __null
-# else
+# elif !defined(_MSVC_LANG) || _MSVC_LANG < 201103L
 #  define nullptr 0
 # endif
 #endif
