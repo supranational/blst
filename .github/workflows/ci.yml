@@ -110,8 +110,9 @@ jobs:
             env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2 \
                 $node_js/run.me
         fi
+    - name: node-gyp
+      run: |
         if [ -f $node_js/binding.gyp -a -f $node_js/blst_wrap.cpp ]; then
-            echo ---
             if which npm > /dev/null 2>&1; then
                 npm install --global node-gyp || true
             fi
