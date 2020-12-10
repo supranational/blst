@@ -1,3 +1,8 @@
+# All pathnames (except for INTERMEDIATE_DIR) are relative to position
+# of *this* file. If it's moved, the pathnames would have to be adjusted
+# accordingly. It's also advised to move and customize blst_wrap.py, the
+# script responsible for generating or copying pre-generated
+# blst_wrap.cpp...
 {
   'targets': [
     {
