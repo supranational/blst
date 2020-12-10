@@ -112,6 +112,7 @@ jobs:
         fi
     - name: node-gyp
       run: |
+        node_js=bindings/node.js
         if [ -f $node_js/binding.gyp -a -f $node_js/blst_wrap.cpp ]; then
             if which npm > /dev/null 2>&1; then
                 npm install --global node-gyp || true
