@@ -15,7 +15,7 @@ if [ ! -d $include ]; then
     echo "$include not found" 1>&2
     exit 1
 fi
-include=`cd $include/nodejs || cd $include; pwd`
+include=`(cd $include/nodejs || cd $include; pwd) 2>/dev/null`
 [ -f $include/node/node.h ]          && INCS="-I$include/node"
 [ -f $include/src/node.h ]           && INCS="$INCS -I$include/src"
 [ -f $include/deps/v8/include/v8.h ] && INCS="$INCS -I$include/deps/v8/include"
