@@ -126,3 +126,5 @@ jobs:
               )
             fi
         fi
+    - name: Worker threads error
+      run: node bindings/node.js/worker-threads.js

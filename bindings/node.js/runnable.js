@@ -2,7 +2,7 @@
 
 console.log("testing...");
 
-const blst = require("blst");
+const blst = require("./blst.node");
 
 var msg = "assertion";          // this what we're signing
 var DST = "MY-DST";             // domain separation tag
