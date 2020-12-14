@@ -8,6 +8,7 @@
 %include "exception.i"
 #ifdef __cplusplus
 %include "std_string.i"
+%typemap(out) SELF* OUTPUT = SWIGTYPE*; // to be overridden as required
 #else
 #warning consider using C++ interface
 #endif
@@ -51,6 +52,9 @@
     }
     $result = SWIG_From_int($1);
 };
+
+// return |this|
+%typemap(out) SELF* OUTPUT %{ (void)$1; Py_INCREF($result = swig_obj[0]); %}
 #endif
 
 #elif defined(SWIGJAVA)
@@ -164,6 +168,9 @@
     }
 };
 
+// return |this|
+%typemap(out) SELF* OUTPUT %{ (void)$1; $result = args.Holder(); %}
+
 #endif  // SWIG<language>
 
 // everybody has a way to bundle pointer and buffer size, but C:-(
@@ -233,6 +240,16 @@
 %catches(BLST_ERROR) P2(const byte* in);
 %catches(BLST_ERROR) P2_Affine(const byte* in);
 %catches(BLST_ERROR) aggregate(const P2_Affine& in);
+
+// methods returning |this|
+%apply SELF* OUTPUT {
+    blst::P1* sign_with,    blst::P2* sign_with,
+    blst::P1* hash_to,      blst::P2* hash_to,
+    blst::P1* encode_to,    blst::P2* encode_to,
+    blst::P1* cneg,         blst::P2* cneg,
+    blst::P1* add,          blst::P2* add,
+    blst::P1* dbl,          blst::P2* dbl
+};
 
 typedef enum {
     BLST_SUCCESS = 0,
