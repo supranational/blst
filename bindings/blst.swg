@@ -335,3 +335,10 @@ static const char *const BLST_ERROR_str [] = {
 #if defined(SWIGPYTHON) || defined(SWIGPERL)
 %include "cdata.i"
 #endif
+
+#if defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_V8)
+%wrapper %{
+#undef NODE_MODULE
+#define NODE_MODULE NODE_MODULE_CONTEXT_AWARE
+%}
+#endif
