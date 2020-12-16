@@ -190,12 +190,14 @@ public:
     {   blst_p1_add_or_double_affine(&point, &point, a); return this;   }
     P1* dbl()
     {   blst_p1_double(&point, &point); return this;   }
+#ifndef SWIG
     static P1 add(const P1& a, const P1& b)
     {   P1 ret; blst_p1_add_or_double(&ret.point, a, b); return ret;   }
     static P1 add(const P1& a, const P1_Affine& b)
     {   P1 ret; blst_p1_add_or_double_affine(&ret.point, a, b); return ret;   }
     static P1 dbl(const P1& a)
     {   P1 ret; blst_p1_double(&ret.point, a); return ret;   }
+#endif
     static const P1& generator()
     {   return *reinterpret_cast<const P1*>(blst_p1_generator());   }
 
@@ -316,12 +318,14 @@ public:
     {   blst_p2_add_or_double_affine(&point, &point, a); return this;   }
     P2* dbl()
     {   blst_p2_double(&point, &point); return this;   }
+#ifndef SWIG
     static P2 add(const P2& a, const P2& b)
     {   P2 ret; blst_p2_add_or_double(&ret.point, a, b); return ret;   }
     static P2 add(const P2& a, const P2_Affine& b)
     {   P2 ret; blst_p2_add_or_double_affine(&ret.point, a, b); return ret;   }
     static P2 dbl(const P2& a)
     {   P2 ret; blst_p2_double(&ret.point, a); return ret;   }
+#endif
     static const P2& generator()
     {   return *reinterpret_cast<const P2*>(blst_p2_generator());   }
 
