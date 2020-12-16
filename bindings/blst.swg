@@ -16,24 +16,17 @@
 
 %apply const char* { const byte*, const byte[ANY] }
 
-#if defined(SWIGPYTHON) || defined(SWIGPERL)
+#if defined(SWIGPYTHON)
 
 // some sorcery to allow assignments as output, e.g.
-//      hash = p.encode_to(b"foo")
+//      hash = blst.encode_to_g1(b"foo")
 %typemap(in, numinputs=0) OBJECT *OUTPUT($1_basetype temp) { $1 = &temp; };
 %typemap(argout) OBJECT *OUTPUT {
-# ifdef SWIGPYTHON
     PyObject *obj = SWIG_NewPointerObj(memcpy(malloc(sizeof($1_basetype)),
                                               $1,sizeof($1_basetype)),
                                        $descriptor, SWIG_POINTER_NEW);
     $result = ($result==NULL) ? obj
                               : SWIG_Python_AppendOutput($result, obj);
-# else // TODO: figure out more language-specific ways to return multi-values...
-    if ($result == NULL)
-        $result = SWIG_NewPointerObj(memcpy(malloc(sizeof($1_basetype)),
-                                            $1,sizeof($1_basetype)),
-                                     $descriptor, SWIG_POINTER_NEW);
-# endif
 };
 %apply OBJECT *OUTPUT {
     blst_p1        *out, blst_p1        *out_pk, blst_p1        *out_sig,
@@ -113,6 +106,7 @@
 #endif
 
 #elif defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_V8)
+
 %header %{
 #if V8_MAJOR_VERSION >= 8
 # define GetData() GetBackingStore()->Data()
@@ -171,6 +165,13 @@
 // return |this|
 %typemap(out) SELF* OUTPUT %{ (void)$1; $result = args.Holder(); %}
 
+#elif defined(SWIGPERL)
+
+#ifdef __cplusplus
+// return |this|
+%typemap(out) SELF* OUTPUT %{ (void)$1; argvi++; %}
+#endif
+
 #endif  // SWIG<language>
 
 // everybody has a way to bundle pointer and buffer size, but C:-(
@@ -203,6 +204,8 @@
     auto ab = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), $1_dim0);
     memcpy(ab->GetData(), $1, $1_dim0);
     $result = v8::Uint8Array::New(ab, 0, $1_dim0);
+#elif defined(SWIGPERL)
+    $result = SWIG_FromCharPtrAndSize((char *)$1, $1_dim0); argvi++;
 #else // TODO: figure out more language-specific ways to return multi-values...
     if ($result == NULL)
         $result = SWIG_FromCharPtrAndSize((char *)$1, $1_dim0);
