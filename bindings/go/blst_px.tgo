@@ -137,17 +137,17 @@ func HashToG1(msg []byte, dst []byte,
     }
 
     var aug []byte
-    var uaug *C.byte
+    var augC *C.byte
     if len(optional) > 0 {
         aug = optional[0]
         if len(aug) > 0 {
-            uaug = (*C.byte)(&aug[0])
+            augC = (*C.byte)(&aug[0])
         }
     }
 
     C.blst_hash_to_g1(&q, msgC, C.size_t(len(msg)),
                           dstC, C.size_t(len(dst)),
-                          uaug, C.size_t(len(aug)))
+                          augC, C.size_t(len(aug)))
     return &q
 }
 
@@ -167,17 +167,17 @@ func EncodeToG1(msg []byte, dst []byte,
     }
 
     var aug []byte
-    var uaug *C.byte
+    var augC *C.byte
     if len(optional) > 0 {
         aug = optional[0]
         if len(aug) > 0 {
-            uaug = (*C.byte)(&aug[0])
+            augC = (*C.byte)(&aug[0])
         }
     }
 
     C.blst_encode_to_g1(&q, msgC, C.size_t(len(msg)),
                             dstC, C.size_t(len(dst)),
-                            uaug, C.size_t(len(aug)))
+                            augC, C.size_t(len(aug)))
     return &q
 }
 

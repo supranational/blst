@@ -76,7 +76,9 @@ func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
 	var infoP *C.byte
 	if len(optional) > 0 {
 		info = optional[0]
-		infoP = (*C.byte)(&info[0])
+		if len(info) > 0 {
+			infoP = (*C.byte)(&info[0])
+		}
 	}
 	if len(ikm) < 32 {
 		return nil
@@ -95,7 +97,7 @@ func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
 func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
 	ctx := make([]uint64, C.blst_pairing_sizeof()/8)
 	var uDST *C.byte
-	if DST != nil {
+	if len(DST) > 0 {
 		uDST = (*C.byte)(&DST[0])
 	}
 	C.blst_pairing_init((*C.blst_pairing)(&ctx[0]), C.bool(hash_or_encode),
@@ -110,12 +112,12 @@ func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
 	var uaug *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if aug != nil {
+		if len(aug) > 0 {
 			uaug = (*C.byte)(&aug[0])
 		}
 	}
 	var umsg *C.byte
-	if msg != nil && len(msg) > 0 {
+	if len(msg) > 0 {
 		umsg = (*C.byte)(&msg[0])
 	}
 
@@ -135,12 +137,12 @@ func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
 	var uaug *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if aug != nil {
+		if len(aug) > 0 {
 			uaug = (*C.byte)(&aug[0])
 		}
 	}
 	var umsg *C.byte
-	if msg != nil && len(msg) > 0 {
+	if len(msg) > 0 {
 		umsg = (*C.byte)(&msg[0])
 	}
 
@@ -161,12 +163,12 @@ func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
 	var uaug *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if aug != nil {
+		if len(aug) > 0 {
 			uaug = (*C.byte)(&aug[0])
 		}
 	}
 	var umsg *C.byte
-	if msg != nil && len(msg) > 0 {
+	if len(msg) > 0 {
 		umsg = (*C.byte)(&msg[0])
 	}
 
@@ -188,12 +190,12 @@ func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
 	var uaug *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if aug != nil {
+		if len(aug) > 0 {
 			uaug = (*C.byte)(&aug[0])
 		}
 	}
 	var umsg *C.byte
-	if msg != nil && len(msg) > 0 {
+	if len(msg) > 0 {
 		umsg = (*C.byte)(&msg[0])
 	}
 
@@ -1565,17 +1567,17 @@ func HashToG1(msg []byte, dst []byte,
 	}
 
 	var aug []byte
-	var uaug *C.byte
+	var augC *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
 		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
+			augC = (*C.byte)(&aug[0])
 		}
 	}
 
 	C.blst_hash_to_g1(&q, msgC, C.size_t(len(msg)),
 		dstC, C.size_t(len(dst)),
-		uaug, C.size_t(len(aug)))
+		augC, C.size_t(len(aug)))
 	return &q
 }
 
@@ -1595,17 +1597,17 @@ func EncodeToG1(msg []byte, dst []byte,
 	}
 
 	var aug []byte
-	var uaug *C.byte
+	var augC *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
 		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
+			augC = (*C.byte)(&aug[0])
 		}
 	}
 
 	C.blst_encode_to_g1(&q, msgC, C.size_t(len(msg)),
 		dstC, C.size_t(len(dst)),
-		uaug, C.size_t(len(aug)))
+		augC, C.size_t(len(aug)))
 	return &q
 }
 
@@ -1747,17 +1749,17 @@ func HashToG2(msg []byte, dst []byte,
 	}
 
 	var aug []byte
-	var uaug *C.byte
+	var augC *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
 		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
+			augC = (*C.byte)(&aug[0])
 		}
 	}
 
 	C.blst_hash_to_g2(&q, msgC, C.size_t(len(msg)),
 		dstC, C.size_t(len(dst)),
-		uaug, C.size_t(len(aug)))
+		augC, C.size_t(len(aug)))
 	return &q
 }
 
@@ -1777,17 +1779,17 @@ func EncodeToG2(msg []byte, dst []byte,
 	}
 
 	var aug []byte
-	var uaug *C.byte
+	var augC *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
 		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
+			augC = (*C.byte)(&aug[0])
 		}
 	}
 
 	C.blst_encode_to_g2(&q, msgC, C.size_t(len(msg)),
 		dstC, C.size_t(len(dst)),
-		uaug, C.size_t(len(aug)))
+		augC, C.size_t(len(aug)))
 	return &q
 }
 
