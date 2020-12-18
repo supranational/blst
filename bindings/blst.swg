@@ -48,6 +48,40 @@
 
 // return |this|
 %typemap(out) SELF* OUTPUT %{ (void)$1; Py_INCREF($result = swig_obj[0]); %}
+
+// let Python users use Python integers [and bytes] as scalars
+%typemap(in) PyObject* "$1 = $input;"
+%typemap(out) int mult %{
+    if (!SWIG_IsOK($1))
+        SWIG_exception_fail(SWIG_ArgError($1), "in method '$symname', argument 2");
+    Py_INCREF($result = swig_obj[0]);   // return |this|
+%}
+%define MULT_BY_PyObject
+int mult(PyObject* obj)
+{
+    if (PyLong_Check(obj)) {
+        size_t nbits = _PyLong_NumBits(obj);
+        size_t nbytes = (nbits + 7)/8;
+        byte* scalar = (byte*)alloca(nbytes);
+
+        if (_PyLong_AsByteArray((PyLongObject*)obj, scalar, nbytes, 1, 0) < 0)
+            return SWIG_OverflowError;
+        (void)$self->mult(scalar, nbits);
+        return SWIG_OK;
+    } else if (PyBytes_Check(obj)) {
+        char *scalar;
+        Py_ssize_t nbytes;
+
+        if (PyBytes_AsStringAndSize(obj, &scalar, &nbytes) < 0)
+            return SWIG_TypeError;
+        (void)$self->mult((byte*)scalar, 8*nbytes);
+        return SWIG_OK;
+    }
+    return SWIG_TypeError;
+}
+%enddef
+%extend blst::P1 { MULT_BY_PyObject };
+%extend blst::P2 { MULT_BY_PyObject };
 #endif
 
 #elif defined(SWIGJAVA)
@@ -325,9 +359,7 @@ static const char *const BLST_ERROR_str [] = {
 };
 
 #define SWIG_PYTHON_STRICT_BYTE_CHAR
-%}
 
-%header %{
 #ifdef _WIN32
 # include <malloc.h>
 # ifndef alloca
