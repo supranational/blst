@@ -159,8 +159,8 @@ void blst_p1_add_affine(blst_p1 *out, const blst_p1 *a,
 void blst_p1_add_or_double_affine(blst_p1 *out, const blst_p1 *a,
                                                 const blst_p1_affine *b);
 void blst_p1_double(blst_p1 *out, const blst_p1 *a);
-void blst_p1_mult(blst_p1 *out, const blst_p1 *p,
-                                const blst_scalar *scalar, size_t nbits);
+void blst_p1_mult(blst_p1 *out, const blst_p1 *p, const byte *scalar,
+                                                  size_t nbits);
 void blst_p1_cneg(blst_p1 *p, bool cbit);
 void blst_p1_to_affine(blst_p1_affine *out, const blst_p1 *in);
 void blst_p1_from_affine(blst_p1 *out, const blst_p1_affine *in);
@@ -186,8 +186,8 @@ void blst_p2_add_affine(blst_p2 *out, const blst_p2 *a,
 void blst_p2_add_or_double_affine(blst_p2 *out, const blst_p2 *a,
                                                 const blst_p2_affine *b);
 void blst_p2_double(blst_p2 *out, const blst_p2 *a);
-void blst_p2_mult(blst_p2 *out, const blst_p2 *p,
-                                const blst_scalar *scalar, size_t nbits);
+void blst_p2_mult(blst_p2 *out, const blst_p2 *p, const byte *scalar,
+                                                  size_t nbits);
 void blst_p2_cneg(blst_p2 *p, bool cbit);
 void blst_p2_to_affine(blst_p2_affine *out, const blst_p2 *in);
 void blst_p2_from_affine(blst_p2 *out, const blst_p2_affine *in);
