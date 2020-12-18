@@ -91,6 +91,7 @@ public:
     }
     P1_Affine(const P1& jacobian);
 
+    P1_Affine clone() const { return *this; }
     P1 to_jacobian() const;
     void serialize(byte out[96]) const
     {   blst_p1_affine_serialize(out, &point);   }
@@ -99,6 +100,8 @@ public:
     bool on_curve() const { return blst_p1_affine_on_curve(&point); }
     bool in_group() const { return blst_p1_affine_in_g1(&point);    }
     bool is_inf() const   { return blst_p1_affine_is_inf(&point);   }
+    bool is_equal(const P1_Affine& p) const
+    {   return blst_p1_affine_is_equal(&point, &p.point);   }
     BLST_ERROR core_verify(const P2_Affine& pk, bool hash_or_encode,
                            const byte* msg, size_t msg_len,
                            const std::string& DST = "",
@@ -109,7 +112,7 @@ public:
                            const std::string& DST = "",
                            const app__string_view aug = None) const;
 #endif
-    static const P1_Affine& generator()
+    static P1_Affine generator()
     {
         return *reinterpret_cast<const P1_Affine*>(blst_p1_affine_generator());
     }
@@ -138,18 +141,21 @@ public:
     }
     P1(const P1_Affine& affine) { blst_p1_from_affine(&point, affine); }
 
+    P1 clone() const                    { return *this; }
     P1_Affine to_affine() const         { P1_Affine ret(*this); return ret;  }
     void serialize(byte out[96]) const  { blst_p1_serialize(out, &point);    }
     void compress(byte out[48]) const   { blst_p1_compress(out, &point);     }
     bool is_inf() const                 { return blst_p1_is_inf(&point);     }
+    bool is_equal(const P1& p) const
+    {   return blst_p1_is_equal(&point, &p.point);   }
     void aggregate(const P1_Affine& in)
     {   if (blst_p1_affine_in_g1(in))
             blst_p1_add_or_double_affine(&point, &point, in);
         else
             throw BLST_POINT_NOT_IN_GROUP;
     }
-    P1* sign_with(SecretKey& sk)
-    {   blst_p1_mult(&point, &point, &sk.key, 255); return this;   }
+    P1* sign_with(const SecretKey& sk)
+    {   blst_sign_pk_in_g2(&point, &point, &sk.key); return this;   }
     P1* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
                 const byte* aug = nullptr, size_t aug_len = 0)
@@ -182,6 +188,8 @@ public:
                          aug.size());
     }
 #endif
+    P1* mult(const byte* scalar, size_t nbits)
+    {   blst_p1_mult(&point, &point, scalar, nbits); return this;   }
     P1* cneg(bool flag)
     {   blst_p1_cneg(&point, flag); return this;   }
     P1* add(const P1& a)
@@ -198,7 +206,7 @@ public:
     static P1 dbl(const P1& a)
     {   P1 ret; blst_p1_double(&ret.point, a); return ret;   }
 #endif
-    static const P1& generator()
+    static P1 generator()
     {   return *reinterpret_cast<const P1*>(blst_p1_generator());   }
 
 private:
@@ -219,6 +227,7 @@ public:
     }
     P2_Affine(const P2& jacobian);
 
+    P2_Affine clone() const { return *this; }
     P2 to_jacobian() const;
     void serialize(byte out[192]) const
     {   blst_p2_affine_serialize(out, &point);   }
@@ -227,6 +236,8 @@ public:
     bool on_curve() const { return blst_p2_affine_on_curve(&point); }
     bool in_group() const { return blst_p2_affine_in_g2(&point);    }
     bool is_inf() const   { return blst_p2_affine_is_inf(&point);   }
+    bool is_equal(const P2_Affine& p) const
+    {   return blst_p2_affine_is_equal(&point, &p.point);   }
     BLST_ERROR core_verify(const P1_Affine& pk, bool hash_or_encode,
                            const byte* msg, size_t msg_len,
                            const std::string& DST = "",
@@ -237,7 +248,7 @@ public:
                            const std::string& DST = "",
                            const app__string_view aug = None) const;
 #endif
-    static const P2_Affine& generator()
+    static P2_Affine generator()
     {
         return *reinterpret_cast<const P2_Affine*>(blst_p2_affine_generator());
     }
@@ -266,18 +277,21 @@ public:
     }
     P2(const P2_Affine& affine) { blst_p2_from_affine(&point, affine); }
 
+    P2 clone() const                    { return *this; }
     P2_Affine to_affine() const         { P2_Affine ret(*this); return ret; }
     void serialize(byte out[192]) const { blst_p2_serialize(out, &point);   }
     void compress(byte out[96]) const   { blst_p2_compress(out, &point);    }
     bool is_inf() const                 { return blst_p2_is_inf(&point);    }
+    bool is_equal(const P2& p) const
+    {   return blst_p2_is_equal(&point, &p.point);   }
     void aggregate(const P2_Affine& in)
     {   if (blst_p2_affine_in_g2(in))
             blst_p2_add_or_double_affine(&point, &point, in);
         else
             throw BLST_POINT_NOT_IN_GROUP;
     }
-    P2* sign_with(SecretKey& sk)
-    {   blst_p2_mult(&point, &point, &sk.key, 255); return this;   }
+    P2* sign_with(const SecretKey& sk)
+    {   blst_sign_pk_in_g1(&point, &point, &sk.key); return this;   }
     P2* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
                 const byte* aug = nullptr, size_t aug_len = 0)
@@ -310,6 +324,8 @@ public:
                          aug.size());
     }
 #endif
+    P2* mult(const byte* scalar, size_t nbits)
+    {   blst_p2_mult(&point, &point, scalar, nbits); return this;   }
     P2* cneg(bool flag)
     {   blst_p2_cneg(&point, flag); return this;   }
     P2* add(const P2& a)
@@ -326,7 +342,7 @@ public:
     static P2 dbl(const P2& a)
     {   P2 ret; blst_p2_double(&ret.point, a); return ret;   }
 #endif
-    static const P2& generator()
+    static P2 generator()
     {   return *reinterpret_cast<const P2*>(blst_p2_generator());   }
 
 private:
