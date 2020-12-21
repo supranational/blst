@@ -15,7 +15,7 @@ arch:
     - arm64
 
 before_script:
-    - env
+    - env | sort
 
 script:
     - if [ "$TRAVIS_LANGUAGE" = "rust" ]; then
