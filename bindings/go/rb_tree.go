@@ -127,7 +127,7 @@ func (tree *rbTree) insert(data *[]byte) bool {
     return true
 }
 
-func uniq(msgs []Message) bool {
+func Uniq(msgs []Message) bool {
     n := len(msgs)
 
     if n == 1 {

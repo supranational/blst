@@ -249,7 +249,7 @@ impl Pairing {
     }
 }
 
-fn uniq(msgs: &[&[u8]]) -> bool {
+pub fn uniq(msgs: &[&[u8]]) -> bool {
     let n_elems = msgs.len();
 
     if n_elems == 1 {
