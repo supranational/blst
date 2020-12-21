@@ -91,7 +91,7 @@ public:
     }
     P1_Affine(const P1& jacobian);
 
-    P1_Affine clone() const { return *this; }
+    P1_Affine dup() const { return *this; }
     P1 to_jacobian() const;
     void serialize(byte out[96]) const
     {   blst_p1_affine_serialize(out, &point);   }
@@ -141,10 +141,12 @@ public:
     }
     P1(const P1_Affine& affine) { blst_p1_from_affine(&point, affine); }
 
-    P1 clone() const                    { return *this; }
+    P1 dup() const                      { return *this; }
     P1_Affine to_affine() const         { P1_Affine ret(*this); return ret;  }
     void serialize(byte out[96]) const  { blst_p1_serialize(out, &point);    }
     void compress(byte out[48]) const   { blst_p1_compress(out, &point);     }
+    bool on_curve() const               { return blst_p1_on_curve(&point);   }
+    bool in_group() const               { return blst_p1_in_g1(&point);      }
     bool is_inf() const                 { return blst_p1_is_inf(&point);     }
     bool is_equal(const P1& p) const
     {   return blst_p1_is_equal(&point, &p.point);   }
@@ -227,7 +229,7 @@ public:
     }
     P2_Affine(const P2& jacobian);
 
-    P2_Affine clone() const { return *this; }
+    P2_Affine dup() const { return *this; }
     P2 to_jacobian() const;
     void serialize(byte out[192]) const
     {   blst_p2_affine_serialize(out, &point);   }
@@ -277,10 +279,12 @@ public:
     }
     P2(const P2_Affine& affine) { blst_p2_from_affine(&point, affine); }
 
-    P2 clone() const                    { return *this; }
+    P2 dup() const                      { return *this; }
     P2_Affine to_affine() const         { P2_Affine ret(*this); return ret; }
     void serialize(byte out[192]) const { blst_p2_serialize(out, &point);   }
     void compress(byte out[96]) const   { blst_p2_compress(out, &point);    }
+    bool on_curve() const               { return blst_p2_on_curve(&point);  }
+    bool in_group() const               { return blst_p2_in_g2(&point);     }
     bool is_inf() const                 { return blst_p2_is_inf(&point);    }
     bool is_equal(const P2& p) const
     {   return blst_p2_is_equal(&point, &p.point);   }
@@ -413,7 +417,7 @@ public:
     PT(const P2_Affine& p2, const P1_Affine& p1)
     {   blst_miller_loop(&value, p2, p1);   }
 
-    PT clone() const        { return *this; }
+    PT dup() const          { return *this; }
     bool is_one() const     { return blst_fp12_is_one(&value); }
     bool is_equal(const PT& p) const
     {   return blst_fp12_is_equal(&value, p);   }
