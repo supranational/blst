@@ -137,6 +137,8 @@ int mult(PyObject* obj)
         $1 = 8*_global_scalar_sz;
     }
 %};
+
+%typemap(javaout) SELF* OUTPUT "{ $jnicall; return this; }"
 #endif
 
 #elif defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_V8)
