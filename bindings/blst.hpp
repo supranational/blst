@@ -408,8 +408,18 @@ private:
     blst_fp12 value;
 
 public:
-    PT(const P1_Affine& p) { blst_aggregated_in_g1(&value, p); }
-    PT(const P2_Affine& p) { blst_aggregated_in_g2(&value, p); }
+    PT(const P1_Affine& p)  { blst_aggregated_in_g1(&value, p); }
+    PT(const P2_Affine& p)  { blst_aggregated_in_g2(&value, p); }
+    PT(const P2_Affine& p2, const P1_Affine& p1)
+    {   blst_miller_loop(&value, p2, p1);   }
+
+    PT clone() const        { return *this; }
+    bool is_one() const     { return blst_fp12_is_one(&value); }
+    bool is_equal(const PT& p) const
+    {   return blst_fp12_is_equal(&value, p);   }
+    PT* sqr()               { blst_fp12_sqr(&value, &value);    return this; }
+    PT* mul(const PT& p)    { blst_fp12_mul(&value, &value, p); return this; }
+    PT* final_exp()         { blst_final_exp(&value, &value);   return this; }
 
 private:
     friend class Pairing;
