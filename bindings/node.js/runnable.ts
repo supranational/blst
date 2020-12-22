@@ -1,9 +1,8 @@
 "use strict";
 
-import { Blst } from "./bindings";
-
 console.log("testing...");
 
+import { Blst } from "./bindings";
 const blst: Blst = require("blst");
 
 const msg = "assertion"; // this what we're signing
