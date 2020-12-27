@@ -194,6 +194,8 @@ public:
     {   blst_p1_mult(&point, &point, scalar, nbits); return this;   }
     P1* cneg(bool flag)
     {   blst_p1_cneg(&point, flag); return this;   }
+    P1* neg()
+    {   blst_p1_cneg(&point, true); return this;   }
     P1* add(const P1& a)
     {   blst_p1_add_or_double(&point, &point, a); return this;   }
     P1* add(const P1_Affine &a)
@@ -332,6 +334,8 @@ public:
     {   blst_p2_mult(&point, &point, scalar, nbits); return this;   }
     P2* cneg(bool flag)
     {   blst_p2_cneg(&point, flag); return this;   }
+    P2* neg()
+    {   blst_p2_cneg(&point, true); return this;   }
     P2* add(const P2& a)
     {   blst_p2_add_or_double(&point, &point, a); return this;   }
     P2* add(const P2_Affine &a)
@@ -361,6 +365,9 @@ inline P2_Affine::P2_Affine(const P2& jacobian)
 
 inline P1 P1_Affine::to_jacobian() const { P1 ret(*this); return ret; }
 inline P2 P2_Affine::to_jacobian() const { P2 ret(*this); return ret; }
+
+inline P1 G1() { return P1::generator();  }
+inline P2 G2() { return P2::generator();  }
 
 inline BLST_ERROR P1_Affine::core_verify(const P2_Affine& pk,
                                          bool hash_or_encode,
