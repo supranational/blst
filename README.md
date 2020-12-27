@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/supranational/blst.svg?branch=master)](https://travis-ci.org/supranational/blst) [![Actions status](https://github.com/supranational/blst/workflows/build/badge.svg)](https://github.com/supranational/blst/actions) [![Total alerts](https://img.shields.io/lgtm/alerts/g/supranational/blst.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/supranational/blst/alerts/)
+[![Build Status](https://travis-ci.com/supranational/blst.svg?branch=master)](https://travis-ci.com/supranational/blst) [![Actions status](https://github.com/supranational/blst/workflows/build/badge.svg)](https://github.com/supranational/blst/actions) [![Total alerts](https://img.shields.io/lgtm/alerts/g/supranational/blst.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/supranational/blst/alerts/)
 <div align="left">
   <img src=blst_logo_small.png>
 </div>
