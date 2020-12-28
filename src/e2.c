@@ -536,7 +536,7 @@ void blst_p2_mult(POINTonE2 *out, const POINTonE2 *a,
 {
     if (nbits < 160) {
         POINTonE2_mult_w4(out, a, scalar, nbits);
-    } else if (nbits < 256) {
+    } else if (nbits <= 256) {
         union { vec256 l; pow256 s; } val;
         size_t i, j, top, mask = (size_t)0 - 1;
 
