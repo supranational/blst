@@ -37,6 +37,31 @@
     blst_fp12      *out
 };
 
+// let users use Python 'int' and 'bytes' as scalars
+%typemap(in) (const byte* scalar, size_t nbits) %{
+    if (PyBytes_Check($input)) {
+        char *scalar;
+        Py_ssize_t nbytes;
+
+        if (PyBytes_AsStringAndSize($input, &scalar, &nbytes) < 0)
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname'");
+
+        $1 = ($1_ltype)scalar;
+        $2 = 8 * nbytes;
+    } else if (PyLong_Check($input)) {
+        size_t nbytes;
+
+        $2 = _PyLong_NumBits($input);
+        $1 = ($1_ltype)alloca(nbytes = ($2 + 7)/8);
+
+        if (_PyLong_AsByteArray((PyLongObject*)$input, $1, nbytes, 1, 0) < 0)
+            SWIG_exception_fail(SWIG_OverflowError, "in method '$symname'");
+    } else {
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                            "expecting 'int' or 'bytes'");
+    }
+%}
+
 #ifdef __cplusplus
 %typemap(out) BLST_ERROR {
     if ($1 != BLST_SUCCESS) {
@@ -48,40 +73,6 @@
 
 // return |this|
 %typemap(out) SELF* OUTPUT %{ (void)$1; Py_INCREF($result = swig_obj[0]); %}
-
-// let Python users use Python integers [and bytes] as scalars
-%typemap(in) PyObject* "$1 = $input;"
-%typemap(out) int mult %{
-    if (!SWIG_IsOK($1))
-        SWIG_exception_fail(SWIG_ArgError($1), "in method '$symname', argument 2");
-    Py_INCREF($result = swig_obj[0]);   // return |this|
-%}
-%define MULT_BY_PyObject
-int mult(PyObject* obj)
-{
-    if (PyLong_Check(obj)) {
-        size_t nbits = _PyLong_NumBits(obj);
-        size_t nbytes = (nbits + 7)/8;
-        byte* scalar = (byte*)alloca(nbytes);
-
-        if (_PyLong_AsByteArray((PyLongObject*)obj, scalar, nbytes, 1, 0) < 0)
-            return SWIG_OverflowError;
-        (void)$self->mult(scalar, nbits);
-        return SWIG_OK;
-    } else if (PyBytes_Check(obj)) {
-        char *scalar;
-        Py_ssize_t nbytes;
-
-        if (PyBytes_AsStringAndSize(obj, &scalar, &nbytes) < 0)
-            return SWIG_TypeError;
-        (void)$self->mult((byte*)scalar, 8*nbytes);
-        return SWIG_OK;
-    }
-    return SWIG_TypeError;
-}
-%enddef
-%extend blst::P1 { MULT_BY_PyObject };
-%extend blst::P2 { MULT_BY_PyObject };
 #endif
 
 #elif defined(SWIGJAVA)
@@ -124,20 +115,32 @@ int mult(PyObject* obj)
     $1 = ($1_ltype)JCALL(GetByteArrayElements, $input, 0);
 };
 
-#ifdef __cplusplus
-%apply const byte* { const byte* scalar }
-%typemap(in) const byte* scalar (size_t _global_scalar_sz) %{
-    $1 = ($1_ltype)jenv->GetByteArrayElements($input, 0);
-    _global_scalar_sz = jenv->GetArrayLength($input);
-%};
-%typemap(in) size_t nbits %{
-    if (($1 = (size_t)$input) > 8*_global_scalar_sz) {
-        SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException,
-                                      "BLST_ERROR: scalar size mismatch");
-        $1 = 8*_global_scalar_sz;
+// let users use 'java.math.BigInteger' as scalars
+%typemap(in) (const byte* scalar, size_t nbits) %{
+    $2 = JCALL(GetArrayLength, $input);
+    $1 = ($1_ltype)alloca($2);
+    JCALL(GetByteArrayRegion, $input, 0, $2, (jbyte*)$1);
+    if (*(jbyte*)$1 < 0) {
+        SWIG_JavaThrowException(jenv, SWIG_JavaIllegalArgumentException,
+                                      "expecting unsigned value");
+        return $null;
     }
+    {   // BigInteger.toByteArray() emits big-endian, flip the order...
+        size_t i, j;
+        for(i=0, j=$2-1; i<$2/2; i++, j--) {
+            $*1_ltype t=$1[i]; $1[i]=$1[j]; $1[j]=t;
+        }
+    }
+    if ($1[$2-1] == 0)
+        $2--;
+    $2 *= 8;
 %};
+%typemap(jni)    (const byte* scalar, size_t nbits) "jbyteArray"
+%typemap(jtype)  (const byte* scalar, size_t nbits) "byte[]"
+%typemap(jstype) (const byte* scalar, size_t nbits) "java.math.BigInteger"
+%typemap(javain) (const byte* scalar, size_t nbits) "$javainput.toByteArray()"
 
+#ifdef __cplusplus
 %typemap(javaout) SELF* OUTPUT "{ $jnicall; return this; }"
 #endif
 
@@ -181,6 +184,46 @@ int mult(PyObject* obj)
     }
 };
 
+// let users use JavaScript <BigInt> and <Buffer> as scalars
+%typemap(in) (const byte* scalar, size_t nbits) %{
+    if ($input->IsArrayBufferView()) {
+        auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
+        auto buf = av->Buffer();
+        $1 = ($1_ltype)buf->GetData() + av->ByteOffset();
+        $2 = 8*av->ByteLength();
+#if V8_MAJOR_VERSION >=6 && V8_MINOR_VERSION >= 8
+    } else if ($input->IsBigInt()) {
+        auto bi = v8::Local<v8::BigInt>::Cast($input);
+        int sign, word_count = bi->WordCount();
+        uint64_t* words = (uint64_t*)alloca($2 = word_count*sizeof(uint64_t));
+
+        bi->ToWordsArray(&sign, &word_count, words);
+        if (sign)
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                                "expecting unsigned value");
+        $1 = ($1_ltype)words;
+        $2 *= 8;
+
+        const union {
+            long one;
+            char little;
+        } is_endian = { 1 };
+
+        if (!is_endian.little) {
+            byte* p = $1;
+            for (int i = 0; i < word_count; i++) {
+                uint64_t val = words[i];
+                for (size_t j = 0; j < sizeof(val); j++, val >>= 8)
+                    *p++ = (byte)val;
+            }
+        }
+#endif
+    } else {
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                            "expecting <Buffer> or <BigInt>");
+    }
+%};
+
 %typemap(in) (const char *STRING, size_t LENGTH) {
     if ($input->IsArrayBufferView()) {
         auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
@@ -202,6 +245,10 @@ int mult(PyObject* obj)
 %typemap(out) SELF* OUTPUT %{ (void)$1; $result = args.Holder(); %}
 
 #elif defined(SWIGPERL)
+
+// let users use byte[] as scalars
+%apply (const char *STRING, size_t LENGTH) { (const byte* scalar, size_t nbits) }
+%typemap(check) (const byte* scalar, size_t nbits) %{ $2 *= 8; %}
 
 #ifdef __cplusplus
 // return |this|
