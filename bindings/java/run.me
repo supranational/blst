@@ -3,10 +3,25 @@
 cd `dirname $0`
 
 #unset _JAVA_OPTIONS
+
+if [ "x$JAVA_HOME" = "x" -a -x /usr/libexec/java_home ]; then
+    JAVA_HOME=`/usr/libexec/java_home 2>/dev/null || true`
+fi
 if [ "x$JAVA_HOME" = "x" ]; then
     JAVA_HOME=`java -XshowSettings:properties -version 2>&1 | \
                awk 'BEGIN { FS="=\\\s*" } /java\.home/ { print $2 }'`
 fi
+if [ ! -d "$JAVA_HOME" ]; then
+    echo "JAVA_HOME='$JAVA_HOME' is not a directory" 1>&2
+    exit 1
+fi
+
+case `uname -s` in
+    Linux)  OS_NAME=linux;  SO_NAME=libblst.so;     LDFLAGS=-Wl,-Bsymbolic;;
+    Darwin) OS_NAME=darwin; SO_NAME=libblst.dylib;  LDFLAGS=;;
+    MINGW*) OS_NAME=win32;  SO_NAME=blst.dll;       LDFLAGS=-static-libstdc++;;
+    *)      echo "unsupported 'uname -s'" 1>&2; exit 1;;
+esac
 
 if [ ! -f ../libblst.a -o ../blst.h -nt ../libblst.a ]; then
     (cd ..; ../build.sh)
@@ -18,17 +33,17 @@ if [ ! -f blst_wrap.cpp -o ../blst.swg -nt blst_wrap.cpp \
     (set -x; swig -c++ -java -outdir . -o blst_wrap.cpp ../blst.swg)
 fi
 
-if [ ! -f libblst.so -o blst_wrap.cpp -nt libblst.so \
-                     -o ../libblst.a  -nt libblst.so ]; then
-    (set -x; c++ -shared -o libblst.so -fPIC \
-                 -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux -I.. \
+if [ ! -f $SO_NAME -o blst_wrap.cpp -nt $SO_NAME \
+                   -o ../libblst.a  -nt $SO_NAME ]; then
+    (set -x; c++ -shared -o $SO_NAME -fPIC \
+                 -I"$JAVA_HOME"/include -I"$JAVA_HOME"/include/$OS_NAME -I.. \
                  -O -Wall -Wno-unused-function blst_wrap.cpp \
-                 ../libblst.a -Wl,-Bsymbolic)
+                 ../libblst.a ${LDFLAGS})
 fi
 
 if [ ! -f blst.class -o blst.java     -nt blst.class \
                      -o runnable.java -nt runnable.class ]; then
-    (set -x; javac *.java)
+    (set -x; "$JAVA_HOME"/bin/javac *.java)
 fi
 
-env LD_LIBRARY_PATH=. java runnable
+"$JAVA_HOME"/bin/java -Djava.library.path=. runnable
