@@ -18,17 +18,17 @@ if [ ! -f blst_wrap.cpp -o ../blst.swg -nt blst_wrap.cpp \
     (set -x; swig -c++ -java -outdir . -o blst_wrap.cpp ../blst.swg)
 fi
 
-if [ ! -f libblst.so -o blst_wrap.cpp -nt libblst.so \
-                     -o ../libblst.a  -nt libblst.so ]; then
-    (set -x; c++ -shared -o libblst.so -fPIC \
-                 -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux -I.. \
+if [ ! -f libblst.dylib -o blst_wrap.cpp -nt libblst.dylib \
+                     -o ../libblst.a  -nt libblst.dylib ]; then
+    (set -x; c++ -march=native -shared -o libblst.dylib -fPIC \
+                 -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin -I.. \
                  -O -Wall -Wno-unused-function blst_wrap.cpp \
-                 ../libblst.a -Wl,-Bsymbolic)
+                 ../libblst.a -Wl)
 fi
 
 if [ ! -f blst.class -o blst.java     -nt blst.class \
                      -o runnable.java -nt runnable.class ]; then
-    (set -x; javac *.java)
+    (set -x; $JAVA_HOME/bin/javac *.java)
 fi
 
-env LD_LIBRARY_PATH=. java runnable
+env LD_LIBRARY_PATH=. $JAVA_HOME/bin/java runnable
