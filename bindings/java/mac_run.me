@@ -4,8 +4,7 @@ cd `dirname $0`
 
 #unset _JAVA_OPTIONS
 if [ "x$JAVA_HOME" = "x" ]; then
-    JAVA_HOME=`java -XshowSettings:properties -version 2>&1 | \
-               awk 'BEGIN { FS="=\\\s*" } /java\.home/ { print $2 }'`
+    JAVA_HOME=`/usr/libexec/java_home`
 fi
 
 if [ ! -f ../libblst.a -o ../blst.h -nt ../libblst.a ]; then
