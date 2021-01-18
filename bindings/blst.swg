@@ -15,6 +15,8 @@
 %include "stdint.i"
 
 %apply const char* { const byte*, const byte[ANY] }
+%apply (const char *STRING, size_t LENGTH) { (const byte *STRING,
+                                              size_t LENGTH) }
 
 #if defined(SWIGPYTHON)
 
@@ -37,7 +39,69 @@
     blst_fp12      *out
 };
 
-// let users use Python 'int' and 'bytes' as scalars
+// accept 'bytes' and 'bytearray' as inputs...
+%typemap(in) const byte* {
+    if (PyBytes_Check($input)) {
+        char *buf;
+        Py_ssize_t nbytes;
+
+        if (PyBytes_AsStringAndSize($input, &buf, &nbytes) < 0)
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname'");
+
+        $1 = ($1_ltype)buf;
+    } else if (PyByteArray_Check($input)) {
+        $1 = ($1_ltype)PyByteArray_AsString($input);
+    } else {
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                            "expecting 'bytes' or 'bytearray'");
+    }
+}
+%typemap(freearg) const byte* ""
+
+%typemap(in) const byte[ANY] {
+    if (PyBytes_Check($input)) {
+        char *buf;
+        Py_ssize_t nbytes;
+
+        if (PyBytes_AsStringAndSize($input, &buf, &nbytes) < 0)
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname'");
+
+        if (nbytes != $1_dim0)
+            SWIG_exception_fail(SWIG_ValueError, "in method '$symname', "
+                                                 "expecting $1_dim0 bytes");
+        $1 = ($1_ltype)buf;
+    } else if (PyByteArray_Check($input)) {
+        if (PyByteArray_Size($input) != $1_dim0)
+            SWIG_exception_fail(SWIG_ValueError, "in method '$symname', "
+                                                 "expecting $1_dim0 bytes");
+        $1 = ($1_ltype)PyByteArray_AsString($input);
+    } else {
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                            "expecting 'bytes' or 'bytearray'");
+    }
+}
+%typemap(freearg) const byte[ANY] ""
+
+%typemap(in) (const byte *STRING, size_t LENGTH) {
+    if (PyBytes_Check($input)) {
+        char *buf;
+        Py_ssize_t nbytes;
+
+        if (PyBytes_AsStringAndSize($input, &buf, &nbytes) < 0)
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname'");
+
+        $1 = ($1_ltype)buf;
+        $2 = nbytes;
+    } else if (PyByteArray_Check($input)) {
+        $1 = ($1_ltype)PyByteArray_AsString($input);
+        $2 = PyByteArray_Size($input);
+    } else {
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                            "expecting 'bytes' or 'bytearray'");
+    }
+}
+
+// let users use Python 'int', 'bytes' and 'bytearray' as scalars
 %typemap(in) (const byte* scalar, size_t nbits) %{
     if (PyBytes_Check($input)) {
         char *scalar;
@@ -48,6 +112,9 @@
 
         $1 = ($1_ltype)scalar;
         $2 = 8 * nbytes;
+    } else if (PyByteArray_Check($input)) {
+        $1 = ($1_ltype)PyByteArray_AsString($input);
+        $2 = 8 * PyByteArray_Size($input);
     } else if (PyLong_Check($input)) {
         size_t nbytes;
 
@@ -58,7 +125,8 @@
             SWIG_exception_fail(SWIG_OverflowError, "in method '$symname'");
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
-                                            "expecting 'int' or 'bytes'");
+                                            "expecting 'int', 'bytes' "
+                                            "or 'bytearray'");
     }
 %}
 
@@ -93,6 +161,10 @@
     SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException,
                                   BLST_ERROR_str[$1]);
 %};
+
+#if SWIG_VERSION < 0x040000
+%apply (char *STRING, size_t LENGTH) { (const byte *STRING, size_t LENGTH) }
+#endif
 
 // handle input const byte[] more efficiently...
 %apply signed char[] { const byte* }
@@ -258,10 +330,7 @@
 #endif  // SWIG<language>
 
 // everybody has a way to bundle pointer and buffer size, but C:-(
-#if SWIG_VERSION < 0x040000 && defined(SWIGJAVA)
-%apply (char *STRING, size_t LENGTH) { (const char *STRING, size_t LENGTH) }
-#endif
-%apply (const char *STRING, size_t LENGTH) {
+%apply (const byte *STRING, size_t LENGTH) {
        (const byte *msg,    size_t msg_len),
        (const byte *DST,    size_t DST_len),
        (const byte *aug,    size_t aug_len),
