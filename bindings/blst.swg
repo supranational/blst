@@ -82,24 +82,37 @@
 }
 %typemap(freearg) const byte[ANY] ""
 
-%typemap(in) (const byte *STRING, size_t LENGTH) {
+%typemap(in) (const byte *STRING, size_t LENGTH) %{
     if (PyBytes_Check($input)) {
         char *buf;
         Py_ssize_t nbytes;
 
         if (PyBytes_AsStringAndSize($input, &buf, &nbytes) < 0)
-            SWIG_exception_fail(SWIG_TypeError, "in method '$symname'");
+            SWIG_exception_fail(SWIG_ValueError, "in method '$symname'");
 
         $1 = ($1_ltype)buf;
         $2 = nbytes;
     } else if (PyByteArray_Check($input)) {
         $1 = ($1_ltype)PyByteArray_AsString($input);
         $2 = PyByteArray_Size($input);
+#ifdef Py_USING_UNICODE
+    } else if (PyUnicode_Check($input)) {
+        char *buf;
+        Py_ssize_t nbytes;
+        PyObject *obj = PyUnicode_AsUTF8String($input);
+
+        if (obj == NULL || PyBytes_AsStringAndSize(obj, &buf, &nbytes) < 0)
+            SWIG_exception_fail(SWIG_ValueError, "in method '$symname'");
+
+        $1 = ($1_ltype)alloca($2 = nbytes);
+        memcpy($1, buf, $2);
+        Py_DECREF(obj);
+#endif
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                             "expecting 'bytes' or 'bytearray'");
     }
-}
+%}
 
 // let users use Python 'int', 'bytes' and 'bytearray' as scalars
 %typemap(in) (const byte* scalar, size_t nbits) %{
