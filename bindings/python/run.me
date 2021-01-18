@@ -22,17 +22,17 @@ def newer(*files) :
     return False
 
 if newer("../blst.h", "../libblst.a") :
-    print("building libblst.a...", flush=True)
+    print("building libblst.a...") or sys.stdout.flush()
     subprocess.check_call(["../build.sh"], cwd="..")
 
 if newer("../blst.swg", "../blst.h", "../blst.hpp", "blst_wrap.cpp") :
-    print("swig-ing...", flush=True)
+    print("swig-ing...") or sys.stdout.flush()
     subprocess.check_call(["swig", "-c++", "-python", "-O",
                                    "-o", "blst_wrap.cpp", "-outdir", ".",
                                    "../blst.swg"])
 
 if newer("blst_wrap.cpp", "../libblst.a", "_blst.so") :
-    print("compiling _blst.so...", flush=True)
+    print("compiling _blst.so...") or sys.stdout.flush()
     maj_min = "{}.{}{}".format(sys.version_info.major, sys.version_info.minor,
                                sys.abiflags)
     subprocess.check_call(["c++", "-shared", "-o", "_blst.so", "-fPIC",
