@@ -34,7 +34,8 @@ if newer("../blst.swg", "../blst.h", "../blst.hpp", "blst_wrap.cpp") :
 if newer("blst_wrap.cpp", "../libblst.a", "_blst.so") :
     print("compiling _blst.so...") or sys.stdout.flush()
     maj_min = "{}.{}{}".format(sys.version_info.major, sys.version_info.minor,
-                               sys.abiflags)
+                               sys.abiflags if sys.version_info.major > 2 else
+                               "")
     subprocess.check_call(["c++", "-shared", "-o", "_blst.so", "-fPIC",
                                   "-I/usr/include/python"+maj_min, "-I..",
                                   "-O", "-Wall", "blst_wrap.cpp",
@@ -99,6 +100,10 @@ ctx.aggregate(pk, sig, msg, pk_for_wire)
 ctx.commit()
 if not ctx.finalverify() :
     raise AssertionError("disaster")
+
+if sys.version_info.major < 3:
+    print("OK")
+    sys.exit(0)
 
 ########################################################################
 # from https://github.com/supranational/blst/issues/5
