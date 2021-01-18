@@ -15,6 +15,14 @@ if [ ! -d "$JAVA_HOME" ]; then
     echo "JAVA_HOME='$JAVA_HOME' is not a directory" 1>&2
     exit 1
 fi
+if [ ! -d "$JAVA_HOME"/include ]; then
+    if [ -d "$JAVA_HOME"/../include ]; then
+        JAVA_HOME=`dirname "$JAVA_HOME"`
+    else
+        echo "JAVA_HOME='$JAVA_HOME' is not a JDK" 1>&2
+        exit 1
+    fi
+fi
 
 case `uname -s` in
     Linux)  OS_NAME=linux;  SO_NAME=libblst.so;     LDFLAGS=-Wl,-Bsymbolic;;
