@@ -182,32 +182,57 @@ fn bindgen_test_layout_blst_fp12() {
         )
     );
 }
-extern "C" {
-    pub fn blst_scalar_from_uint32(out: *mut blst_scalar, a: *const u32);
+mod sys{
+    use super::{blst_scalar, blst_fr, byte};
+    extern "C" {
+        pub fn blst_scalar_from_uint32(out: *mut blst_scalar, a: *const u32);
+    }
+    extern "C" {
+        pub fn blst_scalar_from_uint64(out: *mut blst_scalar, a: *const u64);
+    }
+    extern "C" {
+        pub fn blst_scalar_from_bendian(out: *mut blst_scalar, a: *const byte);
+    }
+    extern "C" {
+        pub fn blst_scalar_from_lendian(out: *mut blst_scalar, a: *const byte);
+    }
+    extern "C" {
+        pub fn blst_scalar_fr_check(a: *const blst_scalar) -> bool;
+    }
+    extern "C" {
+        pub fn blst_scalar_from_fr(ret: *mut blst_scalar, a: *const blst_fr);
+    }
 }
+pub fn blst_scalar_from_uint32(out: *mut blst_scalar, a: *const u32) {
+    unsafe { sys::blst_scalar_from_uint32(out, a) }
+}
+pub fn blst_scalar_from_uint64(out: *mut blst_scalar, a: *const u64) {
+    unsafe { sys::blst_scalar_from_uint64(out, a) }
+}
+pub fn blst_scalar_from_bendian(out: *mut blst_scalar, a: *const byte) {
+    unsafe { sys::blst_scalar_from_bendian(out, a) }
+}
+pub fn blst_scalar_from_lendian(out: *mut blst_scalar, a: *const byte) {
+    unsafe { sys::blst_scalar_from_lendian(out, a) }
+}
+pub fn blst_scalar_fr_check(a: *const blst_scalar) -> bool {
+    unsafe { sys::blst_scalar_fr_check(a) }
+}
+pub fn blst_scalar_from_fr(ret: *mut blst_scalar, a: *const blst_fr) {
+    unsafe { sys::blst_scalar_from_fr(ret, a)}
+}
+
 extern "C" {
     pub fn blst_uint32_from_scalar(out: *mut u32, a: *const blst_scalar);
-}
-extern "C" {
-    pub fn blst_scalar_from_uint64(out: *mut blst_scalar, a: *const u64);
 }
 extern "C" {
     pub fn blst_uint64_from_scalar(out: *mut u64, a: *const blst_scalar);
 }
 extern "C" {
-    pub fn blst_scalar_from_bendian(out: *mut blst_scalar, a: *const byte);
-}
-extern "C" {
     pub fn blst_bendian_from_scalar(out: *mut byte, a: *const blst_scalar);
 }
 extern "C" {
-    pub fn blst_scalar_from_lendian(out: *mut blst_scalar, a: *const byte);
-}
-extern "C" {
     pub fn blst_lendian_from_scalar(out: *mut byte, a: *const blst_scalar);
-}
-extern "C" {
-    pub fn blst_scalar_fr_check(a: *const blst_scalar) -> bool;
 }
 extern "C" {
     pub fn blst_sk_check(a: *const blst_scalar) -> bool;
@@ -247,9 +272,6 @@ extern "C" {
 }
 extern "C" {
     pub fn blst_fr_from_scalar(ret: *mut blst_fr, a: *const blst_scalar);
-}
-extern "C" {
-    pub fn blst_scalar_from_fr(ret: *mut blst_scalar, a: *const blst_fr);
 }
 extern "C" {
     pub fn blst_fp_add(ret: *mut blst_fp, a: *const blst_fp, b: *const blst_fp);
