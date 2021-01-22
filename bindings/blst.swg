@@ -512,3 +512,13 @@ static const char *const BLST_ERROR_str [] = {
 #define NODE_MODULE NODE_MODULE_CONTEXT_AWARE
 %}
 #endif
+
+#if defined(SWIGJAVA)
+/* this might need a refinement in the future if SWIG changes the way
+ * it handles 'jlong' JNI type */
+%begin %{
+#if defined(__MINGW32__) && defined(__int64)
+# undef __int64
+#endif
+%}
+#endif
