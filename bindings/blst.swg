@@ -309,7 +309,7 @@
     }
 %};
 
-%typemap(in) (const char *STRING, size_t LENGTH) {
+%typemap(in) (const byte *STRING, size_t LENGTH) {
     if ($input->IsArrayBufferView()) {
         auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
         auto buf = av->Buffer();
