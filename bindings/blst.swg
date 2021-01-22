@@ -490,6 +490,7 @@ static const char *const BLST_ERROR_str [] = {
     "BLST_ERROR: point is not in group",
     "BLST_ERROR: context type mismatch",
     "BLST_ERROR: verify failed",
+    "BLST_ERROR: public key is infinite",
 };
 
 #define SWIG_PYTHON_STRICT_BYTE_CHAR
