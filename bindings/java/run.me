@@ -42,7 +42,7 @@ fi
 
 if [ ! -f $SO_NAME -o blst_wrap.cpp -nt $SO_NAME \
                    -o ../libblst.a  -nt $SO_NAME ]; then
-    (set -x; ${CC:-c++} -shared -o $SO_NAME -fPIC \
+    (set -x; ${CPP:-c++} -shared -o $SO_NAME -fPIC \
                  -I"$JAVA_HOME"/include -I"$JAVA_HOME"/include/$OS_NAME -I.. \
                  -O -Wall -Wno-unused-function blst_wrap.cpp \
                  ../libblst.a ${LDFLAGS})
