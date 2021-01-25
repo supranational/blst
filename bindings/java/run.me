@@ -1,7 +1,6 @@
 #!/bin/sh -e
 
 cd `dirname $0`
-
 #unset _JAVA_OPTIONS
 
 if [ "x$JAVA_HOME" = "x" -a -x /usr/libexec/java_home ]; then
@@ -43,7 +42,7 @@ fi
 
 if [ ! -f $SO_NAME -o blst_wrap.cpp -nt $SO_NAME \
                    -o ../libblst.a  -nt $SO_NAME ]; then
-    (set -x; c++ -shared -o $SO_NAME -fPIC \
+    (set -x; ${CC:-c++} -shared -o $SO_NAME -fPIC \
                  -I"$JAVA_HOME"/include -I"$JAVA_HOME"/include/$OS_NAME -I.. \
                  -O -Wall -Wno-unused-function blst_wrap.cpp \
                  ../libblst.a ${LDFLAGS})
