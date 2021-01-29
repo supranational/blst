@@ -131,7 +131,7 @@ private:
 
 public:
     P1() { memset(&point, 0, sizeof(point)); }
-    P1(SecretKey& sk) { blst_sk_to_pk_in_g1(&point, &sk.key); }
+    P1(const SecretKey& sk) { blst_sk_to_pk_in_g1(&point, &sk.key); }
     P1(const byte *in)
     {   blst_p1_affine a;
         BLST_ERROR err = blst_p1_deserialize(&a, in);
@@ -271,7 +271,7 @@ private:
 
 public:
     P2() { memset(&point, 0, sizeof(point)); }
-    P2(SecretKey& sk) { blst_sk_to_pk_in_g2(&point, &sk.key); }
+    P2(const SecretKey& sk) { blst_sk_to_pk_in_g2(&point, &sk.key); }
     P2(const byte *in)
     {   blst_p2_affine a;
         BLST_ERROR err = blst_p2_deserialize(&a, in);
@@ -459,6 +459,7 @@ public:
     {   delete[] static_cast<uint64_t*>(ptr);   }
 #endif
 
+#if !defined(SWIG) || !defined(SWIGJAVA)
     Pairing(bool hash_or_encode, const byte* DST, size_t DST_len)
     {   init(hash_or_encode, DST, DST_len);   }
     Pairing(bool hash_or_encode, const std::string& DST)
@@ -472,6 +473,7 @@ public:
     }
 #endif
     ~Pairing() { delete[] blst_pairing_get_dst(*this); }
+#endif
 
     BLST_ERROR aggregate(const P1_Affine* pk, const P2_Affine* sig,
                          const byte* msg, size_t msg_len,
