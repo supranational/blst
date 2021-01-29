@@ -60,20 +60,28 @@ enum { AGGR_UNDEFINED      = 0,
        AGGR_HASH_OR_ENCODE = 0x40 };
 #define MIN_SIG_OR_PK (AGGR_MIN_SIG | AGGR_MIN_PK)
 
+const size_t sizeof_pairing = (sizeof(PAIRING) + 7) & ~(size_t)7;
+
 size_t blst_pairing_sizeof(void)
-{   return (sizeof(PAIRING) + 7) & ~(size_t)7;   }
+{   return sizeof_pairing;   }
 
 void blst_pairing_init(PAIRING *ctx, int hash_or_encode,
                        const void *DST, size_t DST_len)
 {
     ctx->ctrl = AGGR_UNDEFINED | (hash_or_encode ? AGGR_HASH_OR_ENCODE : 0);
     ctx->nelems = 0;
-    ctx->DST = DST;
+    ctx->DST = (uptr_t)DST==(uptr_t)((byte *)ctx+sizeof_pairing) ? (void *)42
+                                                                 : DST;
     ctx->DST_len = DST_len;
 }
 
+static const void *pairing_get_dst(const PAIRING *ctx)
+{   return (uptr_t)ctx->DST==(uptr_t)42 ? (const byte *)ctx+sizeof_pairing
+                                        : ctx->DST;
+}
+
 const void *blst_pairing_get_dst(const PAIRING *ctx)
-{   return ctx->DST;   }
+{   return pairing_get_dst(ctx);   }
 
 #define FROM_AFFINE(out,in) do { \
     vec_copy((out)->X, in->X, 2*sizeof(in->X)), \
@@ -135,6 +143,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
     if (PK != NULL) {
         unsigned int n;
         POINTonE1 H[1];
+        const void *DST = pairing_get_dst(ctx);
 
         /*
          * Reject infinite public keys.
@@ -151,9 +160,9 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G2(PAIRING *ctx,
         }
 
         if (ctx->ctrl & AGGR_HASH_OR_ENCODE)
-            Hash_to_G1(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
+            Hash_to_G1(H, msg, msg_len, DST, ctx->DST_len, aug, aug_len);
         else
-            Encode_to_G1(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
+            Encode_to_G1(H, msg, msg_len, DST, ctx->DST_len, aug, aug_len);
 
         if (nbits != 0 && scalar != NULL)
             POINTonE1_mult_w5(H, H, scalar, nbits);
@@ -278,6 +287,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
     if (PK != NULL) {
         unsigned int n;
         POINTonE2 H[1];
+        const void *DST = pairing_get_dst(ctx);
 
         /*
          * Reject infinite public keys.
@@ -294,9 +304,9 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
         }
 
         if (ctx->ctrl & AGGR_HASH_OR_ENCODE)
-            Hash_to_G2(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
+            Hash_to_G2(H, msg, msg_len, DST, ctx->DST_len, aug, aug_len);
         else
-            Encode_to_G2(H, msg, msg_len, ctx->DST, ctx->DST_len, aug, aug_len);
+            Encode_to_G2(H, msg, msg_len, DST, ctx->DST_len, aug, aug_len);
 
         POINTonE2_from_Jacobian(H, H);
 
