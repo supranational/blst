@@ -170,6 +170,86 @@
 %include "arrays_java.i"
 %javaconst(1);
 
+#ifdef __cplusplus
+// Extensive sorcery to shift memory management to JVM GC. General idea is
+// to use Java long[] as opaque storage for blst data. Methods that return
+// new objects allocate suitably sized long[] arrays from JVM heap,
+// references to which are then assigned to |swigCPtr| on the Java side.
+// And when passed back to JNI, |swigCPtr|s are dereferenced with
+// GetLongArrayElements... And no destructors!
+%nodefaultdtor;
+%typemap(javabody) SWIGTYPE %{
+  private transient long[] swigCPtr;
+
+  protected $javaclassname(long[] cPtr) { swigCPtr = cPtr; }
+
+  protected static long[] getCPtr($javaclassname obj) { return obj.swigCPtr; }
+
+  public $javaclassname dup() { return new $javaclassname(swigCPtr.clone()); }
+%}
+%ignore dup;
+%typemap(javafinalize)  SWIGTYPE ""
+%typemap(javadestruct)  SWIGTYPE ""
+%typemap(javaconstruct) SWIGTYPE { this($imcall); }
+%typemap(jni)           SWIGTYPE, SWIGTYPE&, SWIGTYPE* "jlongArray"
+%typemap(jtype)         SWIGTYPE, SWIGTYPE&, SWIGTYPE* "long[]"
+%typemap(javaout)       SWIGTYPE, SWIGTYPE&, SWIGTYPE* {
+    return new $javaclassname($jnicall);
+}
+%typemap(in)            SWIGTYPE&, SWIGTYPE* %{
+    $1 = ($1_ltype)JCALL(GetLongArrayElements, $input, 0);
+%}
+%typemap(out)           SWIGTYPE&, SWIGTYPE* %{
+    if ($1 != $null) {
+        size_t sz = (sizeof($1_basetype) + sizeof(jlong) - 1)/sizeof(jlong);
+        $result = JCALL(NewLongArray, sz);
+        if ($result != $null)
+            JCALL(SetLongArrayRegion, $result, 0, sz, (const jlong *)$1);
+    }
+%}
+%typemap(out)           SWIGTYPE {
+    size_t sz = (sizeof($1_basetype) + sizeof(jlong) - 1)/sizeof(jlong);
+    $result = JCALL(NewLongArray, sz);
+    if ($result != $null)
+        JCALL(SetLongArrayRegion, $result, 0, sz, (const jlong *)&$1);
+}
+%typemap(newfree)       SWIGTYPE* "delete $1;"
+%typemap(freearg)       SWIGTYPE&, SWIGTYPE* %{
+    JCALL(ReleaseLongArrayElements, $input, (jlong *)$1, 0);
+%}
+%typemap(freearg) const SWIGTYPE&, const SWIGTYPE* %{
+    JCALL(ReleaseLongArrayElements, $input, (jlong *)$1, JNI_ABORT);
+%}
+%typemap(freearg) const std::string& ""
+
+// I wish |jenv| was available in the constructor, so that NewLongArray
+// could be called at once, without having to resort to matching
+// %typemap(out)...
+%extend blst::Pairing {
+    Pairing(bool hash_or_encode, const std::string& DST)
+    {   size_t sz = blst_pairing_sizeof();
+        size_t SZ = (sz + DST.size() + sizeof(jlong) - 1)/sizeof(jlong);
+        blst_pairing *ret = (blst_pairing *)malloc(SZ*sizeof(jlong));
+        if (DST.size() != 0) {
+            byte *dst = (byte *)ret + sz;
+            memcpy(dst, DST.data(), DST.size());
+            blst_pairing_init(ret, hash_or_encode, dst, DST.size());
+        } else {
+            blst_pairing_init(ret, hash_or_encode, NULL, 0);
+        }
+        return (Pairing *)ret;
+    }
+}
+%typemap(out) blst::Pairing* {
+    size_t sz = blst_pairing_sizeof();
+    size_t SZ = (sz + arg2->size() + sizeof(jlong) - 1)/sizeof(jlong);
+    $result = JCALL(NewLongArray, SZ);
+    if ($result != $null)
+        JCALL(SetLongArrayRegion, $result, 0, SZ, (const jlong *)$1);
+}
+%typemap(newfree) blst::Pairing* "free($1);"
+#endif
+
 %typemap(throws) BLST_ERROR %{
     SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException,
                                   BLST_ERROR_str[$1]);
