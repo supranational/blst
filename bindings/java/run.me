@@ -37,7 +37,7 @@ fi
 if [ ! -f blst_wrap.cpp -o ../blst.swg -nt blst_wrap.cpp \
                         -o ../blst.hpp -nt blst_wrap.cpp \
                         -o ../blst.h   -nt blst_wrap.cpp ]; then
-    (set -x; swig -c++ -java -outdir . -o blst_wrap.cpp ../blst.swg)
+    (set -x; swig -c++ -java -outdir . -o blst_wrap.cpp -package tech.pegasys.teku.bls.impl.blst.swig ../blst.swg)
 fi
 
 if [ ! -f $SO_NAME -o blst_wrap.cpp -nt $SO_NAME \
