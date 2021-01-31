@@ -329,8 +329,8 @@ _sqrx_mont_384x:
 	movq	%rcx,0(%rsp)
 	movq	%rdx,%rcx
 
-	movq	%rsi,16(%rsp)
-.byte	102,72,15,110,199
+	movq	%rdi,16(%rsp)
+	movq	%rsi,24(%rsp)
 
 
 	leaq	48(%rsi),%rdx
@@ -338,13 +338,13 @@ _sqrx_mont_384x:
 	call	__add_mod_384
 
 
-	movq	16(%rsp),%rsi
+	movq	24(%rsp),%rsi
 	leaq	48(%rsi),%rdx
 	leaq	32+48(%rsp),%rdi
 	call	__sub_mod_384
 
 
-	movq	16(%rsp),%rsi
+	movq	24(%rsp),%rsi
 	leaq	48(%rsi),%rbx
 
 	movq	48(%rsi),%rdx
@@ -986,7 +986,6 @@ __sqrx_384:
 	movq	16(%rsi),%r15
 	movq	24(%rsi),%rcx
 	movq	32(%rsi),%rbx
-.byte	102,72,15,110,199
 
 
 	mulxq	%r14,%r8,%rdi
@@ -1054,7 +1053,7 @@ __sqrx_384:
 	mulxq	%rbp,%rdi,%rbx
 	movq	0(%rsi),%rdx
 	addq	%rdi,%rcx
-.byte	102,72,15,126,199
+	movq	8(%rsp),%rdi
 	adcq	$0,%rbx
 
 
@@ -1740,7 +1739,7 @@ _mulx_mont_384:
 	movq	8(%rsi),%r15
 	movq	16(%rsi),%rax
 	movq	24(%rsi),%r12
-.byte	102,72,15,110,199
+	movq	%rdi,16(%rsp)
 	movq	32(%rsi),%rdi
 	movq	40(%rsi),%rbp
 	leaq	-128(%rsi),%rsi
@@ -2105,7 +2104,7 @@ __mulx_mont_384:
 	adoxq	%r12,%r11
 	adcxq	%r12,%r11
 	imulq	8(%rsp),%rdx
-.byte	102,72,15,126,195
+	movq	24(%rsp),%rbx
 
 
 	xorq	%r12,%r12
@@ -2207,7 +2206,7 @@ _sqrx_mont_384:
 	movq	8(%rsi),%r15
 	movq	16(%rsi),%rax
 	movq	24(%rsi),%r12
-.byte	102,72,15,110,199
+	movq	%rdi,16(%rsp)
 	movq	32(%rsi),%rdi
 	movq	40(%rsi),%rbp
 
@@ -2264,8 +2263,8 @@ _sqrx_n_mul_mont_384:
 	pushq	%r15
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%r15,-56
-	leaq	-24(%rsp),%rsp
-.cfi_adjust_cfa_offset	8*3
+	leaq	-40(%rsp),%rsp
+.cfi_adjust_cfa_offset	8*5
 
 
 	movq	%rdx,%r10
@@ -2274,12 +2273,12 @@ _sqrx_n_mul_mont_384:
 	movq	16(%rsi),%rax
 	movq	%rsi,%rbx
 	movq	24(%rsi),%r12
-.byte	102,72,15,110,199
+	movq	%rdi,16(%rsp)
 	movq	32(%rsi),%rdi
 	movq	40(%rsi),%rbp
 
 	movq	%r8,(%rsp)
-	movq	%r9,16(%rsp)
+	movq	%r9,24(%rsp)
 	movq	0(%r9),%xmm2
 
 L$oop_sqrx_384:
@@ -2297,26 +2296,26 @@ L$oop_sqrx_384:
 	movq	%rdx,%r14
 .byte	102,72,15,126,210
 	leaq	-128(%rbx),%rsi
-	movq	16(%rsp),%rbx
+	movq	24(%rsp),%rbx
 	leaq	-128(%rcx),%rcx
 
 	mulxq	%r14,%r8,%r9
 	call	__mulx_mont_384
 
-	movq	24(%rsp),%r15
+	movq	40(%rsp),%r15
 .cfi_restore	%r15
-	movq	32(%rsp),%r14
+	movq	48(%rsp),%r14
 .cfi_restore	%r14
-	movq	40(%rsp),%r13
+	movq	56(%rsp),%r13
 .cfi_restore	%r13
-	movq	48(%rsp),%r12
+	movq	64(%rsp),%r12
 .cfi_restore	%r12
-	movq	56(%rsp),%rbx
+	movq	72(%rsp),%rbx
 .cfi_restore	%rbx
-	movq	64(%rsp),%rbp
+	movq	80(%rsp),%rbp
 .cfi_restore	%rbp
-	leaq	72(%rsp),%rsp
-.cfi_adjust_cfa_offset	-8*9
+	leaq	88(%rsp),%rsp
+.cfi_adjust_cfa_offset	-8*11
 
 	.byte	0xf3,0xc3
 .cfi_endproc	
@@ -2349,8 +2348,8 @@ _sqrx_n_mul_mont_383:
 	pushq	%r15
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%r15,-56
-	leaq	-24(%rsp),%rsp
-.cfi_adjust_cfa_offset	8*3
+	leaq	-40(%rsp),%rsp
+.cfi_adjust_cfa_offset	8*5
 
 
 	movq	%rdx,%r10
@@ -2359,12 +2358,12 @@ _sqrx_n_mul_mont_383:
 	movq	16(%rsi),%rax
 	movq	%rsi,%rbx
 	movq	24(%rsi),%r12
-.byte	102,72,15,110,199
+	movq	%rdi,16(%rsp)
 	movq	32(%rsi),%rdi
 	movq	40(%rsi),%rbp
 
 	movq	%r8,(%rsp)
-	movq	%r9,16(%rsp)
+	movq	%r9,24(%rsp)
 	movq	0(%r9),%xmm2
 	leaq	-128(%rcx),%rcx
 
@@ -2382,25 +2381,25 @@ L$oop_sqrx_383:
 	movq	%rdx,%r14
 .byte	102,72,15,126,210
 	leaq	-128(%rbx),%rsi
-	movq	16(%rsp),%rbx
+	movq	24(%rsp),%rbx
 
 	mulxq	%r14,%r8,%r9
 	call	__mulx_mont_384
 
-	movq	24(%rsp),%r15
+	movq	40(%rsp),%r15
 .cfi_restore	%r15
-	movq	32(%rsp),%r14
+	movq	48(%rsp),%r14
 .cfi_restore	%r14
-	movq	40(%rsp),%r13
+	movq	56(%rsp),%r13
 .cfi_restore	%r13
-	movq	48(%rsp),%r12
+	movq	64(%rsp),%r12
 .cfi_restore	%r12
-	movq	56(%rsp),%rbx
+	movq	72(%rsp),%rbx
 .cfi_restore	%rbx
-	movq	64(%rsp),%rbp
+	movq	80(%rsp),%rbp
 .cfi_restore	%rbp
-	leaq	72(%rsp),%rsp
-.cfi_adjust_cfa_offset	-8*9
+	leaq	88(%rsp),%rsp
+.cfi_adjust_cfa_offset	-8*11
 
 	.byte	0xf3,0xc3
 .cfi_endproc	
@@ -2725,7 +2724,7 @@ __mulx_mont_383_nonred:
 	adoxq	%r11,%r10
 	adcxq	%r11,%r10
 	imulq	8(%rsp),%rdx
-.byte	102,72,15,126,195
+	movq	24(%rsp),%rbx
 
 
 	xorq	%r12,%r12
@@ -2801,8 +2800,8 @@ _sqrx_mont_382x:
 
 	movq	%rcx,0(%rsp)
 	movq	%rdx,%rcx
-	movq	%rsi,16(%rsp)
-	movq	%rdi,%xmm0
+	movq	%rdi,16(%rsp)
+	movq	%rsi,24(%rsp)
 
 
 	movq	0(%rsi),%r8

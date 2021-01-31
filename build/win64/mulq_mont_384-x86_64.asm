@@ -330,8 +330,8 @@ $L$SEH_body_sqr_mont_384x::
 
 	mov	QWORD PTR[rsp],rcx
 	mov	rcx,rdx
+	mov	QWORD PTR[8+rsp],rdi
 	mov	QWORD PTR[16+rsp],rsi
-DB	102,72,15,110,199
 
 
 	lea	rdx,QWORD PTR[48+rsi]
@@ -2101,7 +2101,7 @@ $L$SEH_begin_mul_mont_384::
 
 	push	r15
 
-	push	r8
+	sub	rsp,8*3
 
 $L$SEH_body_mul_mont_384::
 
@@ -2112,23 +2112,24 @@ $L$SEH_body_mul_mont_384::
 	mov	r12,QWORD PTR[16+rsi]
 	mov	r13,QWORD PTR[24+rsi]
 	mov	rbx,rdx
-DB	102,72,15,110,199
+	mov	QWORD PTR[rsp],r8
+	mov	QWORD PTR[8+rsp],rdi
 
 	call	__mulq_mont_384
 
-	mov	r15,QWORD PTR[8+rsp]
+	mov	r15,QWORD PTR[24+rsp]
 
-	mov	r14,QWORD PTR[16+rsp]
+	mov	r14,QWORD PTR[32+rsp]
 
-	mov	r13,QWORD PTR[24+rsp]
+	mov	r13,QWORD PTR[40+rsp]
 
-	mov	r12,QWORD PTR[32+rsp]
+	mov	r12,QWORD PTR[48+rsp]
 
-	mov	rbx,QWORD PTR[40+rsp]
+	mov	rbx,QWORD PTR[56+rsp]
 
-	mov	rbp,QWORD PTR[48+rsp]
+	mov	rbp,QWORD PTR[64+rsp]
 
-	lea	rsp,QWORD PTR[56+rsp]
+	lea	rsp,QWORD PTR[72+rsp]
 
 $L$SEH_epilogue_mul_mont_384::
 	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
@@ -2710,7 +2711,7 @@ __mulq_mont_384	PROC PRIVATE
 
 
 
-DB	102,72,15,126,199
+	mov	rdi,QWORD PTR[16+rsp]
 	sub	r14,QWORD PTR[rcx]
 	mov	rdx,r15
 	sbb	r15,QWORD PTR[8+rcx]
@@ -2776,8 +2777,8 @@ $L$SEH_body_sqr_n_mul_mont_384::
 
 
 	mov	QWORD PTR[rsp],r8
-	mov	QWORD PTR[8+rsp],rcx
-DB	102,72,15,110,199
+	mov	QWORD PTR[8+rsp],rdi
+	mov	QWORD PTR[16+rsp],rcx
 	lea	rdi,QWORD PTR[32+rsp]
 	mov	QWORD PTR[24+rsp],r9
 	movq	xmm2,QWORD PTR[r9]
@@ -2789,7 +2790,7 @@ $L$oop_sqr_384::
 
 	lea	rsi,QWORD PTR[rdi]
 	mov	rcx,QWORD PTR[rsp]
-	mov	rbx,QWORD PTR[8+rsp]
+	mov	rbx,QWORD PTR[16+rsp]
 	call	__mulq_by_1_mont_384
 	call	__redc_tail_mont_384
 
@@ -2873,8 +2874,8 @@ $L$SEH_body_sqr_n_mul_mont_383::
 
 
 	mov	QWORD PTR[rsp],r8
-	mov	QWORD PTR[8+rsp],rcx
-DB	102,72,15,110,199
+	mov	QWORD PTR[8+rsp],rdi
+	mov	QWORD PTR[16+rsp],rcx
 	lea	rdi,QWORD PTR[32+rsp]
 	mov	QWORD PTR[24+rsp],r9
 	movq	xmm2,QWORD PTR[r9]
@@ -2886,7 +2887,7 @@ $L$oop_sqr_383::
 
 	lea	rsi,QWORD PTR[rdi]
 	mov	rcx,QWORD PTR[rsp]
-	mov	rbx,QWORD PTR[8+rsp]
+	mov	rbx,QWORD PTR[16+rsp]
 	call	__mulq_by_1_mont_384
 
 	movd	edx,xmm1
@@ -4142,15 +4143,15 @@ DB	0,003h
 DB	0,0
 $L$SEH_info_mul_mont_384_body::
 DB	1,0,17,0
-DB	000h,0f4h,001h,000h
-DB	000h,0e4h,002h,000h
-DB	000h,0d4h,003h,000h
-DB	000h,0c4h,004h,000h
-DB	000h,034h,005h,000h
-DB	000h,054h,006h,000h
-DB	000h,074h,008h,000h
-DB	000h,064h,009h,000h
-DB	000h,062h
+DB	000h,0f4h,003h,000h
+DB	000h,0e4h,004h,000h
+DB	000h,0d4h,005h,000h
+DB	000h,0c4h,006h,000h
+DB	000h,034h,007h,000h
+DB	000h,054h,008h,000h
+DB	000h,074h,00ah,000h
+DB	000h,064h,00bh,000h
+DB	000h,082h
 DB	000h,000h
 $L$SEH_info_mul_mont_384_epilogue::
 DB	1,0,4,0

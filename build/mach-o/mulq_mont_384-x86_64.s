@@ -327,8 +327,8 @@ _sqr_mont_384x:
 
 	movq	%rcx,0(%rsp)
 	movq	%rdx,%rcx
+	movq	%rdi,8(%rsp)
 	movq	%rsi,16(%rsp)
-.byte	102,72,15,110,199
 
 
 	leaq	48(%rsi),%rdx
@@ -2043,8 +2043,8 @@ _mul_mont_384:
 	pushq	%r15
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%r15,-56
-	pushq	%r8
-.cfi_adjust_cfa_offset	8
+	subq	$24,%rsp
+.cfi_adjust_cfa_offset	8*3
 
 
 	movq	0(%rdx),%rax
@@ -2053,24 +2053,25 @@ _mul_mont_384:
 	movq	16(%rsi),%r12
 	movq	24(%rsi),%r13
 	movq	%rdx,%rbx
-.byte	102,72,15,110,199
+	movq	%r8,0(%rsp)
+	movq	%rdi,8(%rsp)
 
 	call	__mulq_mont_384
 
-	movq	8(%rsp),%r15
+	movq	24(%rsp),%r15
 .cfi_restore	%r15
-	movq	16(%rsp),%r14
+	movq	32(%rsp),%r14
 .cfi_restore	%r14
-	movq	24(%rsp),%r13
+	movq	40(%rsp),%r13
 .cfi_restore	%r13
-	movq	32(%rsp),%r12
+	movq	48(%rsp),%r12
 .cfi_restore	%r12
-	movq	40(%rsp),%rbx
+	movq	56(%rsp),%rbx
 .cfi_restore	%rbx
-	movq	48(%rsp),%rbp
+	movq	64(%rsp),%rbp
 .cfi_restore	%rbp
-	leaq	56(%rsp),%rsp
-.cfi_adjust_cfa_offset	-56
+	leaq	72(%rsp),%rsp
+.cfi_adjust_cfa_offset	-72
 
 	.byte	0xf3,0xc3
 .cfi_endproc	
@@ -2649,7 +2650,7 @@ __mulq_mont_384:
 
 
 
-.byte	102,72,15,126,199
+	movq	16(%rsp),%rdi
 	subq	0(%rcx),%r14
 	movq	%r15,%rdx
 	sbbq	8(%rcx),%r15
@@ -2711,8 +2712,8 @@ _sqr_n_mul_mont_384:
 
 
 	movq	%r8,0(%rsp)
-	movq	%rcx,8(%rsp)
-.byte	102,72,15,110,199
+	movq	%rdi,8(%rsp)
+	movq	%rcx,16(%rsp)
 	leaq	32(%rsp),%rdi
 	movq	%r9,24(%rsp)
 	movq	(%r9),%xmm2
@@ -2724,7 +2725,7 @@ L$oop_sqr_384:
 
 	leaq	0(%rdi),%rsi
 	movq	0(%rsp),%rcx
-	movq	8(%rsp),%rbx
+	movq	16(%rsp),%rbx
 	call	__mulq_by_1_mont_384
 	call	__redc_tail_mont_384
 
@@ -2799,8 +2800,8 @@ _sqr_n_mul_mont_383:
 
 
 	movq	%r8,0(%rsp)
-	movq	%rcx,8(%rsp)
-.byte	102,72,15,110,199
+	movq	%rdi,8(%rsp)
+	movq	%rcx,16(%rsp)
 	leaq	32(%rsp),%rdi
 	movq	%r9,24(%rsp)
 	movq	(%r9),%xmm2
@@ -2812,7 +2813,7 @@ L$oop_sqr_383:
 
 	leaq	0(%rdi),%rsi
 	movq	0(%rsp),%rcx
-	movq	8(%rsp),%rbx
+	movq	16(%rsp),%rbx
 	call	__mulq_by_1_mont_384
 
 	movd	%xmm1,%edx
