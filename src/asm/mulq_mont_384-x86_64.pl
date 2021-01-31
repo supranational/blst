@@ -345,8 +345,8 @@ sqr_mont_384x:
 
 	mov	$n_ptr, 8*0(%rsp)	# n0
 	mov	$b_org, $n_ptr		# n_ptr
+	mov	$r_ptr, 8*1(%rsp)	# to __mulq_mont_384
 	mov	$a_ptr, 8*2(%rsp)
-	movq	$r_ptr, %xmm0
 
 	################################# add_mod_384(t0, a->re, a->im);
 	lea	48($a_ptr), $b_org	# a->im
@@ -1928,8 +1928,8 @@ mul_mont_384:
 .cfi_push	%r14
 	push	%r15
 .cfi_push	%r15
-	push	$n0
-.cfi_adjust_cfa_offset	8
+	sub	\$8*3, %rsp
+.cfi_adjust_cfa_offset	8*3
 .cfi_end_prologue
 
 	mov	8*0($b_org), %rax
@@ -1938,24 +1938,25 @@ mul_mont_384:
 	mov	8*2($a_ptr), @acc[4]
 	mov	8*3($a_ptr), @acc[5]
 	mov	$b_org, $b_ptr		# evacuate from %rdx
-	movq	$r_ptr, %xmm0
+	mov	$n0,    8*0(%rsp)
+	mov	$r_ptr, 8*1(%rsp)	# to __mulq_mont_384
 
 	call	__mulq_mont_384
 
-	mov	8(%rsp),%r15
+	mov	24(%rsp),%r15
 .cfi_restore	%r15
-	mov	16(%rsp),%r14
+	mov	32(%rsp),%r14
 .cfi_restore	%r14
-	mov	24(%rsp),%r13
+	mov	40(%rsp),%r13
 .cfi_restore	%r13
-	mov	32(%rsp),%r12
+	mov	48(%rsp),%r12
 .cfi_restore	%r12
-	mov	40(%rsp),%rbx
+	mov	56(%rsp),%rbx
 .cfi_restore	%rbx
-	mov	48(%rsp),%rbp
+	mov	64(%rsp),%rbp
 .cfi_restore	%rbp
-	lea	56(%rsp),%rsp
-.cfi_adjust_cfa_offset	-56
+	lea	72(%rsp),%rsp
+.cfi_adjust_cfa_offset	-72
 .cfi_epilogue
 	ret
 .cfi_endproc
@@ -2116,7 +2117,7 @@ $code.=<<___;
 	# Branch-less conditional acc[0:6] - modulus
 
 	#mov	@acc[0], %rax
-	movq	%xmm0, $r_ptr		# restore $r_ptr
+	mov	8*2(%rsp), $r_ptr	# restore $r_ptr
 	sub	8*0($n_ptr), @acc[0]
 	mov	@acc[1], %rdx
 	sbb	8*1($n_ptr), @acc[1]
@@ -2170,9 +2171,9 @@ sqr_n_mul_mont_384:
 .cfi_adjust_cfa_offset	8*17
 .cfi_end_prologue
 
-	mov	$n0, 8*0(%rsp)
-	mov	$n_ptr, 8*1(%rsp)
-	movq	$r_ptr, %xmm0		# to __mulq_mont_384
+	mov	$n0,    8*0(%rsp)
+	mov	$r_ptr, 8*1(%rsp)	# to __mulq_mont_384
+	mov	$n_ptr, 8*2(%rsp)
 	lea	8*4(%rsp), $r_ptr
 	mov	%r9, 8*3(%rsp)		# 6th, multiplicand argument
 	movq	(%r9), %xmm2		# prefetch b[0]
@@ -2184,7 +2185,7 @@ sqr_n_mul_mont_384:
 
 	lea	0($r_ptr), $a_ptr
 	mov	8*0(%rsp), %rcx		# n0 for mul_by_1
-	mov	8*1(%rsp), $b_ptr	# n_ptr for mul_by_1
+	mov	8*2(%rsp), $b_ptr	# n_ptr for mul_by_1
 	call	__mulq_by_1_mont_384
 	call	__redc_tail_mont_384
 
@@ -2250,8 +2251,8 @@ sqr_n_mul_mont_383:
 .cfi_end_prologue
 
 	mov	$n0, 8*0(%rsp)
-	mov	$n_ptr, 8*1(%rsp)
-	movq	$r_ptr, %xmm0		# to __mulq_mont_384
+	mov	$r_ptr, 8*1(%rsp)	# to __mulq_mont_384
+	mov	$n_ptr, 8*2(%rsp)
 	lea	8*4(%rsp), $r_ptr
 	mov	%r9, 8*3(%rsp)		# 6th, multiplicand argument
 	movq	(%r9), %xmm2		# prefetch b[0]
@@ -2263,7 +2264,7 @@ sqr_n_mul_mont_383:
 
 	lea	0($r_ptr), $a_ptr
 	mov	8*0(%rsp), %rcx		# n0 for mul_by_1
-	mov	8*1(%rsp), $b_ptr	# n_ptr for mul_by_1
+	mov	8*2(%rsp), $b_ptr	# n_ptr for mul_by_1
 	call	__mulq_by_1_mont_384
 
 	movd	%xmm1, %edx		# loop counter
