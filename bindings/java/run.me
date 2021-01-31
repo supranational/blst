@@ -23,13 +23,23 @@ if [ ! -d "$JAVA_HOME"/include ]; then
         exit 1
     fi
 fi
+# spot jni_md.h, which is included from jni.h
+JNI_MD=`ls "$JAVA_HOME"/include/*/jni_md.h`
+JNI_MD=`dirname "$JNI_MD"`
 
+# figure out SO_NAME and set optional LDFLAGS (if not set already)
+unset SO_NAME
+if [ -x "$JAVA_HOME"/bin/jshell ]; then
+    SO_NAME=`echo 'System.out.println(System.mapLibraryName("blst"))' | \
+             "$JAVA_HOME"/bin/jshell - 2>/dev/null`
+fi
 case `uname -s` in
-    Linux)  OS_NAME=linux;  SO_NAME=libblst.so;     LDFLAGS=-Wl,-Bsymbolic;;
-    Darwin) OS_NAME=darwin; SO_NAME=libblst.dylib;  LDFLAGS=;;
-    MINGW*) OS_NAME=win32;  SO_NAME=blst.dll;       LDFLAGS=-static-libstdc++;;
-    *)      echo "unsupported 'uname -s'" 1>&2; exit 1;;
+    MINGW*) SO_NAME=${SO_NAME:-blst.dll};
+            LDFLAGS=${LDFLAGS:--static-libstdc++};;
+    Darwin) SO_NAME=${SO_NAME:-libblst.dylib};;
+    *)      SO_NAME=${SO_NAME:-libblst.so};;    # Linux, Solaris, *BSD...
 esac
+expr $SO_NAME : '.*\.so' > /dev/null && LDFLAGS=${LDFLAGS:--Wl,-Bsymbolic}
 
 if [ ! -f ../libblst.a -o ../blst.h -nt ../libblst.a ]; then
     (cd ..; ../build.sh)
@@ -44,7 +54,7 @@ fi
 if [ ! -f $SO_NAME -o blst_wrap.cpp -nt $SO_NAME \
                    -o ../libblst.a  -nt $SO_NAME ]; then
     (set -x; c++ -shared -o $SO_NAME -fPIC \
-                 -I"$JAVA_HOME"/include -I"$JAVA_HOME"/include/$OS_NAME -I.. \
+                 -I"$JAVA_HOME"/include -I"$JNI_MD" -I.. \
                  -O -Wall -Wno-unused-function blst_wrap.cpp \
                  ../libblst.a ${LDFLAGS})
 fi
