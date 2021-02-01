@@ -22,14 +22,14 @@
 
 // some sorcery to allow assignments as output, e.g.
 //      hash = blst.encode_to_g1(b"foo")
-%typemap(in, numinputs=0) OBJECT *OUTPUT($1_basetype temp) { $1 = &temp; };
+%typemap(in, numinputs=0) OBJECT *OUTPUT($1_basetype temp) %{ $1 = &temp; %}
 %typemap(argout) OBJECT *OUTPUT {
     PyObject *obj = SWIG_NewPointerObj(memcpy(malloc(sizeof($1_basetype)),
                                               $1,sizeof($1_basetype)),
                                        $descriptor, SWIG_POINTER_NEW);
     $result = ($result==NULL) ? obj
                               : SWIG_Python_AppendOutput($result, obj);
-};
+}
 %apply OBJECT *OUTPUT {
     blst_p1        *out, blst_p1        *out_pk, blst_p1        *out_sig,
     blst_p1_affine *out, blst_p1_affine *out_pk, blst_p1_affine *out_sig,
@@ -37,10 +37,10 @@
     blst_p2_affine *out, blst_p2_affine *out_pk, blst_p2_affine *out_sig,
     blst_scalar    *out, blst_scalar    *out_SK,
     blst_fp12      *out
-};
+}
 
 // accept 'bytes' and 'bytearray' as inputs...
-%typemap(in) const byte* {
+%typemap(in) const byte* %{
     if (PyBytes_Check($input)) {
         char *buf;
         Py_ssize_t nbytes;
@@ -55,10 +55,10 @@
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                             "expecting 'bytes' or 'bytearray'");
     }
-}
+%}
 %typemap(freearg) const byte* ""
 
-%typemap(in) const byte[ANY] {
+%typemap(in) const byte[ANY] %{
     if (PyBytes_Check($input)) {
         char *buf;
         Py_ssize_t nbytes;
@@ -79,7 +79,7 @@
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                             "expecting 'bytes' or 'bytearray'");
     }
-}
+%}
 %typemap(freearg) const byte[ANY] ""
 
 %typemap(in) (const byte *STRING, size_t LENGTH) %{
@@ -144,13 +144,13 @@
 %}
 
 #ifdef __cplusplus
-%typemap(out) BLST_ERROR {
+%typemap(out) BLST_ERROR %{
     if ($1 != BLST_SUCCESS) {
         SWIG_exception(SWIG_ValueError, BLST_ERROR_str[$1]);
         SWIG_fail;
     }
     $result = SWIG_From_int($1);
-};
+%}
 
 // return |this|
 %typemap(out) SELF* OUTPUT %{ (void)$1; Py_INCREF($result = swig_obj[0]); %}
@@ -240,7 +240,7 @@
         return (Pairing *)ret;
     }
     ~Pairing() { free($self); }
-};
+}
 %typemap(out) blst::Pairing* {
     size_t sz = blst_pairing_sizeof();
     size_t SZ = (sz + arg2->size() + sizeof(jlong) - 1)/sizeof(jlong);
@@ -254,7 +254,7 @@
 %typemap(throws) BLST_ERROR %{
     SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException,
                                   BLST_ERROR_str[$1]);
-%};
+%}
 
 #if SWIG_VERSION < 0x040000
 %apply (char *STRING, size_t LENGTH) { (const byte *STRING, size_t LENGTH) }
@@ -264,11 +264,11 @@
 %apply signed char[] { const byte* }
 %typemap(in) const byte* %{
     $1 = ($1_ltype)JCALL(GetByteArrayElements, $input, 0);
-%};
+%}
 %typemap(argout)  const byte* ""
 %typemap(freearg) const byte* %{
     JCALL(ReleaseByteArrayElements, $input, (jbyte *)$1, JNI_ABORT);
-%};
+%}
 
 %apply const byte* { const byte[ANY] }
 %typemap(in) const byte[ANY] {
@@ -279,7 +279,7 @@
         return $null;
     }
     $1 = ($1_ltype)JCALL(GetByteArrayElements, $input, 0);
-};
+}
 
 // let users use 'java.math.BigInteger' as scalars
 %typemap(in) (const byte* scalar, size_t nbits) %{
@@ -300,14 +300,14 @@
     if ($1[$2-1] == 0)
         $2--;
     $2 *= 8;
-%};
+%}
 %typemap(jni)    (const byte* scalar, size_t nbits) "jbyteArray"
 %typemap(jtype)  (const byte* scalar, size_t nbits) "byte[]"
 %typemap(jstype) (const byte* scalar, size_t nbits) "java.math.BigInteger"
 %typemap(javain) (const byte* scalar, size_t nbits) "$javainput.toByteArray()"
 
 #ifdef __cplusplus
-%typemap(javaout) SELF* OUTPUT "{ $jnicall; return this; }"
+%typemap(javaout) SELF* OUTPUT { $jnicall; return this; }
 #endif
 
 #elif defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_V8)
@@ -320,9 +320,9 @@
 #endif
 %}
 
-%typemap(throws) BLST_ERROR %{ SWIG_V8_Raise(BLST_ERROR_str[$1]); SWIG_fail; %};
+%typemap(throws) BLST_ERROR %{ SWIG_V8_Raise(BLST_ERROR_str[$1]); SWIG_fail; %}
 
-%typemap(in) const byte* {
+%typemap(in) const byte* %{
     if ($input->IsArrayBufferView()) {
         auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
         auto buf = av->Buffer();
@@ -331,12 +331,12 @@
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                             "expecting <Buffer>");
     }
-};
+%}
 %typemap(argout)  const byte* ""
 %typemap(freearg) const byte* ""
 
 %apply const byte* { const byte[ANY] }
-%typemap(in) const byte[ANY] {
+%typemap(in) const byte[ANY] %{
     if ($input->IsArrayBufferView()) {
         auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
         if (av->ByteLength() != $1_dim0)
@@ -348,7 +348,7 @@
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                             "expecting <Buffer>");
     }
-};
+%}
 
 // let users use JavaScript <BigInt> and <Buffer> as scalars
 %typemap(in) (const byte* scalar, size_t nbits) %{
@@ -388,9 +388,9 @@
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                             "expecting <Buffer> or <BigInt>");
     }
-%};
+%}
 
-%typemap(in) (const byte *STRING, size_t LENGTH) {
+%typemap(in) (const byte *STRING, size_t LENGTH) %{
     if ($input->IsArrayBufferView()) {
         auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
         auto buf = av->Buffer();
@@ -405,7 +405,7 @@
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                             "expecting <Buffer> or <String>");
     }
-};
+%}
 
 // return |this|
 %typemap(out) SELF* OUTPUT %{ (void)$1; $result = args.Holder(); %}
@@ -430,12 +430,10 @@
        (const byte *aug,    size_t aug_len),
        (const byte *IKM,    size_t IKM_len),
        (const byte *info,   size_t info_len)
-};
+}
 
 // some sorcery to return byte[] from serialization methods
-%typemap(in, numinputs=0) byte out[ANY] (byte temp[$1_dim0]) {
-    $1 = temp;
-};
+%typemap(in, numinputs=0) byte out[ANY] (byte temp[$1_dim0]) %{ $1 = temp; %}
 %typemap(argout) byte out[ANY] {
 #if defined(SWIGPYTHON)
     PyObject *obj = SWIG_FromCharPtrAndSize((char *)$1, $1_dim0);
@@ -456,13 +454,13 @@
     if ($result == NULL)
         $result = SWIG_FromCharPtrAndSize((char *)$1, $1_dim0);
 #endif
-};
+}
 %typemap(freearg) byte out[ANY] ""
 #ifdef SWIGJAVA
 %typemap(jni)     byte out[ANY] "jbyteArray"
 %typemap(jtype)   byte out[ANY] "byte[]"
 %typemap(jstype)  byte out[ANY] "byte[]"
-%typemap(javaout) byte out[ANY] "{ return $jnicall; }"
+%typemap(javaout) byte out[ANY] { return $jnicall; }
 #endif
 %apply byte out[ANY] {
     void to_bendian,    void blst_bendian_from_scalar,
@@ -473,10 +471,10 @@
                         void blst_p2_compress,  void blst_p2_affine_compress,
     void blst_sk_to_pk2_in_g1,  void blst_sign_pk2_in_g1,
     void blst_sk_to_pk2_in_g2,  void blst_sign_pk2_in_g2
-};
+}
 
 #ifdef __cplusplus
-%apply const std::string& { const std::string* };
+%apply const std::string& { const std::string* }
 
 #pragma SWIG nowarn=509,516
 
@@ -502,7 +500,7 @@
     blst::P1* dbl,          blst::P2* dbl,
     blst::PT* mul,          blst::PT* sqr,
     blst::PT* final_exp
-};
+}
 
 typedef enum {
     BLST_SUCCESS = 0,
@@ -553,7 +551,7 @@ extern const blst::P2_Affine BLS12_381_NEG_G2;
         if (dst != NULL) free(dst);
         free($self);
     }
-};
+}
 #endif
 
 %begin %{
