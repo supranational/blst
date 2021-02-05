@@ -54,13 +54,12 @@ SK.keygen(b"*"*32)		# secret key
 ########################################################################
 # generate public key and signature
 
-pk = blst.P1(SK)
-pk_for_wire = pk.serialize()
+pk_for_wire = blst.P1(SK).serialize()
 
-sig = blst.P2()			#    vvvvvvvvvvv optional augmentation
-sig_for_wire = sig.hash_to(msg, DST, pk_for_wire) \
-                  .sign_with(SK) \
-                  .serialize()
+				# optional vvvvvvvvvvv augmentation
+sig_for_wire = blst.P2().hash_to(msg, DST, pk_for_wire) \
+                        .sign_with(SK) \
+                        .serialize()
 
 ########################################################################
 # at this point 'pk_for_wire', 'sig_for_wire' and 'msg' are
@@ -79,13 +78,12 @@ if not ctx.finalverify() :
 ########################################################################
 # generate public key and signature
 
-pk = blst.P2(SK)
-pk_for_wire = pk.serialize()
+pk_for_wire = blst.P2(SK).serialize()
 
-sig = blst.P1()			#    vvvvvvvvvvv optional augmentation
-sig_for_wire = sig.hash_to(msg, DST, pk_for_wire) \
-                  .sign_with(SK) \
-                  .serialize()
+				# optional vvvvvvvvvvv augmentation
+sig_for_wire = blst.P1().hash_to(msg, DST, pk_for_wire) \
+                        .sign_with(SK) \
+                        .serialize()
 
 ########################################################################
 # at this point 'pk_for_wire', 'sig_for_wire' and 'msg' are

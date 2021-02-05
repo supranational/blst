@@ -484,11 +484,11 @@ void blst_p1_mult(POINTonE1 *out, const POINTonE1 *a,
 int blst_p1_is_inf(const POINTonE1 *p)
 {   return (int)vec_is_zero(p->Z, sizeof(p->Z));   }
 
-const POINTonE1 *blst_p1_generator()
+const POINTonE1 *blst_p1_generator(void)
 {   return &BLS12_381_G1;   }
 
 int blst_p1_affine_is_inf(const POINTonE1_affine *p)
 {   return (int)vec_is_zero(p, sizeof(*p));   }
 
-const POINTonE1_affine *blst_p1_affine_generator()
+const POINTonE1_affine *blst_p1_affine_generator(void)
 {   return (const POINTonE1_affine *)&BLS12_381_G1;   }

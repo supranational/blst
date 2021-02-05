@@ -28,8 +28,8 @@ jobs:
           ~/.cargo/registry
           **/Cargo.lock
           **/bindings/rust/target
-        key: ${{ runner.os }}-cargo-10
-        restore-keys: ${{ runner.os }}-cargo-9
+        key: ${{ runner.os }}-cargo-11
+        restore-keys: ${{ runner.os }}-cargo-10
 
     - name: Environment
       shell: bash
@@ -114,9 +114,7 @@ jobs:
       run: |
         node_js=bindings/node.js
         if [ -f $node_js/binding.gyp -a -f $node_js/blst_wrap.cpp ]; then
-            if which npm > /dev/null 2>&1; then
-                npm install --global node-gyp || true
-            fi
+            npm install --global node-gyp || true
             if which node-gyp > /dev/null 2>&1; then
               ( export PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2;
                 cd $node_js;
@@ -125,4 +123,17 @@ jobs:
                 env NODE_PATH=build/Release: node runnable.js;
               )
             fi
+        fi
+    - name: TypeScript
+      run: |
+        node_js=bindings/node.js
+        if [ -f $node_js/blst.hpp.ts -a -f $node_js/blst.node ]; then
+            npm install --global typescript || true
+            if which tsc > /dev/null 2>&1; then
+              ( cd $node_js;
+                npm install @types/node
+                tsc runnable.ts;
+                env NODE_PATH=.: node runnable.js;
+              )
+           fi
         fi

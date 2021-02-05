@@ -332,8 +332,8 @@ $L$SEH_body_sqrx_mont_384x::
 	mov	QWORD PTR[rsp],rcx
 	mov	rcx,rdx
 
-	mov	QWORD PTR[16+rsp],rsi
-DB	102,72,15,110,199
+	mov	QWORD PTR[16+rsp],rdi
+	mov	QWORD PTR[24+rsp],rsi
 
 
 	lea	rdx,QWORD PTR[48+rsi]
@@ -341,13 +341,13 @@ DB	102,72,15,110,199
 	call	__add_mod_384
 
 
-	mov	rsi,QWORD PTR[16+rsp]
+	mov	rsi,QWORD PTR[24+rsp]
 	lea	rdx,QWORD PTR[48+rsi]
 	lea	rdi,QWORD PTR[((32+48))+rsp]
 	call	__sub_mod_384
 
 
-	mov	rsi,QWORD PTR[16+rsp]
+	mov	rsi,QWORD PTR[24+rsp]
 	lea	rbx,QWORD PTR[48+rsi]
 
 	mov	rdx,QWORD PTR[48+rsi]
@@ -1012,7 +1012,6 @@ __sqrx_384	PROC PRIVATE
 	mov	r15,QWORD PTR[16+rsi]
 	mov	rcx,QWORD PTR[24+rsi]
 	mov	rbx,QWORD PTR[32+rsi]
-DB	102,72,15,110,199
 
 
 	mulx	rdi,r8,r14
@@ -1080,7 +1079,7 @@ DB	102,72,15,110,199
 	mulx	rbx,rdi,rbp
 	mov	rdx,QWORD PTR[rsi]
 	add	rcx,rdi
-DB	102,72,15,126,199
+	mov	rdi,QWORD PTR[8+rsp]
 	adc	rbx,0
 
 
@@ -1789,7 +1788,7 @@ $L$SEH_body_mulx_mont_384::
 	mov	r15,QWORD PTR[8+rsi]
 	mov	rax,QWORD PTR[16+rsi]
 	mov	r12,QWORD PTR[24+rsi]
-DB	102,72,15,110,199
+	mov	QWORD PTR[16+rsp],rdi
 	mov	rdi,QWORD PTR[32+rsi]
 	mov	rbp,QWORD PTR[40+rsi]
 	lea	rsi,QWORD PTR[((-128))+rsi]
@@ -2156,7 +2155,7 @@ __mulx_mont_384	PROC PRIVATE
 	adox	r11,r12
 	adcx	r11,r12
 	imul	rdx,QWORD PTR[8+rsp]
-DB	102,72,15,126,195
+	mov	rbx,QWORD PTR[24+rsp]
 
 
 	xor	r12,r12
@@ -2261,7 +2260,7 @@ $L$SEH_body_sqrx_mont_384::
 	mov	r15,QWORD PTR[8+rsi]
 	mov	rax,QWORD PTR[16+rsi]
 	mov	r12,QWORD PTR[24+rsi]
-DB	102,72,15,110,199
+	mov	QWORD PTR[16+rsp],rdi
 	mov	rdi,QWORD PTR[32+rsi]
 	mov	rbp,QWORD PTR[40+rsi]
 
@@ -2326,7 +2325,7 @@ $L$SEH_begin_sqrx_n_mul_mont_384::
 
 	push	r15
 
-	lea	rsp,QWORD PTR[((-24))+rsp]
+	lea	rsp,QWORD PTR[((-40))+rsp]
 
 $L$SEH_body_sqrx_n_mul_mont_384::
 
@@ -2337,12 +2336,12 @@ $L$SEH_body_sqrx_n_mul_mont_384::
 	mov	rax,QWORD PTR[16+rsi]
 	mov	rbx,rsi
 	mov	r12,QWORD PTR[24+rsi]
-DB	102,72,15,110,199
+	mov	QWORD PTR[16+rsp],rdi
 	mov	rdi,QWORD PTR[32+rsi]
 	mov	rbp,QWORD PTR[40+rsi]
 
 	mov	QWORD PTR[rsp],r8
-	mov	QWORD PTR[16+rsp],r9
+	mov	QWORD PTR[24+rsp],r9
 	movq	xmm2,QWORD PTR[r9]
 
 $L$oop_sqrx_384::
@@ -2360,25 +2359,25 @@ $L$oop_sqrx_384::
 	mov	r14,rdx
 DB	102,72,15,126,210
 	lea	rsi,QWORD PTR[((-128))+rbx]
-	mov	rbx,QWORD PTR[16+rsp]
+	mov	rbx,QWORD PTR[24+rsp]
 	lea	rcx,QWORD PTR[((-128))+rcx]
 
 	mulx	r9,r8,r14
 	call	__mulx_mont_384
 
-	mov	r15,QWORD PTR[24+rsp]
+	mov	r15,QWORD PTR[40+rsp]
 
-	mov	r14,QWORD PTR[32+rsp]
+	mov	r14,QWORD PTR[48+rsp]
 
-	mov	r13,QWORD PTR[40+rsp]
+	mov	r13,QWORD PTR[56+rsp]
 
-	mov	r12,QWORD PTR[48+rsp]
+	mov	r12,QWORD PTR[64+rsp]
 
-	mov	rbx,QWORD PTR[56+rsp]
+	mov	rbx,QWORD PTR[72+rsp]
 
-	mov	rbp,QWORD PTR[64+rsp]
+	mov	rbp,QWORD PTR[80+rsp]
 
-	lea	rsp,QWORD PTR[72+rsp]
+	lea	rsp,QWORD PTR[88+rsp]
 
 $L$SEH_epilogue_sqrx_n_mul_mont_384::
 	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
@@ -2420,7 +2419,7 @@ $L$SEH_begin_sqrx_n_mul_mont_383::
 
 	push	r15
 
-	lea	rsp,QWORD PTR[((-24))+rsp]
+	lea	rsp,QWORD PTR[((-40))+rsp]
 
 $L$SEH_body_sqrx_n_mul_mont_383::
 
@@ -2431,12 +2430,12 @@ $L$SEH_body_sqrx_n_mul_mont_383::
 	mov	rax,QWORD PTR[16+rsi]
 	mov	rbx,rsi
 	mov	r12,QWORD PTR[24+rsi]
-DB	102,72,15,110,199
+	mov	QWORD PTR[16+rsp],rdi
 	mov	rdi,QWORD PTR[32+rsi]
 	mov	rbp,QWORD PTR[40+rsi]
 
 	mov	QWORD PTR[rsp],r8
-	mov	QWORD PTR[16+rsp],r9
+	mov	QWORD PTR[24+rsp],r9
 	movq	xmm2,QWORD PTR[r9]
 	lea	rcx,QWORD PTR[((-128))+rcx]
 
@@ -2454,24 +2453,24 @@ $L$oop_sqrx_383::
 	mov	r14,rdx
 DB	102,72,15,126,210
 	lea	rsi,QWORD PTR[((-128))+rbx]
-	mov	rbx,QWORD PTR[16+rsp]
+	mov	rbx,QWORD PTR[24+rsp]
 
 	mulx	r9,r8,r14
 	call	__mulx_mont_384
 
-	mov	r15,QWORD PTR[24+rsp]
+	mov	r15,QWORD PTR[40+rsp]
 
-	mov	r14,QWORD PTR[32+rsp]
+	mov	r14,QWORD PTR[48+rsp]
 
-	mov	r13,QWORD PTR[40+rsp]
+	mov	r13,QWORD PTR[56+rsp]
 
-	mov	r12,QWORD PTR[48+rsp]
+	mov	r12,QWORD PTR[64+rsp]
 
-	mov	rbx,QWORD PTR[56+rsp]
+	mov	rbx,QWORD PTR[72+rsp]
 
-	mov	rbp,QWORD PTR[64+rsp]
+	mov	rbp,QWORD PTR[80+rsp]
 
-	lea	rsp,QWORD PTR[72+rsp]
+	lea	rsp,QWORD PTR[88+rsp]
 
 $L$SEH_epilogue_sqrx_n_mul_mont_383::
 	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
@@ -2799,7 +2798,7 @@ __mulx_mont_383_nonred	PROC PRIVATE
 	adox	r10,r11
 	adcx	r10,r11
 	imul	rdx,QWORD PTR[8+rsp]
-DB	102,72,15,126,195
+	mov	rbx,QWORD PTR[24+rsp]
 
 
 	xor	r12,r12
@@ -2878,8 +2877,8 @@ $L$SEH_body_sqrx_mont_382x::
 
 	mov	QWORD PTR[rsp],rcx
 	mov	rcx,rdx
-	mov	QWORD PTR[16+rsp],rsi
-	movq	xmm0,rdi
+	mov	QWORD PTR[16+rsp],rdi
+	mov	QWORD PTR[24+rsp],rsi
 
 
 	mov	r8,QWORD PTR[rsi]
@@ -3519,15 +3518,15 @@ DB	0,003h
 DB	0,0
 $L$SEH_info_sqrx_n_mul_mont_384_body::
 DB	1,0,17,0
-DB	000h,0f4h,003h,000h
-DB	000h,0e4h,004h,000h
-DB	000h,0d4h,005h,000h
-DB	000h,0c4h,006h,000h
-DB	000h,034h,007h,000h
-DB	000h,054h,008h,000h
-DB	000h,074h,00ah,000h
-DB	000h,064h,00bh,000h
-DB	000h,082h
+DB	000h,0f4h,005h,000h
+DB	000h,0e4h,006h,000h
+DB	000h,0d4h,007h,000h
+DB	000h,0c4h,008h,000h
+DB	000h,034h,009h,000h
+DB	000h,054h,00ah,000h
+DB	000h,074h,00ch,000h
+DB	000h,064h,00dh,000h
+DB	000h,0a2h
 DB	000h,000h
 $L$SEH_info_sqrx_n_mul_mont_384_epilogue::
 DB	1,0,4,0
@@ -3543,15 +3542,15 @@ DB	0,003h
 DB	0,0
 $L$SEH_info_sqrx_n_mul_mont_383_body::
 DB	1,0,17,0
-DB	000h,0f4h,003h,000h
-DB	000h,0e4h,004h,000h
-DB	000h,0d4h,005h,000h
-DB	000h,0c4h,006h,000h
-DB	000h,034h,007h,000h
-DB	000h,054h,008h,000h
-DB	000h,074h,00ah,000h
-DB	000h,064h,00bh,000h
-DB	000h,082h
+DB	000h,0f4h,005h,000h
+DB	000h,0e4h,006h,000h
+DB	000h,0d4h,007h,000h
+DB	000h,0c4h,008h,000h
+DB	000h,034h,009h,000h
+DB	000h,054h,00ah,000h
+DB	000h,074h,00ch,000h
+DB	000h,064h,00dh,000h
+DB	000h,0a2h
 DB	000h,000h
 $L$SEH_info_sqrx_n_mul_mont_383_epilogue::
 DB	1,0,4,0

@@ -329,8 +329,8 @@ sqr_mont_384x:
 
 	movq	%rcx,0(%rsp)
 	movq	%rdx,%rcx
+	movq	%rdi,8(%rsp)
 	movq	%rsi,16(%rsp)
-.byte	102,72,15,110,199
 
 
 	leaq	48(%rsi),%rdx
@@ -2084,7 +2084,7 @@ mul_mont_384:
 
 	pushq	%r15
 
-	pushq	%r8
+	subq	$24,%rsp
 
 .LSEH_body_mul_mont_384:
 
@@ -2095,23 +2095,24 @@ mul_mont_384:
 	movq	16(%rsi),%r12
 	movq	24(%rsi),%r13
 	movq	%rdx,%rbx
-.byte	102,72,15,110,199
+	movq	%r8,0(%rsp)
+	movq	%rdi,8(%rsp)
 
 	call	__mulq_mont_384
 
-	movq	8(%rsp),%r15
+	movq	24(%rsp),%r15
 
-	movq	16(%rsp),%r14
+	movq	32(%rsp),%r14
 
-	movq	24(%rsp),%r13
+	movq	40(%rsp),%r13
 
-	movq	32(%rsp),%r12
+	movq	48(%rsp),%r12
 
-	movq	40(%rsp),%rbx
+	movq	56(%rsp),%rbx
 
-	movq	48(%rsp),%rbp
+	movq	64(%rsp),%rbp
 
-	leaq	56(%rsp),%rsp
+	leaq	72(%rsp),%rsp
 
 .LSEH_epilogue_mul_mont_384:
 	mov	8(%rsp),%rdi
@@ -2693,7 +2694,7 @@ __mulq_mont_384:
 
 
 
-.byte	102,72,15,126,199
+	movq	16(%rsp),%rdi
 	subq	0(%rcx),%r14
 	movq	%r15,%rdx
 	sbbq	8(%rcx),%r15
@@ -2758,8 +2759,8 @@ sqr_n_mul_mont_384:
 
 
 	movq	%r8,0(%rsp)
-	movq	%rcx,8(%rsp)
-.byte	102,72,15,110,199
+	movq	%rdi,8(%rsp)
+	movq	%rcx,16(%rsp)
 	leaq	32(%rsp),%rdi
 	movq	%r9,24(%rsp)
 	movq	(%r9),%xmm2
@@ -2771,7 +2772,7 @@ sqr_n_mul_mont_384:
 
 	leaq	0(%rdi),%rsi
 	movq	0(%rsp),%rcx
-	movq	8(%rsp),%rbx
+	movq	16(%rsp),%rbx
 	call	__mulq_by_1_mont_384
 	call	__redc_tail_mont_384
 
@@ -2853,8 +2854,8 @@ sqr_n_mul_mont_383:
 
 
 	movq	%r8,0(%rsp)
-	movq	%rcx,8(%rsp)
-.byte	102,72,15,110,199
+	movq	%rdi,8(%rsp)
+	movq	%rcx,16(%rsp)
 	leaq	32(%rsp),%rdi
 	movq	%r9,24(%rsp)
 	movq	(%r9),%xmm2
@@ -2866,7 +2867,7 @@ sqr_n_mul_mont_383:
 
 	leaq	0(%rdi),%rsi
 	movq	0(%rsp),%rcx
-	movq	8(%rsp),%rbx
+	movq	16(%rsp),%rbx
 	call	__mulq_by_1_mont_384
 
 	movd	%xmm1,%edx
@@ -4118,15 +4119,15 @@ sqr_mont_382x:
 .byte	0,0
 .LSEH_info_mul_mont_384_body:
 .byte	1,0,17,0
-.byte	0x00,0xf4,0x01,0x00
-.byte	0x00,0xe4,0x02,0x00
-.byte	0x00,0xd4,0x03,0x00
-.byte	0x00,0xc4,0x04,0x00
-.byte	0x00,0x34,0x05,0x00
-.byte	0x00,0x54,0x06,0x00
-.byte	0x00,0x74,0x08,0x00
-.byte	0x00,0x64,0x09,0x00
-.byte	0x00,0x62
+.byte	0x00,0xf4,0x03,0x00
+.byte	0x00,0xe4,0x04,0x00
+.byte	0x00,0xd4,0x05,0x00
+.byte	0x00,0xc4,0x06,0x00
+.byte	0x00,0x34,0x07,0x00
+.byte	0x00,0x54,0x08,0x00
+.byte	0x00,0x74,0x0a,0x00
+.byte	0x00,0x64,0x0b,0x00
+.byte	0x00,0x82
 .byte	0x00,0x00
 .LSEH_info_mul_mont_384_epilogue:
 .byte	1,0,4,0

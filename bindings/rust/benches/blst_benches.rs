@@ -181,7 +181,7 @@ fn bench_fast_aggregate_verify(c: &mut Criterion) {
             BenchmarkId::new("fast_aggregate_verify", size),
             &agg_ver,
             |b, (a, p, m, d)| {
-                b.iter(|| a.fast_aggregate_verify(&m, &d, &p));
+                b.iter(|| a.fast_aggregate_verify(true, &m, &d, &p));
             },
         );
 
@@ -189,7 +189,9 @@ fn bench_fast_aggregate_verify(c: &mut Criterion) {
             BenchmarkId::new("fast_aggregate_verify_preagg", size),
             &agg_pre_ver,
             |b, (a, p, m, d)| {
-                b.iter(|| a.fast_aggregate_verify_pre_aggregated(&m, &d, &p));
+                b.iter(|| {
+                    a.fast_aggregate_verify_pre_aggregated(true, &m, &d, &p)
+                });
             },
         );
     }

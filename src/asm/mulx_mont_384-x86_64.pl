@@ -349,8 +349,8 @@ sqrx_mont_384x:
 	mov	$n_ptr, 8*0(%rsp)	# n0
 	mov	$b_org, $n_ptr		# n_ptr
 					# gap for __mulx_mont_384
-	mov	$a_ptr, 8*2(%rsp)
-	movq	$r_ptr, %xmm0
+	mov	$r_ptr, 8*2(%rsp)
+	mov	$a_ptr, 8*3(%rsp)
 
 	################################# add_mod_384(t0, a->re, a->im);
 	lea	48($a_ptr), $b_org	# a->im
@@ -358,13 +358,13 @@ sqrx_mont_384x:
 	call	__add_mod_384
 
 	################################# sub_mod_384(t1, a->re, a->im);
-	mov	8*2(%rsp), $a_ptr	# a->re
+	mov	8*3(%rsp), $a_ptr	# a->re
 	lea	48($a_ptr), $b_org	# a->im
 	lea	32+48(%rsp), $r_ptr	# t1
 	call	__sub_mod_384
 
 	################################# mul_mont_384(ret->im, a->re, a->im, mod, n0);
-	mov	8*2(%rsp), $a_ptr	# a->re
+	mov	8*3(%rsp), $a_ptr	# a->re
 	lea	48($a_ptr), $b_ptr	# a->im
 
 	mov	48($a_ptr), %rdx
@@ -1057,7 +1057,6 @@ __sqrx_384:
 	mov	8*2($a_ptr), @acc[8]
 	mov	8*3($a_ptr), @acc[9]
 	mov	8*4($a_ptr), @acc[10]
-	movq	$r_ptr, %xmm0
 
 	#########################################
 	mulx	@acc[7], @acc[1], $lo		# a[1]*a[0]
@@ -1125,7 +1124,7 @@ __sqrx_384:
 	mulx	@acc[11], $lo, @acc[10]		# a[5]*a[4]
 	 mov	8*0($a_ptr), %rdx
 	add	$lo, @acc[9]
-	 movq	%xmm0, $r_ptr			# restore $r_ptr
+	 mov	8(%rsp), $r_ptr			# restore $r_ptr
 	adc	\$0, @acc[10]
 
 	######################################### double acc[1:10]
@@ -1639,7 +1638,7 @@ mulx_mont_384:
 	mov	8*1($a_ptr), @acc[7]
 	mov	8*2($a_ptr), @acc[8]
 	mov	8*3($a_ptr), @acc[4]
-	movq	$r_ptr, %xmm0
+	mov	$r_ptr, 8*2(%rsp)
 	mov	8*4($a_ptr), $lo
 	mov	8*5($a_ptr), $hi
 	lea	-128($a_ptr), $a_ptr	# control u-op density
@@ -1762,7 +1761,7 @@ ___
 }
 $code.=<<___;
 	imulq	8(%rsp), %rdx
-	movq	%xmm0, $b_ptr		# restore $r_ptr
+	mov	8*3(%rsp), $b_ptr	# restore $r_ptr
 
 	################################# last reduction
 	xor	@acc[8], @acc[8]	# @acc[8]=0, cf=0, of=0
@@ -1858,7 +1857,7 @@ sqrx_mont_384:
 	mov	8*1($a_ptr), @acc[7]
 	mov	8*2($a_ptr), @acc[8]
 	mov	8*3($a_ptr), @acc[4]
-	movq	$r_ptr, %xmm0
+	mov	$r_ptr, 8*2(%rsp)
 	mov	8*4($a_ptr), $lo
 	mov	8*5($a_ptr), $hi
 
@@ -1906,8 +1905,8 @@ sqrx_n_mul_mont_384:
 .cfi_push	%r14
 	push	%r15
 .cfi_push	%r15
-	lea	-8*3(%rsp), %rsp
-.cfi_adjust_cfa_offset	8*3
+	lea	-8*5(%rsp), %rsp
+.cfi_adjust_cfa_offset	8*5
 .cfi_end_prologue
 
 	mov	$b_org, @acc[2]		# loop counter
@@ -1916,12 +1915,12 @@ sqrx_n_mul_mont_384:
 	mov	8*2($a_ptr), @acc[8]
 	mov	$a_ptr, $b_ptr
 	mov	8*3($a_ptr), @acc[4]
-	movq	$r_ptr, %xmm0		# to __mulx_mont_384
+	mov	$r_ptr, 8*2(%rsp)	# to __mulx_mont_384
 	mov	8*4($a_ptr), $lo
 	mov	8*5($a_ptr), $hi
 
 	mov	$n0, (%rsp)
-	mov	%r9, 16(%rsp)		# 6th, multiplicand argument
+	mov	%r9, 8*3(%rsp)		# 6th, multiplicand argument
 	movq	8*0(%r9), %xmm2		# prefetch b[0]
 
 .Loop_sqrx_384:
@@ -1939,26 +1938,26 @@ sqrx_n_mul_mont_384:
 	mov	%rdx, @acc[6]
 	movq	%xmm2, %rdx		# b[0]
 	lea	-128($b_ptr), $a_ptr	# control u-op density
-	mov	16(%rsp), $b_ptr	# 6th, multiplicand argument
+	mov	8*3(%rsp), $b_ptr	# 6th, multiplicand argument
 	lea	-128($n_ptr), $n_ptr	# control u-op density
 
 	mulx	@acc[6],@acc[0],@acc[1]	# a[0]*b[0]
 	call	__mulx_mont_384
 
-	mov	8*3(%rsp),%r15
+	mov	8*5(%rsp),%r15
 .cfi_restore	%r15
-	mov	8*4(%rsp),%r14
+	mov	8*6(%rsp),%r14
 .cfi_restore	%r14
-	mov	8*5(%rsp),%r13
+	mov	8*7(%rsp),%r13
 .cfi_restore	%r13
-	mov	8*6(%rsp),%r12
+	mov	8*8(%rsp),%r12
 .cfi_restore	%r12
-	mov	8*7(%rsp),%rbx
+	mov	8*9(%rsp),%rbx
 .cfi_restore	%rbx
-	mov	8*8(%rsp),%rbp
+	mov	8*10(%rsp),%rbp
 .cfi_restore	%rbp
-	lea	8*9(%rsp),%rsp
-.cfi_adjust_cfa_offset	-8*9
+	lea	8*11(%rsp),%rsp
+.cfi_adjust_cfa_offset	-8*11
 .cfi_epilogue
 	ret
 .cfi_endproc
@@ -1982,8 +1981,8 @@ sqrx_n_mul_mont_383:
 .cfi_push	%r14
 	push	%r15
 .cfi_push	%r15
-	lea	-8*3(%rsp), %rsp
-.cfi_adjust_cfa_offset	8*3
+	lea	-8*5(%rsp), %rsp
+.cfi_adjust_cfa_offset	8*5
 .cfi_end_prologue
 
 	mov	$b_org, @acc[2]		# loop counter
@@ -1992,12 +1991,12 @@ sqrx_n_mul_mont_383:
 	mov	8*2($a_ptr), @acc[8]
 	mov	$a_ptr, $b_ptr
 	mov	8*3($a_ptr), @acc[4]
-	movq	$r_ptr, %xmm0		# to __mulx_mont_383_nonred
+	mov	$r_ptr, 8*2(%rsp)	# to __mulx_mont_383_nonred
 	mov	8*4($a_ptr), $lo
 	mov	8*5($a_ptr), $hi
 
 	mov	$n0, (%rsp)
-	mov	%r9, 16(%rsp)		# 6th, multiplicand argument
+	mov	%r9, 8*3(%rsp)		# 6th, multiplicand argument
 	movq	8*0(%r9), %xmm2		# prefetch b[0]
 	lea	-128($n_ptr), $n_ptr	# control u-op density
 
@@ -2015,25 +2014,25 @@ sqrx_n_mul_mont_383:
 	mov	%rdx, @acc[6]
 	movq	%xmm2, %rdx		# b[0]
 	lea	-128($b_ptr), $a_ptr	# control u-op density
-	mov	16(%rsp), $b_ptr	# 6th, multiplicand argument
+	mov	8*3(%rsp), $b_ptr	# 6th, multiplicand argument
 
 	mulx	@acc[6], @acc[0], @acc[1]	# a[0]*b[0]
 	call	__mulx_mont_384
 
-	mov	8*3(%rsp),%r15
+	mov	8*5(%rsp),%r15
 .cfi_restore	%r15
-	mov	8*4(%rsp),%r14
+	mov	8*6(%rsp),%r14
 .cfi_restore	%r14
-	mov	8*5(%rsp),%r13
+	mov	8*7(%rsp),%r13
 .cfi_restore	%r13
-	mov	8*6(%rsp),%r12
+	mov	8*8(%rsp),%r12
 .cfi_restore	%r12
-	mov	8*7(%rsp),%rbx
+	mov	8*9(%rsp),%rbx
 .cfi_restore	%rbx
-	mov	8*8(%rsp),%rbp
+	mov	8*10(%rsp),%rbp
 .cfi_restore	%rbp
-	lea	8*9(%rsp),%rsp
-.cfi_adjust_cfa_offset	-8*9
+	lea	8*11(%rsp),%rsp
+.cfi_adjust_cfa_offset	-8*11
 .cfi_epilogue
 	ret
 .cfi_endproc
@@ -2128,7 +2127,7 @@ ___
 }
 $code.=<<___;
 	imulq	8(%rsp), %rdx
-	movq	%xmm0, $b_ptr		# restore $r_ptr
+	mov	8*3(%rsp), $b_ptr	# restore $r_ptr
 
 	################################# last reduction
 	xor	@acc[8], @acc[8]	# @acc[8]=0, cf=0, of=0
@@ -2204,8 +2203,8 @@ sqrx_mont_382x:
 
 	mov	$n_ptr, 8*0(%rsp)	# n0
 	mov	$b_org, $n_ptr		# n_ptr
-	mov	$a_ptr, 8*2(%rsp)
-	mov	$r_ptr, %xmm0
+	mov	$r_ptr, 8*2(%rsp)
+	mov	$a_ptr, 8*3(%rsp)
 
 	#################################
 	mov	8*0($a_ptr), @acc[0]	# a->re
@@ -2252,7 +2251,7 @@ sqrx_mont_382x:
 	mov	$r_ptr,   32+8*12(%rsp)
 
 	################################# mul_mont_384(ret->im, a->re, a->im, mod, n0);
-	#mov	8*2(%rsp), $a_ptr	# a->re
+	#mov	8*3(%rsp), $a_ptr	# a->re
 	lea	48($a_ptr), $b_ptr	# a->im
 
 	mov	48($a_ptr), %rdx
