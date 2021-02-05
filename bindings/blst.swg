@@ -176,7 +176,8 @@
 // new objects allocate suitably sized long[] arrays from JVM heap,
 // references to which are then assigned to |swigCPtr| on the Java side.
 // And when passed back to JNI, |swigCPtr|s are dereferenced with
-// GetLongArrayElements...
+// GetLongArrayElements... And no destructors!
+%nodefaultdtor;
 %typemap(javabody) SWIGTYPE %{
   private transient long[] swigCPtr;
 
@@ -187,7 +188,6 @@
   public $javaclassname dup() { return new $javaclassname(swigCPtr.clone()); }
 %}
 %ignore dup;
-%nodefaultdtor;
 %typemap(javafinalize)  SWIGTYPE ""
 %typemap(javadestruct)  SWIGTYPE ""
 %typemap(javaconstruct) SWIGTYPE { this($imcall); }
@@ -239,7 +239,6 @@
         }
         return (Pairing *)ret;
     }
-    ~Pairing() { free($self); }
 }
 %typemap(out) blst::Pairing* {
     size_t sz = blst_pairing_sizeof();
