@@ -45,6 +45,10 @@ matrix:
       - os: linux
         arch: arm64
         language: go
+      - os: linux
+        arch: s390x
+        language: rust
+        env: CFLAGS=-D__BLST_NO_ASM__
       - os: osx
         arch: amd64
         language: rust
