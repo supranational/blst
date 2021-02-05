@@ -34,10 +34,17 @@ if [ ! -f ../libblst.a -o ../blst.h -nt ../libblst.a ]; then
     (cd ..; ../build.sh)
 fi
 
+if [ "x$BLST_PACKAGE_NAME" = "x" ];
+then
+      PACKAGE_ARG=""
+else
+      PACKAGE_ARG="-package $BLST_PACKAGE_NAME"
+fi
+
 if [ ! -f blst_wrap.cpp -o ../blst.swg -nt blst_wrap.cpp \
                         -o ../blst.hpp -nt blst_wrap.cpp \
                         -o ../blst.h   -nt blst_wrap.cpp ]; then
-    (set -x; swig -c++ -java -outdir . -o blst_wrap.cpp -package tech.pegasys.teku.bls.impl.blst.swig ../blst.swg)
+    (set -x; swig -c++ -java -outdir . -o blst_wrap.cpp ${PACKAGE_ARG} ../blst.swg)
 fi
 
 if [ ! -f $SO_NAME -o blst_wrap.cpp -nt $SO_NAME \
