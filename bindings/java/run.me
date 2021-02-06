@@ -1,5 +1,7 @@
 #!/bin/sh -e
 
+JAVA_PACKAGE=${JAVA_PACKAGE:-supranational.blst}
+
 cd `dirname $0`
 
 #unset _JAVA_OPTIONS
@@ -41,27 +43,32 @@ case `uname -s` in
 esac
 expr $SO_NAME : '.*\.so' > /dev/null && LDFLAGS=${LDFLAGS:--Wl,-Bsymbolic}
 
+PKG=`echo $JAVA_PACKAGE | tr . /`
+mkdir -p $PKG
+
 if [ ! -f ../libblst.a -o ../blst.h -nt ../libblst.a ]; then
     (cd ..; ../build.sh)
 fi
 
 if [ ! -f blst_wrap.cpp -o ../blst.swg -nt blst_wrap.cpp \
                         -o ../blst.hpp -nt blst_wrap.cpp \
-                        -o ../blst.h   -nt blst_wrap.cpp ]; then
-    (set -x; swig -c++ -java -outdir . -o blst_wrap.cpp ../blst.swg)
+                        -o ../blst.h   -nt blst_wrap.cpp \
+                        -o ! -f $PKG/blst.java ]; then
+    (set -x; swig -c++ -java -package $JAVA_PACKAGE -outdir $PKG \
+                  -o blst_wrap.cpp ../blst.swg)
 fi
 
 if [ ! -f $SO_NAME -o blst_wrap.cpp -nt $SO_NAME \
                    -o ../libblst.a  -nt $SO_NAME ]; then
-    (set -x; c++ -shared -o $SO_NAME -fPIC \
-                 -I"$JAVA_HOME"/include -I"$JNI_MD" -I.. \
-                 -O -Wall -Wno-unused-function blst_wrap.cpp \
-                 ../libblst.a ${LDFLAGS})
+    (set -x; ${CXX:-c++} -shared -o $SO_NAME -fPIC \
+                         -I"$JAVA_HOME"/include -I"$JNI_MD" -I.. \
+                         -O -Wall -Wno-unused-function blst_wrap.cpp \
+                         ../libblst.a ${LDFLAGS})
 fi
 
-if [ ! -f blst.class -o blst.java     -nt blst.class \
-                     -o runnable.java -nt runnable.class ]; then
-    (set -x; "$JAVA_HOME"/bin/javac *.java)
+if [ ! -f $PKG/blst.class -o $PKG/blst.java -nt $PKG/blst.class -o \
+     ! -f runnable.class  -o runnable.java  -nt runnable.class ]; then
+    (set -x; "$JAVA_HOME"/bin/javac $PKG/*.java runnable.java)
 fi
 
 "$JAVA_HOME"/bin/java -Djava.library.path=. runnable

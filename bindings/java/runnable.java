@@ -1,3 +1,5 @@
+import supranational.blst.*;
+
 public class runnable {
     static {
         System.loadLibrary("blst");
