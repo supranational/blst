@@ -195,10 +195,12 @@ For more details see the Rust binding [readme](bindings/rust/README.md).
     * blst.hpp - provides foundational class-oriented C++ interface to blst library
     * blst.swg - provides SWIG definitions for creating blst bindings for other languages, such as Java and Python
     * **Go** - folder containing Go bindings for blst, including tests and benchmarks
-        * **Hash_to_curve**: folder containing test for hash_to_curve from IETF specification
     * **Java** - folder containing an example of how to use SWIG Java bindings for blst
+    * **Node.js** - folder containing an example of how to use SWIG Javascript bindings for blst
     * **Python** - folder containing an example of how to use SWIG Python bindings for blst
     * **Rust** - folder containing Rust bindings for blst, including tests and benchmarks
+    * **Vectors**
+        * **Hash_to_curve**: folder containing test for hash_to_curve from IETF specification
 * **Src** - folder containing C code for lower level blst functions such as field operations, extension field operations, hash-to-field, and more
     * **Asm** - folder containing Perl scripts that are used to generate assembly code for different hardware platforms including x86 with ADX instructions, x86 without ADX instructions, and ARMv8, and [ABI](https://en.wikipedia.org/wiki/Application_binary_interface)[1]
 * **Build** - this folder containing a set of pre-generated assembly files for a variety of operating systems and maintenance scripts.
