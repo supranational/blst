@@ -170,6 +170,16 @@
 %include "arrays_java.i"
 %javaconst(1);
 
+#if SWIG_VERSION < 0x040000
+%apply (char *STRING, size_t LENGTH) { (const byte *STRING, size_t LENGTH) }
+#endif
+
+%pragma(java) jniclasscode=%{
+    static {
+        System.loadLibrary("$module");
+    }
+%}
+
 #ifdef __cplusplus
 // Extensive sorcery to shift memory management to JVM GC. General idea is
 // to use Java long[] as opaque storage for blst data. Methods that return
@@ -178,7 +188,10 @@
 // And when passed back to JNI, |swigCPtr|s are dereferenced with
 // GetLongArrayElements... And no destructors!
 %nodefaultdtor;
-%typemap(javabody) SWIGTYPE %{
+%typemap(javafinalize)  SWIGTYPE ""
+%typemap(javadestruct)  SWIGTYPE ""
+
+%typemap(javabody)      SWIGTYPE %{
   private transient long[] swigCPtr;
 
   protected $javaclassname(long[] cPtr) { swigCPtr = cPtr; }
@@ -188,8 +201,6 @@
   public $javaclassname dup() { return new $javaclassname(swigCPtr.clone()); }
 %}
 %ignore dup;
-%typemap(javafinalize)  SWIGTYPE ""
-%typemap(javadestruct)  SWIGTYPE ""
 %typemap(javaconstruct) SWIGTYPE { this($imcall); }
 %typemap(jni)           SWIGTYPE, SWIGTYPE&, SWIGTYPE* "jlongArray"
 %typemap(jtype)         SWIGTYPE, SWIGTYPE&, SWIGTYPE* "long[]"
@@ -248,16 +259,14 @@
         JCALL(SetLongArrayRegion, $result, 0, SZ, (const jlong *)$1);
 }
 %typemap(newfree) blst::Pairing* "free($1);"
+
+%typemap(javaout) SELF* OUTPUT { $jnicall; return this; }
 #endif
 
 %typemap(throws) BLST_ERROR %{
     SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException,
                                   BLST_ERROR_str[$1]);
 %}
-
-#if SWIG_VERSION < 0x040000
-%apply (char *STRING, size_t LENGTH) { (const byte *STRING, size_t LENGTH) }
-#endif
 
 // handle input const byte[] more efficiently...
 %apply signed char[] { const byte* }
@@ -304,10 +313,6 @@
 %typemap(jtype)  (const byte* scalar, size_t nbits) "byte[]"
 %typemap(jstype) (const byte* scalar, size_t nbits) "java.math.BigInteger"
 %typemap(javain) (const byte* scalar, size_t nbits) "$javainput.toByteArray()"
-
-#ifdef __cplusplus
-%typemap(javaout) SELF* OUTPUT { $jnicall; return this; }
-#endif
 
 #elif defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_V8)
 

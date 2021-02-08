@@ -1,10 +1,6 @@
 import supranational.blst.*;
 
 public class runnable {
-    static {
-        System.loadLibrary("blst");
-    }
-
     public static void main(String argv[]) {
         final var msg = "assertion".getBytes();
         final var DST = "MY-DST";
