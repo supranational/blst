@@ -261,6 +261,9 @@
 %typemap(newfree) blst::Pairing* "free($1);"
 
 %typemap(javaout) SELF* OUTPUT { $jnicall; return this; }
+%typemap(out)     SELF* OUTPUT "(void)$1;"
+%typemap(jni)     SELF* OUTPUT "void"
+%typemap(jtype)   SELF* OUTPUT "void"
 #endif
 
 %typemap(throws) BLST_ERROR %{
