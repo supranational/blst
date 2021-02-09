@@ -174,9 +174,43 @@
 %apply (char *STRING, size_t LENGTH) { (const byte *STRING, size_t LENGTH) }
 #endif
 
+%pragma(java) jniclassimports=%{
+import java.io.*;
+import java.nio.file.*;
+%}
 %pragma(java) jniclasscode=%{
+    final static String libName = System.mapLibraryName("$module");
+    final static String resName = System.getProperty("os.name").replace(" ","")
+                                + "/" + System.getProperty("os.arch")
+                                + "/" + libName;
     static {
-        System.loadLibrary("$module");
+        InputStream res = $imclassname.class.getResourceAsStream(resName);
+        if (res == null) {
+            try {
+                System.loadLibrary("$module");
+            } catch (UnsatisfiedLinkError e) {
+                String[] cmd = System.getProperty("sun.java.command").split("/");
+		if (!"$imclassname".equals(cmd[cmd.length-1]))
+                    // suppress exception if 'main' below is executed
+                    throw new RuntimeException(e.getMessage());
+	    }
+        } else {
+            // unpack shared library into a temporary directory and load it
+            try {
+                Path tmpdir = Files.createTempDirectory("$module@");
+                tmpdir.toFile().deleteOnExit();
+                Path tmpdll = Paths.get(tmpdir.toString(), libName);
+                tmpdll.toFile().deleteOnExit();
+                Files.copy(res, tmpdll, StandardCopyOption.REPLACE_EXISTING);
+                res.close();
+                System.load(tmpdll.toString());
+            } catch (IOException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+        }
+    }
+    public static void main(String argv[]) {
+        System.out.println(resName);
     }
 %}
 
