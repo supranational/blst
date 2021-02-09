@@ -2,9 +2,18 @@
 
 JAVA_PACKAGE=${JAVA_PACKAGE:-supranational.blst}
 
-TOP=`dirname $0`
-TOP=`(cd $TOP/.. && echo $PWD)`
+# figure out if this script was source-d
+if [ `dirname "$0"` -ef "$PWD" ]; then
+    TOP="$PWD"
+elif [ -n "$OLDPWD" -a "$OLDPWD/$0" -ef `basename "$0"` ]; then
+    TOP="$PWD"
+else
+    TOP=`dirname "$0"`
+fi
 
+TOP=`(cd "$TOP"/.. && echo $PWD)`
+
+# figure out JAVA_HOME if not set by caller
 if [ "x$JAVA_HOME" = "x" -a -x /usr/libexec/java_home ]; then
     JAVA_HOME=`/usr/libexec/java_home 2>/dev/null || true`
 fi
