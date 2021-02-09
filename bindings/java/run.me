@@ -6,69 +6,14 @@ cd `dirname $0`
 
 #unset _JAVA_OPTIONS
 
-if [ "x$JAVA_HOME" = "x" -a -x /usr/libexec/java_home ]; then
-    JAVA_HOME=`/usr/libexec/java_home 2>/dev/null || true`
-fi
-if [ "x$JAVA_HOME" = "x" ]; then
-    JAVA_HOME=`java -XshowSettings:properties -version 2>&1 | \
-               awk 'BEGIN { FS="=\\\s*" } /java\.home/ { print $2 }'`
-fi
-if [ ! -d "$JAVA_HOME" ]; then
-    echo "JAVA_HOME='$JAVA_HOME' is not a directory" 1>&2
-    exit 1
-fi
-if [ ! -d "$JAVA_HOME"/include ]; then
-    if [ -d "$JAVA_HOME"/../include ]; then
-        JAVA_HOME=`dirname "$JAVA_HOME"`
-    else
-        echo "JAVA_HOME='$JAVA_HOME' is not a JDK" 1>&2
-        exit 1
-    fi
-fi
-# spot jni_md.h, which is included from jni.h
-JNI_MD=`ls "$JAVA_HOME"/include/*/jni_md.h`
-JNI_MD=`dirname "$JNI_MD"`
+. ./build.sh
 
-# figure out SO_NAME and set optional LDFLAGS (if not set already)
-unset SO_NAME
-if [ -x "$JAVA_HOME"/bin/jshell ]; then
-    SO_NAME=`echo 'System.out.println(System.mapLibraryName("blst"))' | \
-             "$JAVA_HOME"/bin/jshell - 2>/dev/null`
-fi
-case `uname -s` in
-    MINGW*) SO_NAME=${SO_NAME:-blst.dll};
-            LDFLAGS=${LDFLAGS:--static-libstdc++};;
-    Darwin) SO_NAME=${SO_NAME:-libblst.dylib};;
-    *)      SO_NAME=${SO_NAME:-libblst.so};;    # Linux, Solaris, *BSD...
-esac
-expr $SO_NAME : '.*\.so' > /dev/null && LDFLAGS=${LDFLAGS:--Wl,-Bsymbolic}
-
-PKG=`echo $JAVA_PACKAGE | tr . /`
-mkdir -p $PKG
-
-if [ ! -f ../libblst.a -o ../blst.h -nt ../libblst.a ]; then
-    (cd ..; ../build.sh)
+if [ ! -f runnable.class  -o runnable.java  -nt runnable.class ]; then
+    (set -x; "$JAVA_HOME"/bin/javac runnable.java)
 fi
 
-if [ ! -f blst_wrap.cpp -o ../blst.swg -nt blst_wrap.cpp \
-                        -o ../blst.hpp -nt blst_wrap.cpp \
-                        -o ../blst.h   -nt blst_wrap.cpp \
-                        -o ! -f $PKG/blst.java ]; then
-    (set -x; swig -c++ -java -package $JAVA_PACKAGE -outdir $PKG \
-                  -o blst_wrap.cpp ../blst.swg)
+if [ -f $JAVA_PACKAGE.jar ]; then
+    (set -x; "$JAVA_HOME"/bin/java -classpath $JAVA_PACKAGE.jar:. runnable)
+else
+    (set -x; "$JAVA_HOME"/bin/java -Djava.library.path=. runnable)
 fi
-
-if [ ! -f $SO_NAME -o blst_wrap.cpp -nt $SO_NAME \
-                   -o ../libblst.a  -nt $SO_NAME ]; then
-    (set -x; ${CXX:-c++} -shared -o $SO_NAME -fPIC \
-                         -I"$JAVA_HOME"/include -I"$JNI_MD" -I.. \
-                         -O -Wall -Wno-unused-function blst_wrap.cpp \
-                         ../libblst.a ${LDFLAGS})
-fi
-
-if [ ! -f $PKG/blst.class -o $PKG/blst.java -nt $PKG/blst.class -o \
-     ! -f runnable.class  -o runnable.java  -nt runnable.class ]; then
-    (set -x; "$JAVA_HOME"/bin/javac $PKG/*.java runnable.java)
-fi
-
-"$JAVA_HOME"/bin/java -Djava.library.path=. runnable
