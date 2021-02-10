@@ -180,7 +180,7 @@ import java.nio.file.*;
 %}
 %pragma(java) jniclasscode=%{
     final static String libName = System.mapLibraryName("$module");
-    final static String resName = System.getProperty("os.name").replace(" ","")
+    final static String resName = System.getProperty("os.name").replaceFirst(" .*","")
                                 + "/" + System.getProperty("os.arch")
                                 + "/" + libName;
     static {
