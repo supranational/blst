@@ -307,7 +307,7 @@ static void clear_cofactor(POINTonE2 *out, const POINTonE2 *p)
  */
 static void POINTonE2_add_n_dbl(POINTonE2 *out, const POINTonE2 *p, size_t n)
 {
-    POINTonE2_add(out, out, p);
+    POINTonE2_dadd(out, out, p, NULL);
     while(n--)
         POINTonE2_double(out, out);
 }
@@ -336,14 +336,14 @@ static void clear_cofactor(POINTonE2 *out, const POINTonE2 *p)
     vec_copy(&t0, p, sizeof(t0));
     POINTonE2_cneg(&t0, 1);             /* t0 = -P                      */
     psi(&t1, &t0);                      /* t1 = -Ψ(P)                   */
-    POINTonE2_add(out, out, &t0);       /* out = Ψ²(2P) - P             */
-    POINTonE2_add(out, out, &t1);       /* out = Ψ²(2P) - P - Ψ(P)      */
+    POINTonE2_dadd(out, out, &t0, NULL);/* out = Ψ²(2P) - P             */
+    POINTonE2_dadd(out, out, &t1, NULL);/* out = Ψ²(2P) - P - Ψ(P)      */
 
     POINTonE2_times_minus_z(&t0, p);    /* t0 = [-z]P                   */
-    POINTonE2_add(&t0, &t0, p);         /* t0 = [-z + 1]P               */
-    POINTonE2_add(&t0, &t0, &t1);       /* t0 = [-z + 1]P - Ψ(P)        */
+    POINTonE2_dadd(&t0, &t0, p, NULL);  /* t0 = [-z + 1]P               */
+    POINTonE2_dadd(&t0, &t0, &t1, NULL);/* t0 = [-z + 1]P - Ψ(P)        */
     POINTonE2_times_minus_z(&t1, &t0);  /* t1 = [z² - z]P + [z]Ψ(P)     */
-    POINTonE2_add(out, out, &t1);       /* out = [z² - z - 1]P          */
+    POINTonE2_dadd(out, out, &t1, NULL);/* out = [z² - z - 1]P          */
                                         /*     + [z - 1]Ψ(P)            */
                                         /*     + Ψ²(2P)                 */
 }
@@ -410,9 +410,9 @@ static bool_t POINTonE2_in_G2(const POINTonE2 *P)
     psi(&t1, &t0);                      /* Ψ³(P)                        */
 
     POINTonE2_times_minus_z(&t2, &t1);
-    POINTonE2_add(&t0, &t0, &t2);
+    POINTonE2_dadd(&t0, &t0, &t2, NULL);
     POINTonE2_cneg(&t0, 1);
-    POINTonE2_add(&t0, &t0, P);         /* [z]Ψ³(P) - Ψ²(P) + P         */
+    POINTonE2_dadd(&t0, &t0, P, NULL);  /* [z]Ψ³(P) - Ψ²(P) + P         */
 
     return vec_is_zero(t0.Z, sizeof(t0.Z));
 }

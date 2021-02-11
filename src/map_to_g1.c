@@ -385,7 +385,7 @@ static void POINTonE1_dbl_n_add(POINTonE1 *out, size_t n, const POINTonE1 *p)
 {
     while(n--)
         POINTonE1_double(out, out);
-    POINTonE1_add(out, out, p);
+    POINTonE1_dadd(out, out, p, NULL);
 }
 
 /*
@@ -460,7 +460,7 @@ static void POINTonE1_times_zz_minus_1_div_by_3(POINTonE1 *out,
     while(n--) {
         POINTonE1_double(out, dblin);   dblin = out;
         if (is_bit_set(zz_minus_1_div_by_3, n))
-            POINTonE1_add(out, out, in);
+            POINTonE1_dadd(out, out, in, NULL);
     }
 }
 #else
@@ -469,28 +469,28 @@ static void POINTonE1_times_zz_minus_1_div_by_3(POINTonE1 *out,
 {
     POINTonE1 t3, t5, t7, t11, t85;
 
-    POINTonE1_double(&t7, in);          /* 2P */
-    POINTonE1_add(&t3, &t7, in);        /* 3P */
-    POINTonE1_add(&t5, &t3, &t7);       /* 5P */
-    POINTonE1_add(&t7, &t5, &t7);       /* 7P */
-    POINTonE1_double(&t85, &t5);        /* 10P */
-    POINTonE1_add(&t11, &t85, in);      /* 11P */
-    POINTonE1_dbl_n_add(&t85, 3, &t5);  /* 0x55P */
-                                        /* (-0xd201000000010000^2 - 1) / 3 */
-    POINTonE1_double(out, &t7);         /* 0xe */
-    POINTonE1_dbl_n_add(out, 5,  &t11); /* 0x1cb */
-    POINTonE1_dbl_n_add(out, 3,  &t3);  /* 0xe5b */
-    POINTonE1_dbl_n_add(out, 3,  in);   /* 0x72d9 */
-    POINTonE1_dbl_n_add(out, 5,  &t3);  /* 0xe5b23 */
-    POINTonE1_dbl_n_add(out, 18, &t85); /* 0x396c8c0055 */
-    POINTonE1_dbl_n_add(out, 8,  &t85); /* 0x396c8c005555 */
-    POINTonE1_dbl_n_add(out, 3,  &t7);  /* 0x1cb646002aaaf */
-    POINTonE1_dbl_n_add(out, 7,  &t5);  /* 0xe5b23001555785 */
-    POINTonE1_dbl_n_add(out, 5,  &t11); /* 0x1cb646002aaaf0ab */
-    POINTonE1_dbl_n_add(out, 41, &t85); /* 0x396c8c005555e1560000000055 */
-    POINTonE1_dbl_n_add(out, 8,  &t85); /* 0x396c8c005555e156000000005555 */
-    POINTonE1_dbl_n_add(out, 8,  &t85); /* 0x396c8c005555e15600000000555555 */
-    POINTonE1_dbl_n_add(out, 8,  &t85); /* 0x396c8c005555e1560000000055555555 */
+    POINTonE1_double(&t7, in);              /* 2P */
+    POINTonE1_dadd(&t3, &t7, in, NULL);     /* 3P */
+    POINTonE1_dadd(&t5, &t3, &t7, NULL);    /* 5P */
+    POINTonE1_dadd(&t7, &t5, &t7, NULL);    /* 7P */
+    POINTonE1_double(&t85, &t5);            /* 10P */
+    POINTonE1_dadd(&t11, &t85, in, NULL);   /* 11P */
+    POINTonE1_dbl_n_add(&t85, 3, &t5);      /* 0x55P */
+                                            /* (-0xd201000000010000^2 - 1) / 3 */
+    POINTonE1_double(out, &t7);             /* 0xe */
+    POINTonE1_dbl_n_add(out, 5,  &t11);     /* 0x1cb */
+    POINTonE1_dbl_n_add(out, 3,  &t3);      /* 0xe5b */
+    POINTonE1_dbl_n_add(out, 3,  in);       /* 0x72d9 */
+    POINTonE1_dbl_n_add(out, 5,  &t3);      /* 0xe5b23 */
+    POINTonE1_dbl_n_add(out, 18, &t85);     /* 0x396c8c0055 */
+    POINTonE1_dbl_n_add(out, 8,  &t85);     /* 0x396c8c005555 */
+    POINTonE1_dbl_n_add(out, 3,  &t7);      /* 0x1cb646002aaaf */
+    POINTonE1_dbl_n_add(out, 7,  &t5);      /* 0xe5b23001555785 */
+    POINTonE1_dbl_n_add(out, 5,  &t11);     /* 0x1cb646002aaaf0ab */
+    POINTonE1_dbl_n_add(out, 41, &t85);     /* 0x396c8c005555e1560000000055 */
+    POINTonE1_dbl_n_add(out, 8,  &t85);     /* 0x396c8c005555e156000000005555 */
+    POINTonE1_dbl_n_add(out, 8,  &t85);     /* 0x396c8c005555e15600000000555555 */
+    POINTonE1_dbl_n_add(out, 8,  &t85);     /* 0x396c8c005555e1560000000055555555 */
 }
 #endif
 
@@ -500,18 +500,18 @@ static bool_t POINTonE1_in_G1(const POINTonE1 *P)
 {
     POINTonE1 t0, t1, t2;
 
-    /* Bowe, S., "Faster subgroup checks for BLS12-381"                 */
-    sigma(&t0, P);                      /* σ(P)                         */
-    sigma(&t1, &t0);                    /* σ²(P)                        */
+    /* Bowe, S., "Faster subgroup checks for BLS12-381"                   */
+    sigma(&t0, P);                        /* σ(P)                         */
+    sigma(&t1, &t0);                      /* σ²(P)                        */
 
-    POINTonE1_double(&t0, &t0);         /* 2σ(P)                        */
-    POINTonE1_add(&t2, &t1, P);         /* P +  σ²(P)                   */
-    POINTonE1_cneg(&t2, 1);             /* - P - σ²(P)                  */
-    POINTonE1_add(&t2, &t2, &t0);       /* 2σ(P) - P - σ²(P)            */
-    POINTonE1_times_zz_minus_1_div_by_3(&t0, &t2);
+    POINTonE1_double(&t0, &t0);           /* 2σ(P)                        */
+    POINTonE1_dadd(&t2, &t1, P, NULL);    /* P +  σ²(P)                   */
+    POINTonE1_cneg(&t2, 1);               /* - P - σ²(P)                  */
+    POINTonE1_dadd(&t2, &t2, &t0, NULL);  /* 2σ(P) - P - σ²(P)            */
+    POINTonE1_times_zz_minus_1_div_by_3(  &t0, &t2);
     POINTonE1_cneg(&t1, 1);
-    POINTonE1_add(&t0, &t0, &t1);       /* [(z²-1)/3](2σ(P) - P - σ²(P)) */
-                                        /* - σ²(P) */
+    POINTonE1_dadd(&t0, &t0, &t1, NULL);  /* [(z²-1)/3](2σ(P) - P - σ²(P)) */
+                                          /* - σ²(P) */
     return vec_is_zero(t0.Z, sizeof(t0.Z));
 }
 
