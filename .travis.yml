@@ -46,8 +46,9 @@ matrix:
         arch: arm64
         language: go
       - os: linux
-        arch: ppc64le
+        arch: s390x
         language: rust
+        rust: 1.49.0
         env: CFLAGS=-D__BLST_NO_ASM__
       - os: osx
         arch: amd64
