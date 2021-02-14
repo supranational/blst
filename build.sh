@@ -15,7 +15,10 @@
 
 TOP=`dirname $0`
 
-CC=${CC:-cc}
+if [ "x$CC" = "x" ]; then
+    CC=gcc
+    which cc >/dev/null 2>&1 && CC=cc
+fi
 # if -Werror stands in the way, bypass with -Wno-error on command line
 CFLAGS=${CFLAGS:--O -fPIC -Wall -Wextra -Werror}
 PERL=${PERL:-perl}

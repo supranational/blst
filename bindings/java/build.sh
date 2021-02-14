@@ -69,12 +69,16 @@ if [ ! -f $SO_NAME -o blst_wrap.cpp -nt $SO_NAME \
         *.so)   LDFLAGS=${LDFLAGS:--Wl,-Bsymbolic};;
         *.dll)  LDFLAGS=${LDFLAGS:--static-libstdc++};;
     esac
-    (set -x; ${CXX:-c++} -shared -o $SO_NAME -fPIC \
-                         -I"$JAVA_HOME"/include -I"$JNI_MD" -I"$TOP" \
-                         -O -Wall -Wno-unused-function blst_wrap.cpp \
-                         $LIBBLST_A ${LDFLAGS})
+    if [ "x$CXX" = "x" ]; then
+        CXX=g++
+        which c++ >/dev/null 2>&1 && CXX=c++
+    fi
+    (set -x; ${CXX} -shared -o $SO_NAME -fPIC \
+                    -I"$JAVA_HOME"/include -I"$JNI_MD" -I"$TOP" \
+                    -O -Wall -Wno-unused-function blst_wrap.cpp \
+                    $LIBBLST_A ${LDFLAGS})
 fi
 
 if [ ! -f $JAVA_PACKAGE.jar -o $SO_NAME -nt $JAVA_PACKAGE.jar ]; then
-    (set -x; jar cf $JAVA_PACKAGE.jar $PKG/*.class $PKG/*/*/*)
+    (set -x; "$JAVA_HOME"/bin/jar cf $JAVA_PACKAGE.jar $PKG/*.class $PKG/*/*/*)
 fi
