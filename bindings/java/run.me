@@ -13,7 +13,9 @@ if [ ! -f runnable.class  -o runnable.java  -nt runnable.class ]; then
 fi
 
 if [ -f $JAVA_PACKAGE.jar ]; then
-    (set -x; "$JAVA_HOME"/bin/java -classpath $JAVA_PACKAGE.jar:. runnable)
+    PSEP=`"$JAVA_HOME"/bin/java -XshowSettings:properties -version 2>&1 | \
+          awk 'BEGIN { FS="=[ \t]*" } /path\.separator/ { print $2 }'`
+    (set -x; "$JAVA_HOME"/bin/java -classpath $JAVA_PACKAGE.jar$PSEP. runnable)
 else
     (set -x; "$JAVA_HOME"/bin/java -Djava.library.path=. runnable)
 fi
