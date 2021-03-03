@@ -448,6 +448,11 @@ static bool_t eucl_inverse_mod_n(limb_t out[], const limb_t a[],
     bool_t ret = 0;
     size_t i;
 
+    if (vec_is_zero(a, n*sizeof(limb_t))) {
+        vec_zero(out, n*sizeof(limb_t));
+        return 0;
+    }
+
     vec_copy(ux[0], a, sizeof(ux[0]));
     if (one != NULL)
         vec_copy(ux[1], one, sizeof(ux[1]));
