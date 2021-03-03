@@ -67,11 +67,18 @@ static void reciprocal_fp(vec384 out, const vec384 inp)
         TO_LIMB_T(0x6933786f44f4ef0b), TO_LIMB_T(0xd6bf8b9c676be983),
         TO_LIMB_T(0xd3adaaaa4dcefb06), TO_LIMB_T(0x12601bc1d82bc175)
     };
-    vec768 temp;
+    union { vec768 x; vec384 r[2]; } temp;
 
-    ct_inverse_mod_383(temp, inp, BLS12_381_P, Px8);
-    redc_mont_384(out, temp, BLS12_381_P, p0);
-    mul_mont_384(out, out, RRx4, BLS12_381_P, p0);
+    ct_inverse_mod_383(temp.x, inp, BLS12_381_P, Px8);
+    redc_mont_384(temp.r[0], temp.x, BLS12_381_P, p0);
+    mul_mont_384(temp.r[0], temp.r[0], RRx4, BLS12_381_P, p0);
+
+    /* sign goes straight to flt_reciprocal */
+    mul_mont_384(temp.r[1], temp.r[0], inp, BLS12_381_P, p0);
+    if (vec_is_equal(temp.r[1],  BLS12_381_Rx.p, sizeof(vec384)))
+        vec_copy(out, temp.r[0], sizeof(vec384));
+    else
+        flt_reciprocal_fp(out, inp);
 }
 
 void blst_fp_inverse(vec384 out, const vec384 inp)
