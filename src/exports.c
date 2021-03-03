@@ -463,7 +463,7 @@ void blst_scalar_from_fr(pow256 ret, const vec256 a)
 /*
  * Test facilitator
  */
-static unsigned char nibble(unsigned char c)
+static unsigned char nibble(char c)
 {
     if (c >= '0' && c <= '9')
         return c - '0';
@@ -475,8 +475,7 @@ static unsigned char nibble(unsigned char c)
         return 16;
 }
 
-static void limbs_from_hexascii(limb_t *ret, size_t sz,
-                                const unsigned char *hex)
+static void limbs_from_hexascii(limb_t *ret, size_t sz, const char *hex)
 {
     size_t len;
     limb_t limb = 0;
@@ -496,10 +495,10 @@ static void limbs_from_hexascii(limb_t *ret, size_t sz,
     }
 }
 
-void blst_scalar_from_hexascii(vec256 ret, const unsigned char *hex)
+void blst_scalar_from_hexascii(vec256 ret, const char *hex)
 {   limbs_from_hexascii(ret, sizeof(vec256), hex);   }
 
-void blst_fp_from_hexascii(vec384 ret, const unsigned char *hex)
+void blst_fp_from_hexascii(vec384 ret, const char *hex)
 {
     limbs_from_hexascii(ret, sizeof(vec384), hex);
     mul_fp(ret, ret, BLS12_381_RR);
