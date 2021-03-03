@@ -13,6 +13,7 @@ $L$SEH_begin_ctx_inverse_mod_383::
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
+	mov	rcx,r9
 
 
 
@@ -36,7 +37,7 @@ $L$SEH_body_ctx_inverse_mod_383::
 	lea	rax,QWORD PTR[((88+511))+rsp]
 	and	rax,-512
 	mov	QWORD PTR[32+rsp],rdi
-	mov	QWORD PTR[40+rsp],rdx
+	mov	QWORD PTR[40+rsp],rcx
 
 	mov	r8,QWORD PTR[rsi]
 	mov	r9,QWORD PTR[8+rsi]
@@ -807,7 +808,7 @@ $L$SEH_body_ctx_inverse_mod_383::
 	call	__smulx_767x63
 
 	xor	rsi,256+8*12
-	mov	edi,55
+	mov	edi,53
 
 	mov	r8,QWORD PTR[rsi]
 
@@ -1441,8 +1442,8 @@ __ab_approximation_31	PROC PRIVATE
 	or	rax,r11
 	bsr	rcx,rax
 	lea	rcx,QWORD PTR[1+rcx]
-	cmovz	r9,rbx
-	cmovz	r11,rbp
+	cmovz	r9,r8
+	cmovz	r11,r10
 	cmovz	rcx,rax
 	neg	rcx
 
@@ -1450,17 +1451,13 @@ __ab_approximation_31	PROC PRIVATE
 	shld	r9,rbx,cl
 	shld	r11,rbp,cl
 
-	mov	rcx,r9
-	or	rcx,r11
-	sar	rcx,63
-	and	ecx,33
-
-	shr	r9,cl
-	shr	r11,cl
-	shl	r8,cl
-	shl	r10,cl
-	shrd	r8,r9,cl
-	shrd	r10,r11,cl
+	mov	eax,07FFFFFFFh
+	and	r8,rax
+	and	r10,rax
+	andn	r9,rax,r9
+	andn	r11,rax,r11
+	or	r8,r9
+	or	r10,r11
 
 	jmp	__inner_loop_31
 

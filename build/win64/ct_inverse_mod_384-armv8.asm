@@ -14,19 +14,19 @@
 	stp	x27, x28, [sp,#80]
 	sub	sp, sp, #1040
 
-	ldp	x3, x4, [x1,#8*0]
+	ldp	x22,   x4, [x1,#8*0]
 	ldp	x5, x6, [x1,#8*2]
 	ldp	x7, x8, [x1,#8*4]
 
 	add	x1, sp, #16+511	// find closest 512-byte-aligned spot
 	and	x1, x1, #-512	// in the frame...
-	stp	x0, x2, [sp]
+	stp	x0, x3, [sp]
 
 	ldp	x9, x10, [x2,#8*0]
 	ldp	x11, x12, [x2,#8*2]
 	ldp	x13, x14, [x2,#8*4]
 
-	stp	x3, x4, [x1,#8*0]	// copy input to |a|
+	stp	x22,   x4, [x1,#8*0]	// copy input to |a|
 	stp	x5, x6, [x1,#8*2]
 	stp	x7, x8, [x1,#8*4]
 	stp	x9, x10, [x1,#8*6]	// copy modulus to |b|
@@ -310,7 +310,7 @@
 
 	////////////////////////////////////////// last iteration
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
-	mov	x2, #24			// 768 % 62
+	mov	x2, #22			// 766 % 62
 	//bl	__ab_approximation_62		// |a| and |b| are exact,
 	ldr	x3, [x1,#8*0]		// just load
 	eor	x8, x8, x8
@@ -672,21 +672,6 @@
 	and	x13, x13, x23, asr#6
 	orr	x8, x8, x7
 	orr	x14, x14, x13
-
-	lsl	x22, x3, #2
-	lsr	x23, x8, #2
-	lsl	x24, x9, #2
-	orr	x26, x8, x14
-	lsr	x25, x14, #2
-	cmp	x26, #0
-	extr	x22, x23, x22, #2
-	lsr	x23, x23, #2
-	extr	x24, x25, x24, #2
-	lsr	x25, x25, #2
-	cselge	x3,x3,x22
-	cselge	x8,x8,x23
-	cselge	x9,x9,x24
-	cselge	x14,x14,x25
 
 	b	__inner_loop_62
 	ret

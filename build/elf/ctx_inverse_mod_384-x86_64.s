@@ -33,7 +33,7 @@ ctx_inverse_mod_383:
 	leaq	88+511(%rsp),%rax
 	andq	$-512,%rax
 	movq	%rdi,32(%rsp)
-	movq	%rdx,40(%rsp)
+	movq	%rcx,40(%rsp)
 
 	movq	0(%rsi),%r8
 	movq	8(%rsi),%r9
@@ -804,7 +804,7 @@ ctx_inverse_mod_383:
 	call	__smulx_767x63
 
 	xorq	$256+96,%rsi
-	movl	$55,%edi
+	movl	$53,%edi
 
 	movq	0(%rsi),%r8
 
@@ -1448,8 +1448,8 @@ __ab_approximation_31:
 	orq	%r11,%rax
 	bsrq	%rax,%rcx
 	leaq	1(%rcx),%rcx
-	cmovzq	%rbx,%r9
-	cmovzq	%rbp,%r11
+	cmovzq	%r8,%r9
+	cmovzq	%r10,%r11
 	cmovzq	%rax,%rcx
 	negq	%rcx
 
@@ -1457,17 +1457,13 @@ __ab_approximation_31:
 	shldq	%cl,%rbx,%r9
 	shldq	%cl,%rbp,%r11
 
-	movq	%r9,%rcx
-	orq	%r11,%rcx
-	sarq	$63,%rcx
-	andl	$33,%ecx
-
-	shrq	%cl,%r9
-	shrq	%cl,%r11
-	shlq	%cl,%r8
-	shlq	%cl,%r10
-	shrdq	%cl,%r9,%r8
-	shrdq	%cl,%r11,%r10
+	movl	$0x7FFFFFFF,%eax
+	andq	%rax,%r8
+	andq	%rax,%r10
+	andnq	%r9,%rax,%r9
+	andnq	%r11,%rax,%r11
+	orq	%r9,%r8
+	orq	%r11,%r10
 
 	jmp	__inner_loop_31
 

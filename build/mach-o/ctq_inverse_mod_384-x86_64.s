@@ -33,7 +33,7 @@ _ct_inverse_mod_383:
 	leaq	88+511(%rsp),%rax
 	andq	$-512,%rax
 	movq	%rdi,32(%rsp)
-	movq	%rdx,40(%rsp)
+	movq	%rcx,40(%rsp)
 
 	movq	0(%rsi),%r8
 	movq	8(%rsi),%r9
@@ -462,7 +462,7 @@ _ct_inverse_mod_383:
 
 
 	xorq	$256+96,%rsi
-	movl	$24,%edi
+	movl	$22,%edi
 
 	movq	0(%rsi),%r8
 	xorq	%r9,%r9
@@ -1124,20 +1124,6 @@ __ab_approximation_62:
 
 	shldq	%cl,%rbx,%r9
 	shldq	%cl,%rbp,%r11
-
-	movq	%r9,%rcx
-	orq	%r11,%rcx
-	sarq	$63,%rcx
-	andl	$2,%ecx
-
-	shrq	%cl,%r9
-	shrq	%cl,%r11
-	shlq	%cl,%r8
-	shlq	%cl,%r10
-	shrdq	%cl,%r9,%r8
-	shrdq	%cl,%r11,%r10
-	shrq	%cl,%r9
-	shrq	%cl,%r11
 
 	jmp	__inner_loop_62
 

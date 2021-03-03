@@ -13,6 +13,7 @@ $L$SEH_begin_ct_inverse_mod_383::
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
+	mov	rcx,r9
 
 
 
@@ -36,7 +37,7 @@ $L$SEH_body_ct_inverse_mod_383::
 	lea	rax,QWORD PTR[((88+511))+rsp]
 	and	rax,-512
 	mov	QWORD PTR[32+rsp],rdi
-	mov	QWORD PTR[40+rsp],rdx
+	mov	QWORD PTR[40+rsp],rcx
 
 	mov	r8,QWORD PTR[rsi]
 	mov	r9,QWORD PTR[8+rsi]
@@ -465,7 +466,7 @@ $L$SEH_body_ct_inverse_mod_383::
 
 
 	xor	rsi,256+8*12
-	mov	edi,24
+	mov	edi,22
 
 	mov	r8,QWORD PTR[rsi]
 	xor	r9,r9
@@ -1120,20 +1121,6 @@ __ab_approximation_62	PROC PRIVATE
 
 	shld	r9,rbx,cl
 	shld	r11,rbp,cl
-
-	mov	rcx,r9
-	or	rcx,r11
-	sar	rcx,63
-	and	ecx,2
-
-	shr	r9,cl
-	shr	r11,cl
-	shl	r8,cl
-	shl	r10,cl
-	shrd	r8,r9,cl
-	shrd	r10,r11,cl
-	shr	r9,cl
-	shr	r11,cl
 
 	jmp	__inner_loop_62
 
