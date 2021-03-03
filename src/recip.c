@@ -73,12 +73,16 @@ static void reciprocal_fp(vec384 out, const vec384 inp)
     redc_mont_384(temp.r[0], temp.x, BLS12_381_P, p0);
     mul_mont_384(temp.r[0], temp.r[0], RRx4, BLS12_381_P, p0);
 
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
     /* sign goes straight to flt_reciprocal */
     mul_mont_384(temp.r[1], temp.r[0], inp, BLS12_381_P, p0);
     if (vec_is_equal(temp.r[1],  BLS12_381_Rx.p, sizeof(vec384)))
         vec_copy(out, temp.r[0], sizeof(vec384));
     else
         flt_reciprocal_fp(out, inp);
+#else
+    vec_copy(out, temp.r[0], sizeof(vec384));
+#endif
 }
 
 void blst_fp_inverse(vec384 out, const vec384 inp)

@@ -425,7 +425,11 @@ static void POINTonE1_sign(POINTonE1 *out, const POINTonE1 *in, const pow256 SK)
 
     /* convert to affine to remove possible bias in out->Z */
     inf = vec_is_zero(out->Z, sizeof(out->Z));
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
     flt_reciprocal_fp(Z, out->Z);                       /* 1/Z   */
+#else
+    reciprocal_fp(Z, out->Z);                           /* 1/Z   */
+#endif
 
     sqr_fp(ZZ, Z);
     mul_fp(out->X, out->X, ZZ);                         /* X = X/Z^2 */
