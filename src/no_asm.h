@@ -744,27 +744,12 @@ static void ab_approximation_n(limb_t a_[2], const limb_t a[],
     a_hi <<= (0-i) & (LIMB_T_BITS-1); a_hi |= (a_lo & mask) >> i;
     b_hi <<= (0-i) & (LIMB_T_BITS-1); b_hi |= (b_lo & mask) >> i;
     /* if a[2..]|b[2..] were zeros, bring *[1] into *_hi... */
+    mask = 0 - (is_zero(a_hi | b_hi)^1);
     a_hi = ((a_hi ^ a_lo) & mask) ^ a_lo;
     b_hi = ((b_hi ^ b_lo) & mask) ^ b_lo;
-    /* ... and recalculate the |mask| */
-    mask = 0 - MSB(a_hi | b_hi);
-    /* zero |mask| means that |a_| and |b_| values will be exact, and
-     * as for non-zero, two possibilities:
-     * a) a[2..]|b[2..] were non-zero and we have bitwise left-aligned
-     *    values in a_hi/b_hi;
-     * b) a[2..]|b[2..] were zeros and a[1]|b[1] has most significant
-     *    bit set.
-     */
-    i = (size_t)(2 & mask);
-    a_hi >>= i; a_lo = a[0] << i;
-    b_hi >>= i; b_lo = b[0] << i;
-    a_lo >>= i; a_lo |= (a_hi & mask) << ((LIMB_T_BITS-2) & mask);
-    b_lo >>= i; b_lo |= (b_hi & mask) << ((LIMB_T_BITS-2) & mask);
-    a_hi >>= i;
-    b_hi >>= i;
 
-    a_[0] = a_lo, a_[1] = a_hi;
-    b_[0] = b_lo, b_[1] = b_hi;
+    a_[0] = a[0], a_[1] = a_hi;
+    b_[0] = b[0], b_[1] = b_hi;
 }
 
 typedef struct { limb_t f0, g0, f1, g1; } factors;

@@ -16,7 +16,8 @@ def ct_inverse_mod_383(inp, mod):
     b, v = mod, 0
 
     k = 62
-    mask = (1 << k) - 1
+    w = 64
+    mask = (1 << w) - 1
 
     for i in range(0, 766 // k):
         # __ab_approximation_62
@@ -24,8 +25,8 @@ def ct_inverse_mod_383(inp, mod):
         if n < 128:
             a_, b_ = a, b
         else:
-            a_ = (a & mask) | ((a >> (n-k)) << k)
-            b_ = (b & mask) | ((b >> (n-k)) << k)
+            a_ = (a & mask) | ((a >> (n-w)) << w)
+            b_ = (b & mask) | ((b >> (n-w)) << w)
 
         # __inner_loop_62
         f0, g0, f1, g1 = 1, 0, 0, 1
@@ -819,20 +820,6 @@ __ab_approximation_62:
 
 	shldq	%cl, @a[1], @a[2]	# align second limb to the left
 	shldq	%cl, @b[1], @b[2]
-
-	mov	@a[2], %rcx
-	or	@b[2], %rcx
-	sar	\$63, %rcx
-	and	\$2, %ecx
-
-	shrq	%cl, @a[2]		# 62 bits from a_hi
-	shrq	%cl, @b[2]		# 62 bits from b_hi
-	shlq	%cl, @a[0]		# 62 bits from a_lo
-	shlq	%cl, @b[0]		# 62 bits from b_lo
-	shrdq	%cl, @a[2], @a[0]
-	shrdq	%cl, @b[2], @b[0]
-	shrq	%cl, @a[2]
-	shrq	%cl, @b[2]
 
 	jmp	__inner_loop_62
 

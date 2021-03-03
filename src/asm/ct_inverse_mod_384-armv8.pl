@@ -16,7 +16,8 @@ def ct_inverse_mod_383(inp, mod):
     b, v = mod, 0
 
     k = 62
-    mask = (1 << k) - 1
+    w = 64
+    mask = (1 << w) - 1
 
     for i in range(0, 766 // k):
         # __ab_approximation_62
@@ -24,8 +25,8 @@ def ct_inverse_mod_383(inp, mod):
         if n < 128:
             a_, b_ = a, b
         else:
-            a_ = (a & mask) | ((a >> (n-k)) << k)
-            b_ = (b & mask) | ((b >> (n-k)) << k)
+            a_ = (a & mask) | ((a >> (n-w)) << w)
+            b_ = (b & mask) | ((b >> (n-w)) << w)
 
         # __inner_loop_62
         f0, g0, f1, g1 = 1, 0, 0, 1
@@ -557,21 +558,6 @@ __ab_approximation_62:
 	and	@b[4], @b[4], @t[1], asr#6
 	orr	@a[5], @a[5], @a[4]
 	orr	@b[5], @b[5], @b[4]
-
-	lsl	@t[0], @a[0], #2
-	lsr	@t[1], @a[5], #2
-	lsl	@t[2], @b[0], #2
-	 orr	@t[4], @a[5], @b[5]
-	lsr	@t[3], @b[5], #2
-	 cmp	@t[4], #0
-	extr	@t[0], @t[1], @t[0], #2
-	lsr	@t[1], @t[1], #2
-	extr	@t[2], @t[3], @t[2], #2
-	lsr	@t[3], @t[3], #2
-	csel	$a_lo, @a[0], @t[0], ge
-	csel	$a_hi, @a[5], @t[1], ge
-	csel	$b_lo, @b[0], @t[2], ge
-	csel	$b_hi, @b[5], @t[3], ge
 
 	b	__inner_loop_62
 	ret

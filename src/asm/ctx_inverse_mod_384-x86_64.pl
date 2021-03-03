@@ -24,8 +24,8 @@ def ct_inverse_mod_383(inp, mod):
         if n < 64:
             a_, b_ = a, b
         else:
-            a_ = (a & mask) | ((a >> (n-k)) << k)
-            b_ = (b & mask) | ((b >> (n-k)) << k)
+            a_ = (a & mask) | ((a >> (n-k-2)) << k)
+            b_ = (b & mask) | ((b >> (n-k-2)) << k)
 
         # __inner_loop_31
         f0, g0, f1, g1 = 1, 0, 0, 1
@@ -878,8 +878,8 @@ __ab_approximation_31:
 	or	@b[2], $t0
 	bsr	$t0, %rcx
 	lea	1(%rcx), %rcx
-	cmovz	@a[1], @a[2]
-	cmovz	@b[1], @b[2]
+	cmovz	@a[0], @a[2]
+	cmovz	@b[0], @b[2]
 	cmovz	$t0, %rcx
 	neg	%rcx
 	#and	\$63, %rcx		# debugging artefact
@@ -887,17 +887,13 @@ __ab_approximation_31:
 	shldq	%cl, @a[1], @a[2]	# align second limb to the left
 	shldq	%cl, @b[1], @b[2]
 
-	mov	@a[2], %rcx
-	or	@b[2], %rcx
-	sar	\$63, %rcx
-	and	\$33, %ecx
-
-	shrq	%cl, @a[2]		# 31 bits from a_hi
-	shrq	%cl, @b[2]		# 31 bits from b_hi
-	shlq	%cl, @a[0]		# 31 bits from a_lo
-	shlq	%cl, @b[0]		# 31 bits from b_lo
-	shrdq	%cl, @a[2], @a[0]
-	shrdq	%cl, @b[2], @b[0]
+	mov	\$0x7FFFFFFF, %eax
+	and	%rax, @a[0]
+	and	%rax, @b[0]
+	andn	@a[2], %rax, @a[2]
+	andn	@b[2], %rax, @b[2]
+	or	@a[2], @a[0]
+	or	@b[2], @b[0]
 
 	jmp	__inner_loop_31
 
