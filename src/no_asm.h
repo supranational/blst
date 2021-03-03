@@ -718,6 +718,16 @@ static size_t num_bits(limb_t l)
     return bits;
 }
 
+#if defined(__clang_major__) && __clang_major__>7
+__attribute__((optnone))
+#endif
+static limb_t lshift_2(limb_t hi, limb_t lo, size_t l)
+{
+    size_t r = LIMB_T_BITS - l;
+    limb_t mask = 0 - (is_zero(l)^1);
+    return (hi << (l&(LIMB_T_BITS-1))) | ((lo & mask) >> (r&(LIMB_T_BITS-1)));
+}
+
 /*
  * https://eprint.iacr.org/2020/972 with 'k' being LIMB_T_BITS-1.
  */
@@ -737,19 +747,11 @@ static void ab_approximation_n(limb_t a_[2], const limb_t a[],
         a_lo = ((a[i] ^ a_lo) & mask) ^ a_lo;
         b_lo = ((b[i] ^ b_lo) & mask) ^ b_lo;
     }
-    i = num_bits(a_hi | b_hi) & (LIMB_T_BITS-1);
-    /* |i| can be 0 if all a[2..]|b[2..] were zeros */
-    mask = 0 - (is_zero(i)^1);
-    /* bitwise align |hi|lo| pairs to the left */
-    a_hi <<= (0-i) & (LIMB_T_BITS-1); a_hi |= (a_lo & mask) >> i;
-    b_hi <<= (0-i) & (LIMB_T_BITS-1); b_hi |= (b_lo & mask) >> i;
-    /* if a[2..]|b[2..] were zeros, bring *[1] into *_hi... */
-    mask = 0 - (is_zero(a_hi | b_hi)^1);
-    a_hi = ((a_hi ^ a_lo) & mask) ^ a_lo;
-    b_hi = ((b_hi ^ b_lo) & mask) ^ b_lo;
+    i = LIMB_T_BITS - num_bits(a_hi | b_hi);
+    /* |i| can be LIMB_T_BITS if all a[2..]|b[2..] were zeros */
 
-    a_[0] = a[0], a_[1] = a_hi;
-    b_[0] = b[0], b_[1] = b_hi;
+    a_[0] = a[0], a_[1] = lshift_2(a_hi, a_lo, i);
+    b_[0] = b[0], b_[1] = lshift_2(b_hi, b_lo, i);
 }
 
 typedef struct { limb_t f0, g0, f1, g1; } factors;
