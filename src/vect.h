@@ -130,7 +130,8 @@ void rshift_mod_384(vec384 ret, const vec384 a, size_t count, const vec384 p);
 void div_by_2_mod_384(vec384 ret, const vec384 a, const vec384 p);
 bool_t eucl_inverse_mod_384(vec384 ret, const vec384 a, const vec384 p,
                             const vec384 one);
-void ct_inverse_mod_383(vec768 ret, const vec384 inp, const vec384 mod);
+void ct_inverse_mod_383(vec768 ret, const vec384 inp, const vec384 mod,
+                                                      const vec384 modx);
 
 #if defined(__ADX__) /* e.g. -march=broadwell */ && !defined(__BLST_PORTABLE__)
 # define mul_mont_384x mulx_mont_384x

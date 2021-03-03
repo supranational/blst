@@ -927,7 +927,7 @@ static void smul_2n(limb_t ret[], const limb_t u[], limb_t f,
 }
 
 static void ct_inverse_mod_n(limb_t ret[], const limb_t inp[],
-                             const limb_t mod[], size_t n)
+                             const limb_t mod[], const limb_t modx[], size_t n)
 {
     llimb_t limbx;
     limb_t a[n], b[n], u[2*n], v[2*n], t[2*n];
@@ -940,7 +940,7 @@ static void ct_inverse_mod_n(limb_t ret[], const limb_t inp[],
     vec_zero(u, sizeof(u)); u[0] = 1;
     vec_zero(v, sizeof(v));
 
-    for (i=0; i<(2*n*LIMB_T_BITS)/(LIMB_T_BITS-2); i++) {
+    for (i=0; i<(2*n*LIMB_T_BITS-2)/(LIMB_T_BITS-2); i++) {
         ab_approximation_n(a_, a, b_, b, n);
         inner_loop_n(&fg, a_, b_, LIMB_T_BITS-2);
         smul_n_shift_n(t, a, &fg.f0, b, &fg.g0, n);
@@ -951,19 +951,20 @@ static void ct_inverse_mod_n(limb_t ret[], const limb_t inp[],
         vec_copy(u, t, sizeof(u));
     }
 
-    inner_loop_n(&fg, a, b, (2*n*LIMB_T_BITS)%(LIMB_T_BITS-2));
+    inner_loop_n(&fg, a, b, (2*n*LIMB_T_BITS-2)%(LIMB_T_BITS-2));
     smul_2n(ret, u, fg.f1, v, fg.g1, 2*n);
 
     sign = 0 - MSB(ret[2*n-1]);
     for (carry=0, i=0; i<n; i++) {
-        limbx = ret[n+i] + ((mod[i] & sign) + (llimb_t)carry);
+        limbx = ret[n+i] + ((modx[i] & sign) + (llimb_t)carry);
         ret[n+i] = (limb_t)limbx;
         carry = (limb_t)(limbx >> LIMB_T_BITS);
     }
 }
 
-inline void ct_inverse_mod_383(vec768 ret, const vec384 inp, const vec384 mod)
-{   ct_inverse_mod_n(ret, inp, mod, sizeof(vec384)/sizeof(limb_t));   }
+inline void ct_inverse_mod_383(vec768 ret, const vec384 inp, const vec384 mod,
+                                                             const vec384 modx)
+{   ct_inverse_mod_n(ret, inp, mod, modx, sizeof(vec384)/sizeof(limb_t));   }
 
 /*
  * |div_top| points at two most significant limbs of the dividend, |d_hi|

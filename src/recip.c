@@ -8,11 +8,21 @@
 
 static void reciprocal_fp(vec384 out, const vec384 inp)
 {
+    static const vec384 Px8 = {    /* left-aligned value of the modulus */
+        TO_LIMB_T(0xcff7fffffffd5558), TO_LIMB_T(0xf55ffff58a9ffffd),
+        TO_LIMB_T(0x39869507b587b120), TO_LIMB_T(0x23ba5c279c2895fb),
+        TO_LIMB_T(0x58dd3db21a5d66bb), TO_LIMB_T(0xd0088f51cbff34d2)
+    };
+    static const vec384 RRx4 = {   /* (4<<768)%P */
+        TO_LIMB_T(0x5f7e7cd070d107c2), TO_LIMB_T(0xec839a9ac49c13c8),
+        TO_LIMB_T(0x6933786f44f4ef0b), TO_LIMB_T(0xd6bf8b9c676be983),
+        TO_LIMB_T(0xd3adaaaa4dcefb06), TO_LIMB_T(0x12601bc1d82bc175)
+    };
     vec768 temp;
 
-    ct_inverse_mod_383(temp, inp, BLS12_381_P);
+    ct_inverse_mod_383(temp, inp, BLS12_381_P, Px8);
     redc_mont_384(out, temp, BLS12_381_P, p0);
-    mul_mont_384(out, out, BLS12_381_RR, BLS12_381_P, p0);
+    mul_mont_384(out, out, RRx4, BLS12_381_P, p0);
 }
 
 void blst_fp_inverse(vec384 out, const vec384 inp)

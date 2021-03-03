@@ -18,7 +18,7 @@ def ct_inverse_mod_383(inp, mod):
     k = 31
     mask = (1 << k) - 1
 
-    for i in range(0, 768 // k):
+    for i in range(0, 766 // k):
         # __ab_approximation_31
         n = max(a.bit_length(), b.bit_length())
         if n < 64:
@@ -46,9 +46,9 @@ def ct_inverse_mod_383(inp, mod):
         # __smulx_767x63
         u, v = u*f0 + v*g0, u*f1 + v*g1
 
-    if 768 % k:
+    if 766 % k:
         f0, g0, f1, g1 = 1, 0, 0, 1
-        for j in range(0, 768 % k):
+        for j in range(0, 766 % k):
             if a & 1:
                 if a < b:
                     a, b, f0, g0, f1, g1 = b, a, f1, g1, f0, g0
@@ -58,7 +58,7 @@ def ct_inverse_mod_383(inp, mod):
         v = u*f1 + v*g1
 
     if v < 0:
-        v += mod << 384
+        v += mod << 387 # left aligned
 
     return v    # to be reduced % mod
 ___
@@ -77,7 +77,7 @@ die "can't locate x86_64-xlate.pl";
 open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
     or die "can't call $xlate: $!";
 
-my ($out_ptr, $in_ptr, $n_ptr) = ("%rdi", "%rsi", "%rdx");
+my ($out_ptr, $in_ptr, $n_ptr, $nx_ptr) = ("%rdi", "%rsi", "%rdx", "%rcx");
 my @acc=(map("%r$_",(8..15)), "%rbx", "%rbp", $in_ptr, $out_ptr);
 my ($f0, $g0, $f1, $g1) = ("%rdx","%rcx","%r12","%r13");
 my $cnt = "%edi";
@@ -88,7 +88,7 @@ $code.=<<___;
 .text
 
 .globl	ctx_inverse_mod_383
-.type	ctx_inverse_mod_383,\@function,3,"unwind"
+.type	ctx_inverse_mod_383,\@function,4,"unwind"
 .align	32
 ctx_inverse_mod_383:
 .cfi_startproc
@@ -111,7 +111,7 @@ ctx_inverse_mod_383:
 	lea	8*11+511(%rsp), %rax	# find closest 512-byte-aligned spot
 	and	\$-512, %rax		# in the frame...
 	mov	$out_ptr, 8*4(%rsp)
-	mov	$n_ptr, 8*5(%rsp)
+	mov	$nx_ptr, 8*5(%rsp)
 
 	mov	8*0($in_ptr), @acc[0]	# load input
 	mov	8*1($in_ptr), @acc[1]
@@ -274,7 +274,7 @@ ___
 $code.=<<___;
 	################################# two[!] last iterations in one go
 	xor	\$256+8*12, $in_ptr	# flip-flop pointer to source |a|b|u|v|
-	mov	\$55, $cnt		# 31 + 768 % 31
+	mov	\$53, $cnt		# 31 + 766 % 31
 	#call	__ab_approximation_31	# |a| and |b| are exact, just load
 	mov	8*0($in_ptr), @acc[0]	# |a_lo|
 	#xor	@acc[1],      @acc[1]	# |a_hi|

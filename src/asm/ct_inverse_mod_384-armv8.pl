@@ -18,7 +18,7 @@ def ct_inverse_mod_383(inp, mod):
     k = 62
     mask = (1 << k) - 1
 
-    for i in range(0, 768 // k):
+    for i in range(0, 766 // k):
         # __ab_approximation_62
         n = max(a.bit_length(), b.bit_length())
         if n < 128:
@@ -46,9 +46,9 @@ def ct_inverse_mod_383(inp, mod):
         # __smul_767x63
         u, v = u*f0 + v*g0, u*f1 + v*g1
 
-    if 768 % k:
+    if 766 % k:
         f0, g0, f1, g1 = 1, 0, 0, 1
-        for j in range(0, 768 % k):
+        for j in range(0, 766 % k):
             if a & 1:
                 if a < b:
                     a, b, f0, g0, f1, g1 = b, a, f1, g1, f0, g0
@@ -58,7 +58,7 @@ def ct_inverse_mod_383(inp, mod):
         v = u*f1 + v*g1
 
     if v < 0:
-        v += mod << 384
+        v += mod << 387 # left aligned
 
     return v    # to be reduced % mod
 ___
@@ -77,7 +77,7 @@ if ($flavour && $flavour ne "void") {
     open STDOUT,">$output";
 }
 
-my ($out_ptr, $in_ptr, $n_ptr) = map("x$_", (0..2));
+my ($out_ptr, $in_ptr, $n_ptr, $nx_ptr) = map("x$_", (0..3));
 my @acc=map("x$_",(3..14));
 my ($f0, $g0, $f1, $g1, $f_, $g_) = map("x$_",(15..17,19..21));
 my $cnt = $n_ptr;
@@ -103,19 +103,19 @@ ct_inverse_mod_383:
 	stp	x27, x28, [sp,#80]
 	sub	sp, sp, #$frame
 
-	ldp	@acc[0], @acc[1], [$in_ptr,#8*0]
+	ldp	@t[0],   @acc[1], [$in_ptr,#8*0]
 	ldp	@acc[2], @acc[3], [$in_ptr,#8*2]
 	ldp	@acc[4], @acc[5], [$in_ptr,#8*4]
 
 	add	$in_ptr, sp, #16+511	// find closest 512-byte-aligned spot
 	and	$in_ptr, $in_ptr, #-512	// in the frame...
-	stp	$out_ptr, $n_ptr, [sp]
+	stp	$out_ptr, $nx_ptr, [sp]
 
 	ldp	@acc[6], @acc[7], [$n_ptr,#8*0]
 	ldp	@acc[8], @acc[9], [$n_ptr,#8*2]
 	ldp	@acc[10], @acc[11], [$n_ptr,#8*4]
 
-	stp	@acc[0], @acc[1], [$in_ptr,#8*0]	// copy input to |a|
+	stp	@t[0],   @acc[1], [$in_ptr,#8*0]	// copy input to |a|
 	stp	@acc[2], @acc[3], [$in_ptr,#8*2]
 	stp	@acc[4], @acc[5], [$in_ptr,#8*4]
 	stp	@acc[6], @acc[7], [$in_ptr,#8*6]	// copy modulus to |b|
@@ -237,7 +237,7 @@ $code.=<<___;
 
 	////////////////////////////////////////// last iteration
 	eor	$in_ptr, $in_ptr, #256		// flip-flop src |a|b|u|v|
-	mov	$cnt, #24			// 768 % 62
+	mov	$cnt, #22			// 766 % 62
 	//bl	__ab_approximation_62		// |a| and |b| are exact,
 	ldr	$a_lo, [$in_ptr,#8*0]		// just load
 	eor	$a_hi, $a_hi, $a_hi
