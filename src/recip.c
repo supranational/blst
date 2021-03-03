@@ -6,6 +6,55 @@
 
 #include "fields.h"
 
+#ifdef __OPTIMIZE_SIZE__
+/*
+ * 608 multiplications for scalar inversion modulo BLS12-381 prime, 32%
+ * more than corresponding optimal addition-chain, plus mispredicted
+ * branch penalties on top of that... The addition chain below was
+ * measured to be >50% faster.
+ */
+static void flt_reciprocal_fp(vec384 out, const vec384 inp)
+{
+    static const byte BLS12_381_P_minus_2[] = {
+        TO_BYTES(0xb9feffffffffaaa9), TO_BYTES(0x1eabfffeb153ffff),
+        TO_BYTES(0x6730d2a0f6b0f624), TO_BYTES(0x64774b84f38512bf),
+        TO_BYTES(0x4b1ba7b6434bacd7), TO_BYTES(0x1a0111ea397fe69a)
+    };
+
+    exp_mont_384(out, inp, BLS12_381_P_minus_2, 381, BLS12_381_P, p0);
+}
+#else
+# define sqr(ret,a)		sqr_fp(ret,a)
+# define mul(ret,a,b)		mul_fp(ret,a,b)
+# define sqr_n_mul(ret,a,n,b)	sqr_n_mul_fp(ret,a,n,b)
+
+# include "recip-addchain.h"
+static void flt_reciprocal_fp(vec384 out, const vec384 inp)
+{
+    RECIPROCAL_MOD_BLS12_381_P(out, inp, vec384);
+}
+# undef RECIPROCAL_MOD_BLS12_381_P
+# undef sqr_n_mul
+# undef mul
+# undef sqr
+#endif
+
+static void flt_reciprocal_fp2(vec384x out, const vec384x inp)
+{
+    vec384 t0, t1;
+
+    /*
+     * |out| = 1/(a + b*i) = a/(a^2+b^2) - b/(a^2+b^2)*i
+     */
+    sqr_fp(t0, inp[0]);
+    sqr_fp(t1, inp[1]);
+    add_fp(t0, t0, t1);
+    flt_reciprocal_fp(t1, t0);
+    mul_fp(out[0], inp[0], t1);
+    mul_fp(out[1], inp[1], t1);
+    neg_fp(out[1], out[1]);
+}
+
 static void reciprocal_fp(vec384 out, const vec384 inp)
 {
     static const vec384 Px8 = {    /* left-aligned value of the modulus */
