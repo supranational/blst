@@ -493,19 +493,39 @@ static void POINTonE2_mult_gls(POINTonE2 *out, const POINTonE2 *in,
     vec_zero(val.l, sizeof(val));   /* scrub the copy of SK */
 }
 
+static void POINTonE2_sign(POINTonE2 *out, const POINTonE2 *in, const pow256 SK)
+{
+    vec384x Z, ZZ;
+    limb_t inf;
+
+    POINTonE2_mult_gls(out, in, SK);
+
+    /* convert to affine to remove possible bias in out->Z */
+    inf = vec_is_zero(out->Z, sizeof(out->Z));
+    flt_reciprocal_fp2(Z, out->Z);                      /* 1/Z   */
+
+    sqr_fp2(ZZ, Z);
+    mul_fp2(out->X, out->X, ZZ);                        /* X = X/Z^2 */
+
+    mul_fp2(ZZ, ZZ, Z);
+    mul_fp2(out->Y, out->Y, ZZ);                        /* Y = Y/Z^3 */
+
+    vec_select(out->Z, out->Z, BLS12_381_G2.Z, sizeof(BLS12_381_G2.Z),
+                       inf);                            /* Z = inf ? 0 : 1 */
+}
+
 void blst_sk_to_pk_in_g2(POINTonE2 *out, const pow256 SK)
-{   POINTonE2_mult_gls(out, &BLS12_381_G2, SK);   }
+{   POINTonE2_sign(out, &BLS12_381_G2, SK);   }
 
 void blst_sign_pk_in_g1(POINTonE2 *out, const POINTonE2 *msg, const pow256 SK)
-{   POINTonE2_mult_gls(out, msg, SK);   }
+{   POINTonE2_sign(out, msg, SK);   }
 
 void blst_sk_to_pk2_in_g2(unsigned char out[192], POINTonE2_affine *PK,
                           const pow256 SK)
 {
     POINTonE2 P[1];
 
-    POINTonE2_mult_gls(P, &BLS12_381_G2, SK);
-    POINTonE2_from_Jacobian(P, P);
+    POINTonE2_sign(P, &BLS12_381_G2, SK);
     if (PK != NULL)
         vec_copy(PK, P, sizeof(*PK));
     if (out != NULL) {
@@ -520,8 +540,7 @@ void blst_sign_pk2_in_g1(unsigned char out[192], POINTonE2_affine *sig,
 {
     POINTonE2 P[1];
 
-    POINTonE2_mult_gls(P, hash, SK);
-    POINTonE2_from_Jacobian(P, P);
+    POINTonE2_sign(P, hash, SK);
     if (sig != NULL)
         vec_copy(sig, P, sizeof(*sig));
     if (out != NULL) {
