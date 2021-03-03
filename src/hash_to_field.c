@@ -65,12 +65,13 @@ static void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
     }
     b_i_blocks = ((33 + DST_len + 1 + 9) + 63) & -64;
     vec_zero(b_i.c + b_i_blocks - 64, 64);
- 
+
     p = b_i.c + 33;
     for (i = 0; i < DST_len; i++)
         p[i] = DST[i];
     p[i++] = (unsigned char)DST_len;
     p[i++] = 0x80;
+    p[i+6] = p[i+5] = p[i+4] = p[i+3] = p[i+2] = p[i+1] = p[i+0] = 0;
     b_i_bits = (33 + DST_len + 1) * 8;
     p = b_i.c + b_i_blocks;
     p[-2] = (unsigned char)(b_i_bits >> 8);
