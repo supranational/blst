@@ -22,7 +22,7 @@ namespace blst {
 static const app__string_view None;
 #endif
 
-#if __cplusplus < 201103L
+#if __cplusplus < 201103L && !defined(nullptr)
 # ifdef __GNUG__
 #  define nullptr __null
 # elif !defined(_MSVC_LANG) || _MSVC_LANG < 201103L
@@ -30,7 +30,16 @@ static const app__string_view None;
 # endif
 #endif
 
+#ifdef __clang__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wextern-c-compat"
+#endif
+
 #include "blst.h"
+
+#ifdef __clang__
+# pragma GCC diagnostic pop
+#endif
 
 class P1_Affine;
 class P1;
