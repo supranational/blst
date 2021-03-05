@@ -60,7 +60,7 @@ enum { AGGR_UNDEFINED      = 0,
        AGGR_HASH_OR_ENCODE = 0x40 };
 #define MIN_SIG_OR_PK (AGGR_MIN_SIG | AGGR_MIN_PK)
 
-const size_t sizeof_pairing = (sizeof(PAIRING) + 7) & ~(size_t)7;
+static const size_t sizeof_pairing = (sizeof(PAIRING) + 7) & ~(size_t)7;
 
 size_t blst_pairing_sizeof(void)
 {   return sizeof_pairing;   }
