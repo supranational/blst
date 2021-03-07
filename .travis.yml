@@ -50,9 +50,6 @@ matrix:
         language: rust
         rust: 1.49.0
         env: CFLAGS=-D__BLST_NO_ASM__
-      - os: osx
-        arch: amd64
-        language: rust
 
 notifications:
     email: false
