@@ -64,7 +64,7 @@ func main() {
 	msg := []byte("hello foo")
 	sig := new(Signature).Sign(sk, msg, dst)
 
-	if !sig.Verify(pk, msg, dst) {
+	if !sig.Verify(true, pk, true, msg, dst) {
 		fmt.Println("ERROR: Invalid!")
 	} else {
 		fmt.Println("Valid!")
