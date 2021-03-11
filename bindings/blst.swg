@@ -230,7 +230,9 @@ import java.nio.file.*;
 
   protected $javaclassname(long[] cPtr) { swigCPtr = cPtr; }
 
-  protected static long[] getCPtr($javaclassname obj) { return obj.swigCPtr; }
+  protected static long[] getCPtr($javaclassname obj) {
+    return obj != null ? obj.swigCPtr : null;
+  }
 
   public $javaclassname dup() { return new $javaclassname(swigCPtr.clone()); }
 %}
@@ -243,6 +245,9 @@ import java.nio.file.*;
 }
 %typemap(in)            SWIGTYPE&, SWIGTYPE* %{
     $1 = ($1_ltype)JCALL(GetLongArrayElements, $input, 0);
+%}
+%typemap(in)      const SWIGTYPE&, const SWIGTYPE* %{
+    $1 = $input ? ($1_ltype)JCALL(GetLongArrayElements, $input, 0) : NULL;
 %}
 %typemap(out)           SWIGTYPE&, SWIGTYPE* %{
     if ($1 != $null) {
@@ -263,7 +268,7 @@ import java.nio.file.*;
     JCALL(ReleaseLongArrayElements, $input, (jlong *)$1, 0);
 %}
 %typemap(freearg) const SWIGTYPE&, const SWIGTYPE* %{
-    JCALL(ReleaseLongArrayElements, $input, (jlong *)$1, JNI_ABORT);
+    if ($input) JCALL(ReleaseLongArrayElements, $input, (jlong *)$1, JNI_ABORT);
 %}
 %typemap(freearg) const std::string& ""
 
@@ -308,11 +313,11 @@ import java.nio.file.*;
 // handle input const byte[] more efficiently...
 %apply signed char[] { const byte* }
 %typemap(in) const byte* %{
-    $1 = ($1_ltype)JCALL(GetByteArrayElements, $input, 0);
+    $1 = $input ? ($1_ltype)JCALL(GetByteArrayElements, $input, 0) : NULL;
 %}
 %typemap(argout)  const byte* ""
 %typemap(freearg) const byte* %{
-    JCALL(ReleaseByteArrayElements, $input, (jbyte *)$1, JNI_ABORT);
+    if ($input) JCALL(ReleaseByteArrayElements, $input, (jbyte *)$1, JNI_ABORT);
 %}
 
 %apply const byte* { const byte[ANY] }
