@@ -41,7 +41,9 @@
 
 // accept 'bytes' and 'bytearray' as inputs...
 %typemap(in) const byte* %{
-    if (PyBytes_Check($input)) {
+    if ($input == Py_None) {
+        $1 = NULL;
+    } else if (PyBytes_Check($input)) {
         char *buf;
         Py_ssize_t nbytes;
 
@@ -83,7 +85,10 @@
 %typemap(freearg) const byte[ANY] ""
 
 %typemap(in) (const byte *STRING, size_t LENGTH) %{
-    if (PyBytes_Check($input)) {
+    if ($input == Py_None) {
+        $1 = NULL;
+        $2 = 0;
+    } else if (PyBytes_Check($input)) {
         char *buf;
         Py_ssize_t nbytes;
 
@@ -373,6 +378,8 @@ import java.nio.file.*;
         auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
         auto buf = av->Buffer();
         $1 = ($1_ltype)buf->GetData() + av->ByteOffset();
+    } else if ($input->IsNull()) {
+        $1 = nullptr;
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                             "expecting <Buffer>");
@@ -447,6 +454,9 @@ import java.nio.file.*;
         $2 = SWIGV8_UTF8_LENGTH(str);
         $1 = ($1_ltype)alloca($2);
         SWIGV8_WRITE_UTF8(str, (char *)$1, $2);
+    } else if ($input->IsNull()) {
+        $1 = nullptr;
+        $2 = 0;
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                             "expecting <Buffer> or <String>");
