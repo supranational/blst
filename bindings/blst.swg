@@ -244,6 +244,9 @@ import java.nio.file.*;
 %typemap(in)            SWIGTYPE&, SWIGTYPE* %{
     $1 = ($1_ltype)JCALL(GetLongArrayElements, $input, 0);
 %}
+%typemap(in)      const SWIGTYPE&, const SWIGTYPE* %{
+    if ($input) $1 = ($1_ltype)JCALL(GetLongArrayElements, $input, 0);
+%}
 %typemap(out)           SWIGTYPE&, SWIGTYPE* %{
     if ($1 != $null) {
         size_t sz = (sizeof($1_basetype) + sizeof(jlong) - 1)/sizeof(jlong);
@@ -263,7 +266,7 @@ import java.nio.file.*;
     JCALL(ReleaseLongArrayElements, $input, (jlong *)$1, 0);
 %}
 %typemap(freearg) const SWIGTYPE&, const SWIGTYPE* %{
-    JCALL(ReleaseLongArrayElements, $input, (jlong *)$1, JNI_ABORT);
+    if ($input) JCALL(ReleaseLongArrayElements, $input, (jlong *)$1, JNI_ABORT);
 %}
 %typemap(freearg) const std::string& ""
 
