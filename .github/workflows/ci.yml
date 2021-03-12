@@ -28,8 +28,8 @@ jobs:
           ~/.cargo/registry
           **/Cargo.lock
           **/bindings/rust/target
-        key: ${{ runner.os }}-cargo-11
-        restore-keys: ${{ runner.os }}-cargo-10
+        key: ${{ runner.os }}-cargo-12
+        restore-keys: ${{ runner.os }}-cargo-11
 
     - name: Environment
       shell: bash
@@ -72,7 +72,7 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: ~/swig
-        key: ${{ runner.os }}-swig-pr1746
+        key: ${{ runner.os }}-swig-github
 
     - uses: actions/setup-java@v1
       with:
@@ -99,15 +99,16 @@ jobs:
         node_js=bindings/node.js
         if [ -x $node_js/run.me ]; then
             if [ ! -x ~/swig/bin/swig ]; then
-              ( git clone -b pr/new-node-fixes https://github.com/yegorich/swig;
+              ( git clone https://github.com/swig/swig;
                 cd swig;
                 ./autogen.sh;
                 ./configure --prefix=$HOME/swig;
                 make;
                 make install;
+                (cd ~/swig/share/swig && ln -s `ls` current)
               )
             fi
-            env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2 \
+            env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/current \
                 $node_js/run.me
         fi
     - name: node-gyp
@@ -116,7 +117,7 @@ jobs:
         if [ -f $node_js/binding.gyp -a -f $node_js/blst_wrap.cpp ]; then
             npm install --global node-gyp || true
             if which node-gyp > /dev/null 2>&1; then
-              ( export PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/4.0.2;
+              ( export PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/current;
                 cd $node_js;
                 node-gyp configure;
                 node-gyp build;
