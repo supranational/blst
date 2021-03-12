@@ -25,9 +25,8 @@ public class runnable {
             throw new java.lang.RuntimeException("disaster");
         var ctx = new Pairing(true, DST);
         ctx.aggregate(_pk, _sig, msg, pk_for_wire);
-        ctx.aggregate(_pk, null, msg, pk_for_wire);
         ctx.commit();
-        if (ctx.finalverify())
+        if (!ctx.finalverify())
             throw new java.lang.RuntimeException("disaster");
         System.out.println("OK");
     }
