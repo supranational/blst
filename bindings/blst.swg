@@ -443,7 +443,7 @@ import java.nio.file.*;
         $1 = ($1_ltype)buf->GetData() + av->ByteOffset();
         $2 = av->ByteLength();
     } else if ($input->IsString()) {
-        auto str = SWIGV8_TO_STRING($input);
+        auto str = v8::Local<v8::String>::Cast($input);
         $2 = SWIGV8_UTF8_LENGTH(str);
         $1 = ($1_ltype)alloca($2);
         SWIGV8_WRITE_UTF8(str, (char *)$1, $2);
@@ -632,10 +632,14 @@ static const char *const BLST_ERROR_str [] = {
 %include "cdata.i"
 #endif
 
-#if defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_V8)
+#if SWIG_VERSION < 0x040100 && defined(SWIGJAVASCRIPT)
 %wrapper %{
-#undef NODE_MODULE
-#define NODE_MODULE NODE_MODULE_CONTEXT_AWARE
+#ifdef NODE_MODULE
+# undef NODE_MODULE
+# define NODE_MODULE NODE_MODULE_CONTEXT_AWARE
+// actually error-prone and not exactly suitable for production, but
+// sufficient for development purposes till SWIG 4.1.0 is released...
+#endif
 %}
 #endif
 
