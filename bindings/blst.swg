@@ -226,12 +226,11 @@ import java.nio.file.*;
 %typemap(javadestruct)  SWIGTYPE ""
 
 %typemap(javabody)      SWIGTYPE %{
-  private static final long[] NULL = new long[0];
   private transient long[] swigCPtr;
 
   protected $javaclassname(long[] cPtr) { swigCPtr = cPtr; }
 
-  protected static long[] getCPtr($javaclassname obj) { return obj != null ? obj.swigCPtr : NULL; }
+  protected static long[] getCPtr($javaclassname obj) { return obj != null ? obj.swigCPtr : null; }
 
   public $javaclassname dup() { return new $javaclassname(swigCPtr.clone()); }
 %}
