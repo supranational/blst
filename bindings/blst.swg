@@ -653,9 +653,9 @@ static const char *const BLST_ERROR_str [] = {
 %}
 #endif
 
-#if defined(SWIGJAVA)
-/* this might need a refinement in the future if SWIG changes the way
- * it handles 'jlong' JNI type */
+#if SWIG_VERSION < 0x040100 && defined(SWIGJAVA)
+/* SWIG versions prior 4.1 were crossing the MinGW's ways on the path
+ * to JNI 'jlong' type */
 %begin %{
 #if defined(__MINGW32__) && defined(__int64)
 # undef __int64
