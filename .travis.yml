@@ -48,7 +48,6 @@ matrix:
       - os: linux
         arch: s390x
         language: rust
-        rust: 1.49.0
         env: CFLAGS=-D__BLST_NO_ASM__
 
 notifications:
