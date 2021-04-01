@@ -1,10 +1,10 @@
 #!/bin/sh -e
 #
-# Even though blst.swg works with current node.js version, v14.x at the
+# Even though blst.swg works with current node.js version, v16.x at the
 # moment of this writing, SWIG 4.0 can generate wrapper only up to 10.x.
-# Till SWIG catches up (with https://github.com/swig/swig/pull/1746),
-# build the patched version yourself, or download pre-generated
-# blst_wrap.cpp from https://github.com/supranational/blst/issues/32.
+# Till SWIG 4.1 is released, build from https://github.com/swig/swig
+# yourself, or download pre-generated blst_wrap.cpp from
+# https://github.com/supranational/blst/issues/32.
 
 cd `dirname $0`
 
@@ -34,13 +34,15 @@ fi
 
 if [ ! -f blst.node -o blst_wrap.cpp -nt blst.node \
                     -o ../libblst.a  -nt blst.node ]; then
+    STD=`c++ -dM -E -x c++ /dev/null | \
+         awk '{ if($2=="__cplusplus" && $3<"201103L") print "-std=c++11"; }'`
     case `uname -s` in
-    Darwin) (set -x; c++ -bundle -o blst.node -fPIC -std=c++11 \
+    Darwin) (set -x; c++ -bundle -o blst.node -fPIC ${STD} \
                          ${INCS} -I.. -DBUILDING_NODE_EXTENSION \
                          -O -Wall -Wno-unused-result blst_wrap.cpp \
                          ../libblst.a -bundle_loader $NODE)
             ;;
-    *)      (set -x; c++ -shared -o blst.node -fPIC -std=c++11 \
+    *)      (set -x; c++ -shared -o blst.node -fPIC ${STD} \
                          ${INCS} -I.. -DBUILDING_NODE_EXTENSION \
                          -O -Wall -Wno-unused-result blst_wrap.cpp \
                          ../libblst.a -Wl,-Bsymbolic)
