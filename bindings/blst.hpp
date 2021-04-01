@@ -466,11 +466,7 @@ public:
     {   return new uint64_t[blst_pairing_sizeof()/sizeof(uint64_t)];   }
     void operator delete(void *ptr)
     {   delete[] static_cast<uint64_t*>(ptr);   }
-#endif
 
-#if !defined(SWIG) || !defined(SWIGJAVA)
-    Pairing(bool hash_or_encode, const byte* DST, size_t DST_len)
-    {   init(hash_or_encode, DST, DST_len);   }
     Pairing(bool hash_or_encode, const std::string& DST)
     {   init(hash_or_encode, reinterpret_cast<const byte*>(DST.data()),
                              DST.size());
@@ -481,6 +477,10 @@ public:
                              DST.size());
     }
 #endif
+#endif
+#ifndef SWIGJAVA
+    Pairing(bool hash_or_encode, const byte* DST, size_t DST_len)
+    {   init(hash_or_encode, DST, DST_len);   }
     ~Pairing() { delete[] blst_pairing_get_dst(*this); }
 #endif
 
