@@ -402,7 +402,6 @@ func (dummy *P2Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
 		msgs, dst, useHash)
 }
 
-// TODO: check message uniqueness
 func coreAggregateVerifyPkInG1(sigFn sigGetterP2, sigGroupcheck bool,
 	pkFn pkGetterP1, pkValidate bool, msgs []Message, dst []byte,
 	optional ...bool) bool { // useHash
@@ -671,6 +670,9 @@ type P2Aggregate struct {
 }
 
 // Aggregate uncompressed elements
+// Note that checking message uniqueness, if required, is left to the user.
+// Not all signature schemes require it and this keeps the binding minimal
+// and fast.
 func (agg *P2Aggregate) Aggregate(elmts []*P2Affine,
 	groupcheck bool) bool {
 	if len(elmts) == 0 {
@@ -718,7 +720,7 @@ func (agg *P2Aggregate) AddAggregate(other *P2Aggregate) {
 	} else if agg.v == nil {
 		agg.v = other.v
 	} else {
-		C.blst_p2_add(agg.v, agg.v, other.v)
+		C.blst_p2_add_or_double(agg.v, agg.v, other.v)
 	}
 }
 
@@ -819,7 +821,7 @@ func (agg *P2Aggregate) aggregate(getter aggGetterP2, groupcheck bool,
 				agg.v = msg.agg
 				first = false
 			} else {
-				C.blst_p2_add(agg.v, agg.v, msg.agg)
+				C.blst_p2_add_or_double(agg.v, agg.v, msg.agg)
 			}
 		}
 	}
@@ -1001,7 +1003,6 @@ func (dummy *P1Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
 		msgs, dst, useHash)
 }
 
-// TODO: check message uniqueness
 func coreAggregateVerifyPkInG2(sigFn sigGetterP1, sigGroupcheck bool,
 	pkFn pkGetterP2, pkValidate bool, msgs []Message, dst []byte,
 	optional ...bool) bool { // useHash
@@ -1270,6 +1271,9 @@ type P1Aggregate struct {
 }
 
 // Aggregate uncompressed elements
+// Note that checking message uniqueness, if required, is left to the user.
+// Not all signature schemes require it and this keeps the binding minimal
+// and fast.
 func (agg *P1Aggregate) Aggregate(elmts []*P1Affine,
 	groupcheck bool) bool {
 	if len(elmts) == 0 {
@@ -1317,7 +1321,7 @@ func (agg *P1Aggregate) AddAggregate(other *P1Aggregate) {
 	} else if agg.v == nil {
 		agg.v = other.v
 	} else {
-		C.blst_p1_add(agg.v, agg.v, other.v)
+		C.blst_p1_add_or_double(agg.v, agg.v, other.v)
 	}
 }
 
@@ -1418,7 +1422,7 @@ func (agg *P1Aggregate) aggregate(getter aggGetterP1, groupcheck bool,
 				agg.v = msg.agg
 				first = false
 			} else {
-				C.blst_p1_add(agg.v, agg.v, msg.agg)
+				C.blst_p1_add_or_double(agg.v, agg.v, msg.agg)
 			}
 		}
 	}
