@@ -313,6 +313,10 @@ func (dummy *P2Affine) VerifyCompressed(sig []byte, sigGroupcheck bool,
 }
 
 // Aggregate verify with uncompressed signature and public keys
+// Note that checking message uniqueness, if required, is left to the user.
+// Not all signature schemes require it and this keeps the binding minimal
+// and fast. Refer to the Uniq function for one method method of performing
+// this check.
 func (sig *P2Affine) AggregateVerify(sigGroupcheck bool,
 	pks []*P1Affine, pksVerify bool, msgs []Message, dst []byte,
 	optional ...interface{}) bool { // useHash bool, augs [][]byte
@@ -670,9 +674,6 @@ type P2Aggregate struct {
 }
 
 // Aggregate uncompressed elements
-// Note that checking message uniqueness, if required, is left to the user.
-// Not all signature schemes require it and this keeps the binding minimal
-// and fast.
 func (agg *P2Aggregate) Aggregate(elmts []*P2Affine,
 	groupcheck bool) bool {
 	if len(elmts) == 0 {
@@ -914,6 +915,10 @@ func (dummy *P1Affine) VerifyCompressed(sig []byte, sigGroupcheck bool,
 }
 
 // Aggregate verify with uncompressed signature and public keys
+// Note that checking message uniqueness, if required, is left to the user.
+// Not all signature schemes require it and this keeps the binding minimal
+// and fast. Refer to the Uniq function for one method method of performing
+// this check.
 func (sig *P1Affine) AggregateVerify(sigGroupcheck bool,
 	pks []*P2Affine, pksVerify bool, msgs []Message, dst []byte,
 	optional ...interface{}) bool { // useHash bool, augs [][]byte
@@ -1271,9 +1276,6 @@ type P1Aggregate struct {
 }
 
 // Aggregate uncompressed elements
-// Note that checking message uniqueness, if required, is left to the user.
-// Not all signature schemes require it and this keeps the binding minimal
-// and fast.
 func (agg *P1Aggregate) Aggregate(elmts []*P1Affine,
 	groupcheck bool) bool {
 	if len(elmts) == 0 {
