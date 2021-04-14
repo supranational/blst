@@ -6,6 +6,7 @@
 
 #include "point.h"
 #include "fields.h"
+#include "errors.h"
 
 /*
  * y^2 = x^3 + B
