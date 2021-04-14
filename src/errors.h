@@ -3,6 +3,9 @@
  * Licensed under the Apache License, Version 2.0, see LICENSE for details.
  * SPDX-License-Identifier: Apache-2.0
  */
+#ifndef __BLS12_381_ASM_ERRORS_H__
+#define __BLS12_381_ASM_ERRORS_H__
+
 typedef enum {
     BLST_SUCCESS = 0,
     BLST_BAD_ENCODING,
@@ -12,3 +15,5 @@ typedef enum {
     BLST_VERIFY_FAIL,
     BLST_PK_IS_INFINITY,
 } BLST_ERROR;
+
+#endif
