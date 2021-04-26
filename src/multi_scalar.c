@@ -98,7 +98,7 @@ static void ptype##_gather_booth_wbits(ptype *p, const ptype##_affine row[], \
 { \
     bool_t booth_sign = (booth_idx >> wbits) & 1; \
     bool_t idx_is_zero; \
-    static const ptype##_affine infinity = { }; \
+    static const ptype##_affine infinity = { 0 }; \
 \
     booth_idx &= ((limb_t)1 << wbits) - 1; \
     idx_is_zero = is_zero(booth_idx); \
