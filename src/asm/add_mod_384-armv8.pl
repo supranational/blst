@@ -819,6 +819,54 @@ vec_select(192);
 vec_select(144);
 vec_select(288);
 }
+
+{
+my ($inp, $end, $step) = map("x$_", (0..2));
+
+$code.=<<___;
+.globl	vec_prefetch
+.hidden	vec_prefetch
+.type	vec_prefetch,%function
+.align	5
+vec_prefetch:
+	add	$end, $end, $inp
+	sub	$end, $end, #1
+	mov	$step, #64
+	prfm	pldl1keep, [$inp]
+	add	$inp, $inp, $step
+	cmp	$inp, $end
+	csel	$inp, $end, $inp, hi
+	csel	$step, xzr, $step, hi
+	prfm	pldl1keep, [$inp]
+	add	$inp, $inp, $step
+	cmp	$inp, $end
+	csel	$inp, $end, $inp, hi
+	csel	$step, xzr, $step, hi
+	prfm	pldl1keep, [$inp]
+	add	$inp, $inp, $step
+	cmp	$inp, $end
+	csel	$inp, $end, $inp, hi
+	csel	$step, xzr, $step, hi
+	prfm	pldl1keep, [$inp]
+	add	$inp, $inp, $step
+	cmp	$inp, $end
+	csel	$inp, $end, $inp, hi
+	csel	$step, xzr, $step, hi
+	prfm	pldl1keep, [$inp]
+	add	$inp, $inp, $step
+	cmp	$inp, $end
+	csel	$inp, $end, $inp, hi
+	csel	$step, xzr, $step, hi
+	prfm	pldl1keep, [$inp]
+	add	$inp, $inp, $step
+	cmp	$inp, $end
+	csel	$inp, $end, $inp, hi
+	prfm	pldl1keep, [$inp]
+	ret
+.size	vec_prefetch,.-vec_prefetch
+___
+}
+
 print $code;
 
 close STDOUT;

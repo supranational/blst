@@ -1380,5 +1380,51 @@ vec_select(144);
 vec_select(288);
 }
 
+{
+my ($inp, $end) = $win64 ? ("%rcx", "%rdx") : ("%rdi", "%rsi");
+
+$code.=<<___;
+.globl	vec_prefetch
+.hidden	vec_prefetch
+.type	vec_prefetch,\@abi-omnipotent
+.align	32
+vec_prefetch:
+	lea		-1($inp, $end), $end
+	mov		\$64, %rax
+	xor		%r8, %r8
+	prefetchnta	($inp)
+	lea		($inp, %rax), $inp
+	cmp		$end, $inp
+	cmova		$end, $inp
+	cmova		%r8, %rax
+	prefetchnta	($inp)
+	lea		($inp, %rax), $inp
+	cmp		$end, $inp
+	cmova		$end, $inp
+	cmova		%r8, %rax
+	prefetchnta	($inp)
+	lea		($inp, %rax), $inp
+	cmp		$end, $inp
+	cmova		$end, $inp
+	cmova		%r8, %rax
+	prefetchnta	($inp)
+	lea		($inp, %rax), $inp
+	cmp		$end, $inp
+	cmova		$end, $inp
+	cmova		%r8, %rax
+	prefetchnta	($inp)
+	lea		($inp, %rax), $inp
+	cmp		$end, $inp
+	cmova		$end, $inp
+	cmova		%r8, %rax
+	prefetchnta	($inp)
+	lea		($inp, %rax), $inp
+	cmp		$end, $inp
+	cmova		$end, $inp
+	prefetchnta	($inp)
+	ret
+.size	vec_prefetch,.-vec_prefetch
+___
+}
 print $code;
 close STDOUT;

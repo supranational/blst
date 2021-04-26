@@ -1068,6 +1068,9 @@ inline limb_t quot_rem_64(limb_t *div_rem, const limb_t *divisor,
 #define lshift_mod_384x lshift_mod_384x
 #define sqr_mont_384x sqr_mont_384x
 
+inline void vec_prefetch(const void *ptr, size_t len)
+{   (void)ptr; (void)len;   }
+
 /*
  * SHA-256
  */

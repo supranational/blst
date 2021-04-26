@@ -102,6 +102,7 @@ void rshift_mod_256(vec256 ret, const vec256 a, size_t count, const vec256 p);
 bool_t eucl_inverse_mod_256(vec256 ret, const vec256 a, const vec256 p,
                             const vec256 one);
 limb_t check_mod_256(const pow256 a, const vec256 p);
+void vec_prefetch(const void *ptr, size_t len);
 
 void mul_mont_384(vec384 ret, const vec384 a, const vec384 b,
                   const vec384 p, limb_t n0);
