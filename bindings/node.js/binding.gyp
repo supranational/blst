@@ -12,6 +12,7 @@
         '../../src/server.c',
       ],
       'include_dirs': [ '..' ],
+      'cflags': [ '-fno-builtin-memcpy' ],
       'cflags_cc': [ '-fexceptions' ],
       'xcode_settings': { 'GCC_ENABLE_CPP_EXCEPTIONS': 'YES' },
       'msvs_settings':  { 'VCCLCompilerTool': { 'ExceptionHandling': '1' } },

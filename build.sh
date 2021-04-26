@@ -20,7 +20,7 @@ if [ "x$CC" = "x" ]; then
     which cc >/dev/null 2>&1 && CC=cc
 fi
 # if -Werror stands in the way, bypass with -Wno-error on command line
-CFLAGS=${CFLAGS:--O -fPIC -Wall -Wextra -Werror}
+CFLAGS=${CFLAGS:--O -fno-builtin-memcpy -fPIC -Wall -Wextra -Werror}
 PERL=${PERL:-perl}
 unset cflags shared
 

@@ -11,7 +11,7 @@
 package blst
 
 // #cgo CFLAGS: -I${SRCDIR}/.. -I${SRCDIR}/../../build -I${SRCDIR}/../../src -D__BLST_CGO__
-// #cgo amd64 CFLAGS: -D__ADX__ -mno-avx
+// #cgo amd64 CFLAGS: -D__ADX__ -mno-avx -fno-builtin-memcpy
 // #include "blst.h"
 import "C"
 import (
