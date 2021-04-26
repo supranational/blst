@@ -1819,36 +1819,36 @@ vec_select_288:
 vec_prefetch:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
-	leaq	-1(%rcx,%rdx), %rdx
+	leaq	-1(%rcx,%rdx,1),%rdx
 	movq	$64,%rax
 	xorq	%r8,%r8
 	prefetchnta	(%rcx)
-	leaq	(%rcx,%rax), %rcx
+	leaq	(%rcx,%rax,1),%rcx
 	cmpq	%rdx,%rcx
 	cmovaq	%rdx,%rcx
 	cmovaq	%r8,%rax
 	prefetchnta	(%rcx)
-	leaq	(%rcx,%rax), %rcx
+	leaq	(%rcx,%rax,1),%rcx
 	cmpq	%rdx,%rcx
 	cmovaq	%rdx,%rcx
 	cmovaq	%r8,%rax
 	prefetchnta	(%rcx)
-	leaq	(%rcx,%rax), %rcx
+	leaq	(%rcx,%rax,1),%rcx
 	cmpq	%rdx,%rcx
 	cmovaq	%rdx,%rcx
 	cmovaq	%r8,%rax
 	prefetchnta	(%rcx)
-	leaq	(%rcx,%rax), %rcx
+	leaq	(%rcx,%rax,1),%rcx
 	cmpq	%rdx,%rcx
 	cmovaq	%rdx,%rcx
 	cmovaq	%r8,%rax
 	prefetchnta	(%rcx)
-	leaq	(%rcx,%rax), %rcx
+	leaq	(%rcx,%rax,1),%rcx
 	cmpq	%rdx,%rcx
 	cmovaq	%rdx,%rcx
 	cmovaq	%r8,%rax
 	prefetchnta	(%rcx)
-	leaq	(%rcx,%rax), %rcx
+	leaq	(%rcx,%rax,1),%rcx
 	cmpq	%rdx,%rcx
 	cmovaq	%rdx,%rcx
 	prefetchnta	(%rcx)

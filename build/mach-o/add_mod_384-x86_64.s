@@ -1763,36 +1763,36 @@ _vec_prefetch:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
-	leaq	-1(%rdi,%rsi), %rsi
+	leaq	-1(%rdi,%rsi,1),%rsi
 	movq	$64,%rax
 	xorq	%r8,%r8
 	prefetchnta	(%rdi)
-	leaq	(%rdi,%rax), %rdi
+	leaq	(%rdi,%rax,1),%rdi
 	cmpq	%rsi,%rdi
 	cmovaq	%rsi,%rdi
 	cmovaq	%r8,%rax
 	prefetchnta	(%rdi)
-	leaq	(%rdi,%rax), %rdi
+	leaq	(%rdi,%rax,1),%rdi
 	cmpq	%rsi,%rdi
 	cmovaq	%rsi,%rdi
 	cmovaq	%r8,%rax
 	prefetchnta	(%rdi)
-	leaq	(%rdi,%rax), %rdi
+	leaq	(%rdi,%rax,1),%rdi
 	cmpq	%rsi,%rdi
 	cmovaq	%rsi,%rdi
 	cmovaq	%r8,%rax
 	prefetchnta	(%rdi)
-	leaq	(%rdi,%rax), %rdi
+	leaq	(%rdi,%rax,1),%rdi
 	cmpq	%rsi,%rdi
 	cmovaq	%rsi,%rdi
 	cmovaq	%r8,%rax
 	prefetchnta	(%rdi)
-	leaq	(%rdi,%rax), %rdi
+	leaq	(%rdi,%rax,1),%rdi
 	cmpq	%rsi,%rdi
 	cmovaq	%rsi,%rdi
 	cmovaq	%r8,%rax
 	prefetchnta	(%rdi)
-	leaq	(%rdi,%rax), %rdi
+	leaq	(%rdi,%rax,1),%rdi
 	cmpq	%rsi,%rdi
 	cmovaq	%rsi,%rdi
 	prefetchnta	(%rdi)

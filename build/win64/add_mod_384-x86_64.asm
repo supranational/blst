@@ -1840,36 +1840,36 @@ PUBLIC	vec_prefetch
 ALIGN	32
 vec_prefetch	PROC PUBLIC
 	DB	243,15,30,250
-	lea	rdx,-1(%rcx), %rdx
+	lea	rdx,QWORD PTR[((-1))+rdx*1+rcx]
 	mov	rax,64
 	xor	r8,r8
 	prefetchnta	[rcx]
-	lea	rax,(%rcx), %rcx
+	lea	rcx,QWORD PTR[rax*1+rcx]
 	cmp	rcx,rdx
 	cmova	rcx,rdx
 	cmova	rax,r8
 	prefetchnta	[rcx]
-	lea	rax,(%rcx), %rcx
+	lea	rcx,QWORD PTR[rax*1+rcx]
 	cmp	rcx,rdx
 	cmova	rcx,rdx
 	cmova	rax,r8
 	prefetchnta	[rcx]
-	lea	rax,(%rcx), %rcx
+	lea	rcx,QWORD PTR[rax*1+rcx]
 	cmp	rcx,rdx
 	cmova	rcx,rdx
 	cmova	rax,r8
 	prefetchnta	[rcx]
-	lea	rax,(%rcx), %rcx
+	lea	rcx,QWORD PTR[rax*1+rcx]
 	cmp	rcx,rdx
 	cmova	rcx,rdx
 	cmova	rax,r8
 	prefetchnta	[rcx]
-	lea	rax,(%rcx), %rcx
+	lea	rcx,QWORD PTR[rax*1+rcx]
 	cmp	rcx,rdx
 	cmova	rcx,rdx
 	cmova	rax,r8
 	prefetchnta	[rcx]
-	lea	rax,(%rcx), %rcx
+	lea	rcx,QWORD PTR[rax*1+rcx]
 	cmp	rcx,rdx
 	cmova	rcx,rdx
 	prefetchnta	[rcx]
