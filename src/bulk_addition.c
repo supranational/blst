@@ -54,7 +54,7 @@ static void ptype##_head(ptype AB[2], const vec##bits mul_acc) \
     ptype *A = AB, *B = AB+1; \
     limb_t inf = vec_is_zero(A, sizeof(ptype##_affine)) | \
                  vec_is_zero(B, sizeof(ptype##_affine));  \
-    static const vec##bits zero = { 0 }; \
+    static const vec##bits zero = { }; \
 \
     sub_##field(B->Z, B->X, A->X);		/* X2-X1  */ \
     add_##field(B->X, B->X, A->X);		/* X2+X1  */ \
