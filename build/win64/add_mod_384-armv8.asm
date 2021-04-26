@@ -889,4 +889,44 @@
 	st1	{v16.2d, v17.2d, v18.2d}, [x0]
 	ret
 	ENDP
+
+
+	EXPORT	|vec_prefetch|[FUNC]
+	ALIGN	32
+|vec_prefetch| PROC
+	add	x1, x1, x0
+	sub	x1, x1, #1
+	mov	x2, #64
+	prfm	pldl1keep, [x0]
+	add	x0, x0, x2
+	cmp	x0, x1
+	cselhi	x0,x1,x0
+	cselhi	x2,xzr,x2
+	prfm	pldl1keep, [x0]
+	add	x0, x0, x2
+	cmp	x0, x1
+	cselhi	x0,x1,x0
+	cselhi	x2,xzr,x2
+	prfm	pldl1keep, [x0]
+	add	x0, x0, x2
+	cmp	x0, x1
+	cselhi	x0,x1,x0
+	cselhi	x2,xzr,x2
+	prfm	pldl1keep, [x0]
+	add	x0, x0, x2
+	cmp	x0, x1
+	cselhi	x0,x1,x0
+	cselhi	x2,xzr,x2
+	prfm	pldl1keep, [x0]
+	add	x0, x0, x2
+	cmp	x0, x1
+	cselhi	x0,x1,x0
+	cselhi	x2,xzr,x2
+	prfm	pldl1keep, [x0]
+	add	x0, x0, x2
+	cmp	x0, x1
+	cselhi	x0,x1,x0
+	prfm	pldl1keep, [x0]
+	ret
+	ENDP
 	END

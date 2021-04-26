@@ -1834,6 +1834,47 @@ vec_select_288	PROC PUBLIC
 	movdqu	XMMWORD PTR[(272-144)+rcx],xmm2
 	DB	0F3h,0C3h		;repret
 vec_select_288	ENDP
+PUBLIC	vec_prefetch
+
+
+ALIGN	32
+vec_prefetch	PROC PUBLIC
+	DB	243,15,30,250
+	lea	rdx,-1(%rcx), %rdx
+	mov	rax,64
+	xor	r8,r8
+	prefetchnta	[rcx]
+	lea	rax,(%rcx), %rcx
+	cmp	rcx,rdx
+	cmova	rcx,rdx
+	cmova	rax,r8
+	prefetchnta	[rcx]
+	lea	rax,(%rcx), %rcx
+	cmp	rcx,rdx
+	cmova	rcx,rdx
+	cmova	rax,r8
+	prefetchnta	[rcx]
+	lea	rax,(%rcx), %rcx
+	cmp	rcx,rdx
+	cmova	rcx,rdx
+	cmova	rax,r8
+	prefetchnta	[rcx]
+	lea	rax,(%rcx), %rcx
+	cmp	rcx,rdx
+	cmova	rcx,rdx
+	cmova	rax,r8
+	prefetchnta	[rcx]
+	lea	rax,(%rcx), %rcx
+	cmp	rcx,rdx
+	cmova	rcx,rdx
+	cmova	rax,r8
+	prefetchnta	[rcx]
+	lea	rax,(%rcx), %rcx
+	cmp	rcx,rdx
+	cmova	rcx,rdx
+	prefetchnta	[rcx]
+	DB	0F3h,0C3h		;repret
+vec_prefetch	ENDP
 .text$	ENDS
 .pdata	SEGMENT READONLY ALIGN(4)
 ALIGN	4

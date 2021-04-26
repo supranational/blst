@@ -937,3 +937,45 @@ vec_select_288:
 	st1	{v16.2d, v17.2d, v18.2d}, [x0]
 	ret
 
+.globl	vec_prefetch
+
+.def	vec_prefetch;
+.type	32;
+.endef
+.p2align	5
+vec_prefetch:
+	add	x1, x1, x0
+	sub	x1, x1, #1
+	mov	x2, #64
+	prfm	pldl1keep, [x0]
+	add	x0, x0, x2
+	cmp	x0, x1
+	csel	x0, x1, x0, hi
+	csel	x2, xzr, x2, hi
+	prfm	pldl1keep, [x0]
+	add	x0, x0, x2
+	cmp	x0, x1
+	csel	x0, x1, x0, hi
+	csel	x2, xzr, x2, hi
+	prfm	pldl1keep, [x0]
+	add	x0, x0, x2
+	cmp	x0, x1
+	csel	x0, x1, x0, hi
+	csel	x2, xzr, x2, hi
+	prfm	pldl1keep, [x0]
+	add	x0, x0, x2
+	cmp	x0, x1
+	csel	x0, x1, x0, hi
+	csel	x2, xzr, x2, hi
+	prfm	pldl1keep, [x0]
+	add	x0, x0, x2
+	cmp	x0, x1
+	csel	x0, x1, x0, hi
+	csel	x2, xzr, x2, hi
+	prfm	pldl1keep, [x0]
+	add	x0, x0, x2
+	cmp	x0, x1
+	csel	x0, x1, x0, hi
+	prfm	pldl1keep, [x0]
+	ret
+

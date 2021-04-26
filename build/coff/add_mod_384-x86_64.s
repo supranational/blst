@@ -1812,6 +1812,48 @@ vec_select_288:
 	movdqu	%xmm2,272-144(%rcx)
 	.byte	0xf3,0xc3
 
+.globl	vec_prefetch
+
+.def	vec_prefetch;	.scl 2;	.type 32;	.endef
+.p2align	5
+vec_prefetch:
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	leaq	-1(%rcx,%rdx), %rdx
+	movq	$64,%rax
+	xorq	%r8,%r8
+	prefetchnta	(%rcx)
+	leaq	(%rcx,%rax), %rcx
+	cmpq	%rdx,%rcx
+	cmovaq	%rdx,%rcx
+	cmovaq	%r8,%rax
+	prefetchnta	(%rcx)
+	leaq	(%rcx,%rax), %rcx
+	cmpq	%rdx,%rcx
+	cmovaq	%rdx,%rcx
+	cmovaq	%r8,%rax
+	prefetchnta	(%rcx)
+	leaq	(%rcx,%rax), %rcx
+	cmpq	%rdx,%rcx
+	cmovaq	%rdx,%rcx
+	cmovaq	%r8,%rax
+	prefetchnta	(%rcx)
+	leaq	(%rcx,%rax), %rcx
+	cmpq	%rdx,%rcx
+	cmovaq	%rdx,%rcx
+	cmovaq	%r8,%rax
+	prefetchnta	(%rcx)
+	leaq	(%rcx,%rax), %rcx
+	cmpq	%rdx,%rcx
+	cmovaq	%rdx,%rcx
+	cmovaq	%r8,%rax
+	prefetchnta	(%rcx)
+	leaq	(%rcx,%rax), %rcx
+	cmpq	%rdx,%rcx
+	cmovaq	%rdx,%rcx
+	prefetchnta	(%rcx)
+	.byte	0xf3,0xc3
+
 .section	.pdata
 .p2align	2
 .rva	.LSEH_begin_add_mod_384

@@ -1755,3 +1755,47 @@ _vec_select_288:
 	.byte	0xf3,0xc3
 .cfi_endproc
 
+.globl	_vec_prefetch
+.private_extern	_vec_prefetch
+
+.p2align	5
+_vec_prefetch:
+.cfi_startproc
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	leaq	-1(%rdi,%rsi), %rsi
+	movq	$64,%rax
+	xorq	%r8,%r8
+	prefetchnta	(%rdi)
+	leaq	(%rdi,%rax), %rdi
+	cmpq	%rsi,%rdi
+	cmovaq	%rsi,%rdi
+	cmovaq	%r8,%rax
+	prefetchnta	(%rdi)
+	leaq	(%rdi,%rax), %rdi
+	cmpq	%rsi,%rdi
+	cmovaq	%rsi,%rdi
+	cmovaq	%r8,%rax
+	prefetchnta	(%rdi)
+	leaq	(%rdi,%rax), %rdi
+	cmpq	%rsi,%rdi
+	cmovaq	%rsi,%rdi
+	cmovaq	%r8,%rax
+	prefetchnta	(%rdi)
+	leaq	(%rdi,%rax), %rdi
+	cmpq	%rsi,%rdi
+	cmovaq	%rsi,%rdi
+	cmovaq	%r8,%rax
+	prefetchnta	(%rdi)
+	leaq	(%rdi,%rax), %rdi
+	cmpq	%rsi,%rdi
+	cmovaq	%rsi,%rdi
+	cmovaq	%r8,%rax
+	prefetchnta	(%rdi)
+	leaq	(%rdi,%rax), %rdi
+	cmpq	%rsi,%rdi
+	cmovaq	%rsi,%rdi
+	prefetchnta	(%rdi)
+	.byte	0xf3,0xc3
+.cfi_endproc
+
