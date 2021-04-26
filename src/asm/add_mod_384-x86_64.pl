@@ -1389,36 +1389,36 @@ $code.=<<___;
 .type	vec_prefetch,\@abi-omnipotent
 .align	32
 vec_prefetch:
-	lea		-1($inp, $end), $end
+	leaq		-1($inp,$end), $end
 	mov		\$64, %rax
 	xor		%r8, %r8
 	prefetchnta	($inp)
-	lea		($inp, %rax), $inp
+	lea		($inp,%rax), $inp
 	cmp		$end, $inp
 	cmova		$end, $inp
 	cmova		%r8, %rax
 	prefetchnta	($inp)
-	lea		($inp, %rax), $inp
+	lea		($inp,%rax), $inp
 	cmp		$end, $inp
 	cmova		$end, $inp
 	cmova		%r8, %rax
 	prefetchnta	($inp)
-	lea		($inp, %rax), $inp
+	lea		($inp,%rax), $inp
 	cmp		$end, $inp
 	cmova		$end, $inp
 	cmova		%r8, %rax
 	prefetchnta	($inp)
-	lea		($inp, %rax), $inp
+	lea		($inp,%rax), $inp
 	cmp		$end, $inp
 	cmova		$end, $inp
 	cmova		%r8, %rax
 	prefetchnta	($inp)
-	lea		($inp, %rax), $inp
+	lea		($inp,%rax), $inp
 	cmp		$end, $inp
 	cmova		$end, $inp
 	cmova		%r8, %rax
 	prefetchnta	($inp)
-	lea		($inp, %rax), $inp
+	lea		($inp,%rax), $inp
 	cmp		$end, $inp
 	cmova		$end, $inp
 	prefetchnta	($inp)
