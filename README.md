@@ -26,9 +26,11 @@ blst (pronounced 'blast') is a BLS12-381 signature library focused on performanc
   * [License](#license)
 
 ## Status
-**This library has not yet been audited. Use at your own risk.**
+**This library is under active development**
 
-Formal verification of this library is planned and will utilize [Cryptol](https://www.cryptol.net) and [Coq](https://coq.inria.fr/) to verify field, curve, and bulk signature operations.
+An initial audit of this library was conducted by NCC Group in January 2021 and can be found [here](https://research.nccgroup.com/wp-content/uploads/2021/01/NCC_Group_EthereumFoundation_ETHF002_Report_2021-01-20_v1.0.pdf).
+
+Formal verification of this library by Galois is on-going and can be found [here](https://github.com/GaloisInc/BLST-Verification)
 
 This library is compliant with the following IETF draft specifications:
 - [IETF BLS Signature V4](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature)
