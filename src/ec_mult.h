@@ -15,9 +15,27 @@ static limb_t get_wval(const byte *d, size_t off, size_t bits)
     limb_t ret;
 
     ret = ((limb_t)d[top / 8] << 8) | d[off / 8];
-    ret >>= (off % 8);
 
-    return ret;
+    return ret >> (off%8);
+}
+
+/* Works up to 25 bits. */
+static limb_t get_wval_limb(const byte *d, size_t off, size_t bits)
+{
+    size_t i, top = (off + bits - 1)/8;
+    limb_t ret, mask = (limb_t)0 - 1;
+
+    d   += off/8;
+    top -= off/8-1;
+
+    /* this is not about constant-time-ness, but branch optimization */
+    for (ret=0, i=0; i<4;) {
+        ret |= (*d & mask) << (8*i);
+        mask = (limb_t)0 - ((++i - top) >> (8*sizeof(top)-1));
+        d += 1 & mask;
+    }
+
+    return ret >> (off%8);
 }
 
 /*
@@ -25,7 +43,7 @@ static limb_t get_wval(const byte *d, size_t off, size_t bits)
  * calculated, which allows to halve the size of pre-computed table,
  * is attributed to A. D. Booth, hence the name of the subroutines...
  */
-static limb_t booth_encode(limb_t wval, int sz)
+static limb_t booth_encode(limb_t wval, size_t sz)
 {
     limb_t mask = 0 - (wval >> sz);     /* "sign" bit -> mask */
 
