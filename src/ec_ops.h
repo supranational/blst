@@ -463,7 +463,6 @@ static void ptype##xz_ladder_post(ptype *p4, \
     sqr_##field(B, p4->Z);              \
     mul_##field(p4->Y, p4->Y, B);       /* Y4 = Y4*Z4^2 */\
 }
-#endif
 
 #define POINT_IS_EQUAL_IMPL(ptype, bits, field) \
 static limb_t ptype##_is_equal(const ptype *p1, const ptype *p2) \
@@ -487,3 +486,273 @@ static limb_t ptype##_is_equal(const ptype *p1, const ptype *p2) \
 \
     return vec_is_equal(&a1, &a2, sizeof(a1)) & (is_inf1 ^ is_inf2 ^ 1); \
 }
+
+/*
+ * https://eprint.iacr.org/2015/1060, algorithm 7 with a twist to handle
+ * |p3| pointing at either |p1| or |p2|. This is resolved by adding |t5|
+ * and replacing few first references to |X3| in the formula, up to step
+ * 21, with it. 12M[+27A], doubling and infinity are handled by the
+ * formula itself. Infinity is to be encoded as [0, !0, 0].
+ */
+#define POINT_PROJ_DADD_IMPL_A0(ptype, bits, field, suffixb) \
+static void ptype##proj_dadd(ptype##proj *p3, const ptype##proj *p1, \
+                                              const ptype##proj *p2) \
+{ \
+    vec##bits t0, t1, t2, t3, t4, t5; \
+\
+    mul_##field(t0, p1->X, p2->X);      /* 1.     t0 = X1*X2 */\
+    mul_##field(t1, p1->Y, p2->Y);      /* 2.     t1 = Y1*Y2 */\
+    mul_##field(t2, p1->Z, p2->Z);      /* 3.     t2 = Z1*Z2 */\
+    add_##field(t3, p1->X, p1->Y);      /* 4.     t3 = X1+Y1 */\
+    add_##field(t4, p2->X, p2->Y);      /* 5.     t4 = X2+Y2 */\
+    mul_##field(t3, t3, t4);            /* 6.     t3 = t3*t4 */\
+    add_##field(t4, t0, t1);            /* 7.     t4 = t0+t1 */\
+    sub_##field(t3, t3, t4);            /* 8.     t3 = t3-t4 */\
+    add_##field(t4, p1->Y, p1->Z);      /* 9.     t4 = Y1+Z1 */\
+    add_##field(t5, p2->Y, p2->Z);      /* 10.    t5 = Y2+Z2 */\
+    mul_##field(t4, t4, t5);            /* 11.    t4 = t4*t5 */\
+    add_##field(t5, t1, t2);            /* 12.    t5 = t1+t2 */\
+    sub_##field(t4, t4, t5);            /* 13.    t4 = t4-t5 */\
+    add_##field(t5, p1->X, p1->Z);      /* 14.    t5 = X1+Z1 */\
+    add_##field(p3->Y, p2->X, p2->Z);   /* 15.    Y3 = X2+Z2 */\
+    mul_##field(t5, t5, p3->Y);         /* 16.    t5 = t5*Y3 */\
+    add_##field(p3->Y, t0, t2);         /* 17.    Y3 = t0+t2 */\
+    sub_##field(p3->Y, t5, p3->Y);      /* 18.    Y3 = t5-Y3 */\
+    mul_by_3_##field(t0, t0);           /* 19-20. t0 = 3*t0  */\
+    mul_by_3_##field(t5, t2);           /* 21.    t5 = 3*t2  */\
+    mul_by_b_##suffixb(t2, t5);         /* 21.    t2 = b*t5  */\
+    add_##field(p3->Z, t1, t2);         /* 22.    Z3 = t1+t2 */\
+    sub_##field(t1, t1, t2);            /* 23.    t1 = t1-t2 */\
+    mul_by_3_##field(t5, p3->Y);        /* 24.    t5 = 3*Y3  */\
+    mul_by_b_##suffixb(p3->Y, t5);      /* 24.    Y3 = b*t5  */\
+    mul_##field(p3->X, t4, p3->Y);      /* 25.    X3 = t4*Y3 */\
+    mul_##field(t2, t3, t1);            /* 26.    t2 = t3*t1 */\
+    sub_##field(p3->X, t2, p3->X);      /* 27.    X3 = t2-X3 */\
+    mul_##field(p3->Y, p3->Y, t0);      /* 28.    Y3 = Y3*t0 */\
+    mul_##field(t1, t1, p3->Z);         /* 29.    t1 = t1*Z3 */\
+    add_##field(p3->Y, t1, p3->Y);      /* 30.    Y3 = t1+Y3 */\
+    mul_##field(t0, t0, t3);            /* 31.    t0 = t0*t3 */\
+    mul_##field(p3->Z, p3->Z, t4);      /* 32.    Z3 = Z3*t4 */\
+    add_##field(p3->Z, p3->Z, t0);      /* 33.    Z3 = Z3+t0 */\
+}
+
+/*
+ * https://eprint.iacr.org/2015/1060, algorithm 8 with a twist to handle
+ * |p2| being infinity encoded as [0, 0]. 11M[+21A].
+ */
+#define POINT_PROJ_DADD_AFFINE_IMPL_A0(ptype, bits, field, suffixb) \
+static void ptype##proj_dadd_affine(ptype##proj *out, const ptype##proj *p1, \
+                                                      const ptype##_affine *p2) \
+{ \
+    ptype##proj p3[1]; \
+    vec##bits t0, t1, t2, t3, t4; \
+    limb_t p2inf = vec_is_zero(p2, sizeof(*p2)); \
+\
+    mul_##field(t0, p1->X, p2->X);      /* 1.     t0 = X1*X2 */\
+    mul_##field(t1, p1->Y, p2->Y);      /* 2.     t1 = Y1*Y2 */\
+    add_##field(t3, p1->X, p1->Y);      /* 3.     t3 = X1+Y1 */\
+    add_##field(t4, p2->X, p2->Y);      /* 4.     t4 = X2+Y2 */\
+    mul_##field(t3, t3, t4);            /* 5.     t3 = t3*t4 */\
+    add_##field(t4, t0, t1);            /* 6.     t4 = t0+t1 */\
+    sub_##field(t3, t3, t4);            /* 7.     t3 = t3-t4 */\
+    mul_##field(t4, p2->Y, p1->Z);      /* 8.     t4 = Y2*Z1 */\
+    add_##field(t4, t4, p1->Y);         /* 9.     t4 = t4+Y1 */\
+    mul_##field(p3->Y, p2->X, p1->Z);   /* 10.    Y3 = X2*Z1 */\
+    add_##field(p3->Y, p3->Y, p1->X);   /* 11.    Y3 = Y3+X1 */\
+    mul_by_3_##field(t0, t0);           /* 12-13. t0 = 3*t0  */\
+    mul_by_b_##suffixb(t2, p1->Z);      /* 14.    t2 = b*Z1  */\
+    mul_by_3_##field(t2, t2);           /* 14.    t2 = 3*t2  */\
+    add_##field(p3->Z, t1, t2);         /* 15.    Z3 = t1+t2 */\
+    sub_##field(t1, t1, t2);            /* 16.    t1 = t1-t2 */\
+    mul_by_b_##suffixb(t2, p3->Y);      /* 17.    t2 = b*Y3  */\
+    mul_by_3_##field(p3->Y, t2);        /* 17.    Y3 = 3*t2  */\
+    mul_##field(p3->X, t4, p3->Y);      /* 18.    X3 = t4*Y3 */\
+    mul_##field(t2, t3, t1);            /* 19.    t2 = t3*t1 */\
+    sub_##field(p3->X, t2, p3->X);      /* 20.    X3 = t2-X3 */\
+    mul_##field(p3->Y, p3->Y, t0);      /* 21.    Y3 = Y3*t0 */\
+    mul_##field(t1, t1, p3->Z);         /* 22.    t1 = t1*Z3 */\
+    add_##field(p3->Y, t1, p3->Y);      /* 23.    Y3 = t1+Y3 */\
+    mul_##field(t0, t0, t3);            /* 24.    t0 = t0*t3 */\
+    mul_##field(p3->Z, p3->Z, t4);      /* 25.    Z3 = Z3*t4 */\
+    add_##field(p3->Z, p3->Z, t0);      /* 26.    Z3 = Z3+t0 */\
+\
+    vec_select(out, p1, p3, sizeof(*out), p2inf); \
+}
+
+#define POINT_PROJ_TO_JACOBIAN_IMPL(ptype, bits, field) \
+static void ptype##proj_to_Jacobian(ptype *out, const ptype##proj *in) \
+{ \
+    vec##bits ZZ; \
+\
+    sqr_##field(ZZ, in->Z); \
+    mul_##field(out->X, in->X, in->Z); \
+    mul_##field(out->Y, in->Y, ZZ); \
+    vec_copy(out->Z, in->Z, sizeof(out->Z)); \
+}
+
+#define POINT_TO_PROJECTIVE_IMPL(ptype, bits, field, one) \
+static void ptype##_to_projective(ptype##proj *out, const ptype *in) \
+{ \
+    vec##bits ZZ; \
+    limb_t is_inf = vec_is_zero(in->Z, sizeof(in->Z)); \
+\
+    sqr_##field(ZZ, in->Z); \
+    mul_##field(out->X, in->X, in->Z); \
+    vec_select(out->Y, one, in->Y, sizeof(out->Y), is_inf); \
+    mul_##field(out->Z, ZZ, in->Z); \
+}
+
+/******************* !!!!! NOT CONSTANT TIME !!!!! *******************/
+
+/*
+ * http://hyperelliptic.org/EFD/g1p/auto-shortw-xyzz.html#addition-add-2008-s
+ * http://hyperelliptic.org/EFD/g1p/auto-shortw-xyzz.html#doubling-dbl-2008-s-1
+ * with twist to handle either input at infinity. Addition costs 12M+2S,
+ * while conditional doubling - 4M+6M+3S.
+ */
+#define POINTXYZZ_DADD_IMPL(ptype, bits, field) \
+static void ptype##xyzz_dadd(ptype##xyzz *p3, const ptype##xyzz *p1, \
+                                              const ptype##xyzz *p2) \
+{ \
+    vec##bits U, S, P, R; \
+\
+    if (vec_is_zero(p2->ZZZ, 2*sizeof(p2->ZZZ))) { \
+        vec_copy(p3, p1, sizeof(*p3));  \
+        return; \
+    } else if (vec_is_zero(p1->ZZZ, 2*sizeof(p1->ZZZ))) { \
+        vec_copy(p3, p2, sizeof(*p3));  \
+        return; \
+    } \
+\
+    mul_##field(U, p1->X, p2->ZZ);              /* U1 = X1*ZZ2 */\
+    mul_##field(S, p1->Y, p2->ZZZ);             /* S1 = Y1*ZZZ2 */\
+    mul_##field(P, p2->X, p1->ZZ);              /* U2 = X2*ZZ1 */\
+    mul_##field(R, p2->Y, p1->ZZZ);             /* S2 = Y2*ZZZ1 */\
+    sub_##field(P, P, U);                       /* P = U2-U1 */\
+    sub_##field(R, R, S);                       /* R = S2-S1 */\
+\
+    if (!vec_is_zero(P, sizeof(P))) {           /* X1!=X2 */\
+        vec##bits PP, PPP, Q;                   /* add |p1| and |p2| */\
+\
+        sqr_##field(PP, P);                     /* PP = P^2 */\
+        mul_##field(PPP, PP, P);                /* PPP = P*PP */\
+        mul_##field(Q, U, PP);                  /* Q = U1*PP */\
+        sqr_##field(p3->X, R);                  /* R^2 */\
+        add_##field(P, Q, Q); \
+        sub_##field(p3->X, p3->X, PPP);         /* R^2-PPP */\
+        sub_##field(p3->X, p3->X, P);           /* X3 = R^2-PPP-2*Q */\
+        sub_##field(Q, Q, p3->X); \
+        mul_##field(Q, Q, R);                   /* R*(Q-X3) */\
+        mul_##field(p3->Y, S, PPP);             /* S1*PPP */\
+        sub_##field(p3->Y, Q, p3->Y);           /* Y3 = R*(Q-X3)-S1*PPP */\
+        mul_##field(p3->ZZ, p1->ZZ, p2->ZZ);    /* ZZ1*ZZ2 */\
+        mul_##field(p3->ZZZ, p1->ZZZ, p2->ZZZ); /* ZZZ1*ZZZ2 */\
+        mul_##field(p3->ZZ, p3->ZZ, PP);        /* ZZ3 = ZZ1*ZZ2*PP */\
+        mul_##field(p3->ZZZ, p3->ZZZ, PPP);     /* ZZZ3 = ZZZ1*ZZZ2*PPP */\
+    } else if (vec_is_zero(R, sizeof(R))) {     /* X1==X2 && Y1==Y2 */\
+        vec##bits V, W, M;                      /* double |p1| */\
+\
+        add_##field(U, p1->Y, p1->Y);           /* U = 2*Y1 */\
+        sqr_##field(V, U);                      /* V = U^2 */\
+        mul_##field(W, V, U);                   /* W = U*V */\
+        mul_##field(S, p1->X, V);               /* S = X1*V */\
+        sqr_##field(M, p1->X); \
+        mul_by_3_##field(M, M);                 /* M = 3*X1^2[+a*ZZ1^2] */\
+        sqr_##field(p3->X, M); \
+        add_##field(U, S, S);                   /* 2*S */\
+        sub_##field(p3->X, p3->X, U);           /* X3 = M^2-2*S */\
+        mul_##field(p3->Y, W, p1->Y);           /* W*Y1 */\
+        sub_##field(S, S, p3->X); \
+        mul_##field(S, S, M);                   /* M*(S-X3) */\
+        sub_##field(p3->Y, S, p3->Y);           /* Y3 = M*(S-X3)-W*Y1 */\
+        mul_##field(p3->ZZ, p1->ZZ, V);         /* ZZ3 = V*ZZ1 */\
+        mul_##field(p3->ZZZ, p1->ZZZ, W);       /* ZZ3 = W*ZZZ1 */\
+    } else {                                    /* X1==X2 && Y1==-Y2 */\
+        vec_zero(p3->ZZZ, 2*sizeof(p3->ZZZ));   /* set |p3| to infinity */\
+    } \
+}
+
+/*
+ * http://hyperelliptic.org/EFD/g1p/auto-shortw-xyzz.html#addition-madd-2008-s
+ * http://hyperelliptic.org/EFD/g1p/auto-shortw-xyzz.html#doubling-mdbl-2008-s-1
+ * with twists to handle even subtractions and either input at infinity.
+ * Addition costs 8M+2S, while conditional doubling - 2M+4M+3S.
+ */
+#define POINTXYZZ_DADD_AFFINE_IMPL(ptype, bits, field, one) \
+static void ptype##xyzz_dadd_affine(ptype##xyzz *p3, const ptype##xyzz *p1, \
+                                                     const ptype##_affine *p2, \
+                                                     bool_t subtract) \
+{ \
+    vec##bits P, R; \
+\
+    if (vec_is_zero(p2, sizeof(*p2))) { \
+        vec_copy(p3, p1, sizeof(*p3));  \
+        return; \
+    } else if (vec_is_zero(p1->ZZZ, 2*sizeof(p1->ZZZ))) { \
+        vec_copy(p3->X, p2->X, 2*sizeof(p3->X));\
+        cneg_##field(p3->ZZZ, one, subtract);   \
+        vec_copy(p3->ZZ, one, sizeof(p3->ZZ));  \
+        return; \
+    } \
+\
+    mul_##field(P, p2->X, p1->ZZ);              /* U2 = X2*ZZ1 */\
+    mul_##field(R, p2->Y, p1->ZZZ);             /* S2 = Y2*ZZZ1 */\
+    cneg_##field(R, R, subtract); \
+    sub_##field(P, P, p1->X);                   /* P = U2-X1 */\
+    sub_##field(R, R, p1->Y);                   /* R = S2-Y1 */\
+\
+    if (!vec_is_zero(P, sizeof(P))) {           /* X1!=X2 */\
+        vec##bits PP, PPP, Q;                   /* add |p2| to |p1| */\
+\
+        sqr_##field(PP, P);                     /* PP = P^2 */\
+        mul_##field(PPP, PP, P);                /* PPP = P*PP */\
+        mul_##field(Q, p1->X, PP);              /* Q = X1*PP */\
+        sqr_##field(p3->X, R);                  /* R^2 */\
+        add_##field(P, Q, Q); \
+        sub_##field(p3->X, p3->X, PPP);         /* R^2-PPP */\
+        sub_##field(p3->X, p3->X, P);           /* X3 = R^2-PPP-2*Q */\
+        sub_##field(Q, Q, p3->X); \
+        mul_##field(Q, Q, R);                   /* R*(Q-X3) */\
+        mul_##field(p3->Y, p1->Y, PPP);         /* Y1*PPP */\
+        sub_##field(p3->Y, Q, p3->Y);           /* Y3 = R*(Q-X3)-Y1*PPP */\
+        mul_##field(p3->ZZ, p1->ZZ, PP);        /* ZZ3 = ZZ1*PP */\
+        mul_##field(p3->ZZZ, p1->ZZZ, PPP);     /* ZZZ3 = ZZZ1*PPP */\
+    } else if (vec_is_zero(R, sizeof(R))) {     /* X1==X2 && Y1==Y2 */\
+        vec##bits U, S, M;                      /* double |p2| */\
+\
+        add_##field(U, p2->Y, p2->Y);           /* U = 2*Y1 */\
+        sqr_##field(p3->ZZ, U);                 /* [ZZ3 =] V = U^2 */\
+        mul_##field(p3->ZZZ, p3->ZZ, U);        /* [ZZZ3 =] W = U*V */\
+        mul_##field(S, p2->X, p3->ZZ);          /* S = X1*V */\
+        sqr_##field(M, p2->X); \
+        mul_by_3_##field(M, M);                 /* M = 3*X1^2[+a] */\
+        sqr_##field(p3->X, M); \
+        add_##field(U, S, S);                   /* 2*S */\
+        sub_##field(p3->X, p3->X, U);           /* X3 = M^2-2*S */\
+        mul_##field(p3->Y, p3->ZZZ, p2->Y);     /* W*Y1 */\
+        sub_##field(S, S, p3->X); \
+        mul_##field(S, S, M);                   /* M*(S-X3) */\
+        sub_##field(p3->Y, S, p3->Y);           /* Y3 = M*(S-X3)-W*Y1 */\
+        cneg_##field(p3->ZZZ, p3->ZZZ, subtract); \
+    } else {                                    /* X1==X2 && Y1==-Y2 */\
+        vec_zero(p3->ZZZ, 2*sizeof(p3->ZZZ));   /* set |p3| to infinity */\
+    } \
+}
+
+#define POINTXYZZ_TO_JACOBIAN_IMPL(ptype, bits, field) \
+static void ptype##xyzz_to_Jacobian(ptype *out, const ptype##xyzz *in) \
+{ \
+    mul_##field(out->X, in->X, in->ZZ); \
+    mul_##field(out->Y, in->Y, in->ZZZ); \
+    vec_copy(out->Z, in->ZZ, sizeof(out->Z)); \
+}
+
+#define POINT_TO_XYZZ_IMPL(ptype, bits, field) \
+static void ptype##_to_xyzz(ptype##xyzz *out, const ptype *in) \
+{ \
+    vec_copy(out->X, in->X, 2*sizeof(out->X)); \
+    sqr_##field(out->ZZ, in->Z); \
+    mul_##field(out->ZZZ, out->ZZ, in->Z); \
+}
+
+#endif
