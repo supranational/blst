@@ -1,6 +1,6 @@
 @echo off
 set TOP=%~dp0
-cl /nologo /c /O2 /Zi /Fdblst.pdb /MT /Zl %TOP%src\server.c || EXIT /B
+cl /nologo /c /O2 /Zi /Fdblst.pdb /W4 /MT /Zl %TOP%src\server.c || EXIT /B
 FOR %%F IN (%TOP%build\win64\*-x86_64.asm) DO (
     ml64 /nologo /c /Cp /Cx /Zi %%F || EXIT /B
 )
