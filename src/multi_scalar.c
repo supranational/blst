@@ -159,7 +159,7 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
 /*
  * Infinite point among inputs would be devastating. Shall we change it?
  */ 
-#define TO_AFFINE_IMPL(ptype, bits, field) \
+#define POINTS_TO_AFFINE_IMPL(ptype, bits, field) \
 static void ptype##s_to_affine(ptype##_affine dst[], const ptype src[], \
                                size_t npoints) \
 { \
@@ -190,8 +190,139 @@ static void ptype##s_to_affine(ptype##_affine dst[], const ptype src[], \
 
 PRECOMPUTE_WBITS_IMPL(POINTonE1, 384, fp, BLS12_381_Rx.p)
 MULT_SCALAR_WBITS_IMPL(POINTonE1, 384, fp, BLS12_381_Rx.p)
-TO_AFFINE_IMPL(POINTonE1, 384, fp)
+POINTS_TO_AFFINE_IMPL(POINTonE1, 384, fp)
 
 PRECOMPUTE_WBITS_IMPL(POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
 MULT_SCALAR_WBITS_IMPL(POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
-TO_AFFINE_IMPL(POINTonE2, 384x, fp2)
+POINTS_TO_AFFINE_IMPL(POINTonE2, 384x, fp2)
+
+static size_t pippenger_window_size(size_t npoints)
+{
+    size_t wbits;
+
+    for (wbits=0; npoints>>=1; wbits++) ;
+
+    return wbits>12 ? wbits-3 : (wbits>4 ? wbits-2 : 3);
+}
+
+#define DECLARE_PRIVATE_POINTXYZZ(ptype, bits) \
+typedef struct { vec##bits X,Y,ZZZ,ZZ; } ptype##xyzz;
+
+#define POINTS_MULT_PIPPENGER_IMPL(ptype) \
+static void ptype##_integrate_buckets(ptype *out, ptype##xyzz buckets[], \
+                                                  size_t wbits) \
+{ \
+    ptype##xyzz ret[1], acc[1]; \
+    size_t n = (size_t)1 << wbits; \
+\
+    /* Calculate sum of x[i-1]*i for i=1 through 1<<|wbits|. */\
+    vec_copy(acc, &buckets[--n], sizeof(acc)); \
+    vec_copy(ret, &buckets[n], sizeof(ret)); \
+    vec_zero(&buckets[n], sizeof(buckets[n])); \
+    while (n--) { \
+        ptype##xyzz_dadd(acc, acc, &buckets[n]); \
+        ptype##xyzz_dadd(ret, ret, acc); \
+        vec_zero(&buckets[n], sizeof(buckets[n])); \
+    } \
+    ptype##xyzz_to_Jacobian(out, ret); \
+} \
+\
+static void ptype##_bucket(ptype##xyzz buckets[], limb_t booth_idx, \
+                           size_t wbits, const ptype##_affine *p) \
+{ \
+    bool_t booth_sign = (booth_idx >> wbits) & 1; \
+\
+    booth_idx &= (1<<wbits) - 1; \
+    if (booth_idx--) \
+        ptype##xyzz_dadd_affine(&buckets[booth_idx], &buckets[booth_idx], \
+                                                     p, booth_sign); \
+} \
+\
+static void ptype##_prefetch(const ptype##xyzz buckets[], limb_t booth_idx, \
+                             size_t wbits) \
+{ \
+    booth_idx &= (1<<wbits) - 1; \
+    if (booth_idx--) \
+        vec_prefetch(&buckets[booth_idx], sizeof(buckets[booth_idx])); \
+} \
+\
+static void ptype##s_mult_pippenger(ptype *ret, const ptype##_affine *points[], \
+                                    size_t npoints, const byte *scalars[], \
+                                    size_t bits, ptype##xyzz buckets[], \
+                                    size_t wbits) \
+{ \
+    limb_t wmask, wval, wnxt; \
+    size_t i, window, cbits; \
+    ptype temp[1]; \
+\
+    wbits = wbits ? wbits : pippenger_window_size(npoints); \
+\
+    /* top excess bits modulo target window size */ \
+    window = bits % wbits;  /* yes, it may be zero */\
+    wmask = ((limb_t)1 << (window+1)) - 1; \
+\
+    bits -= window; \
+    i = is_zero(bits) ^ 1; \
+    wval = (get_wval_limb(scalars[0], bits-i, window+i) << (i^1)) & wmask; \
+    wval = booth_encode(wval, wbits); \
+    wnxt = (get_wval_limb(scalars[1], bits-i, window+i) << (i^1)) & wmask; \
+    wnxt = booth_encode(wnxt, wbits); \
+    npoints--;  /* account for prefetch */ \
+\
+    vec_zero(buckets, sizeof(buckets[0]) << (cbits = window)); \
+    ptype##_bucket(buckets, wval, wbits, points[0]); \
+\
+    vec_zero(ret, sizeof(*ret)); i = 1; \
+    while (bits > 0) { \
+        for (; i < npoints; i++) { \
+            wval = wnxt; \
+            wnxt = get_wval_limb(scalars[i+1], bits-1, window+1) & wmask; \
+            wnxt = booth_encode(wnxt, wbits); \
+            ptype##_prefetch(buckets, wnxt, wbits); \
+            ptype##_bucket(buckets, wval, wbits, points[i]); \
+        } \
+        ptype##_bucket(buckets, wnxt, wbits, points[i]); \
+        ptype##_integrate_buckets(temp, buckets, cbits); \
+\
+        window = wbits; \
+        wmask = ((limb_t)1 << (window+1)) - 1; \
+        if (cbits != wbits-1) \
+            vec_zero(buckets, sizeof(buckets[0]) << (cbits = wbits-1)); \
+        bits -= window; \
+        i = is_zero(bits) ^ 1; \
+        wnxt = (get_wval_limb(scalars[0], bits-i, window+i) << (i^1)) & wmask; \
+        wnxt = booth_encode(wnxt, wbits); \
+        ptype##_prefetch(buckets, wnxt, wbits); \
+\
+        ptype##_dadd(ret, ret, temp, NULL); \
+        for (i = 0; i < wbits; i++) \
+            ptype##_double(ret, ret); \
+\
+        i = 0; \
+    } \
+\
+    for (; i < npoints; i++) { \
+        wval = wnxt; \
+        wnxt = (get_wval_limb(scalars[i+1], 0, window) << 1) & wmask; \
+        wnxt = booth_encode(wnxt, wbits); \
+        ptype##_prefetch(buckets, wnxt, wbits); \
+        ptype##_bucket(buckets, wval, wbits, points[i]); \
+    } \
+    ptype##_bucket(buckets, wnxt, wbits, points[i]); \
+    ptype##_integrate_buckets(temp, buckets, cbits); \
+    ptype##_dadd(ret, ret, temp, NULL); \
+}
+
+DECLARE_PRIVATE_POINTXYZZ(POINTonE1, 384)
+POINTXYZZ_TO_JACOBIAN_IMPL(POINTonE1, 384, fp)
+POINTXYZZ_DADD_IMPL(POINTonE1, 384, fp)
+POINTXYZZ_DADD_AFFINE_IMPL(POINTonE1, 384, fp, BLS12_381_Rx.p)
+POINTS_MULT_PIPPENGER_IMPL(POINTonE1)
+POINT_TO_XYZZ_IMPL(POINTonE1, 384, fp)
+
+DECLARE_PRIVATE_POINTXYZZ(POINTonE2, 384x)
+POINTXYZZ_TO_JACOBIAN_IMPL(POINTonE2, 384x, fp2)
+POINTXYZZ_DADD_IMPL(POINTonE2, 384x, fp2)
+POINTXYZZ_DADD_AFFINE_IMPL(POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
+POINTS_MULT_PIPPENGER_IMPL(POINTonE2)
+POINT_TO_XYZZ_IMPL(POINTonE2, 384x, fp2)
