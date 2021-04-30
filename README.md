@@ -34,7 +34,7 @@ Formal verification of this library by Galois is on-going and can be found [here
 
 This library is compliant with the following IETF draft specifications:
 - [IETF BLS Signature V4](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature)
-- [IETF Hash-to-Curve V10](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve)
+- [IETF Hash-to-Curve V11](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve)
 
 The serialization formatting is implemented according to [Appendix A. BLS12-381](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature#appendix-A) of the IETF spec that calls for using the ZCash definition.
 
