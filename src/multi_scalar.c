@@ -248,54 +248,55 @@ static void ptype##_prefetch(const ptype##xyzz buckets[], limb_t booth_idx, \
 \
 static void ptype##s_mult_pippenger(ptype *ret, const ptype##_affine *points[], \
                                     size_t npoints, const byte *scalars[], \
-                                    size_t bits, ptype##xyzz buckets[], \
-                                    size_t wbits) \
+                                    size_t nbits, ptype##xyzz buckets[], \
+                                    size_t window) \
 { \
     limb_t wmask, wval, wnxt; \
-    size_t i, window, cbits; \
+    size_t i, wbits, cbits, bits = nbits; \
     ptype temp[1]; \
 \
-    wbits = wbits ? wbits : pippenger_window_size(npoints); \
+    window = window ? window : pippenger_window_size(npoints); \
 \
     /* top excess bits modulo target window size */ \
-    window = bits % wbits;  /* yes, it may be zero */\
-    wmask = ((limb_t)1 << (window+1)) - 1; \
+    wbits = bits % window;  /* yes, it may be zero */\
+    wmask = ((limb_t)1 << (wbits+1)) - 1; \
+    cbits = wbits; \
 \
-    bits -= window; \
+    bits -= wbits; \
     i = is_zero(bits) ^ 1; \
-    wval = (get_wval_limb(scalars[0], bits-i, window+i) << (i^1)) & wmask; \
-    wval = booth_encode(wval, wbits); \
-    wnxt = (get_wval_limb(scalars[1], bits-i, window+i) << (i^1)) & wmask; \
-    wnxt = booth_encode(wnxt, wbits); \
+    wval = (get_wval_limb(scalars[0], bits-i, wbits+i) << (i^1)) & wmask; \
+    wval = booth_encode(wval, window); \
+    wnxt = (get_wval_limb(scalars[1], bits-i, wbits+i) << (i^1)) & wmask; \
+    wnxt = booth_encode(wnxt, window); \
     npoints--;  /* account for prefetch */ \
 \
-    vec_zero(buckets, sizeof(buckets[0]) << (cbits = window)); \
-    ptype##_bucket(buckets, wval, wbits, points[0]); \
+    vec_zero(buckets, sizeof(buckets[0]) << (window-1)); \
+    ptype##_bucket(buckets, wval, window, points[0]); \
 \
     vec_zero(ret, sizeof(*ret)); i = 1; \
     while (bits > 0) { \
         for (; i < npoints; i++) { \
             wval = wnxt; \
-            wnxt = get_wval_limb(scalars[i+1], bits-1, window+1) & wmask; \
-            wnxt = booth_encode(wnxt, wbits); \
-            ptype##_prefetch(buckets, wnxt, wbits); \
-            ptype##_bucket(buckets, wval, wbits, points[i]); \
+            wnxt = get_wval_limb(scalars[i+1], bits-1, wbits+1) & wmask; \
+            wnxt = booth_encode(wnxt, window); \
+            ptype##_prefetch(buckets, wnxt, window); \
+            ptype##_bucket(buckets, wval, window, points[i]); \
         } \
-        ptype##_bucket(buckets, wnxt, wbits, points[i]); \
+        ptype##_bucket(buckets, wnxt, window, points[i]); \
         ptype##_integrate_buckets(temp, buckets, cbits); \
 \
-        window = wbits; \
-        wmask = ((limb_t)1 << (window+1)) - 1; \
-        if (cbits != wbits-1) \
-            vec_zero(buckets, sizeof(buckets[0]) << (cbits = wbits-1)); \
-        bits -= window; \
+        wbits = window; \
+        wmask = ((limb_t)1 << (wbits+1)) - 1; \
+        cbits = window - 1; \
+\
+        bits -= wbits; \
         i = is_zero(bits) ^ 1; \
-        wnxt = (get_wval_limb(scalars[0], bits-i, window+i) << (i^1)) & wmask; \
-        wnxt = booth_encode(wnxt, wbits); \
-        ptype##_prefetch(buckets, wnxt, wbits); \
+        wnxt = (get_wval_limb(scalars[0], bits-i, wbits+i) << (i^1)) & wmask; \
+        wnxt = booth_encode(wnxt, window); \
+        ptype##_prefetch(buckets, wnxt, window); \
 \
         ptype##_dadd(ret, ret, temp, NULL); \
-        for (i = 0; i < wbits; i++) \
+        for (i = 0; i < window; i++) \
             ptype##_double(ret, ret); \
 \
         i = 0; \
@@ -303,12 +304,12 @@ static void ptype##s_mult_pippenger(ptype *ret, const ptype##_affine *points[], 
 \
     for (; i < npoints; i++) { \
         wval = wnxt; \
-        wnxt = (get_wval_limb(scalars[i+1], 0, window) << 1) & wmask; \
-        wnxt = booth_encode(wnxt, wbits); \
-        ptype##_prefetch(buckets, wnxt, wbits); \
-        ptype##_bucket(buckets, wval, wbits, points[i]); \
+        wnxt = (get_wval_limb(scalars[i+1], 0, wbits) << 1) & wmask; \
+        wnxt = booth_encode(wnxt, window); \
+        ptype##_prefetch(buckets, wnxt, window); \
+        ptype##_bucket(buckets, wval, window, points[i]); \
     } \
-    ptype##_bucket(buckets, wnxt, wbits, points[i]); \
+    ptype##_bucket(buckets, wnxt, window, points[i]); \
     ptype##_integrate_buckets(temp, buckets, cbits); \
     ptype##_dadd(ret, ret, temp, NULL); \
 }
