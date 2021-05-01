@@ -246,72 +246,62 @@ static void ptype##_prefetch(const ptype##xyzz buckets[], limb_t booth_idx, \
         vec_prefetch(&buckets[booth_idx], sizeof(buckets[booth_idx])); \
 } \
 \
+static void ptype##s_tile_pippenger(ptype *ret, const ptype##_affine *points[], \
+                                    size_t npoints, const byte *scalars[], \
+                                    size_t nbits, ptype##xyzz buckets[], \
+                                    size_t bit0, size_t wbits, size_t cbits) \
+{ \
+    limb_t wmask, wval, wnxt; \
+    size_t i, z; \
+\
+    wmask = ((limb_t)1 << (wbits+1)) - 1; \
+    z = is_zero(bit0); \
+    bit0 -= z^1; wbits += z^1; \
+    wval = (get_wval_limb(scalars[0], bit0, wbits) << z) & wmask; \
+    wval = booth_encode(wval, cbits); \
+    wnxt = (get_wval_limb(scalars[1], bit0, wbits) << z) & wmask; \
+    wnxt = booth_encode(wnxt, cbits); \
+    npoints--;  /* account for prefetch */ \
+\
+    ptype##_bucket(buckets, wval, cbits, points[0]); \
+    for (i = 1; i < npoints; i++) { \
+        wval = wnxt; \
+        wnxt = (get_wval_limb(scalars[i+1], bit0, wbits) << z) & wmask; \
+        wnxt = booth_encode(wnxt, cbits); \
+        ptype##_prefetch(buckets, wnxt, cbits); \
+        ptype##_bucket(buckets, wval, cbits, points[i]); \
+    } \
+    ptype##_bucket(buckets, wnxt, cbits, points[i]); \
+    ptype##_integrate_buckets(ret, buckets, cbits - 1); \
+    (void)nbits; \
+} \
+\
 static void ptype##s_mult_pippenger(ptype *ret, const ptype##_affine *points[], \
                                     size_t npoints, const byte *scalars[], \
                                     size_t nbits, ptype##xyzz buckets[], \
                                     size_t window) \
 { \
-    limb_t wmask, wval, wnxt; \
-    size_t i, wbits, cbits, bits = nbits; \
-    ptype temp[1]; \
+    size_t i, wbits, cbits, bit0 = nbits; \
+    ptype tile[1]; \
 \
     window = window ? window : pippenger_window_size(npoints); \
+    vec_zero(buckets, sizeof(buckets[0]) << (window-1)); \
+    vec_zero(ret, sizeof(*ret)); \
 \
     /* top excess bits modulo target window size */ \
-    wbits = bits % window;  /* yes, it may be zero */\
-    wmask = ((limb_t)1 << (wbits+1)) - 1; \
-    cbits = wbits; \
-\
-    bits -= wbits; \
-    i = is_zero(bits) ^ 1; \
-    wval = (get_wval_limb(scalars[0], bits-i, wbits+i) << (i^1)) & wmask; \
-    wval = booth_encode(wval, window); \
-    wnxt = (get_wval_limb(scalars[1], bits-i, wbits+i) << (i^1)) & wmask; \
-    wnxt = booth_encode(wnxt, window); \
-    npoints--;  /* account for prefetch */ \
-\
-    vec_zero(buckets, sizeof(buckets[0]) << (window-1)); \
-    ptype##_bucket(buckets, wval, window, points[0]); \
-\
-    vec_zero(ret, sizeof(*ret)); i = 1; \
-    while (bits > 0) { \
-        for (; i < npoints; i++) { \
-            wval = wnxt; \
-            wnxt = get_wval_limb(scalars[i+1], bits-1, wbits+1) & wmask; \
-            wnxt = booth_encode(wnxt, window); \
-            ptype##_prefetch(buckets, wnxt, window); \
-            ptype##_bucket(buckets, wval, window, points[i]); \
-        } \
-        ptype##_bucket(buckets, wnxt, window, points[i]); \
-        ptype##_integrate_buckets(temp, buckets, cbits); \
-\
-        wbits = window; \
-        wmask = ((limb_t)1 << (wbits+1)) - 1; \
-        cbits = window - 1; \
-\
-        bits -= wbits; \
-        i = is_zero(bits) ^ 1; \
-        wnxt = (get_wval_limb(scalars[0], bits-i, wbits+i) << (i^1)) & wmask; \
-        wnxt = booth_encode(wnxt, window); \
-        ptype##_prefetch(buckets, wnxt, window); \
-\
-        ptype##_dadd(ret, ret, temp, NULL); \
+    wbits = nbits % window; /* yes, it may be zero */ \
+    cbits = wbits + 1; \
+    while (bit0 -= wbits) { \
+        ptype##s_tile_pippenger(tile, points, npoints, scalars, nbits, \
+                                      buckets, bit0, wbits, cbits); \
+        ptype##_dadd(ret, ret, tile, NULL); \
         for (i = 0; i < window; i++) \
             ptype##_double(ret, ret); \
-\
-        i = 0; \
+        cbits = wbits = window; \
     } \
-\
-    for (; i < npoints; i++) { \
-        wval = wnxt; \
-        wnxt = (get_wval_limb(scalars[i+1], 0, wbits) << 1) & wmask; \
-        wnxt = booth_encode(wnxt, window); \
-        ptype##_prefetch(buckets, wnxt, window); \
-        ptype##_bucket(buckets, wval, window, points[i]); \
-    } \
-    ptype##_bucket(buckets, wnxt, window, points[i]); \
-    ptype##_integrate_buckets(temp, buckets, cbits); \
-    ptype##_dadd(ret, ret, temp, NULL); \
+    ptype##s_tile_pippenger(tile, points, npoints, scalars, nbits, \
+                                  buckets, 0, wbits, cbits); \
+    ptype##_dadd(ret, ret, tile, NULL); \
 }
 
 DECLARE_PRIVATE_POINTXYZZ(POINTonE1, 384)
