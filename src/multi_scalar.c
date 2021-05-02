@@ -12,7 +12,11 @@
  * a set of points you pre-compute a table for chosen windowing factor
  * [expressed in bits with value between 2 and 8], and then you pass
  * this table to the actual multiplication procedure along with scalars.
- * Idea is that pre-comuted table will be reused multiple times.
+ * Idea is that the pre-computed table will be reused multiple times. In
+ * which case multiplication runs faster than below Pippenger algorithm
+ * implementation for up to ~16K points, naturally at the expense of
+ * multi-megabyte table. For reference, without reusing the table it's
+ * faster than Pippenger algorithm for up ~32 points [with wbits=5].
  */
 
 #define PRECOMPUTE_WBITS_IMPL(ptype, bits, field, one) \
@@ -196,13 +200,18 @@ PRECOMPUTE_WBITS_IMPL(POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
 MULT_SCALAR_WBITS_IMPL(POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
 POINTS_TO_AFFINE_IMPL(POINTonE2, 384x, fp2)
 
+/*
+ * Pippenger algorithm implementation, fastest option for larger amount
+ * of points...
+ */
+
 static size_t pippenger_window_size(size_t npoints)
 {
     size_t wbits;
 
     for (wbits=0; npoints>>=1; wbits++) ;
 
-    return wbits>12 ? wbits-3 : (wbits>4 ? wbits-2 : 3);
+    return wbits>12 ? wbits-3 : (wbits>4 ? wbits-2 : 2);
 }
 
 #define DECLARE_PRIVATE_POINTXYZZ(ptype, bits) \
