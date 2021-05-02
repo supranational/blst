@@ -117,8 +117,12 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
                                 ptype scratch[]) \
 { \
     limb_t wmask, wval; \
-    size_t i, j, window, nwin = (size_t)1 << (wbits-1); \
+    size_t i, j, nbytes, window, nwin = (size_t)1 << (wbits-1); \
+    const byte *scalar, **scalar_s = scalars; \
     const ptype##_affine *row = table; \
+\
+    nbytes = (nbits + 7)/8; /* convert |nbits| to bytes */ \
+    scalar = *scalar_s++; \
 \
     /* top excess bits modulo target window size */ \
     window = nbits % wbits; /* yes, it may be zero */ \
@@ -126,9 +130,9 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
 \
     nbits -= window; \
     if (nbits > 0) \
-        wval = get_wval(scalars[0], nbits - 1, window + 1) & wmask; \
+        wval = get_wval(scalar, nbits - 1, window + 1) & wmask; \
     else \
-        wval = (scalars[0][0] << 1) & wmask; \
+        wval = ((limb_t)scalar[0] << 1) & wmask; \
 \
     wval = booth_encode(wval, wbits); \
     ptype##_gather_booth_wbits(&scratch[0], row, wbits, wval); \
@@ -137,7 +141,8 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
     i = 1; vec_zero(ret, sizeof(*ret)); \
     while (nbits > 0) { \
         for (; i < npoints; i++, row += nwin) { \
-            wval = get_wval(scalars[i], nbits - 1, window + 1) & wmask; \
+            scalar = *scalar_s ? *scalar_s++ : scalar+nbytes; \
+            wval = get_wval(scalar, nbits - 1, window + 1) & wmask; \
             wval = booth_encode(wval, wbits); \
             ptype##_gather_booth_wbits(&scratch[i], row, wbits, wval); \
         } \
@@ -149,11 +154,12 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
         window = wbits; \
         wmask = ((limb_t)1 << (window + 1)) - 1; \
         nbits -= window; \
-        i = 0; row = table; \
+        i = 0; row = table; scalar_s = scalars; \
     } \
 \
     for (; i < npoints; i++, row += nwin) { \
-        wval = (scalars[i][0] << 1) & wmask; \
+        scalar = *scalar_s ? *scalar_s++ : scalar+nbytes; \
+        wval = ((limb_t)scalar[0] << 1) & wmask; \
         wval = booth_encode(wval, wbits); \
         ptype##_gather_booth_wbits(&scratch[i], row, wbits, wval); \
     } \
@@ -261,28 +267,34 @@ static void ptype##s_tile_pippenger(ptype *ret, const ptype##_affine *points[], 
                                     size_t bit0, size_t wbits, size_t cbits) \
 { \
     limb_t wmask, wval, wnxt; \
-    size_t i, z; \
+    size_t i, z, nbytes; \
+    const byte *scalar = *scalars++; \
+    const ptype##_affine *point = *points++; \
 \
+    nbytes = (nbits + 7)/8; /* convert |nbits| to bytes */ \
     wmask = ((limb_t)1 << (wbits+1)) - 1; \
     z = is_zero(bit0); \
     bit0 -= z^1; wbits += z^1; \
-    wval = (get_wval_limb(scalars[0], bit0, wbits) << z) & wmask; \
+    wval = (get_wval_limb(scalar, bit0, wbits) << z) & wmask; \
     wval = booth_encode(wval, cbits); \
-    wnxt = (get_wval_limb(scalars[1], bit0, wbits) << z) & wmask; \
+    scalar = *scalars ? *scalars++ : scalar+nbytes; \
+    wnxt = (get_wval_limb(scalar, bit0, wbits) << z) & wmask; \
     wnxt = booth_encode(wnxt, cbits); \
     npoints--;  /* account for prefetch */ \
 \
-    ptype##_bucket(buckets, wval, cbits, points[0]); \
+    ptype##_bucket(buckets, wval, cbits, point); \
     for (i = 1; i < npoints; i++) { \
         wval = wnxt; \
-        wnxt = (get_wval_limb(scalars[i+1], bit0, wbits) << z) & wmask; \
+        scalar = *scalars ? *scalars++ : scalar+nbytes; \
+        wnxt = (get_wval_limb(scalar, bit0, wbits) << z) & wmask; \
         wnxt = booth_encode(wnxt, cbits); \
         ptype##_prefetch(buckets, wnxt, cbits); \
-        ptype##_bucket(buckets, wval, cbits, points[i]); \
+        point = *points ? *points++ : point+1; \
+        ptype##_bucket(buckets, wval, cbits, point); \
     } \
-    ptype##_bucket(buckets, wnxt, cbits, points[i]); \
+    point = *points ? *points++ : point+1; \
+    ptype##_bucket(buckets, wnxt, cbits, point); \
     ptype##_integrate_buckets(ret, buckets, cbits - 1); \
-    (void)nbits; \
 } \
 \
 static void ptype##s_mult_pippenger(ptype *ret, const ptype##_affine *points[], \

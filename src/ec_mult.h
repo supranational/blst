@@ -98,7 +98,9 @@ static void ptype##s_mult_w##SZ(ptype *ret, \
                                 ptype table[][1<<(SZ-1)]) \
 { \
     limb_t wmask, wval; \
-    size_t i, j, window; \
+    size_t i, j, window, nbytes; \
+    const byte *scalar, **scalar_s = scalars; \
+    const ptype *point = NULL; \
     ptype temp[1]; \
 \
     if (table == NULL) \
@@ -106,7 +108,11 @@ static void ptype##s_mult_w##SZ(ptype *ret, \
                                              npoints); \
 \
     for (i = 0; i < npoints; i++) \
-        ptype##_precompute_w##SZ(table[i], points[i]); \
+        point = *points ? *points++ : point+1, \
+        ptype##_precompute_w##SZ(table[i], point); \
+\
+    nbytes = (bits + 7)/8; /* convert |bits| to bytes */ \
+    scalar = *scalar_s++; \
 \
     /* top excess bits modulo target window size */ \
     window = bits % SZ; /* yes, it may be zero */ \
@@ -114,9 +120,9 @@ static void ptype##s_mult_w##SZ(ptype *ret, \
 \
     bits -= window; \
     if (bits > 0) \
-        wval = get_wval(scalars[0], bits - 1, window + 1) & wmask; \
+        wval = get_wval(scalar, bits - 1, window + 1) & wmask; \
     else \
-        wval = (scalars[0][0] << 1) & wmask; \
+        wval = (scalar[0] << 1) & wmask; \
 \
     wval = booth_encode(wval, SZ); \
     ptype##_gather_booth_w##SZ(ret, table[0], wval); \
@@ -124,7 +130,8 @@ static void ptype##s_mult_w##SZ(ptype *ret, \
     i = 1; \
     while (bits > 0) { \
         for (; i < npoints; i++) { \
-            wval = get_wval(scalars[i], bits - 1, window + 1) & wmask; \
+            scalar = *scalar_s ? *scalar_s++ : scalar+nbytes; \
+            wval = get_wval(scalar, bits - 1, window + 1) & wmask; \
             wval = booth_encode(wval, SZ); \
             ptype##_gather_booth_w##SZ(temp, table[i], wval); \
             ptype##_dadd(ret, ret, temp, NULL); \
@@ -136,11 +143,12 @@ static void ptype##s_mult_w##SZ(ptype *ret, \
         window = SZ; \
         wmask = ((limb_t)1 << (window + 1)) - 1; \
         bits -= window; \
-        i = 0; \
+        i = 0; scalar_s = scalars; \
     } \
 \
     for (; i < npoints; i++) { \
-        wval = (scalars[i][0] << 1) & wmask; \
+        scalar = *scalar_s ? *scalar_s++ : scalar+nbytes; \
+        wval = (scalar[0] << 1) & wmask; \
         wval = booth_encode(wval, SZ); \
         ptype##_gather_booth_w##SZ(temp, table[i], wval); \
         ptype##_dadd(ret, ret, temp, NULL); \
