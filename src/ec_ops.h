@@ -579,6 +579,35 @@ static void ptype##proj_dadd_affine(ptype##proj *out, const ptype##proj *p1, \
     vec_select(out, p1, p3, sizeof(*out), p2inf); \
 }
 
+/*
+ * https://eprint.iacr.org/2015/1060, algorithm 9 with a twist to handle
+ * |p3| pointing at |p1|. This is resolved by adding |t3| to hold X*Y
+ * and reordering operations to bring references to |p1| forward.
+ * 6M+2S[+13A].
+ */
+#define POINT_PROJ_DOUBLE_IMPL_A0(ptype, bits, field, suffixb) \
+static void ptype##proj_double(ptype##proj *p3, const ptype##proj *p1) \
+{ \
+    vec##bits t0, t1, t2, t3; \
+\
+    sqr_##field(t0, p1->Y);             /* 1.     t0 = Y*Y   */\
+    mul_##field(t1, p1->Y, p1->Z);      /* 5.     t1 = Y*Z   */\
+    sqr_##field(t2, p1->Z);             /* 6.     t2 = Z*Z   */\
+    mul_##field(t3, p1->X, p1->Y);      /* 16.    t3 = X*Y   */\
+    lshift_##field(p3->Z, t0, 3);       /* 2-4.   Z3 = 8*t0  */\
+    mul_by_b_##suffixb(p3->X, t2);      /* 7.     t2 = b*t2  */\
+    mul_by_3_##field(t2, p3->X);        /* 7.     t2 = 3*t2  */\
+    mul_##field(p3->X, t2, p3->Z);      /* 8.     X3 = t2*Z3 */\
+    add_##field(p3->Y, t0, t2);         /* 9.     Y3 = t0+t2 */\
+    mul_##field(p3->Z, t1, p3->Z);      /* 10.    Z3 = t1*Z3 */\
+    mul_by_3_##field(t2, t2);           /* 11-12. t2 = 3*t2  */\
+    sub_##field(t0, t0, t2);            /* 13.    t0 = t0-t2 */\
+    mul_##field(p3->Y, t0, p3->Y);      /* 14.    Y3 = t0*Y3 */\
+    add_##field(p3->Y, p3->X, p3->Y);   /* 15.    Y3 = X3+Y3 */\
+    mul_##field(p3->X, t0, t3);         /* 17.    X3 = t0*t3 */\
+    add_##field(p3->X, p3->X, p3->X);   /* 18.    X3 = X3+X3 */\
+}
+
 #define POINT_PROJ_TO_JACOBIAN_IMPL(ptype, bits, field) \
 static void ptype##proj_to_Jacobian(ptype *out, const ptype##proj *in) \
 { \
