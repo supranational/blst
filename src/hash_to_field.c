@@ -42,6 +42,12 @@ static void vec_xor(void *restrict ret, const void *restrict a,
         rp[i] = ap[i] ^ bp[i];
 }
 
+#ifdef expand_message_xmd
+void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
+                        const unsigned char *aug, size_t aug_len,
+                        const unsigned char *msg, size_t msg_len,
+                        const unsigned char *DST, size_t DST_len)
+#else
 static void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
                                const unsigned char *aug, size_t aug_len,
                                const unsigned char *msg, size_t msg_len,
@@ -103,6 +109,7 @@ static void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
         sha256_emit(bytes, ctx.h);
     }
 }
+#endif
 
 /*
  * |nelems| is 'count * m' from spec
