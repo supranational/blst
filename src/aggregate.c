@@ -503,6 +503,20 @@ static bool_t PAIRING_FinalVerify(const PAIRING *ctx, const vec384fp12 GTsig)
 int blst_pairing_finalverify(const PAIRING *ctx, const vec384fp12 GTsig)
 {   return (int)PAIRING_FinalVerify(ctx, GTsig);   }
 
+int blst_fp12_finalverify(const vec384fp12 GT1, const vec384fp12 GT2)
+{
+    vec384fp12 GT;
+
+    vec_copy(GT, GT1, sizeof(GT));
+    conjugate_fp12(GT);
+    mul_fp12(GT, GT, GT2);
+    final_exp(GT, GT);
+
+    /* return GT==1 */
+    return (int)(vec_is_equal(GT[0][0], BLS12_381_Rx.p2, sizeof(GT[0][0])) &
+                 vec_is_zero(GT[0][1], sizeof(GT) - sizeof(GT[0][0])));
+}
+
 /*
  * PAIRING context-free entry points.
  *
