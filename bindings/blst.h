@@ -277,6 +277,7 @@ void blst_final_exp(blst_fp12 *ret, const blst_fp12 *f);
 void blst_precompute_lines(blst_fp6 Qlines[68], const blst_p2_affine *Q);
 void blst_miller_loop_lines(blst_fp12 *ret, const blst_fp6 Qlines[68],
                                             const blst_p1_affine *P);
+bool blst_fp12_finalverify(const blst_fp12 *gt1, const blst_fp12 *gt2);
 #endif
 
 #ifdef __BLST_CGO__

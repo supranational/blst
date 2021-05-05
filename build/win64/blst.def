@@ -129,6 +129,7 @@ EXPORTS
 	blst_final_exp
 	blst_precompute_lines
 	blst_miller_loop_lines
+	blst_fp12_finalverify
 	blst_pairing_sizeof
 	blst_pairing_init
 	blst_pairing_get_dst
