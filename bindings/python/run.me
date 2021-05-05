@@ -6,6 +6,7 @@ import subprocess
 import re
 import json
 import glob
+import sysconfig
 
 here = re.split(r'/(?=[^/]*$)', sys.argv[0])
 if len(here) > 1:
@@ -33,13 +34,14 @@ if newer("../blst.swg", "../blst.h", "../blst.hpp", "blst_wrap.cpp") :
 
 if newer("blst_wrap.cpp", "../libblst.a", "_blst.so") :
     print("compiling _blst.so...") or sys.stdout.flush()
-    maj_min = "{}.{}{}".format(sys.version_info.major, sys.version_info.minor,
-                               sys.abiflags if sys.version_info.major > 2 else
-                               "")
-    subprocess.check_call(["c++", "-shared", "-o", "_blst.so", "-fPIC",
-                                  "-I/usr/include/python"+maj_min, "-I..",
-                                  "-O", "-Wall", "blst_wrap.cpp",
-                                  "../libblst.a", "-Wl,-Bsymbolic"])
+    if sysconfig.get_config_var('MACHDEP') == 'darwin' :
+        cmd = ["c++", "-bundle", "-undefined", "dynamic_lookup"]
+    else :
+        cmd = ["c++", "-shared", "-Wl,-Bsymbolic"]
+    cmd.extend(["-o", "_blst.so", "-fPIC",
+                "-I"+sysconfig.get_config_var('INCLUDEPY'), "-I..",
+                "-O", "-Wall", "blst_wrap.cpp", "../libblst.a"])
+    subprocess.check_call(cmd)
 
 print("testing...")
 ########################################################################
