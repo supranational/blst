@@ -10,13 +10,16 @@
 /*
  * This is two-step multi-scalar multiplication procedure. First, given
  * a set of points you pre-compute a table for chosen windowing factor
- * [expressed in bits with value between 2 and 8], and then you pass
+ * [expressed in bits with value between 2 and 14], and then you pass
  * this table to the actual multiplication procedure along with scalars.
  * Idea is that the pre-computed table will be reused multiple times. In
  * which case multiplication runs faster than below Pippenger algorithm
- * implementation for up to ~16K points, naturally at the expense of
- * multi-megabyte table. For reference, without reusing the table it's
- * faster than Pippenger algorithm for up ~32 points [with wbits=5].
+ * implementation for up to ~16K points for wbits=8, naturally at the
+ * expense of multi-megabyte table. One can trade even more memory for
+ * performance, but each wbits increment doubles the memory requirement,
+ * so at some point it gets prohibively large... For reference, without
+ * reusing the table it's faster than Pippenger algorithm for up ~32
+ * points [with wbits=5]...
  */
 
 #define PRECOMPUTE_WBITS_IMPL(ptype, bits, field, one) \
@@ -70,7 +73,7 @@ static void ptype##s_precompute_wbits(ptype##_affine table[], size_t wbits, \
 { \
     size_t total = npoints << (wbits-1); \
     size_t nwin = (size_t)1 << (wbits-1); \
-    size_t nmin = (size_t)1 << (9-wbits); \
+    size_t nmin = wbits>9 ? (size_t)1: (size_t)1 << (9-wbits); \
     size_t i, top = 0; \
     ptype *rows, *row; \
     size_t stride = ((512*1024)/sizeof(ptype##_affine)) >> wbits; \
@@ -117,7 +120,7 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
                                 ptype scratch[]) \
 { \
     limb_t wmask, wval; \
-    size_t i, j, nbytes, window, nwin = (size_t)1 << (wbits-1); \
+    size_t i, j, z, nbytes, window, nwin = (size_t)1 << (wbits-1); \
     const byte *scalar, **scalar_s = scalars; \
     const ptype##_affine *row = table; \
 \
@@ -129,11 +132,8 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
     wmask = ((limb_t)1 << (window + 1)) - 1; \
 \
     nbits -= window; \
-    if (nbits > 0) \
-        wval = get_wval(scalar, nbits - 1, window + 1) & wmask; \
-    else \
-        wval = ((limb_t)scalar[0] << 1) & wmask; \
-\
+    z = is_zero(nbits); \
+    wval = (get_wval_limb(scalar, nbits - (z^1), wbits + (z^1)) << z) & wmask; \
     wval = booth_encode(wval, wbits); \
     ptype##_gather_booth_wbits(&scratch[0], row, wbits, wval); \
     row += nwin; \
@@ -142,7 +142,7 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
     while (nbits > 0) { \
         for (; i < npoints; i++, row += nwin) { \
             scalar = *scalar_s ? *scalar_s++ : scalar+nbytes; \
-            wval = get_wval(scalar, nbits - 1, window + 1) & wmask; \
+            wval = get_wval_limb(scalar, nbits - 1, window + 1) & wmask; \
             wval = booth_encode(wval, wbits); \
             ptype##_gather_booth_wbits(&scratch[i], row, wbits, wval); \
         } \
@@ -159,7 +159,7 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
 \
     for (; i < npoints; i++, row += nwin) { \
         scalar = *scalar_s ? *scalar_s++ : scalar+nbytes; \
-        wval = ((limb_t)scalar[0] << 1) & wmask; \
+        wval = (get_wval_limb(scalar, 0, wbits) << 1) & wmask; \
         wval = booth_encode(wval, wbits); \
         ptype##_gather_booth_wbits(&scratch[i], row, wbits, wval); \
     } \
