@@ -53,4 +53,11 @@ size_t blst_uniq_sizeof(size_t n_nodes);
 void blst_uniq_init(blst_uniq *tree);
 bool blst_uniq_test(blst_uniq *tree, const byte *msg, size_t len);
 
+#ifdef expand_message_xmd
+void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
+                        const unsigned char *aug, size_t aug_len,
+                        const unsigned char *msg, size_t msg_len,
+                        const unsigned char *DST, size_t DST_len)
+#endif
+
 #endif
