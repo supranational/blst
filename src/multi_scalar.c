@@ -66,9 +66,9 @@ static void ptype##s_to_affine_row_wbits(ptype##_affine dst[], ptype src[], \
     } \
 } \
 \
-/* |points[n]| are customarily placed at the end of |table[n<<(wbits-1)]| */\
+/* flat |points[n]| can be placed at the end of |table[n<<(wbits-1)]| */\
 static void ptype##s_precompute_wbits(ptype##_affine table[], size_t wbits, \
-                                      const ptype##_affine points[], \
+                                      const ptype##_affine *points[], \
                                       size_t npoints) \
 { \
     size_t total = npoints << (wbits-1); \
@@ -76,6 +76,7 @@ static void ptype##s_precompute_wbits(ptype##_affine table[], size_t wbits, \
     size_t nmin = wbits>9 ? (size_t)1: (size_t)1 << (9-wbits); \
     size_t i, top = 0; \
     ptype *rows, *row; \
+    const ptype##_affine *point = *points++; \
     size_t stride = ((512*1024)/sizeof(ptype##_affine)) >> wbits; \
     if (stride == 0) stride = 1; \
 \
@@ -88,14 +89,16 @@ static void ptype##s_precompute_wbits(ptype##_affine table[], size_t wbits, \
         } \
         rows = row = (ptype *)(&table[top]); \
         for (i = 0; i < stride; i++, row += nwin) \
-            ptype##_precompute_row_wbits(row, wbits, points++); \
+            point = *points ? *points++ : point+1, \
+            ptype##_precompute_row_wbits(row, wbits, point); \
         ptype##s_to_affine_row_wbits(&table[top], rows, wbits, stride); \
         top += stride << (wbits-1); \
         npoints -= stride; \
     } \
     rows = row = alloca(2*sizeof(ptype##_affine) * npoints * nwin); \
     for (i = 0; i < npoints; i++, row += nwin) \
-        ptype##_precompute_row_wbits(row, wbits, points++); \
+        point = *points ? *points++ : point+1, \
+        ptype##_precompute_row_wbits(row, wbits, point); \
     ptype##s_to_affine_row_wbits(&table[top], rows, wbits, npoints); \
 }
 
@@ -170,32 +173,35 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
  * Infinite point among inputs would be devastating. Shall we change it?
  */ 
 #define POINTS_TO_AFFINE_IMPL(ptype, bits, field) \
-static void ptype##s_to_affine(ptype##_affine dst[], const ptype src[], \
+static void ptype##s_to_affine(ptype##_affine dst[], const ptype *points[], \
                                size_t npoints) \
 { \
     size_t i; \
     vec##bits *acc, ZZ, ZZZ; \
+    const ptype *point = *points++; \
 \
     acc = (vec##bits *)dst; \
-    vec_copy(acc++, (src++)->Z, sizeof(vec##bits)); \
-    for (i = 1; i < npoints; i++, acc++, src++) \
-        mul_##field(acc[0], acc[-1], src->Z); \
+    vec_copy(acc++, point->Z, sizeof(vec##bits)); \
+    for (i = 1; i < npoints; i++, acc++) \
+        point = *points ? *points++ : point+1, \
+        mul_##field(acc[0], acc[-1], point->Z); \
 \
     --acc; reciprocal_##field(acc[0], acc[0]); \
 \
-    --src, --npoints, dst += npoints; \
-    for (i = 0; i < npoints; i++, acc--, dst--, src--) { \
+    --points, --npoints, dst += npoints; \
+    for (i = 0; i < npoints; i++, acc--, dst--) { \
         mul_##field(acc[-1], acc[-1], acc[0]);  /* 1/Z        */\
         sqr_##field(ZZ, acc[-1]);               /* 1/Z^2      */\
         mul_##field(ZZZ, ZZ, acc[-1]);          /* 1/Z^3      */\
-        mul_##field(acc[-1], src->Z, acc[0]);                   \
-        mul_##field(dst->X,  src->X, ZZ);       /* X = X'/Z^2 */\
-        mul_##field(dst->Y,  src->Y, ZZZ);      /* Y = Y'/Z^3 */\
+        mul_##field(acc[-1], point->Z, acc[0]);                 \
+        mul_##field(dst->X,  point->X, ZZ);     /* X = X'/Z^2 */\
+        mul_##field(dst->Y,  point->Y, ZZZ);    /* Y = Y'/Z^3 */\
+        point = (point == *points) ? *--points : point-1; \
     } \
     sqr_##field(ZZ, acc[0]);                    /* 1/Z^2      */\
     mul_##field(ZZZ, ZZ, acc[0]);               /* 1/Z^3      */\
-    mul_##field(dst->X, src->X, ZZ);            /* X = X'/Z^2 */\
-    mul_##field(dst->Y, src->Y, ZZZ);           /* Y = Y'/Z^3 */\
+    mul_##field(dst->X, point->X, ZZ);          /* X = X'/Z^2 */\
+    mul_##field(dst->Y, point->Y, ZZZ);         /* Y = Y'/Z^3 */\
 }
 
 PRECOMPUTE_WBITS_IMPL(POINTonE1, 384, fp, BLS12_381_Rx.p)
