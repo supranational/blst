@@ -8,6 +8,7 @@
 
 #include <string>
 #include <cstring>
+#include <vector>
 
 #if __cplusplus >= 201703L
 # include <string_view>
@@ -47,6 +48,9 @@ class P2_Affine;
 class P2;
 class Pairing;
 
+inline const byte *C_bytes(const void *ptr)
+{   return static_cast<const byte*>(ptr);   }
+
 /*
  * As for SecretKey being struct and not class, and lack of constructors
  * with one accepting for example |IKM|. We can't make assumptions about
@@ -67,16 +71,11 @@ public:
 #endif
     void keygen(const byte* IKM, size_t IKM_len,
                 const std::string& info = "")
-    {   blst_keygen(&key, IKM, IKM_len,
-                    reinterpret_cast<const byte *>(info.data()),
-                    info.size());
-    }
+    {   blst_keygen(&key, IKM, IKM_len, C_bytes(info.data()), info.size());   }
 #if __cplusplus >= 201703L
     void keygen(const app__string_view IKM, // string_view by value, cool!
                 const std::string& info = "")
-    {   keygen(reinterpret_cast<const byte *>(IKM.data()),
-               IKM.size(), info);
-    }
+    {   keygen(C_bytes(IKM.data()), IKM.size(), info);   }
 #endif
     void from_bendian(const byte in[32]) { blst_scalar_from_bendian(&key, in); }
     void from_lendian(const byte in[32]) { blst_scalar_from_lendian(&key, in); }
@@ -91,6 +90,7 @@ class P1_Affine {
 private:
     blst_p1_affine point;
 
+    P1_Affine(const blst_p1_affine *cptr) { point = *cptr; }
 public:
     P1_Affine() { memset(&point, 0, sizeof(point)); }
     P1_Affine(const byte *in)
@@ -122,22 +122,23 @@ public:
                            const app__string_view aug = None) const;
 #endif
     static P1_Affine generator()
-    {
-        return *reinterpret_cast<const P1_Affine*>(blst_p1_affine_generator());
-    }
+    {   return P1_Affine(blst_p1_affine_generator());   }
 
 private:
     friend class Pairing;
     friend class P2_Affine;
     friend class PT;
     friend class P1;
+    friend class P1s;
     operator const blst_p1_affine*() const { return &point; }
+    operator blst_p1_affine*()             { return &point; }
 };
 
 class P1 {
 private:
     blst_p1 point;
 
+    P1(const blst_p1 *cptr) { point = *cptr; }
 public:
     P1() { memset(&point, 0, sizeof(point)); }
     P1(const SecretKey& sk) { blst_sk_to_pk_in_g1(&point, &sk.key); }
@@ -151,7 +152,7 @@ public:
     P1(const P1_Affine& affine) { blst_p1_from_affine(&point, affine); }
 
     P1 dup() const                      { return *this; }
-    P1_Affine to_affine() const         { P1_Affine ret(*this); return ret;  }
+    P1_Affine to_affine() const         { return P1_Affine(*this);           }
     void serialize(byte out[96]) const  { blst_p1_serialize(out, &point);    }
     void compress(byte out[48]) const   { blst_p1_compress(out, &point);     }
     bool on_curve() const               { return blst_p1_on_curve(&point);   }
@@ -170,33 +171,27 @@ public:
     P1* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
                 const byte* aug = nullptr, size_t aug_len = 0)
-    {   blst_hash_to_g1(&point, msg, msg_len,
-                        reinterpret_cast<const byte *>(DST.data()),
-                        DST.size(), aug, aug_len);
+    {   blst_hash_to_g1(&point, msg, msg_len, C_bytes(DST.data()), DST.size(),
+                                aug, aug_len);
         return this;
     }
     P1* encode_to(const byte* msg, size_t msg_len,
                   const std::string& DST = "",
                   const byte* aug = nullptr, size_t aug_len = 0)
-    {   blst_encode_to_g1(&point, msg, msg_len,
-                          reinterpret_cast<const byte *>(DST.data()),
-                          DST.size(), aug, aug_len);
+    {   blst_encode_to_g1(&point, msg, msg_len, C_bytes(DST.data()), DST.size(),
+                                  aug, aug_len);
         return this;
     }
 #if __cplusplus >= 201703L
     P1* hash_to(const app__string_view msg, const std::string& DST = "",
                 const app__string_view aug = None)
-    {   return hash_to(reinterpret_cast<const byte *>(msg.data()),
-                       msg.size(), DST,
-                       reinterpret_cast<const byte *>(aug.data()),
-                       aug.size());
+    {   return hash_to(C_bytes(msg.data()), msg.size(), DST,
+                       C_bytes(aug.data()), aug.size());
     }
     P1* encode_to(const app__string_view msg, const std::string& DST = "",
                   const app__string_view aug = None)
-    {   return encode_to(reinterpret_cast<const byte *>(msg.data()),
-                         msg.size(), DST,
-                         reinterpret_cast<const byte *>(aug.data()),
-                         aug.size());
+    {   return encode_to(C_bytes(msg.data()), msg.size(), DST,
+                         C_bytes(aug.data()), aug.size());
     }
 #endif
     P1* mult(const byte* scalar, size_t nbits)
@@ -213,24 +208,118 @@ public:
     {   blst_p1_double(&point, &point); return this;   }
 #ifndef SWIG
     static P1 add(const P1& a, const P1& b)
-    {   P1 ret; blst_p1_add_or_double(&ret.point, a, b); return ret;   }
+    {   P1 ret; blst_p1_add_or_double(ret, a, b); return ret;   }
     static P1 add(const P1& a, const P1_Affine& b)
-    {   P1 ret; blst_p1_add_or_double_affine(&ret.point, a, b); return ret;   }
+    {   P1 ret; blst_p1_add_or_double_affine(ret, a, b); return ret;   }
     static P1 dbl(const P1& a)
-    {   P1 ret; blst_p1_double(&ret.point, a); return ret;   }
+    {   P1 ret; blst_p1_double(ret, a); return ret;   }
 #endif
     static P1 generator()
-    {   return *reinterpret_cast<const P1*>(blst_p1_generator());   }
+    {   return P1(blst_p1_generator());   }
 
 private:
     friend class P1_Affine;
+    friend class P1s;
     operator const blst_p1*() const { return &point; }
+    operator blst_p1*()             { return &point; }
+};
+
+class P1s {
+private:
+    struct p1_affine_no_init {
+        blst_p1_affine point;
+        p1_affine_no_init() { }
+        operator blst_p1_affine*() { return &point; }
+    };
+
+    std::vector<p1_affine_no_init> table;
+    size_t wbits, npoints;
+
+public:
+    P1s() {}
+#ifndef SWIG
+    P1s(size_t wbits, const P1_Affine* points[], size_t npoints)
+    {   this->wbits = wbits;
+        this->npoints = npoints;
+        table.resize(npoints << (wbits-1));
+        blst_p1s_mult_wbits_precompute(table[0], wbits,
+                    reinterpret_cast<const blst_p1_affine **>(points), npoints);
+    }
+    P1s(size_t wbits, const P1_Affine points[], size_t npoints)
+    {   const P1_Affine* ptrs[2] = { points, nullptr };
+        P1s(wbits, ptrs, npoints);
+    }
+    P1s(size_t wbits, const std::vector<P1_Affine> points)
+    {   P1s(wbits, &points[0], points.size());   }
+
+    P1s(size_t wbits, const P1* points[], size_t npoints)
+    {   size_t cap = npoints << (wbits-1);
+
+        this->wbits = wbits;
+        this->npoints = npoints;
+        table.resize(cap);
+        blst_p1s_to_affine(table[cap-npoints],
+                           reinterpret_cast<const blst_p1 **>(points), npoints);
+        const blst_p1_affine* ptrs[2] = { table[cap-npoints], nullptr };
+        blst_p1s_mult_wbits_precompute(table[0], wbits, ptrs, npoints);
+    }
+    P1s(size_t wbits, const P1 points[], size_t npoints)
+    {   const P1* ptrs[2] = { points, nullptr };
+        P1s(wbits, ptrs, npoints);
+    }
+    P1s(size_t wbits, const std::vector<P1> points)
+    {   P1s(wbits, &points[0], points.size());   }
+
+    P1 mult_wbits(const byte* scalars[], size_t nbits)
+    {   P1 ret;
+        void* scratch = malloc(blst_p1s_mult_wbits_scratch_sizeof(npoints));
+        blst_p1s_mult_wbits(ret, table[0], wbits, npoints,
+                                 scalars, nbits, scratch);
+        free(scratch);
+        return ret;
+    }
+
+    static std::vector<P1_Affine> to_affine(const P1* points[], size_t npoints)
+    {   std::vector<P1_Affine> ret;
+        ret.resize(npoints);
+        blst_p1s_to_affine(ret[0], reinterpret_cast<const blst_p1 **>(points),
+                                   npoints);
+        return ret;
+    }
+    static std::vector<P1_Affine> to_affine(const P1 points[], size_t npoints)
+    {   const P1* ptrs[2] = { points, nullptr };
+        return to_affine(ptrs, npoints);
+    }
+    static std::vector<P1_Affine> to_affine(std::vector<P1> points)
+    {   return to_affine(&points[0], points.size());   }
+
+    static P1 mult_pippenger(const P1_Affine points[], size_t npoints,
+                             const byte* scalars[], size_t nbits)
+    {   const P1_Affine *ptrs[2] = { points, nullptr };
+        return mult_pippenger(ptrs, npoints, scalars, nbits);
+    }
+
+    static P1 mult_pippenger(const std::vector<P1_Affine> points,
+                             const byte* scalars[], size_t nbits)
+    {   return mult_pippenger(&points[0], points.size(), scalars, nbits);   }
+#endif
+    static P1 mult_pippenger(const P1_Affine* points[], size_t npoints,
+                             const byte* scalars[], size_t nbits)
+    {   P1 ret;
+        void* scratch = malloc(blst_p1s_mult_pippenger_scratch_sizeof(npoints));
+        blst_p1s_mult_pippenger(ret,
+                    reinterpret_cast<const blst_p1_affine **>(points), npoints,
+                    scalars, nbits, scratch);
+        free(scratch);
+        return ret;
+    }
 };
 
 class P2_Affine {
 private:
     blst_p2_affine point;
 
+    P2_Affine(const blst_p2_affine *cptr) { point = *cptr; }
 public:
     P2_Affine() { memset(&point, 0, sizeof(point)); }
     P2_Affine(const byte *in)
@@ -262,22 +351,23 @@ public:
                            const app__string_view aug = None) const;
 #endif
     static P2_Affine generator()
-    {
-        return *reinterpret_cast<const P2_Affine*>(blst_p2_affine_generator());
-    }
+    {   return P2_Affine(blst_p2_affine_generator());   }
 
 private:
     friend class Pairing;
     friend class P1_Affine;
     friend class PT;
     friend class P2;
+    friend class P2s;
     operator const blst_p2_affine*() const { return &point; }
+    operator blst_p2_affine*()             { return &point; }
 };
 
 class P2 {
 private:
     blst_p2 point;
 
+    P2(const blst_p2 *cptr) { point = *cptr; }
 public:
     P2() { memset(&point, 0, sizeof(point)); }
     P2(const SecretKey& sk) { blst_sk_to_pk_in_g2(&point, &sk.key); }
@@ -291,7 +381,7 @@ public:
     P2(const P2_Affine& affine) { blst_p2_from_affine(&point, affine); }
 
     P2 dup() const                      { return *this; }
-    P2_Affine to_affine() const         { P2_Affine ret(*this); return ret; }
+    P2_Affine to_affine() const         { return P2_Affine(*this);          }
     void serialize(byte out[192]) const { blst_p2_serialize(out, &point);   }
     void compress(byte out[96]) const   { blst_p2_compress(out, &point);    }
     bool on_curve() const               { return blst_p2_on_curve(&point);  }
@@ -310,33 +400,27 @@ public:
     P2* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
                 const byte* aug = nullptr, size_t aug_len = 0)
-    {   blst_hash_to_g2(&point, msg, msg_len,
-                        reinterpret_cast<const byte *>(DST.data()),
-                        DST.size(), aug, aug_len);
+    {   blst_hash_to_g2(&point, msg, msg_len, C_bytes(DST.data()), DST.size(),
+                                aug, aug_len);
         return this;
     }
     P2* encode_to(const byte* msg, size_t msg_len,
                   const std::string& DST = "",
                   const byte* aug = nullptr, size_t aug_len = 0)
-    {   blst_encode_to_g2(&point, msg, msg_len,
-                          reinterpret_cast<const byte *>(DST.data()),
-                          DST.size(), aug, aug_len);
+    {   blst_encode_to_g2(&point, msg, msg_len, C_bytes(DST.data()), DST.size(),
+                                  aug, aug_len);
         return this;
     }
 #if __cplusplus >= 201703L
     P2* hash_to(const app__string_view msg, const std::string& DST = "",
                 const app__string_view aug = None)
-    {   return hash_to(reinterpret_cast<const byte *>(msg.data()),
-                       msg.size(), DST,
-                       reinterpret_cast<const byte *>(aug.data()),
-                       aug.size());
+    {   return hash_to(C_bytes(msg.data()), msg.size(), DST,
+                       C_bytes(aug.data()), aug.size());
     }
     P2* encode_to(const app__string_view msg, const std::string& DST = "",
                   const app__string_view aug = None)
-    {   return encode_to(reinterpret_cast<const byte *>(msg.data()),
-                         msg.size(), DST,
-                         reinterpret_cast<const byte *>(aug.data()),
-                         aug.size());
+    {   return encode_to(C_bytes(msg.data()), msg.size(), DST,
+                         C_bytes(aug.data()), aug.size());
     }
 #endif
     P2* mult(const byte* scalar, size_t nbits)
@@ -353,18 +437,111 @@ public:
     {   blst_p2_double(&point, &point); return this;   }
 #ifndef SWIG
     static P2 add(const P2& a, const P2& b)
-    {   P2 ret; blst_p2_add_or_double(&ret.point, a, b); return ret;   }
+    {   P2 ret; blst_p2_add_or_double(ret, a, b); return ret;   }
     static P2 add(const P2& a, const P2_Affine& b)
-    {   P2 ret; blst_p2_add_or_double_affine(&ret.point, a, b); return ret;   }
+    {   P2 ret; blst_p2_add_or_double_affine(ret, a, b); return ret;   }
     static P2 dbl(const P2& a)
-    {   P2 ret; blst_p2_double(&ret.point, a); return ret;   }
+    {   P2 ret; blst_p2_double(ret, a); return ret;   }
 #endif
     static P2 generator()
-    {   return *reinterpret_cast<const P2*>(blst_p2_generator());   }
+    {   return P2(blst_p2_generator());   }
 
 private:
     friend class P2_Affine;
+    friend class P2s;
     operator const blst_p2*() const { return &point; }
+    operator blst_p2*()             { return &point; }
+};
+
+class P2s {
+private:
+    struct p2_affine_no_init {
+        blst_p2_affine point;
+        p2_affine_no_init() { }
+        operator blst_p2_affine*() { return &point; }
+    };
+
+    std::vector<p2_affine_no_init> table;
+    size_t wbits, npoints;
+
+public:
+    P2s() {}
+#ifndef SWIG
+    P2s(size_t wbits, const P2_Affine* points[], size_t npoints)
+    {   this->wbits = wbits;
+        this->npoints = npoints;
+        table.resize(npoints << (wbits-1));
+        blst_p2s_mult_wbits_precompute(table[0], wbits,
+                    reinterpret_cast<const blst_p2_affine **>(points), npoints);
+    }
+    P2s(size_t wbits, const P2_Affine points[], size_t npoints)
+    {   const P2_Affine* ptrs[2] = { points, nullptr };
+        P2s(wbits, ptrs, npoints);
+    }
+    P2s(size_t wbits, const std::vector<P2_Affine> points)
+    {   P2s(wbits, &points[0], points.size());   }
+
+    P2s(size_t wbits, const P2* points[], size_t npoints)
+    {   size_t cap = npoints << (wbits-1);
+
+        this->wbits = wbits;
+        this->npoints = npoints;
+        table.resize(cap);
+        blst_p2s_to_affine(table[cap-npoints],
+                           reinterpret_cast<const blst_p2 **>(points), npoints);
+        const blst_p2_affine* ptrs[2] = { table[cap-npoints], nullptr };
+        blst_p2s_mult_wbits_precompute(table[0], wbits, ptrs, npoints);
+    }
+    P2s(size_t wbits, const P2 points[], size_t npoints)
+    {   const P2* ptrs[2] = { points, nullptr };
+        P2s(wbits, ptrs, npoints);
+    }
+    P2s(size_t wbits, const std::vector<P2> points)
+    {   P2s(wbits, &points[0], points.size());   }
+
+    P2 mult_wbits(const byte* scalars[], size_t nbits)
+    {   P2 ret;
+        void* scratch = malloc(blst_p2s_mult_wbits_scratch_sizeof(npoints));
+        blst_p2s_mult_wbits(ret, table[0], wbits, npoints,
+                                 scalars, nbits, scratch);
+        free(scratch);
+        return ret;
+    }
+
+    static std::vector<P2_Affine> to_affine(const P2* points[], size_t npoints)
+    {   std::vector<P2_Affine> ret;
+        ret.resize(npoints);
+        blst_p2s_to_affine(ret[0],
+                           reinterpret_cast<const blst_p2 **>(points), npoints);
+        return ret;
+    }
+    static std::vector<P2_Affine> to_affine(const P2 points[], size_t npoints)
+    {   const P2* ptrs[2] = { points, nullptr };
+        return to_affine(ptrs, npoints);
+    }
+    static std::vector<P2_Affine> to_affine(std::vector<P2> points)
+    {   return to_affine(&points[0], points.size());   }
+
+    static P2 mult_pippenger(const P2_Affine points[], size_t npoints,
+                             const byte* scalars[], size_t nbits)
+    {   const P2_Affine *ptrs[2] = { points, nullptr };
+        return mult_pippenger(ptrs, npoints, scalars, nbits);
+    }
+
+    static P2 mult_pippenger(const std::vector<P2_Affine> points,
+                             const byte* scalars[], size_t nbits)
+    {   return mult_pippenger(&points[0], points.size(), scalars, nbits);   }
+#endif
+    static P2 mult_pippenger(const P2_Affine* points[], size_t npoints,
+                             const byte* scalars[], size_t nbits)
+    {   P2 ret;
+        void* scratch = malloc(blst_p2s_mult_pippenger_scratch_sizeof(npoints));
+        blst_p2s_mult_pippenger(ret,
+                    reinterpret_cast<const blst_p2_affine **>(points), npoints,
+                    scalars, nbits, scratch);
+        free(scratch);
+        return ret;
+    }
 };
 
 inline P1_Affine::P1_Affine(const P1& jacobian)
@@ -384,9 +561,9 @@ inline BLST_ERROR P1_Affine::core_verify(const P2_Affine& pk,
                                          const std::string& DST,
                                          const byte* aug, size_t aug_len) const
 {   return blst_core_verify_pk_in_g2(pk, &point, hash_or_encode,
-                                     msg, msg_len,
-                                     reinterpret_cast<const byte *>(DST.data()),
-                                     DST.size(), aug, aug_len);
+                                         msg, msg_len,
+                                         C_bytes(DST.data()), DST.size(),
+                                         aug, aug_len);
 }
 inline BLST_ERROR P2_Affine::core_verify(const P1_Affine& pk,
                                          bool hash_or_encode,
@@ -394,9 +571,9 @@ inline BLST_ERROR P2_Affine::core_verify(const P1_Affine& pk,
                                          const std::string& DST,
                                          const byte* aug, size_t aug_len) const
 {   return blst_core_verify_pk_in_g1(pk, &point, hash_or_encode,
-                                     msg, msg_len,
-                                     reinterpret_cast<const byte *>(DST.data()),
-                                     DST.size(), aug, aug_len);
+                                         msg, msg_len,
+                                         C_bytes(DST.data()), DST.size(),
+                                         aug, aug_len);
 }
 #if __cplusplus >= 201703L
 inline BLST_ERROR P1_Affine::core_verify(const P2_Affine& pk,
@@ -404,22 +581,16 @@ inline BLST_ERROR P1_Affine::core_verify(const P2_Affine& pk,
                                          const app__string_view msg,
                                          const std::string& DST,
                                          const app__string_view aug) const
-{   return core_verify(pk, hash_or_encode,
-                       reinterpret_cast<const byte *>(msg.data()),
-                       msg.size(), DST,
-                       reinterpret_cast<const byte *>(aug.data()),
-                       aug.size());
+{   return core_verify(pk, hash_or_encode, C_bytes(msg.data()), msg.size(), DST,
+                                           C_bytes(aug.data()), aug.size());
 }
 inline BLST_ERROR P2_Affine::core_verify(const P1_Affine& pk,
                                          bool hash_or_encode,
                                          const app__string_view msg,
                                          const std::string& DST,
                                          const app__string_view aug) const
-{   return core_verify(pk, hash_or_encode,
-                       reinterpret_cast<const byte *>(msg.data()),
-                       msg.size(), DST,
-                       reinterpret_cast<const byte *>(aug.data()),
-                       aug.size());
+{   return core_verify(pk, hash_or_encode, C_bytes(msg.data()), msg.size(), DST,
+                                           C_bytes(aug.data()), aug.size());
 }
 #endif
 
@@ -440,6 +611,9 @@ public:
     PT* sqr()               { blst_fp12_sqr(&value, &value);    return this; }
     PT* mul(const PT& p)    { blst_fp12_mul(&value, &value, p); return this; }
     PT* final_exp()         { blst_final_exp(&value, &value);   return this; }
+
+    static bool finalverify(const PT& gt1, const PT& gt2)
+    {   return blst_fp12_finalverify(gt1, gt2);   }
 
 private:
     friend class Pairing;
@@ -468,14 +642,10 @@ public:
     {   delete[] static_cast<uint64_t*>(ptr);   }
 
     Pairing(bool hash_or_encode, const std::string& DST)
-    {   init(hash_or_encode, reinterpret_cast<const byte*>(DST.data()),
-                             DST.size());
-    }
+    {   init(hash_or_encode, C_bytes(DST.data()), DST.size());   }
 #if __cplusplus >= 201703L
     Pairing(bool hash_or_encode, const app__string_view DST)
-    {   init(hash_or_encode, reinterpret_cast<const byte*>(DST.data()),
-                             DST.size());
-    }
+    {   init(hash_or_encode, C_bytes(DST.data()), DST.size());   }
 #endif
 #endif
 #ifndef SWIGJAVA
@@ -514,40 +684,30 @@ public:
     BLST_ERROR aggregate(const P1_Affine* pk, const P2_Affine* sig,
                          const app__string_view msg,
                          const app__string_view aug = None)
-    {   return aggregate(pk, sig,
-                         reinterpret_cast<const byte *>(msg.data()),
-                         msg.size(),
-                         reinterpret_cast<const byte *>(aug.data()),
-                         aug.size());
+    {   return aggregate(pk, sig, C_bytes(msg.data()), msg.size(),
+                                  C_bytes(aug.data()), aug.size());
     }
     BLST_ERROR aggregate(const P2_Affine* pk, const P1_Affine* sig,
                          const app__string_view msg,
                          const app__string_view aug = None)
-    {   return aggregate(pk, sig,
-                         reinterpret_cast<const byte *>(msg.data()),
-                         msg.size(),
-                         reinterpret_cast<const byte *>(aug.data()),
-                         aug.size());
+    {   return aggregate(pk, sig, C_bytes(msg.data()), msg.size(),
+                                  C_bytes(aug.data()), aug.size());
     }
     BLST_ERROR mul_n_aggregate(const P1_Affine* pk, const P2_Affine* sig,
                                const byte* scalar, size_t nbits,
                                const app__string_view msg,
                                const app__string_view aug = None)
     {   return mul_n_aggregate(pk, sig, scalar, nbits,
-                               reinterpret_cast<const byte *>(msg.data()),
-                               msg.size(),
-                               reinterpret_cast<const byte *>(aug.data()),
-                               aug.size());
+                               C_bytes(msg.data()), msg.size(),
+                               C_bytes(aug.data()), aug.size());
     }
     BLST_ERROR mul_n_aggregate(const P2_Affine* pk, const P1_Affine* sig,
                                const byte* scalar, size_t nbits,
                                const app__string_view msg,
                                const app__string_view aug = None)
     {   return mul_n_aggregate(pk, sig, scalar, nbits,
-                               reinterpret_cast<const byte *>(msg.data()),
-                               msg.size(),
-                               reinterpret_cast<const byte *>(aug.data()),
-                               aug.size());
+                               C_bytes(msg.data()), msg.size(),
+                               C_bytes(aug.data()), aug.size());
     }
 #endif
     void commit()
