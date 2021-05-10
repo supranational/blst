@@ -676,6 +676,96 @@ extern "C" {
     pub fn blst_p2_affine_generator() -> *const blst_p2_affine;
 }
 extern "C" {
+    pub fn blst_p1s_to_affine(
+        dst: *mut blst_p1_affine,
+        points: *mut *const blst_p1,
+        npoints: usize,
+    );
+}
+extern "C" {
+    pub fn blst_p1s_mult_wbits_precompute_sizeof(wbits: usize, npoints: usize) -> usize;
+}
+extern "C" {
+    pub fn blst_p1s_mult_wbits_precompute(
+        table: *mut blst_p1_affine,
+        wbits: usize,
+        points: *mut *const blst_p1_affine,
+        npoints: usize,
+    );
+}
+extern "C" {
+    pub fn blst_p1s_mult_wbits_scratch_sizeof(npoints: usize) -> usize;
+}
+extern "C" {
+    pub fn blst_p1s_mult_wbits(
+        ret: *mut blst_p1,
+        table: *const blst_p1_affine,
+        wbits: usize,
+        npoints: usize,
+        scalars: *mut *const byte,
+        nbits: usize,
+        scratch: *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
+    pub fn blst_p1s_mult_pippenger_scratch_sizeof(npoints: usize) -> usize;
+}
+extern "C" {
+    pub fn blst_p1s_mult_pippenger(
+        ret: *mut blst_p1,
+        points: *mut *const blst_p1_affine,
+        npoints: usize,
+        scalars: *mut *const byte,
+        nbits: usize,
+        scratch: *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
+    pub fn blst_p2s_to_affine(
+        dst: *mut blst_p2_affine,
+        points: *mut *const blst_p2,
+        npoints: usize,
+    );
+}
+extern "C" {
+    pub fn blst_p2s_mult_wbits_precompute_sizeof(wbits: usize, npoints: usize) -> usize;
+}
+extern "C" {
+    pub fn blst_p2s_mult_wbits_precompute(
+        table: *mut blst_p2_affine,
+        wbits: usize,
+        points: *mut *const blst_p2_affine,
+        npoints: usize,
+    );
+}
+extern "C" {
+    pub fn blst_p2s_mult_wbits_scratch_sizeof(npoints: usize) -> usize;
+}
+extern "C" {
+    pub fn blst_p2s_mult_wbits(
+        ret: *mut blst_p2,
+        table: *const blst_p2_affine,
+        wbits: usize,
+        npoints: usize,
+        scalars: *mut *const byte,
+        nbits: usize,
+        scratch: *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
+    pub fn blst_p2s_mult_pippenger_scratch_sizeof(npoints: usize) -> usize;
+}
+extern "C" {
+    pub fn blst_p2s_mult_pippenger(
+        ret: *mut blst_p2,
+        points: *mut *const blst_p2_affine,
+        npoints: usize,
+        scalars: *mut *const byte,
+        nbits: usize,
+        scratch: *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
     pub fn blst_map_to_g1(out: *mut blst_p1, u: *const blst_fp, v: *const blst_fp);
 }
 extern "C" {
