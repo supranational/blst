@@ -158,4 +158,33 @@ for file in glob.glob("../vectors/hash_to_curve/*.json"):
         if eval(func) != serialize_json_point(vec['P']):
             raise AssertionError(msg)
 
+########################################################################
+# test multi-scalar multiplication for self-consistency
+
+points = []
+scalars = []
+total = 0
+for _ in range(0, 42):
+    p = int.from_bytes(os.urandom(8), "big")
+    s = int.from_bytes(os.urandom(8), "big")
+    points.append(blst.G1().mult(p))
+    scalars.append(s)
+    total += p*s
+a = blst.P1s.mult_pippenger(blst.P1s.to_affine(points), scalars)
+if not a.is_equal(blst.G1().mult(total)):
+    raise AssertionError("disaster")
+
+points = []
+scalars = []
+total = 0
+for _ in range(0, 42):
+    p = int.from_bytes(os.urandom(8), "big")
+    s = int.from_bytes(os.urandom(8), "big")
+    points.append(blst.G2().mult(p))
+    scalars.append(s)
+    total += p*s
+a = blst.P2s.mult_pippenger(blst.P2s.to_affine(points), scalars)
+if not a.is_equal(blst.G2().mult(total)):
+    raise AssertionError("disaster")
+
 print("OK")

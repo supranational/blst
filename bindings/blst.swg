@@ -149,6 +149,136 @@
 %}
 
 #ifdef __cplusplus
+%typemap(in) (const POINT* points[], size_t npoints)
+    (std::unique_ptr<$*1_ltype[]> points, size_t _global_npoints) %{
+    if (PyList_Check($input)) {
+        _global_npoints = PyList_Size($input);
+        points = std::unique_ptr<$*1_ltype[]>(new $*1_ltype[_global_npoints]);
+        PyObject* obj = PyList_GET_ITEM($input, 0);
+        // check the type of the 1st element
+        if (SWIG_ConvertPtr(obj, (void**)&points[0], $*1_descriptor, 0) != SWIG_OK)
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                                "expecting 'list' of '$*1_ltype'");
+        for (size_t i = 1; i < _global_npoints; i++) {
+            obj = PyList_GET_ITEM($input, i);
+            points[i] = ($*1_ltype)SWIG_Python_GetSwigThis(obj)->ptr;
+        }
+        $1 = points.get();
+        $2 = _global_npoints;
+    } else if (PyBytes_Check($input)) { // customarily output from to_affines()
+        char *bytes;
+        Py_ssize_t nbytes;
+
+        if (PyBytes_AsStringAndSize($input, &bytes, &nbytes) < 0)
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname'");
+
+        points = std::unique_ptr<$*1_ltype[]>(new $*1_ltype[2]);
+        points[0] = ($*1_ltype)bytes;
+        points[1] = nullptr;
+        $1 = points.get();
+        $2 = _global_npoints = nbytes / sizeof(points[0][0]);
+    } else {
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                            "expecting 'list' or 'bytes' "
+                                            "for points[]");
+    }
+%}
+%apply (const POINT* points[], size_t npoints) {
+       (const blst::P1_Affine* points[], size_t npoints),
+       (const blst::P2_Affine* points[], size_t npoints),
+       (const blst::P1* points[], size_t npoints),
+       (const blst::P2* points[], size_t npoints)
+}
+
+%typemap(in, numinputs=0) POINT points[] (PyObject *obj) ""
+%typemap(check) POINT points[] {
+    char *bytes;
+    Py_ssize_t size = sizeof($1[0]) * _global_npoints;
+
+    obj$argnum = PyBytes_FromStringAndSize(NULL, size);
+    if (obj$argnum == NULL) SWIG_fail;
+    PyBytes_AsStringAndSize(obj$argnum, &bytes, &size);
+    $1 = ($1_ltype)bytes;
+}
+%typemap(argout) POINT points[] "$result = obj$argnum;"
+%apply POINT points[] { blst_p1_affine dst[], blst_p2_affine dst[] }
+
+%extend blst::P1s {
+    static PyObject* to_affine(blst_p1_affine dst[], const blst::P1* points[],
+                                                     size_t npoints)
+    {
+        blst_p1s_to_affine(dst, (const blst_p1 **)points, npoints);
+        return NULL;
+    }
+}
+%extend blst::P2s {
+    static PyObject* to_affine(blst_p2_affine dst[], const blst::P2* points[],
+                                                     size_t npoints)
+    {
+        blst_p2s_to_affine(dst, (const blst_p2 **)points, npoints);
+        return NULL;
+    }
+}
+%ignore to_affines;
+
+%typemap(in) (const byte* scalars[], size_t nbits)
+    (std::unique_ptr<byte[]> bytes, byte *scalars[2]) %{
+    if (PyList_Check($input)) {
+        if ((size_t)PyList_Size($input) != _global_npoints)
+            SWIG_exception_fail(SWIG_IndexError, "in method '$symname', 'list' "
+                                                 "length mismatch for scalars[]");
+
+        PyObject *obj = PyList_GET_ITEM($input, 0);
+        if (PyLong_Check(obj)) {
+            $2 = _PyLong_NumBits(obj);
+            for (size_t i = 1; i < _global_npoints; i++) {
+                size_t nbits;
+                obj = PyList_GET_ITEM($input, i);
+                if (!PyLong_Check(obj) || _PyLong_Sign(obj) < 0)
+                    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                                        "expecting all 'long's");
+                nbits = _PyLong_NumBits(obj);
+                if (nbits > $2) $2 = nbits;
+            }
+
+            size_t nbytes = ($2 + 7)/8;
+            bytes = std::unique_ptr<byte[]>(new byte[_global_npoints*nbytes]);
+            byte* scalar = bytes.get();
+            for (size_t i = 0; i < _global_npoints; i++, scalar += nbytes)
+                _PyLong_AsByteArray((PyLongObject*)PyList_GET_ITEM($input, i),
+                                    scalar, nbytes, 1, 0);
+
+            scalars[0] = bytes.get();
+            scalars[1] = nullptr;
+            $1 = scalars;
+        } else {
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                                "expecting 'list' of 'long's "
+                                                "for scalars[]");
+        }
+    } else if (PyBytes_Check($input)) {
+        char *bytes;
+        Py_ssize_t nbytes;
+
+        if (PyBytes_AsStringAndSize($input, &bytes, &nbytes) < 0)
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname'");
+
+        scalars[0] = ($*1_ltype)bytes;
+        scalars[1] = nullptr;
+        $1 = scalars;
+        $2 = 8 * (nbytes / _global_npoints);
+    } else if (PyByteArray_Check($input)) {
+        scalars[0] = ($*1_ltype)PyByteArray_AsString($input);
+        scalars[1] = nullptr;
+        $1 = scalars;
+        $2 = 8 * (PyByteArray_Size($input) / _global_npoints);
+    } else {
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                            "expecting 'list', 'bytes' "
+                                            "or 'bytearray' for scalars[]");
+    }
+%}
+
 %typemap(out) BLST_ERROR %{
     if ($1 != BLST_SUCCESS) {
         SWIG_exception(SWIG_ValueError, BLST_ERROR_str[$1]);
@@ -195,7 +325,7 @@ import java.nio.file.*;
                 System.loadLibrary("$module");
             } catch (UnsatisfiedLinkError e) {
                 String[] cmd = System.getProperty("sun.java.command").split("/");
-		if (!"$imclassname".equals(cmd[cmd.length-1]))
+        	if (!"$imclassname".equals(cmd[cmd.length-1]))
                     // suppress exception if 'main' below is executed
                     throw new RuntimeException(e.getMessage());
 	    }
@@ -534,8 +664,14 @@ import java.nio.file.*;
 
 #pragma SWIG nowarn=509,516
 
+#if !defined(SWIGPYTHON)
+%ignore P1s;
+%ignore P2s;
+#endif
+
 %ignore nullptr;
 %ignore None;
+%ignore C_bytes;
 %catches(BLST_ERROR) P1(const byte* in);
 %catches(BLST_ERROR) P1_Affine(const byte* in);
 %catches(BLST_ERROR) aggregate(const P1_Affine& in);
@@ -612,6 +748,7 @@ extern const blst::P2_Affine BLS12_381_NEG_G2;
 
 %begin %{
 #ifdef __cplusplus
+# include <memory>
 # include "blst.hpp"
 using namespace blst;
 #else
