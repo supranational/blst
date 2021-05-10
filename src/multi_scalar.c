@@ -8,6 +8,48 @@
 #include "point.h"
 
 /*
+ * Infinite point among inputs would be devastating. Shall we change it?
+ */
+#define POINTS_TO_AFFINE_IMPL(prefix, ptype, bits, field) \
+static void ptype##s_to_affine(ptype##_affine dst[], const ptype *points[], \
+                               size_t npoints) \
+{ \
+    size_t i; \
+    vec##bits *acc, ZZ, ZZZ; \
+    const ptype *point = *points++; \
+\
+    acc = (vec##bits *)dst; \
+    vec_copy(acc++, point->Z, sizeof(vec##bits)); \
+    for (i = 1; i < npoints; i++, acc++) \
+        point = *points ? *points++ : point+1, \
+        mul_##field(acc[0], acc[-1], point->Z); \
+\
+    --acc; reciprocal_##field(acc[0], acc[0]); \
+\
+    --points, --npoints, dst += npoints; \
+    for (i = 0; i < npoints; i++, acc--, dst--) { \
+        mul_##field(acc[-1], acc[-1], acc[0]);  /* 1/Z        */\
+        sqr_##field(ZZ, acc[-1]);               /* 1/Z^2      */\
+        mul_##field(ZZZ, ZZ, acc[-1]);          /* 1/Z^3      */\
+        mul_##field(acc[-1], point->Z, acc[0]);                 \
+        mul_##field(dst->X,  point->X, ZZ);     /* X = X'/Z^2 */\
+        mul_##field(dst->Y,  point->Y, ZZZ);    /* Y = Y'/Z^3 */\
+        point = (point == *points) ? *--points : point-1; \
+    } \
+    sqr_##field(ZZ, acc[0]);                    /* 1/Z^2      */\
+    mul_##field(ZZZ, ZZ, acc[0]);               /* 1/Z^3      */\
+    mul_##field(dst->X, point->X, ZZ);          /* X = X'/Z^2 */\
+    mul_##field(dst->Y, point->Y, ZZZ);         /* Y = Y'/Z^3 */\
+} \
+\
+void prefix##s_to_affine(ptype##_affine dst[], const ptype *points[], \
+                         size_t npoints) \
+{   ptype##s_to_affine(dst, points, npoints);   }
+
+POINTS_TO_AFFINE_IMPL(blst_p1, POINTonE1, 384, fp)
+POINTS_TO_AFFINE_IMPL(blst_p2, POINTonE2, 384x, fp2)
+
+/*
  * This is two-step multi-scalar multiplication procedure. First, given
  * a set of points you pre-compute a table for chosen windowing factor
  * [expressed in bits with value between 2 and 14], and then you pass
@@ -22,7 +64,7 @@
  * points [with wbits=5]...
  */
 
-#define PRECOMPUTE_WBITS_IMPL(ptype, bits, field, one) \
+#define PRECOMPUTE_WBITS_IMPL(prefix, ptype, bits, field, one) \
 static void ptype##_precompute_row_wbits(ptype row[], size_t wbits, \
                                          const ptype##_affine *point) \
 { \
@@ -76,7 +118,7 @@ static void ptype##s_precompute_wbits(ptype##_affine table[], size_t wbits, \
     size_t nmin = wbits>9 ? (size_t)1: (size_t)1 << (9-wbits); \
     size_t i, top = 0; \
     ptype *rows, *row; \
-    const ptype##_affine *point = *points++; \
+    const ptype##_affine *point = NULL; \
     size_t stride = ((512*1024)/sizeof(ptype##_affine)) >> wbits; \
     if (stride == 0) stride = 1; \
 \
@@ -100,9 +142,16 @@ static void ptype##s_precompute_wbits(ptype##_affine table[], size_t wbits, \
         point = *points ? *points++ : point+1, \
         ptype##_precompute_row_wbits(row, wbits, point); \
     ptype##s_to_affine_row_wbits(&table[top], rows, wbits, npoints); \
-}
+} \
+\
+size_t prefix##s_mult_wbits_precompute_sizeof(size_t wbits, size_t npoints) \
+{ return (sizeof(ptype##_affine)*npoints) << (wbits-1); } \
+void prefix##s_mult_wbits_precompute(ptype##_affine table[], size_t wbits, \
+                                     const ptype##_affine *points[], \
+                                     size_t npoints) \
+{ ptype##s_precompute_wbits(table, wbits, points, npoints); }
 
-#define MULT_SCALAR_WBITS_IMPL(ptype, bits, field, one) \
+#define POINTS_MULT_WBITS_IMPL(prefix, ptype, bits, field, one) \
 static void ptype##_gather_booth_wbits(ptype *p, const ptype##_affine row[], \
                                        size_t wbits, limb_t booth_idx) \
 { \
@@ -167,50 +216,20 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
         ptype##_gather_booth_wbits(&scratch[i], row, wbits, wval); \
     } \
     ptype##s_accumulate(ret, scratch, npoints); \
-}
-
-/*
- * Infinite point among inputs would be devastating. Shall we change it?
- */ 
-#define POINTS_TO_AFFINE_IMPL(ptype, bits, field) \
-static void ptype##s_to_affine(ptype##_affine dst[], const ptype *points[], \
-                               size_t npoints) \
-{ \
-    size_t i; \
-    vec##bits *acc, ZZ, ZZZ; \
-    const ptype *point = *points++; \
+} \
 \
-    acc = (vec##bits *)dst; \
-    vec_copy(acc++, point->Z, sizeof(vec##bits)); \
-    for (i = 1; i < npoints; i++, acc++) \
-        point = *points ? *points++ : point+1, \
-        mul_##field(acc[0], acc[-1], point->Z); \
-\
-    --acc; reciprocal_##field(acc[0], acc[0]); \
-\
-    --points, --npoints, dst += npoints; \
-    for (i = 0; i < npoints; i++, acc--, dst--) { \
-        mul_##field(acc[-1], acc[-1], acc[0]);  /* 1/Z        */\
-        sqr_##field(ZZ, acc[-1]);               /* 1/Z^2      */\
-        mul_##field(ZZZ, ZZ, acc[-1]);          /* 1/Z^3      */\
-        mul_##field(acc[-1], point->Z, acc[0]);                 \
-        mul_##field(dst->X,  point->X, ZZ);     /* X = X'/Z^2 */\
-        mul_##field(dst->Y,  point->Y, ZZZ);    /* Y = Y'/Z^3 */\
-        point = (point == *points) ? *--points : point-1; \
-    } \
-    sqr_##field(ZZ, acc[0]);                    /* 1/Z^2      */\
-    mul_##field(ZZZ, ZZ, acc[0]);               /* 1/Z^3      */\
-    mul_##field(dst->X, point->X, ZZ);          /* X = X'/Z^2 */\
-    mul_##field(dst->Y, point->Y, ZZZ);         /* Y = Y'/Z^3 */\
-}
+size_t prefix##s_mult_wbits_scratch_sizeof(size_t npoints) \
+{ return sizeof(ptype)*npoints; } \
+void prefix##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
+                          size_t wbits, size_t npoints, const byte *scalars[], \
+                          size_t nbits, ptype scratch[]) \
+{ ptype##s_mult_wbits(ret, table, wbits, npoints, scalars, nbits, scratch); }
 
-PRECOMPUTE_WBITS_IMPL(POINTonE1, 384, fp, BLS12_381_Rx.p)
-MULT_SCALAR_WBITS_IMPL(POINTonE1, 384, fp, BLS12_381_Rx.p)
-POINTS_TO_AFFINE_IMPL(POINTonE1, 384, fp)
+PRECOMPUTE_WBITS_IMPL(blst_p1, POINTonE1, 384, fp, BLS12_381_Rx.p)
+POINTS_MULT_WBITS_IMPL(blst_p1, POINTonE1, 384, fp, BLS12_381_Rx.p)
 
-PRECOMPUTE_WBITS_IMPL(POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
-MULT_SCALAR_WBITS_IMPL(POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
-POINTS_TO_AFFINE_IMPL(POINTonE2, 384x, fp2)
+PRECOMPUTE_WBITS_IMPL(blst_p2, POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
+POINTS_MULT_WBITS_IMPL(blst_p2, POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
 
 /*
  * Pippenger algorithm implementation, fastest option for larger amount
@@ -229,7 +248,7 @@ static size_t pippenger_window_size(size_t npoints)
 #define DECLARE_PRIVATE_POINTXYZZ(ptype, bits) \
 typedef struct { vec##bits X,Y,ZZZ,ZZ; } ptype##xyzz;
 
-#define POINTS_MULT_PIPPENGER_IMPL(ptype) \
+#define POINTS_MULT_PIPPENGER_IMPL(prefix, ptype) \
 static void ptype##_integrate_buckets(ptype *out, ptype##xyzz buckets[], \
                                                   size_t wbits) \
 { \
@@ -329,18 +348,24 @@ static void ptype##s_mult_pippenger(ptype *ret, const ptype##_affine *points[], 
     ptype##s_tile_pippenger(tile, points, npoints, scalars, nbits, \
                                   buckets, 0, wbits, cbits); \
     ptype##_dadd(ret, ret, tile, NULL); \
-}
+} \
+\
+size_t prefix##s_mult_pippenger_scratch_sizeof(size_t npoints) \
+{ return sizeof(ptype##xyzz) << (pippenger_window_size(npoints)-1); } \
+void prefix##s_mult_pippenger(ptype *ret, \
+                              const ptype##_affine *points[], size_t npoints, \
+                              const byte *scalars[], size_t nbits, \
+                              ptype##xyzz scratch[]) \
+{ ptype##s_mult_pippenger(ret, points, npoints, scalars, nbits, scratch, 0); }
 
 DECLARE_PRIVATE_POINTXYZZ(POINTonE1, 384)
 POINTXYZZ_TO_JACOBIAN_IMPL(POINTonE1, 384, fp)
 POINTXYZZ_DADD_IMPL(POINTonE1, 384, fp)
 POINTXYZZ_DADD_AFFINE_IMPL(POINTonE1, 384, fp, BLS12_381_Rx.p)
-POINTS_MULT_PIPPENGER_IMPL(POINTonE1)
-POINT_TO_XYZZ_IMPL(POINTonE1, 384, fp)
+POINTS_MULT_PIPPENGER_IMPL(blst_p1, POINTonE1)
 
 DECLARE_PRIVATE_POINTXYZZ(POINTonE2, 384x)
 POINTXYZZ_TO_JACOBIAN_IMPL(POINTonE2, 384x, fp2)
 POINTXYZZ_DADD_IMPL(POINTonE2, 384x, fp2)
 POINTXYZZ_DADD_AFFINE_IMPL(POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
-POINTS_MULT_PIPPENGER_IMPL(POINTonE2)
-POINT_TO_XYZZ_IMPL(POINTonE2, 384x, fp2)
+POINTS_MULT_PIPPENGER_IMPL(blst_p2, POINTonE2)
