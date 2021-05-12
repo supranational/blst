@@ -13,6 +13,12 @@ static const vec384 BLS12_381_RRRR = {  /* RR^2 */
     TO_LIMB_T(0x2512d43565724728), TO_LIMB_T(0x0aa6346091755d4d)
 };
 
+#ifdef expand_message_xmd
+void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
+                        const unsigned char *aug, size_t aug_len,
+                        const unsigned char *msg, size_t msg_len,
+                        const unsigned char *DST, size_t DST_len);
+#else
 static void sha256_init_Zpad(SHA256_CTX *ctx)
 {
     ctx->h[0] = 0xda5698beU;
@@ -42,12 +48,6 @@ static void vec_xor(void *restrict ret, const void *restrict a,
         rp[i] = ap[i] ^ bp[i];
 }
 
-#ifdef expand_message_xmd
-void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
-                        const unsigned char *aug, size_t aug_len,
-                        const unsigned char *msg, size_t msg_len,
-                        const unsigned char *DST, size_t DST_len)
-#else
 static void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
                                const unsigned char *aug, size_t aug_len,
                                const unsigned char *msg, size_t msg_len,
