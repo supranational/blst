@@ -215,53 +215,6 @@ void blst_fp2_cneg(vec384x ret, const vec384x a, int flag)
 {   cneg_fp2(ret, a, is_zero(flag) ^ 1);   }
 
 /*
- * BLS12-381-specifc point operations.
- */
-void blst_p1_add(POINTonE1 *out, const POINTonE1 *a, const POINTonE1 *b)
-{   POINTonE1_add(out, a, b);   }
-
-void blst_p1_add_or_double(POINTonE1 *out, const POINTonE1 *a,
-                                           const POINTonE1 *b)
-{   POINTonE1_dadd(out, a, b, NULL);   }
-
-void blst_p1_add_affine(POINTonE1 *out, const POINTonE1 *a,
-                                        const POINTonE1_affine *b)
-{   POINTonE1_add_affine(out, a, b);   }
-
-void blst_p1_add_or_double_affine(POINTonE1 *out, const POINTonE1 *a,
-                                                  const POINTonE1_affine *b)
-{   POINTonE1_dadd_affine(out, a, b);   }
-
-void blst_p1_double(POINTonE1 *out, const POINTonE1 *a)
-{   POINTonE1_double(out, a);   }
-
-int blst_p1_affine_is_equal(const POINTonE1_affine *a,
-                            const POINTonE1_affine *b)
-{   return (int)vec_is_equal(a, b, sizeof(*a));   }
-
-void blst_p2_add(POINTonE2 *out, const POINTonE2 *a, const POINTonE2 *b)
-{   POINTonE2_add(out, a, b);   }
-
-void blst_p2_add_or_double(POINTonE2 *out, const POINTonE2 *a,
-                                           const POINTonE2 *b)
-{   POINTonE2_dadd(out, a, b, NULL);   }
-
-void blst_p2_add_affine(POINTonE2 *out, const POINTonE2 *a,
-                                        const POINTonE2_affine *b)
-{   POINTonE2_add_affine(out, a, b);   }
-
-void blst_p2_add_or_double_affine(POINTonE2 *out, const POINTonE2 *a,
-                                                  const POINTonE2_affine *b)
-{   POINTonE2_dadd_affine(out, a, b);   }
-
-void blst_p2_double(POINTonE2 *out, const POINTonE2 *a)
-{   POINTonE2_double(out, a);   }
-
-int blst_p2_affine_is_equal(const POINTonE2_affine *a,
-                            const POINTonE2_affine *b)
-{   return (int)vec_is_equal(a, b, sizeof(*a));   }
-
-/*
  * Scalar serialization/deseriazation
  */
 void blst_scalar_from_uint32(pow256 ret, const unsigned int a[8])

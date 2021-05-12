@@ -354,6 +354,24 @@ POINT_ADD_AFFINE_IMPL(POINTonE1, 384, fp, BLS12_381_Rx.p)
 POINT_DOUBLE_IMPL_A0(POINTonE1, 384, fp)
 POINT_IS_EQUAL_IMPL(POINTonE1, 384, fp)
 
+void blst_p1_add(POINTonE1 *out, const POINTonE1 *a, const POINTonE1 *b)
+{   POINTonE1_add(out, a, b);   }
+
+void blst_p1_add_or_double(POINTonE1 *out, const POINTonE1 *a,
+                                           const POINTonE1 *b)
+{   POINTonE1_dadd(out, a, b, NULL);   }
+
+void blst_p1_add_affine(POINTonE1 *out, const POINTonE1 *a,
+                                        const POINTonE1_affine *b)
+{   POINTonE1_add_affine(out, a, b);   }
+
+void blst_p1_add_or_double_affine(POINTonE1 *out, const POINTonE1 *a,
+                                                  const POINTonE1_affine *b)
+{   POINTonE1_dadd_affine(out, a, b);   }
+
+void blst_p1_double(POINTonE1 *out, const POINTonE1 *a)
+{   POINTonE1_double(out, a);   }
+
 int blst_p1_is_equal(const POINTonE1 *a, const POINTonE1 *b)
 {   return (int)POINTonE1_is_equal(a, b);   }
 
@@ -506,6 +524,10 @@ void blst_p1_mult(POINTonE1 *out, const POINTonE1 *a,
         POINTonE1_mult_w5(out, a, scalar, nbits);
     }
 }
+
+int blst_p1_affine_is_equal(const POINTonE1_affine *a,
+                            const POINTonE1_affine *b)
+{   return (int)vec_is_equal(a, b, sizeof(*a));   }
 
 int blst_p1_is_inf(const POINTonE1 *p)
 {   return (int)vec_is_zero(p->Z, sizeof(p->Z));   }
