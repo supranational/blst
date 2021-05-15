@@ -31,6 +31,10 @@ type P2Affine = C.blst_p2_affine
 type Message = []byte
 type Pairing = []uint64
 type SecretKey = Scalar
+type P1s []P1
+type P2s []P2
+type P1Affines []P1Affine
+type P2Affines []P2Affine
 
 //
 // Configuration
