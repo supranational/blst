@@ -689,6 +689,9 @@ extern "C" {
     );
 }
 extern "C" {
+    pub fn blst_p1s_add(ret: *mut blst_p1, points: *mut *const blst_p1_affine, npoints: usize);
+}
+extern "C" {
     pub fn blst_p1s_mult_wbits_precompute_sizeof(wbits: usize, npoints: usize) -> usize;
 }
 extern "C" {
@@ -732,6 +735,9 @@ extern "C" {
         points: *mut *const blst_p2,
         npoints: usize,
     );
+}
+extern "C" {
+    pub fn blst_p2s_add(ret: *mut blst_p2, points: *mut *const blst_p2_affine, npoints: usize);
 }
 extern "C" {
     pub fn blst_p2s_mult_wbits_precompute_sizeof(wbits: usize, npoints: usize) -> usize;

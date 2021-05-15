@@ -105,6 +105,7 @@ EXPORTS
 	blst_p2_affine_is_inf
 	blst_p2_affine_generator
 	blst_p1s_to_affine
+	blst_p1s_add
 	blst_p1s_mult_wbits_precompute_sizeof
 	blst_p1s_mult_wbits_precompute
 	blst_p1s_mult_wbits_scratch_sizeof
@@ -112,6 +113,7 @@ EXPORTS
 	blst_p1s_mult_pippenger_scratch_sizeof
 	blst_p1s_mult_pippenger
 	blst_p2s_to_affine
+	blst_p2s_add
 	blst_p2s_mult_wbits_precompute_sizeof
 	blst_p2s_mult_wbits_precompute
 	blst_p2s_mult_wbits_scratch_sizeof
