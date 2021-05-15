@@ -206,20 +206,19 @@
 %extend blst::P1s {
     static PyObject* to_affine(blst_p1_affine dst[], const blst::P1* points[],
                                                      size_t npoints)
-    {
-        blst_p1s_to_affine(dst, (const blst_p1 **)points, npoints);
+    {   blst_p1s_to_affine(dst, (const blst_p1 **)points, npoints);
         return NULL;
     }
 }
 %extend blst::P2s {
     static PyObject* to_affine(blst_p2_affine dst[], const blst::P2* points[],
                                                      size_t npoints)
-    {
-        blst_p2s_to_affine(dst, (const blst_p2 **)points, npoints);
+    {   blst_p2s_to_affine(dst, (const blst_p2 **)points, npoints);
         return NULL;
     }
 }
-%ignore to_affines;
+%ignore P1s::P1s(); %ignore P1s::to_affine; %ignore P1s::~P1s();
+%ignore P2s::P2s(); %ignore P2s::to_affine; %ignore P2s::~P2s();
 
 %typemap(in) (const byte* scalars[], size_t nbits)
     (std::unique_ptr<byte[]> bytes, byte *scalars[2]) %{
