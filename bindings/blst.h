@@ -206,11 +206,12 @@ bool blst_p2_affine_is_inf(const blst_p2_affine *a);
 const blst_p2_affine *blst_p2_affine_generator();
 
 /*
- * Multi-scalar multiplications.
+ * Multi-scalar multiplications and other multi-point operations.
  */
 
 void blst_p1s_to_affine(blst_p1_affine dst[], const blst_p1 *points[],
                         size_t npoints);
+void blst_p1s_add(blst_p1 *ret, const blst_p1_affine *points[], size_t npoints);
 
 size_t blst_p1s_mult_wbits_precompute_sizeof(size_t wbits, size_t npoints);
 void blst_p1s_mult_wbits_precompute(blst_p1_affine table[], size_t wbits,
@@ -228,6 +229,7 @@ void blst_p1s_mult_pippenger(blst_p1 *ret, const blst_p1_affine *points[],
 
 void blst_p2s_to_affine(blst_p2_affine dst[], const blst_p2 *points[],
                         size_t npoints);
+void blst_p2s_add(blst_p2 *ret, const blst_p2_affine *points[], size_t npoints);
 
 size_t blst_p2s_mult_wbits_precompute_sizeof(size_t wbits, size_t npoints);
 void blst_p2s_mult_wbits_precompute(blst_p2_affine table[], size_t wbits,
