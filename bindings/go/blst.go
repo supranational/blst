@@ -235,6 +235,19 @@ func Fp12One() Fp12 {
 	return *C.blst_fp12_one()
 }
 
+func Fp12FinalVerify(pt1 *Fp12, pt2 *Fp12) bool {
+	return bool(C.blst_fp12_finalverify(pt1, pt2))
+}
+
+func (pt *Fp12) MillerLoop(p2 *P2Affine, p1 *P1Affine) *Fp12 {
+	C.blst_miller_loop(pt, p2, p1)
+	return pt
+}
+
+func (pt1 *Fp12) FinalVerify(pt2 *Fp12) bool {
+	return Fp12FinalVerify(pt1, pt2)
+}
+
 //
 // MIN-PK
 //
@@ -1955,10 +1968,14 @@ func (fp *Fp) ToLEndian() []byte {
 }
 
 func (fr *Scalar) FromLEndian(arr []byte) *Scalar {
-	if len(arr) != BLST_SCALAR_BYTES {
+	nbytes := len(arr)
+	if nbytes == BLST_SCALAR_BYTES {
+		C.blst_scalar_from_lendian(fr, (*C.byte)(&arr[0]))
+	} else if nbytes > BLST_SCALAR_BYTES {
+		C.blst_scalar_from_le_bytes(fr, (*C.byte)(&arr[0]), C.size_t(nbytes))
+	} else {
 		return nil
 	}
-	C.blst_scalar_from_lendian(fr, (*C.byte)(&arr[0]))
 	return fr
 }
 
@@ -1987,10 +2004,14 @@ func (fp *Fp) ToBEndian() []byte {
 }
 
 func (fr *Scalar) FromBEndian(arr []byte) *Scalar {
-	if len(arr) != BLST_SCALAR_BYTES {
+	nbytes := len(arr)
+	if nbytes == BLST_SCALAR_BYTES {
+		C.blst_scalar_from_bendian(fr, (*C.byte)(&arr[0]))
+	} else if nbytes > BLST_SCALAR_BYTES {
+		C.blst_scalar_from_be_bytes(fr, (*C.byte)(&arr[0]), C.size_t(nbytes))
+	} else {
 		return nil
 	}
-	C.blst_scalar_from_bendian(fr, (*C.byte)(&arr[0]))
 	return fr
 }
 
