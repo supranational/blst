@@ -292,17 +292,8 @@ public:
     }
     static std::vector<P1_Affine> to_affine(std::vector<P1> points)
     {   return to_affine(&points[0], points.size());   }
-
-    static P1 mult_pippenger(const P1_Affine points[], size_t npoints,
-                             const byte* scalars[], size_t nbits)
-    {   const P1_Affine *ptrs[2] = { points, nullptr };
-        return mult_pippenger(ptrs, npoints, scalars, nbits);
-    }
-
-    static P1 mult_pippenger(const std::vector<P1_Affine> points,
-                             const byte* scalars[], size_t nbits)
-    {   return mult_pippenger(&points[0], points.size(), scalars, nbits);   }
 #endif
+
     static P1 mult_pippenger(const P1_Affine* points[], size_t npoints,
                              const byte* scalars[], size_t nbits)
     {   P1 ret;
@@ -313,6 +304,31 @@ public:
         free(scratch);
         return ret;
     }
+#ifndef SWIG
+    static P1 mult_pippenger(const P1_Affine points[], size_t npoints,
+                             const byte* scalars[], size_t nbits)
+    {   const P1_Affine *ptrs[2] = { points, nullptr };
+        return mult_pippenger(ptrs, npoints, scalars, nbits);
+    }
+    static P1 mult_pippenger(const std::vector<P1_Affine> points,
+                             const byte* scalars[], size_t nbits)
+    {   return mult_pippenger(&points[0], points.size(), scalars, nbits);   }
+#endif
+
+    static P1 add(const P1_Affine* points[], size_t npoints)
+    {   P1 ret;
+        blst_p1s_add(ret, reinterpret_cast<const blst_p1_affine **>(points),
+                          npoints);
+        return ret;
+    }
+#ifndef SWIG
+    static P1 add(const P1_Affine points[], size_t npoints)
+    {   const P1_Affine *ptrs[2] = { points, nullptr };
+        return add(ptrs, npoints);
+    }
+    static P1 add(const std::vector<P1_Affine> points)
+    {   return add(&points[0], points.size());   }
+#endif
 };
 
 class P2_Affine {
@@ -521,17 +537,8 @@ public:
     }
     static std::vector<P2_Affine> to_affine(std::vector<P2> points)
     {   return to_affine(&points[0], points.size());   }
-
-    static P2 mult_pippenger(const P2_Affine points[], size_t npoints,
-                             const byte* scalars[], size_t nbits)
-    {   const P2_Affine *ptrs[2] = { points, nullptr };
-        return mult_pippenger(ptrs, npoints, scalars, nbits);
-    }
-
-    static P2 mult_pippenger(const std::vector<P2_Affine> points,
-                             const byte* scalars[], size_t nbits)
-    {   return mult_pippenger(&points[0], points.size(), scalars, nbits);   }
 #endif
+
     static P2 mult_pippenger(const P2_Affine* points[], size_t npoints,
                              const byte* scalars[], size_t nbits)
     {   P2 ret;
@@ -542,6 +549,31 @@ public:
         free(scratch);
         return ret;
     }
+#ifndef SWIG
+    static P2 mult_pippenger(const P2_Affine points[], size_t npoints,
+                             const byte* scalars[], size_t nbits)
+    {   const P2_Affine *ptrs[2] = { points, nullptr };
+        return mult_pippenger(ptrs, npoints, scalars, nbits);
+    }
+    static P2 mult_pippenger(const std::vector<P2_Affine> points,
+                             const byte* scalars[], size_t nbits)
+    {   return mult_pippenger(&points[0], points.size(), scalars, nbits);   }
+#endif
+
+    static P2 add(const P2_Affine* points[], size_t npoints)
+    {   P2 ret;
+        blst_p2s_add(ret, reinterpret_cast<const blst_p2_affine **>(points),
+                          npoints);
+        return ret;
+    }
+#ifndef SWIG
+    static P2 add(const P2_Affine points[], size_t npoints)
+    {   const P2_Affine *ptrs[2] = { points, nullptr };
+        return add(ptrs, npoints);
+    }
+    static P2 add(const std::vector<P2_Affine> points)
+    {   return add(&points[0], points.size());   }
+#endif
 };
 
 inline P1_Affine::P1_Affine(const P1& jacobian)
