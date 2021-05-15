@@ -177,9 +177,21 @@
         points[1] = nullptr;
         $1 = points.get();
         $2 = _global_npoints = nbytes / sizeof(points[0][0]);
+    } else if (PyMemoryView_Check($input)) {
+        Py_buffer *buf = PyMemoryView_GET_BUFFER($input);
+
+        if (!PyBytes_Check(buf->obj))
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                                "expecting 'bytes' in "
+                                                "'memoryview'  for points[]");
+        points = std::unique_ptr<$*1_ltype[]>(new $*1_ltype[2]);
+        points[0] = ($*1_ltype)buf->buf;
+        points[1] = nullptr;
+        $1 = points.get();
+        $2 = _global_npoints = buf->len / sizeof(points[0][0]);
     } else {
-        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
-                                            "expecting 'list' or 'bytes' "
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting "
+                                            "'list', 'bytes' or 'memoryview' "
                                             "for points[]");
     }
 %}
@@ -271,10 +283,21 @@
         scalars[1] = nullptr;
         $1 = scalars;
         $2 = 8 * (PyByteArray_Size($input) / _global_npoints);
+    } else if (PyMemoryView_Check($input)) {
+        Py_buffer *buf = PyMemoryView_GET_BUFFER($input);
+
+        if (!PyBytes_Check(buf->obj) && !PyByteArray_Check(buf->obj))
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                                "expecting 'bytes' in "
+                                                "'memoryview'  for points[]");
+        scalars[0] = ($*1_ltype)buf->buf;
+        scalars[1] = nullptr;
+        $1 = scalars;
+        $2 = 8 * (buf->len / _global_npoints);
     } else {
-        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
-                                            "expecting 'list', 'bytes' "
-                                            "or 'bytearray' for scalars[]");
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting "
+                                            "'list', 'bytes', 'bytearray' "
+                                            "or 'memoryview' for scalars[]");
     }
 %}
 
