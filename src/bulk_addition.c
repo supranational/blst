@@ -24,7 +24,7 @@
  * The formulae use prohibitively expensive inversion, but whenever we
  * have a lot of affine points to accumulate, we can amortize the cost
  * by applying Montgomery's batch inversion approach. As a result,
- * asymptotic[!] per-point cost for addition is as small as 5M+S. For
+ * asymptotic[!] per-point cost for addition is as small as 5M+1S. For
  * comparison, ptype##_dadd_affine takes 8M+5S. In practice, all things
  * considered, the improvement coefficient varies from 60% to 85%
  * depending on platform and curve.
@@ -110,7 +110,7 @@ static void ptype##_tail(ptype *D, ptype AB[2], vec##bits lambda) \
  * temporary storage [unrelated to Jacobian coordinates]. |sum| is
  * in-/output, initialize to infinity accordingly.
  */
-#define ADDITION_BTREE(ptype, bits, field, one) \
+#define ADDITION_BTREE(prefix, ptype, bits, field, one) \
 HEAD(ptype, bits, field, one) \
 TAIL(ptype, bits, field, one) \
 static void ptype##s_accumulate(ptype *sum, ptype points[], size_t n) \
@@ -119,7 +119,7 @@ static void ptype##s_accumulate(ptype *sum, ptype points[], size_t n) \
     void *mul_acc; \
     size_t i; \
 \
-    while(n >= 16) { \
+    while (n >= 16) { \
         if (n & 1) \
             ptype##_dadd_affine(sum, sum, (const ptype##_affine *)points++); \
         n /= 2; \
@@ -140,8 +140,28 @@ static void ptype##s_accumulate(ptype *sum, ptype points[], size_t n) \
     } \
     while (n--) \
         ptype##_dadd_affine(sum, sum, (const ptype##_affine *)points++); \
+} \
+\
+void prefix##s_add(ptype *sum, ptype##_affine *points[], size_t npoints) \
+{ \
+    /* Performance with 288K scratch is within 1-2-3% from optimal */ \
+    const size_t stride = sizeof(ptype)==sizeof(POINTonE1) ? 2048 : 1024; \
+    ptype *scratch = alloca((npoints > stride ? stride : npoints) * \
+                            sizeof(ptype)); \
+    const ptype##_affine *point = NULL; \
+\
+    vec_zero(sum, sizeof(*sum)); \
+    while (npoints) { \
+        size_t i, j = npoints > stride ? stride : npoints; \
+        for (i=0; i<j; i++) { \
+            point = *points ? *points++ : point+1; \
+            vec_copy(&scratch[i], point, sizeof(*point)); \
+        } \
+        ptype##s_accumulate(sum, scratch, j); \
+        npoints -= j; \
+    } \
 }
 
-ADDITION_BTREE(POINTonE1, 384, fp, BLS12_381_Rx.p2)
+ADDITION_BTREE(blst_p1, POINTonE1, 384, fp, BLS12_381_Rx.p2)
 
-ADDITION_BTREE(POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
+ADDITION_BTREE(blst_p2, POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
