@@ -40,6 +40,10 @@ type P2Affine = C.blst_p2_affine
 type Message = []byte
 type Pairing = []uint64
 type SecretKey = Scalar
+type P1s []P1
+type P2s []P2
+type P1Affines []P1Affine
+type P2Affines []P2Affine
 
 //
 // Configuration
@@ -1554,6 +1558,46 @@ func (p *P1) ToAffine() *P1Affine {
 	return &pa
 }
 
+func P1sToAffine(points []*P1, optional ...int) P1Affines {
+	var npoints int
+	if len(optional) > 0 {
+		npoints = optional[0]
+	} else {
+		npoints = len(points)
+	}
+	ret := make([]P1Affine, npoints)
+	C.blst_p1s_to_affine(&ret[0], &points[0], C.size_t(npoints))
+	return ret
+}
+
+func (points P1s) ToAffine() P1Affines {
+	return P1sToAffine([]*P1{&points[0], nil}, len(points))
+}
+
+//
+// Batch addition
+//
+
+func P1sAdd(points []*P1Affine, optional ...int) *P1 {
+	var ret P1
+	var npoints int
+	if len(optional) > 0 {
+		npoints = optional[0]
+	} else {
+		npoints = len(points)
+	}
+	C.blst_p1s_add(&ret, &points[0], C.size_t(npoints))
+	return &ret
+}
+
+func (points P1Affines) Add() *P1 {
+	return P1sAdd([]*P1Affine{&points[0], nil}, len(points))
+}
+
+func (points P1s) Add() *P1 {
+	return points.ToAffine().Add()
+}
+
 //
 // Hash
 //
@@ -1734,6 +1778,46 @@ func (p *P2) ToAffine() *P2Affine {
 	var pa P2Affine
 	C.blst_p2_to_affine(&pa, p)
 	return &pa
+}
+
+func P2sToAffine(points []*P2, optional ...int) P2Affines {
+	var npoints int
+	if len(optional) > 0 {
+		npoints = optional[0]
+	} else {
+		npoints = len(points)
+	}
+	ret := make([]P2Affine, npoints)
+	C.blst_p2s_to_affine(&ret[0], &points[0], C.size_t(npoints))
+	return ret
+}
+
+func (points P2s) ToAffine() P2Affines {
+	return P2sToAffine([]*P2{&points[0], nil}, len(points))
+}
+
+//
+// Batch addition
+//
+
+func P2sAdd(points []*P2Affine, optional ...int) *P2 {
+	var ret P2
+	var npoints int
+	if len(optional) > 0 {
+		npoints = optional[0]
+	} else {
+		npoints = len(points)
+	}
+	C.blst_p2s_add(&ret, &points[0], C.size_t(npoints))
+	return &ret
+}
+
+func (points P2Affines) Add() *P2 {
+	return P2sAdd([]*P2Affine{&points[0], nil}, len(points))
+}
+
+func (points P2s) Add() *P2 {
+	return points.ToAffine().Add()
 }
 
 //
