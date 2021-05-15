@@ -75,10 +75,14 @@ func (fp *Fp) ToLEndian() []byte {
 }
 
 func (fr *Scalar) FromLEndian(arr []byte) *Scalar {
-    if len(arr) != BLST_SCALAR_BYTES {
+    nbytes := len(arr)
+    if nbytes == BLST_SCALAR_BYTES {
+        C.blst_scalar_from_lendian(fr, (*C.byte)(&arr[0]))
+    } else if nbytes > BLST_SCALAR_BYTES {
+        C.blst_scalar_from_le_bytes(fr, (*C.byte)(&arr[0]), C.size_t(nbytes))
+    } else {
         return nil
     }
-    C.blst_scalar_from_lendian(fr, (*C.byte)(&arr[0]))
     return fr
 }
 
@@ -107,10 +111,14 @@ func (fp *Fp) ToBEndian() []byte {
 }
 
 func (fr *Scalar) FromBEndian(arr []byte) *Scalar {
-    if len(arr) != BLST_SCALAR_BYTES {
+    nbytes := len(arr)
+    if nbytes == BLST_SCALAR_BYTES {
+        C.blst_scalar_from_bendian(fr, (*C.byte)(&arr[0]))
+    } else if nbytes > BLST_SCALAR_BYTES {
+        C.blst_scalar_from_be_bytes(fr, (*C.byte)(&arr[0]), C.size_t(nbytes))
+    } else {
         return nil
     }
-    C.blst_scalar_from_bendian(fr, (*C.byte)(&arr[0]))
     return fr
 }
 
