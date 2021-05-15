@@ -16,6 +16,8 @@
 #include "exp.c"
 #include "sqrt.c"
 #include "recip.c"
+#include "bulk_addition.c"
+#include "multi_scalar.c"
 #include "consts.c"
 #include "vect.c"
 #include "exports.c"
