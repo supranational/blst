@@ -344,17 +344,8 @@ void blst_lendian_from_scalar(unsigned char ret[32], const pow256 a)
 }
 
 int blst_scalar_fr_check(const pow256 a)
-{
-    vec256 value, zero = { 0 };
-    limb_t ret;
-
-    limbs_from_le_bytes(value, a, 32);
-    add_mod_256(zero, zero, value, BLS12_381_r);
-    ret = vec_is_equal(zero, value, sizeof(zero));
-    vec_zero(zero, sizeof(zero));
-    vec_zero(value, sizeof(value));
-
-    return (int)ret;
+{   return (int)(check_mod_256(a, BLS12_381_r) |
+                 bytes_are_zero(a, sizeof(pow256)));
 }
 
 int blst_sk_check(const pow256 a)
@@ -401,16 +392,37 @@ void blst_uint64_from_fr(unsigned long long ret[4], const vec256 a)
 
 void blst_fr_from_scalar(vec256 ret, const pow256 a)
 {
-    limbs_from_le_bytes(ret, a, 32);
-    mul_mont_sparse_256(ret, ret, BLS12_381_rRR, BLS12_381_r, r0);
+    const union {
+        long one;
+        char little;
+    } is_endian = { 1 };
+
+    if ((uptr_t)ret == (uptr_t)a && is_endian.little) {
+        mul_mont_sparse_256(ret, (const limb_t *)a, BLS12_381_rRR,
+                                                    BLS12_381_r, r0);
+    } else {
+        vec256 out;
+        limbs_from_le_bytes(out, a, 32);
+        mul_mont_sparse_256(ret, out, BLS12_381_rRR, BLS12_381_r, r0);
+        vec_zero(out, sizeof(out));
+    }
 }
 
 void blst_scalar_from_fr(pow256 ret, const vec256 a)
 {
-    vec256 out;
-    from_mont_256(out, a, BLS12_381_r, r0);
-    le_bytes_from_limbs(ret, out, 32);
-    vec_zero(out, sizeof(out));
+    const union {
+        long one;
+        char little;
+    } is_endian = { 1 };
+
+    if ((uptr_t)ret == (uptr_t)a && is_endian.little) {
+        from_mont_256((limb_t *)ret, a, BLS12_381_r, r0);
+    } else {
+        vec256 out;
+        from_mont_256(out, a, BLS12_381_r, r0);
+        le_bytes_from_limbs(ret, out, 32);
+        vec_zero(out, sizeof(out));
+    }
 }
 
 int blst_scalar_from_le_bytes(pow256 out, const unsigned char *bytes, size_t n)
