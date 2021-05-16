@@ -27,8 +27,8 @@ script:
             if [ -f target/Cargo.lock ]; then
                 mv -f target/Cargo.lock .;
             fi;
-            NOW=`date +%s`
-            THEN=`stat -c %Y "$TRAVIS_HOME"/.cargo/registry/index/*/.last-updated 2>/dev/null`
+            NOW=`date +%s`;
+            THEN=`stat -c %Y "$TRAVIS_HOME"/.cargo/registry/index/*/.last-updated 2>/dev/null`;
             if [ $(($NOW - ${THEN:-0})) -gt 604800 ]; then
                 cargo update;
             fi;
