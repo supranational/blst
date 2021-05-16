@@ -239,13 +239,10 @@ func Fp12FinalVerify(pt1 *Fp12, pt2 *Fp12) bool {
 	return bool(C.blst_fp12_finalverify(pt1, pt2))
 }
 
-func (pt *Fp12) MillerLoop(p2 *P2Affine, p1 *P1Affine) *Fp12 {
-	C.blst_miller_loop(pt, p2, p1)
-	return pt
-}
-
-func (pt1 *Fp12) FinalVerify(pt2 *Fp12) bool {
-	return Fp12FinalVerify(pt1, pt2)
+func Fp12MillerLoop(p2 *P2Affine, p1 *P1Affine) *Fp12 {
+	var pt Fp12
+	C.blst_miller_loop(&pt, p2, p1)
+	return &pt
 }
 
 //
