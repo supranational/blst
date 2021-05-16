@@ -64,6 +64,8 @@ POINTS_TO_AFFINE_IMPL(blst_p2, POINTonE2, 384x, fp2)
  * points [with wbits=5]...
  */
 
+#define SCRATCH_SZ(ptype) (sizeof(ptype)==sizeof(POINTonE1) ? 8192 : 4096)
+
 #define PRECOMPUTE_WBITS_IMPL(prefix, ptype, bits, field, one) \
 static void ptype##_precompute_row_wbits(ptype row[], size_t wbits, \
                                          const ptype##_affine *point) \
@@ -176,6 +178,13 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
     const byte *scalar, **scalar_s = scalars; \
     const ptype##_affine *row = table; \
 \
+    size_t scratch_sz = SCRATCH_SZ(ptype); \
+    if (scratch == NULL) { \
+        scratch_sz /= 4; /* limit to 288K */ \
+        scratch_sz = scratch_sz < npoints ? scratch_sz : npoints; \
+        scratch = alloca(sizeof(ptype) * scratch_sz); \
+    } \
+\
     nbytes = (nbits + 7)/8; /* convert |nbits| to bytes */ \
     scalar = *scalar_s++; \
 \
@@ -192,13 +201,15 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
 \
     i = 1; vec_zero(ret, sizeof(*ret)); \
     while (nbits > 0) { \
-        for (; i < npoints; i++, row += nwin) { \
+        for (j = i; i < npoints; i++, j++, row += nwin) { \
+            if (j == scratch_sz) \
+                ptype##s_accumulate(ret, scratch, j), j = 0; \
             scalar = *scalar_s ? *scalar_s++ : scalar+nbytes; \
             wval = get_wval_limb(scalar, nbits - 1, window + 1) & wmask; \
             wval = booth_encode(wval, wbits); \
-            ptype##_gather_booth_wbits(&scratch[i], row, wbits, wval); \
+            ptype##_gather_booth_wbits(&scratch[j], row, wbits, wval); \
         } \
-        ptype##s_accumulate(ret, scratch, npoints); \
+        ptype##s_accumulate(ret, scratch, j); \
 \
         for (j = 0; j < wbits; j++) \
             ptype##_double(ret, ret); \
@@ -209,17 +220,22 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
         i = 0; row = table; scalar_s = scalars; \
     } \
 \
-    for (; i < npoints; i++, row += nwin) { \
+    for (j = i; i < npoints; i++, j++, row += nwin) { \
+        if (j == scratch_sz) \
+            ptype##s_accumulate(ret, scratch, j), j = 0; \
         scalar = *scalar_s ? *scalar_s++ : scalar+nbytes; \
         wval = (get_wval_limb(scalar, 0, wbits) << 1) & wmask; \
         wval = booth_encode(wval, wbits); \
-        ptype##_gather_booth_wbits(&scratch[i], row, wbits, wval); \
+        ptype##_gather_booth_wbits(&scratch[j], row, wbits, wval); \
     } \
-    ptype##s_accumulate(ret, scratch, npoints); \
+    ptype##s_accumulate(ret, scratch, j); \
 } \
 \
 size_t prefix##s_mult_wbits_scratch_sizeof(size_t npoints) \
-{ return sizeof(ptype)*npoints; } \
+{ \
+    const size_t scratch_sz = SCRATCH_SZ(ptype); \
+    return sizeof(ptype) * (npoints < scratch_sz ? npoints : scratch_sz); \
+} \
 void prefix##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
                           size_t wbits, size_t npoints, const byte *scalars[], \
                           size_t nbits, ptype scratch[]) \
