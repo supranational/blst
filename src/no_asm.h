@@ -812,9 +812,9 @@ static void inner_loop_n(factors *fg, const limb_t a_[2], const limb_t b_[2],
     fg->f0 = f0, fg->g0 = g0, fg->f1 = f1, fg->g1= g1;
 }
 
-static void cneg_n(limb_t ret[], const limb_t a[], limb_t neg, size_t n)
+static limb_t cneg_n(limb_t ret[], const limb_t a[], limb_t neg, size_t n)
 {
-    llimb_t limbx;
+    llimb_t limbx = 0;
     limb_t carry;
     size_t i;
 
@@ -823,9 +823,11 @@ static void cneg_n(limb_t ret[], const limb_t a[], limb_t neg, size_t n)
         ret[i] = (limb_t)limbx;
         carry = (limb_t)(limbx >> LIMB_T_BITS);
     }
+
+    return 0 - MSB((limb_t)limbx);
 }
 
-static void add_n(limb_t ret[], const limb_t a[], limb_t b[], size_t n)
+static limb_t add_n(limb_t ret[], const limb_t a[], limb_t b[], size_t n)
 {
     llimb_t limbx;
     limb_t carry;
@@ -836,6 +838,8 @@ static void add_n(limb_t ret[], const limb_t a[], limb_t b[], size_t n)
         ret[i] = (limb_t)limbx;
         carry = (limb_t)(limbx >> LIMB_T_BITS);
     }
+
+    return carry;
 }
 
 static limb_t umul_n(limb_t ret[], const limb_t a[], limb_t b, size_t n)
@@ -863,7 +867,7 @@ static void smul_n_shift_n(limb_t ret[], const limb_t a[], limb_t *f_,
     f = *f_;
     neg = 0 - MSB(f);
     f = (f ^ neg) - neg;            /* ensure |f| is positive */
-    cneg_n(a_, a, neg, n);
+    (void)cneg_n(a_, a, neg, n);
     hi = umul_n(a_, a_, f, n);
     a_[n] = hi - (f & neg);
 
@@ -871,12 +875,12 @@ static void smul_n_shift_n(limb_t ret[], const limb_t a[], limb_t *f_,
     g = *g_;
     neg = 0 - MSB(g);
     g = (g ^ neg) - neg;            /* ensure |g| is positive */
-    cneg_n(b_, b, neg, n);
+    (void)cneg_n(b_, b, neg, n);
     hi = umul_n(b_, b_, g, n);
     b_[n] = hi - (g & neg);
 
     /* |a|*|f_| + |b|*|g_| */
-    add_n(a_, a_, b_, n+1);
+    (void)add_n(a_, a_, b_, n+1);
 
     /* (|a|*|f_| + |b|*|g_|) >> k */
     for (carry=a_[0], i=0; i<n; i++) {
@@ -889,28 +893,30 @@ static void smul_n_shift_n(limb_t ret[], const limb_t a[], limb_t *f_,
     neg = 0 - MSB(carry);
     *f_ = (*f_ ^ neg) - neg;
     *g_ = (*g_ ^ neg) - neg;
-    cneg_n(ret, ret, neg, n);
+    (void)cneg_n(ret, ret, neg, n);
 }
 
-static void smul_2n(limb_t ret[], const limb_t u[], limb_t f,
-                                  const limb_t v[], limb_t g, size_t n)
+static limb_t smul_2n(limb_t ret[], const limb_t u[], limb_t f,
+                                    const limb_t v[], limb_t g, size_t n)
 {
-    limb_t u_[n], v_[n], neg;
+    limb_t u_[n], v_[n], neg, hi;
 
     /* |u|*|f_| */
     neg = 0 - MSB(f);
     f = (f ^ neg) - neg;            /* ensure |f| is positive */
-    cneg_n(u_, u, neg, n);
-    umul_n(u_, u_, f, n);
+    neg = cneg_n(u_, u, neg, n);
+    hi = umul_n(u_, u_, f, n) - (f&neg);
 
     /* |v|*|g_| */
     neg = 0 - MSB(g);
     g = (g ^ neg) - neg;            /* ensure |g| is positive */
-    cneg_n(v_, v, neg, n);
-    umul_n(v_, v_, g, n);
+    neg = cneg_n(v_, v, neg, n);
+    hi += umul_n(v_, v_, g, n) - (g&neg);
 
     /* |u|*|f_| + |v|*|g_| */
-    add_n(ret, u_, v_, n);
+    hi += add_n(ret, u_, v_, n);
+
+    return hi;
 }
 
 static void ct_inverse_mod_n(limb_t ret[], const limb_t inp[],
@@ -918,7 +924,7 @@ static void ct_inverse_mod_n(limb_t ret[], const limb_t inp[],
 {
     llimb_t limbx;
     limb_t a[n], b[n], u[2*n], v[2*n], t[2*n];
-    limb_t a_[2], b_[2], sign, carry;
+    limb_t a_[2], b_[2], sign, carry, top;
     factors fg;
     size_t i;
 
@@ -927,7 +933,7 @@ static void ct_inverse_mod_n(limb_t ret[], const limb_t inp[],
     vec_zero(u, sizeof(u)); u[0] = 1;
     vec_zero(v, sizeof(v));
 
-    for (i=0; i<(2*n*LIMB_T_BITS-2)/(LIMB_T_BITS-2); i++) {
+    for (i=0; i<(2*n*LIMB_T_BITS)/(LIMB_T_BITS-2); i++) {
         ab_approximation_n(a_, a, b_, b, n);
         inner_loop_n(&fg, a_, b_, LIMB_T_BITS-2);
         smul_n_shift_n(t, a, &fg.f0, b, &fg.g0, n);
@@ -938,20 +944,30 @@ static void ct_inverse_mod_n(limb_t ret[], const limb_t inp[],
         vec_copy(u, t, sizeof(u));
     }
 
-    inner_loop_n(&fg, a, b, (2*n*LIMB_T_BITS-2)%(LIMB_T_BITS-2));
-    smul_2n(ret, u, fg.f1, v, fg.g1, 2*n);
+    inner_loop_n(&fg, a, b, (2*n*LIMB_T_BITS)%(LIMB_T_BITS-2));
+    top = smul_2n(ret, u, fg.f1, v, fg.g1, 2*n);
 
-    sign = 0 - MSB(ret[2*n-1]);
+    sign = 0 - MSB(top);    /* top is 1, 0 or -1 */
     for (carry=0, i=0; i<n; i++) {
         limbx = ret[n+i] + ((modx[i] & sign) + (llimb_t)carry);
         ret[n+i] = (limb_t)limbx;
         carry = (limb_t)(limbx >> LIMB_T_BITS);
     }
+    top += carry;
+    sign = 0 - top;         /* top is 1 or 0 */
+    for (carry=0, i=0; i<n; i++) {
+        limbx = ret[n+i] - ((modx[i] & sign) + (llimb_t)carry);
+        ret[n+i] = (limb_t)limbx;
+        carry = (limb_t)(limbx >> LIMB_T_BITS) & 1;
+    }
 }
 
-inline void ct_inverse_mod_383(vec768 ret, const vec384 inp, const vec384 mod,
-                                                             const vec384 modx)
-{   ct_inverse_mod_n(ret, inp, mod, modx, sizeof(vec384)/sizeof(limb_t));   }
+#define CT_INVERSE_MOD_IMPL(bits) \
+inline void ct_inverse_mod_##bits(vec##bits ret, const vec##bits inp, \
+                                  const vec##bits mod, const vec##bits modx) \
+{   ct_inverse_mod_n(ret, inp, mod, modx, NLIMBS(bits));   }
+
+CT_INVERSE_MOD_IMPL(384)
 
 /*
  * |div_top| points at two most significant limbs of the dividend, |d_hi|

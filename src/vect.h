@@ -85,6 +85,8 @@ typedef limb_t bool_t;
 # define sgn0_pty_mont_384 sgn0x_pty_mont_384
 # define sgn0_pty_mont_384x sgn0x_pty_mont_384x
 # define ct_inverse_mod_383 ctx_inverse_mod_383
+#elif defined(__BLST_NO_ASM__)
+# define ct_inverse_mod_383 ct_inverse_mod_384
 #endif
 
 void mul_mont_sparse_256(vec256 ret, const vec256 a, const vec256 b,
