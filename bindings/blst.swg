@@ -165,7 +165,7 @@
         }
         $1 = points.get();
         $2 = _global_npoints;
-    } else if (PyBytes_Check($input)) { // customarily output from to_affines()
+    } else if (PyBytes_Check($input)) {
         char *bytes;
         Py_ssize_t nbytes;
 
@@ -177,7 +177,7 @@
         points[1] = nullptr;
         $1 = points.get();
         $2 = _global_npoints = nbytes / sizeof(points[0][0]);
-    } else if (PyMemoryView_Check($input)) {
+    } else if (PyMemoryView_Check($input)) {    // output from to_affine()
         Py_buffer *buf = PyMemoryView_GET_BUFFER($input);
 
         if (!PyBytes_Check(buf->obj))
@@ -212,21 +212,28 @@
     PyBytes_AsStringAndSize(obj$argnum, &bytes, &size);
     $1 = ($1_ltype)bytes;
 }
-%typemap(argout) POINT points[] "$result = obj$argnum;"
+%typemap(argout) POINT points[] %{
+    $result = PyMemoryView_FromObject(obj$argnum);
+    if ($result != NULL) {
+        // .itemsize to return size of point, and len() - amount of points
+        PyMemoryView_GET_BUFFER($result)->itemsize  = sizeof($1[0]);
+        PyMemoryView_GET_BUFFER($result)->shape[0] /= sizeof($1[0]);
+    }
+%}
 %apply POINT points[] { blst_p1_affine dst[], blst_p2_affine dst[] }
 
 %extend blst::P1s {
     static PyObject* to_affine(blst_p1_affine dst[], const blst::P1* points[],
                                                      size_t npoints)
     {   blst_p1s_to_affine(dst, (const blst_p1 **)points, npoints);
-        return NULL;
+        return NULL;    // ignored by 'argout' typemap above
     }
 }
 %extend blst::P2s {
     static PyObject* to_affine(blst_p2_affine dst[], const blst::P2* points[],
                                                      size_t npoints)
     {   blst_p2s_to_affine(dst, (const blst_p2 **)points, npoints);
-        return NULL;
+        return NULL;    // ignored by 'argout' typemap above
     }
 }
 %ignore P1s::P1s(); %ignore P1s::to_affine; %ignore P1s::~P1s();
