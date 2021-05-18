@@ -165,11 +165,11 @@ points = []
 scalars = []
 total = 0
 for _ in range(0, 42):
-    p = int.from_bytes(os.urandom(8), "big")
+    p = os.urandom(8)
     s = int.from_bytes(os.urandom(8), "big")
     points.append(blst.G1().mult(p))
     scalars.append(s)
-    total += p*s
+    total += s * int.from_bytes(p, "little")
 a = blst.P1s.mult_pippenger(blst.P1s.to_affine(points), scalars)
 if not a.is_equal(blst.G1().mult(total)):
     raise AssertionError("disaster")
@@ -178,11 +178,11 @@ points = []
 scalars = []
 total = 0
 for _ in range(0, 42):
-    p = int.from_bytes(os.urandom(8), "big")
+    p = os.urandom(8)
     s = int.from_bytes(os.urandom(8), "big")
     points.append(blst.G2().mult(p))
     scalars.append(s)
-    total += p*s
+    total += s * int.from_bytes(p, "little")
 a = blst.P2s.mult_pippenger(blst.P2s.to_affine(points), scalars)
 if not a.is_equal(blst.G2().mult(total)):
     raise AssertionError("disaster")
