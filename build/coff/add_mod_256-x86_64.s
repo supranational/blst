@@ -485,6 +485,81 @@ check_mod_256:
 	.byte	0xf3,0xc3
 
 .LSEH_end_check_mod_256:
+
+.globl	add_n_check_mod_256
+
+.def	add_n_check_mod_256;	.scl 2;	.type 32;	.endef
+.p2align	5
+add_n_check_mod_256:
+	.byte	0xf3,0x0f,0x1e,0xfa
+	movq	%rdi,8(%rsp)
+	movq	%rsi,16(%rsp)
+	movq	%rsp,%r11
+.LSEH_begin_add_n_check_mod_256:
+	movq	%rcx,%rdi
+	movq	%rdx,%rsi
+	movq	%r8,%rdx
+	movq	%r9,%rcx
+
+
+	pushq	%rbp
+
+	pushq	%rbx
+
+	subq	$8,%rsp
+
+.LSEH_body_add_n_check_mod_256:
+
+
+	movq	0(%rsi),%r8
+	movq	8(%rsi),%r9
+	movq	16(%rsi),%r10
+	movq	24(%rsi),%r11
+
+	addq	0(%rdx),%r8
+	adcq	8(%rdx),%r9
+	movq	%r8,%rax
+	adcq	16(%rdx),%r10
+	movq	%r9,%rsi
+	adcq	24(%rdx),%r11
+	sbbq	%rdx,%rdx
+
+	movq	%r10,%rbx
+	subq	0(%rcx),%r8
+	sbbq	8(%rcx),%r9
+	sbbq	16(%rcx),%r10
+	movq	%r11,%rbp
+	sbbq	24(%rcx),%r11
+	sbbq	$0,%rdx
+
+	cmovcq	%rax,%r8
+	cmovcq	%rsi,%r9
+	movq	%r8,0(%rdi)
+	cmovcq	%rbx,%r10
+	movq	%r9,8(%rdi)
+	cmovcq	%rbp,%r11
+	movq	%r10,16(%rdi)
+	movq	%r11,24(%rdi)
+
+	orq	%r9,%r8
+	orq	%r11,%r10
+	orq	%r10,%r8
+	movq	$1,%rax
+	cmovzq	%r8,%rax
+
+	movq	8(%rsp),%rbx
+
+	movq	16(%rsp),%rbp
+
+	leaq	24(%rsp),%rsp
+
+.LSEH_epilogue_add_n_check_mod_256:
+	mov	8(%rsp),%rdi
+	mov	16(%rsp),%rsi
+
+	.byte	0xf3,0xc3
+
+.LSEH_end_add_n_check_mod_256:
 .section	.pdata
 .p2align	2
 .rva	.LSEH_begin_add_mod_256
@@ -562,6 +637,18 @@ check_mod_256:
 .rva	.LSEH_epilogue_check_mod_256
 .rva	.LSEH_end_check_mod_256
 .rva	.LSEH_info_check_mod_256_epilogue
+
+.rva	.LSEH_begin_add_n_check_mod_256
+.rva	.LSEH_body_add_n_check_mod_256
+.rva	.LSEH_info_add_n_check_mod_256_prologue
+
+.rva	.LSEH_body_add_n_check_mod_256
+.rva	.LSEH_epilogue_add_n_check_mod_256
+.rva	.LSEH_info_add_n_check_mod_256_body
+
+.rva	.LSEH_epilogue_add_n_check_mod_256
+.rva	.LSEH_end_add_n_check_mod_256
+.rva	.LSEH_info_add_n_check_mod_256_epilogue
 
 .section	.xdata
 .p2align	3
@@ -689,6 +776,26 @@ check_mod_256:
 .byte	0x00,0x00,0x00,0x00
 
 .LSEH_info_check_mod_256_epilogue:
+.byte	1,0,4,0
+.byte	0x00,0x74,0x01,0x00
+.byte	0x00,0x64,0x02,0x00
+.byte	0x00,0x00,0x00,0x00
+
+.LSEH_info_add_n_check_mod_256_prologue:
+.byte	1,0,5,0x0b
+.byte	0,0x74,1,0
+.byte	0,0x64,2,0
+.byte	0,0x03
+.byte	0,0
+.LSEH_info_add_n_check_mod_256_body:
+.byte	1,0,9,0
+.byte	0x00,0x34,0x01,0x00
+.byte	0x00,0x54,0x02,0x00
+.byte	0x00,0x74,0x04,0x00
+.byte	0x00,0x64,0x05,0x00
+.byte	0x00,0x22
+.byte	0x00,0x00
+.LSEH_info_add_n_check_mod_256_epilogue:
 .byte	1,0,4,0
 .byte	0x00,0x74,0x01,0x00
 .byte	0x00,0x64,0x02,0x00
