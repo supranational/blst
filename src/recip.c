@@ -117,3 +117,19 @@ void blst_fp2_inverse(vec384x out, const vec384x inp)
 
 void blst_fp2_eucl_inverse(vec384x out, const vec384x inp)
 {   reciprocal_fp2(out, inp);   }
+
+static void reciprocal_fr(vec256 out, const vec256 inp)
+{
+    static const vec256 rx2 = { /* left-aligned value of the modulus */
+        TO_LIMB_T(0xfffffffe00000002), TO_LIMB_T(0xa77b4805fffcb7fd),
+        TO_LIMB_T(0x6673b0101343b00a), TO_LIMB_T(0xe7db4ea6533afa90),
+    };
+    vec512 temp;
+
+    ct_inverse_mod_256(temp, inp, BLS12_381_r, rx2);
+    redc_mont_256(out, temp, BLS12_381_r, r0);
+    mul_mont_sparse_256(out, out, BLS12_381_rRR, BLS12_381_r, r0);
+}
+
+void blst_fr_inverse(vec256 out, const vec256 inp)
+{   reciprocal_fr(out, inp);   }
