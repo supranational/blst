@@ -967,6 +967,7 @@ inline void ct_inverse_mod_##bits(vec##bits ret, const vec##bits inp, \
                                   const vec##bits mod, const vec##bits modx) \
 {   ct_inverse_mod_n(ret, inp, mod, modx, NLIMBS(bits));   }
 
+CT_INVERSE_MOD_IMPL(256)
 CT_INVERSE_MOD_IMPL(384)
 
 /*
