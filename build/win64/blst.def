@@ -22,6 +22,7 @@ EXPORTS
 	blst_fr_sqr
 	blst_fr_cneg
 	blst_fr_eucl_inverse
+	blst_fr_inverse
 	blst_fr_from_uint64
 	blst_uint64_from_fr
 	blst_fr_from_scalar
