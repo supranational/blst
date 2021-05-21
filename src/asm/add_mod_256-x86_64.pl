@@ -417,6 +417,67 @@ check_mod_256:
 	ret
 .cfi_endproc
 .size	check_mod_256,.-check_mod_256
+
+.globl	add_n_check_mod_256
+.hidden	add_n_check_mod_256
+.type	add_n_check_mod_256,\@function,4,"unwind"
+.align	32
+add_n_check_mod_256:
+.cfi_startproc
+	push	%rbp
+.cfi_push	%rbp
+	push	%rbx
+.cfi_push	%rbx
+	sub	\$8, %rsp
+.cfi_adjust_cfa_offset	8
+.cfi_end_prologue
+
+	mov	8*0($a_ptr), @acc[0]
+	mov	8*1($a_ptr), @acc[1]
+	mov	8*2($a_ptr), @acc[2]
+	mov	8*3($a_ptr), @acc[3]
+
+	add	8*0($b_org), @acc[0]
+	adc	8*1($b_org), @acc[1]
+	 mov	@acc[0], @acc[4]
+	adc	8*2($b_org), @acc[2]
+	 mov	@acc[1], @acc[5]
+	adc	8*3($b_org), @acc[3]
+	sbb	$b_org, $b_org
+
+	 mov	@acc[2], @acc[6]
+	sub	8*0($n_ptr), @acc[0]
+	sbb	8*1($n_ptr), @acc[1]
+	sbb	8*2($n_ptr), @acc[2]
+	 mov	@acc[3], @acc[7]
+	sbb	8*3($n_ptr), @acc[3]
+	sbb	\$0, $b_org
+
+	cmovc	@acc[4], @acc[0]
+	cmovc	@acc[5], @acc[1]
+	mov	@acc[0], 8*0($r_ptr)
+	cmovc	@acc[6], @acc[2]
+	mov	@acc[1], 8*1($r_ptr)
+	cmovc	@acc[7], @acc[3]
+	mov	@acc[2], 8*2($r_ptr)
+	mov	@acc[3], 8*3($r_ptr)
+
+	or	@acc[1], @acc[0]
+	or	@acc[3], @acc[2]
+	or	@acc[2], @acc[0]
+	mov	\$1, %rax
+	cmovz	@acc[0], %rax
+
+	mov	8(%rsp),%rbx
+.cfi_restore	%rbx
+	mov	16(%rsp),%rbp
+.cfi_restore	%rbp
+	lea	24(%rsp),%rsp
+.cfi_adjust_cfa_offset	-24
+.cfi_epilogue
+	ret
+.cfi_endproc
+.size	add_n_check_mod_256,.-add_n_check_mod_256
 ___
 }
 
