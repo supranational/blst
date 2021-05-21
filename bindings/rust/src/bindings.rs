@@ -213,6 +213,13 @@ extern "C" {
     pub fn blst_sk_check(a: *const blst_scalar) -> bool;
 }
 extern "C" {
+    pub fn blst_sk_add_n_check(
+        ret: *mut blst_scalar,
+        a: *const blst_scalar,
+        b: *const blst_scalar,
+    ) -> bool;
+}
+extern "C" {
     pub fn blst_scalar_from_le_bytes(out: *mut blst_scalar, bytes: *const byte, n: usize) -> bool;
 }
 extern "C" {
