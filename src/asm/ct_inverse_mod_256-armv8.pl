@@ -531,20 +531,18 @@ __inner_loop_62_256:
 .Loop_62_256:
 	sbfx	@t[6], $a_lo, #0, #1	// if |a_| is odd, then we'll be subtracting
 	sub	$cnt, $cnt, #1
-	and	@t[0], $b_lo, @t[6]
-	and	@t[1], $b_hi, @t[6]
 	subs	@t[2], $b_lo, $a_lo	// |b_|-|a_|
-	mov	@t[4], $a_lo
+	and	@t[0], $b_lo, @t[6]
 	sbc	@t[3], $b_hi, $a_hi
-	mov	@t[5], $a_hi
-	subs	$a_lo, $a_lo, @t[0]	// |a_|-|b_| (or |a_|-0 if |a_| was even)
+	and	@t[1], $b_hi, @t[6]
+	subs	@t[4], $a_lo, @t[0]	// |a_|-|b_| (or |a_|-0 if |a_| was even)
 	mov	@t[0], $f0
-	sbcs	$a_hi, $a_hi, @t[1]
+	sbcs	@t[5], $a_hi, @t[1]
 	mov	@t[1], $g0
-	csel	$a_lo, $a_lo, @t[2], hs	// borrow means |a_|<|b_|, replace with |b_|-|a_|
-	csel	$a_hi, $a_hi, @t[3], hs
-	csel	$b_lo, $b_lo, @t[4], hs	// |b_| = |a_|
-	csel	$b_hi, $b_hi, @t[5], hs
+	csel	$b_lo, $b_lo, $a_lo, hs	// |b_| = |a_|
+	csel	$b_hi, $b_hi, $a_hi, hs
+	csel	$a_lo, @t[4], @t[2], hs	// borrow means |a_|<|b_|, replace with |b_|-|a_|
+	csel	$a_hi, @t[5], @t[3], hs
 	csel	$f0, $f0, $f1,       hs	// exchange |f0| and |f1|
 	csel	$f1, $f1, @t[0],     hs
 	csel	$g0, $g0, $g1,       hs	// exchange |g0| and |g1|
