@@ -561,20 +561,18 @@ __inner_loop_62_256:
 .Loop_62_256:
 	sbfx	x25, x4, #0, #1	// if |a_| is odd, then we'll be subtracting
 	sub	x2, x2, #1
-	and	x19, x8, x25
-	and	x20, x11, x25
 	subs	x21, x8, x4	// |b_|-|a_|
-	mov	x23, x4
+	and	x19, x8, x25
 	sbc	x22, x11, x7
-	mov	x24, x7
-	subs	x4, x4, x19	// |a_|-|b_| (or |a_|-0 if |a_| was even)
+	and	x20, x11, x25
+	subs	x23, x4, x19	// |a_|-|b_| (or |a_|-0 if |a_| was even)
 	mov	x19, x12
-	sbcs	x7, x7, x20
+	sbcs	x24, x7, x20
 	mov	x20, x13
-	csel	x4, x4, x21, hs	// borrow means |a_|<|b_|, replace with |b_|-|a_|
-	csel	x7, x7, x22, hs
-	csel	x8, x8, x23, hs	// |b_| = |a_|
-	csel	x11, x11, x24, hs
+	csel	x8, x8, x4, hs	// |b_| = |a_|
+	csel	x11, x11, x7, hs
+	csel	x4, x23, x21, hs	// borrow means |a_|<|b_|, replace with |b_|-|a_|
+	csel	x7, x24, x22, hs
 	csel	x12, x12, x14,       hs	// exchange |f0| and |f1|
 	csel	x14, x14, x19,     hs
 	csel	x13, x13, x15,       hs	// exchange |g0| and |g1|

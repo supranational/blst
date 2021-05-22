@@ -687,20 +687,18 @@
 |$Loop_62|
 	sbfx	x28, x3, #0, #1	// if |a_| is odd, then we'll be subtracting
 	sub	x2, x2, #1
-	and	x22, x9, x28
-	and	x23, x14, x28
 	subs	x24, x9, x3	// |b_|-|a_|
-	mov	x26, x3
+	and	x22, x9, x28
 	sbc	x25, x14, x8
-	mov	x27, x8
-	subs	x3, x3, x22	// |a_|-|b_| (or |a_|-0 if |a_| was even)
+	and	x23, x14, x28
+	subs	x26, x3, x22	// |a_|-|b_| (or |a_|-0 if |a_| was even)
 	mov	x22, x15
-	sbcs	x8, x8, x23
+	sbcs	x27, x8, x23
 	mov	x23, x16
-	cselhs	x3,x3,x24
-	cselhs	x8,x8,x25
-	cselhs	x9,x9,x26
-	cselhs	x14,x14,x27
+	cselhs	x9,x9,x3
+	cselhs	x14,x14,x8
+	cselhs	x3,x26,x24
+	cselhs	x8,x27,x25
 	cselhs	x15,x15,x17
 	cselhs	x17,x17,x22
 	cselhs	x16,x16,x19

@@ -687,20 +687,18 @@ __inner_loop_62:
 Loop_62:
 	sbfx	x28, x3, #0, #1	// if |a_| is odd, then we'll be subtracting
 	sub	x2, x2, #1
-	and	x22, x9, x28
-	and	x23, x14, x28
 	subs	x24, x9, x3	// |b_|-|a_|
-	mov	x26, x3
+	and	x22, x9, x28
 	sbc	x25, x14, x8
-	mov	x27, x8
-	subs	x3, x3, x22	// |a_|-|b_| (or |a_|-0 if |a_| was even)
+	and	x23, x14, x28
+	subs	x26, x3, x22	// |a_|-|b_| (or |a_|-0 if |a_| was even)
 	mov	x22, x15
-	sbcs	x8, x8, x23
+	sbcs	x27, x8, x23
 	mov	x23, x16
-	csel	x3, x3, x24, hs	// borrow means |a_|<|b_|, replace with |b_|-|a_|
-	csel	x8, x8, x25, hs
-	csel	x9, x9, x26, hs	// |b_| = |a_|
-	csel	x14, x14, x27, hs
+	csel	x9, x9, x3, hs	// |b_| = |a_|
+	csel	x14, x14, x8, hs
+	csel	x3, x26, x24, hs	// borrow means |a_|<|b_|, replace with |b_|-|a_|
+	csel	x8, x27, x25, hs
 	csel	x15, x15, x17,       hs	// exchange |f0| and |f1|
 	csel	x17, x17, x22,     hs
 	csel	x16, x16, x19,       hs	// exchange |g0| and |g1|
