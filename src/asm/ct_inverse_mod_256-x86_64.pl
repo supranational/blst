@@ -566,10 +566,13 @@ $code.=<<___;
 .align	32
 __smulq_256_n_shift_by_31:
 	mov	$f0, 8*0($out_ptr)	# offload |f0|
+	mov	$g0, 8*1($out_ptr)	# offload |g0|
+	mov	$f0, %rbp
 ___
 for($j=0; $j<2; $j++) {
 my $k = 8*4*$j;
 my @acc=@acc;	@acc=@acc[4..7] if ($j);
+my $f0="%rbp";	$f0=$g0		if ($j);
 $code.=<<___;
 	mov	$k+8*0($in_ptr), @acc[0] # load |a| (or |b|)
 	mov	$k+8*1($in_ptr), @acc[1]
@@ -596,6 +599,8 @@ $code.=<<___;
 	mulq	%rbx
 	mov	%rax, @acc[0]
 	mov	@acc[1], %rax
+	and	%rbx, $f0
+	neg	$f0
 	mov	%rdx, @acc[1]
 ___
 for($i=1; $i<3; $i++) {
@@ -608,13 +613,9 @@ $code.=<<___;
 ___
 }
 $code.=<<___;
-	imulq	%rbx
+	mulq	%rbx
 	add	%rax, @acc[3]
-	adc	\$0, %rdx
-___
-$code.=<<___	if ($j==0);
-	mov	%rdx, %rbp
-	mov	$g0, $f0
+	adc	%rdx, $f0
 ___
 }
 $code.=<<___;
@@ -622,9 +623,10 @@ $code.=<<___;
 	adc	@acc[5], @acc[1]
 	adc	@acc[6], @acc[2]
 	adc	@acc[7], @acc[3]
-	adc	%rdx, %rbp
+	adc	$g0, %rbp
 
 	mov	8*0($out_ptr), $f0	# restore original |f0|
+	mov	8*1($out_ptr), $g0	# restore original |g0|
 
 	shrd	\$31, @acc[1], @acc[0]
 	shrd	\$31, @acc[2], @acc[1]
