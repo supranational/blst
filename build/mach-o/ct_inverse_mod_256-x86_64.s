@@ -885,23 +885,25 @@ __smulq_256_n_shift_by_31:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 	movq	%rdx,0(%rdi)
+	movq	%rcx,8(%rdi)
+	movq	%rdx,%rbp
 	movq	0+0(%rsi),%r8
 	movq	0+8(%rsi),%r9
 	movq	0+16(%rsi),%r10
 	movq	0+24(%rsi),%r11
 
-	movq	%rdx,%rbx
-	sarq	$63,%rdx
+	movq	%rbp,%rbx
+	sarq	$63,%rbp
 	xorq	%rax,%rax
-	subq	%rdx,%rax
+	subq	%rbp,%rax
 
-	xorq	%rdx,%rbx
+	xorq	%rbp,%rbx
 	addq	%rax,%rbx
 
-	xorq	%rdx,%r8
-	xorq	%rdx,%r9
-	xorq	%rdx,%r10
-	xorq	%rdx,%r11
+	xorq	%rbp,%r8
+	xorq	%rbp,%r9
+	xorq	%rbp,%r10
+	xorq	%rbp,%r11
 	addq	%r8,%rax
 	adcq	$0,%r9
 	adcq	$0,%r10
@@ -910,6 +912,8 @@ __smulq_256_n_shift_by_31:
 	mulq	%rbx
 	movq	%rax,%r8
 	movq	%r9,%rax
+	andq	%rbx,%rbp
+	negq	%rbp
 	movq	%rdx,%r9
 	mulq	%rbx
 	addq	%rax,%r9
@@ -921,28 +925,26 @@ __smulq_256_n_shift_by_31:
 	movq	%r11,%rax
 	adcq	$0,%rdx
 	movq	%rdx,%r11
-	imulq	%rbx
+	mulq	%rbx
 	addq	%rax,%r11
-	adcq	$0,%rdx
-	movq	%rdx,%rbp
-	movq	%rcx,%rdx
+	adcq	%rdx,%rbp
 	movq	32+0(%rsi),%r12
 	movq	32+8(%rsi),%r13
 	movq	32+16(%rsi),%r14
 	movq	32+24(%rsi),%r15
 
-	movq	%rdx,%rbx
-	sarq	$63,%rdx
+	movq	%rcx,%rbx
+	sarq	$63,%rcx
 	xorq	%rax,%rax
-	subq	%rdx,%rax
+	subq	%rcx,%rax
 
-	xorq	%rdx,%rbx
+	xorq	%rcx,%rbx
 	addq	%rax,%rbx
 
-	xorq	%rdx,%r12
-	xorq	%rdx,%r13
-	xorq	%rdx,%r14
-	xorq	%rdx,%r15
+	xorq	%rcx,%r12
+	xorq	%rcx,%r13
+	xorq	%rcx,%r14
+	xorq	%rcx,%r15
 	addq	%r12,%rax
 	adcq	$0,%r13
 	adcq	$0,%r14
@@ -951,6 +953,8 @@ __smulq_256_n_shift_by_31:
 	mulq	%rbx
 	movq	%rax,%r12
 	movq	%r13,%rax
+	andq	%rbx,%rcx
+	negq	%rcx
 	movq	%rdx,%r13
 	mulq	%rbx
 	addq	%rax,%r13
@@ -962,16 +966,17 @@ __smulq_256_n_shift_by_31:
 	movq	%r15,%rax
 	adcq	$0,%rdx
 	movq	%rdx,%r15
-	imulq	%rbx
+	mulq	%rbx
 	addq	%rax,%r15
-	adcq	$0,%rdx
+	adcq	%rdx,%rcx
 	addq	%r12,%r8
 	adcq	%r13,%r9
 	adcq	%r14,%r10
 	adcq	%r15,%r11
-	adcq	%rdx,%rbp
+	adcq	%rcx,%rbp
 
 	movq	0(%rdi),%rdx
+	movq	8(%rdi),%rcx
 
 	shrdq	$31,%r9,%r8
 	shrdq	$31,%r10,%r9

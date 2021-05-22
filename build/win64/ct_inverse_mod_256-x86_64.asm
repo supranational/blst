@@ -885,23 +885,25 @@ ALIGN	32
 __smulq_256_n_shift_by_31	PROC PRIVATE
 	DB	243,15,30,250
 	mov	QWORD PTR[rdi],rdx
+	mov	QWORD PTR[8+rdi],rcx
+	mov	rbp,rdx
 	mov	r8,QWORD PTR[((0+0))+rsi]
 	mov	r9,QWORD PTR[((0+8))+rsi]
 	mov	r10,QWORD PTR[((0+16))+rsi]
 	mov	r11,QWORD PTR[((0+24))+rsi]
 
-	mov	rbx,rdx
-	sar	rdx,63
+	mov	rbx,rbp
+	sar	rbp,63
 	xor	rax,rax
-	sub	rax,rdx
+	sub	rax,rbp
 
-	xor	rbx,rdx
+	xor	rbx,rbp
 	add	rbx,rax
 
-	xor	r8,rdx
-	xor	r9,rdx
-	xor	r10,rdx
-	xor	r11,rdx
+	xor	r8,rbp
+	xor	r9,rbp
+	xor	r10,rbp
+	xor	r11,rbp
 	add	rax,r8
 	adc	r9,0
 	adc	r10,0
@@ -910,6 +912,8 @@ __smulq_256_n_shift_by_31	PROC PRIVATE
 	mul	rbx
 	mov	r8,rax
 	mov	rax,r9
+	and	rbp,rbx
+	neg	rbp
 	mov	r9,rdx
 	mul	rbx
 	add	r9,rax
@@ -921,28 +925,26 @@ __smulq_256_n_shift_by_31	PROC PRIVATE
 	mov	rax,r11
 	adc	rdx,0
 	mov	r11,rdx
-	imul	rbx
+	mul	rbx
 	add	r11,rax
-	adc	rdx,0
-	mov	rbp,rdx
-	mov	rdx,rcx
+	adc	rbp,rdx
 	mov	r12,QWORD PTR[((32+0))+rsi]
 	mov	r13,QWORD PTR[((32+8))+rsi]
 	mov	r14,QWORD PTR[((32+16))+rsi]
 	mov	r15,QWORD PTR[((32+24))+rsi]
 
-	mov	rbx,rdx
-	sar	rdx,63
+	mov	rbx,rcx
+	sar	rcx,63
 	xor	rax,rax
-	sub	rax,rdx
+	sub	rax,rcx
 
-	xor	rbx,rdx
+	xor	rbx,rcx
 	add	rbx,rax
 
-	xor	r12,rdx
-	xor	r13,rdx
-	xor	r14,rdx
-	xor	r15,rdx
+	xor	r12,rcx
+	xor	r13,rcx
+	xor	r14,rcx
+	xor	r15,rcx
 	add	rax,r12
 	adc	r13,0
 	adc	r14,0
@@ -951,6 +953,8 @@ __smulq_256_n_shift_by_31	PROC PRIVATE
 	mul	rbx
 	mov	r12,rax
 	mov	rax,r13
+	and	rcx,rbx
+	neg	rcx
 	mov	r13,rdx
 	mul	rbx
 	add	r13,rax
@@ -962,16 +966,17 @@ __smulq_256_n_shift_by_31	PROC PRIVATE
 	mov	rax,r15
 	adc	rdx,0
 	mov	r15,rdx
-	imul	rbx
+	mul	rbx
 	add	r15,rax
-	adc	rdx,0
+	adc	rcx,rdx
 	add	r8,r12
 	adc	r9,r13
 	adc	r10,r14
 	adc	r11,r15
-	adc	rbp,rdx
+	adc	rbp,rcx
 
 	mov	rdx,QWORD PTR[rdi]
+	mov	rcx,QWORD PTR[8+rdi]
 
 	shrd	r8,r9,31
 	shrd	r9,r10,31
