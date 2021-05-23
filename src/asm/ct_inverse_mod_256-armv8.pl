@@ -15,9 +15,8 @@ def ct_inverse_mod_256(inp, mod):
     a, u = inp, 1
     b, v = mod, 0
 
-    k = 62
-    w = 64
-    mask = (1 << w) - 1
+    k = 31
+    mask = (1 << k) - 1
 
     for i in range(0, 512 // k):
         # __ab_approximation_62
@@ -25,8 +24,8 @@ def ct_inverse_mod_256(inp, mod):
         if n < 128:
             a_, b_ = a, b
         else:
-            a_ = (a & mask) | ((a >> (n-w)) << w)
-            b_ = (b & mask) | ((b >> (n-w)) << w)
+            a_ = (a & mask) | ((a >> (n-k-2)) << k)
+            b_ = (b & mask) | ((b >> (n-k-2)) << k)
 
         # __inner_loop_62
         f0, g0, f1, g1 = 1, 0, 0, 1
@@ -86,7 +85,7 @@ my @acc=map("x$_",(4..11));
 my ($f0, $g0, $f1, $g1, $f_, $g_) = map("x$_",(12..17));
 my $cnt = $n_ptr;
 my @t = map("x$_",(19..26));
-my ($a_lo, $a_hi, $b_lo, $b_hi) = @acc[0,3,4,7];
+my ($a_lo, $b_lo) = @acc[3,7];
 
 $frame = 16+2*512;
 
@@ -122,73 +121,64 @@ ct_inverse_mod_256:
 	stp	@acc[6], @acc[7], [$in_ptr,#8*6]
 
 	////////////////////////////////////////// first iteration
-	mov	$cnt, #62
-	bl	.Lab_approximation_62_256_loaded
+	bl	.Lab_approximation_31_256_loaded
 
 	eor	$out_ptr, $in_ptr, #256		// pointer to dst |a|b|u|v|
-	bl	__smul_256_n_shift_by_62
+	bl	__smul_256_n_shift_by_31
 	str	$f0,[$out_ptr,#8*8]		// initialize |u| with |f0|
 
 	mov	$f0, $f1			// |f1|
 	mov	$g0, $g1			// |g1|
 	add	$out_ptr, $out_ptr, #8*4	// pointer to dst |b|
-	bl	__smul_256_n_shift_by_62
+	bl	__smul_256_n_shift_by_31
 	str	$f0, [$out_ptr,#8*9]		// initialize |v| with |f1|
 
 	////////////////////////////////////////// second iteration
 	eor	$in_ptr, $in_ptr, #256		// flip-flop src |a|b|u|v|
-	mov	$cnt, #62
-	bl	__ab_approximation_62_256
+	bl	__ab_approximation_31_256
 
 	eor	$out_ptr, $in_ptr, #256		// pointer to dst |a|b|u|v|
-	bl	__smul_256_n_shift_by_62
+	bl	__smul_256_n_shift_by_31
 	mov	$f_, $f0			// corrected |f0|
 	mov	$g_, $g0			// corrected |g0|
 
 	mov	$f0, $f1			// |f1|
 	mov	$g0, $g1			// |g1|
 	add	$out_ptr, $out_ptr, #8*4	// pointer to destination |b|
-	bl	__smul_256_n_shift_by_62
+	bl	__smul_256_n_shift_by_31
 
 	ldr	@acc[4], [$in_ptr,#8*8]		// |u|
 	ldr	@acc[5], [$in_ptr,#8*13]	// |v|
 	mul	@acc[0], $f_, @acc[4]		// |u|*|f0|
-	smulh	@acc[1], $f_, @acc[4]
 	mul	@acc[2], $g_, @acc[5]		// |v|*|g0|
-	smulh	@acc[3], $g_, @acc[5]
-	adds	@acc[0], @acc[0], @acc[2]
-	adc	@acc[1], @acc[1], @acc[3]
-	stp	@acc[0], @acc[1], [$out_ptr,#8*4]
-	asr	@acc[2], @acc[1], #63		// sign extenstion
-	stp	@acc[2], @acc[2], [$out_ptr,#8*6]
-	str	@acc[2], [$out_ptr,#8*8]
+	add	@acc[0], @acc[0], @acc[2]
+	str	@acc[0], [$out_ptr,#8*4]
+	asr	@acc[1], @acc[0], #63		// sign extenstion
+	stp	@acc[1], @acc[1], [$out_ptr,#8*5]
+	stp	@acc[1], @acc[1], [$out_ptr,#8*7]
 
 	mul	@acc[0], $f0, @acc[4]		// |u|*|f1|
-	smulh	@acc[1], $f0, @acc[4]
 	mul	@acc[2], $g0, @acc[5]		// |v|*|g1|
-	smulh	@acc[3], $g0, @acc[5]
-	adds	@acc[0], @acc[0], @acc[2]
-	adc	@acc[1], @acc[1], @acc[3]
-	stp	@acc[0], @acc[1], [$out_ptr,#8*9]
-	asr	@acc[2], @acc[1], #63		// sign extenstion
-	stp	@acc[2], @acc[2], [$out_ptr,#8*11]
-	str	@acc[2], [$out_ptr,#8*13]
+	add	@acc[0], @acc[0], @acc[2]
+	str	@acc[0], [$out_ptr,#8*9]
+	asr	@acc[1], @acc[0], #63		// sign extenstion
+	stp	@acc[1], @acc[1], [$out_ptr,#8*10]
+	stp	@acc[1], @acc[1], [$out_ptr,#8*12]
 ___
-for($i=2; $i<7; $i++) {
+for($i=2; $i<15; $i++) {
 $code.=<<___;
 	eor	$in_ptr, $in_ptr, #256		// flip-flop src |a|b|u|v|
-	mov	$cnt, #62
-	bl	__ab_approximation_62_256
+	bl	__ab_approximation_31_256
 
 	eor	$out_ptr, $in_ptr, #256		// pointer to dst |a|b|u|v|
-	bl	__smul_256_n_shift_by_62
+	bl	__smul_256_n_shift_by_31
 	mov	$f_, $f0			// corrected |f0|
 	mov	$g_, $g0			// corrected |g0|
 
 	mov	$f0, $f1			// |f1|
 	mov	$g0, $g1			// |g1|
 	add	$out_ptr, $out_ptr, #8*4	// pointer to destination |b|
-	bl	__smul_256_n_shift_by_62
+	bl	__smul_256_n_shift_by_31
 
 	add	$out_ptr, $out_ptr, #8*4	// pointer to destination |u|
 	bl	__smul_256x63
@@ -200,51 +190,22 @@ $code.=<<___;
 	add	$out_ptr, $out_ptr, #8*5	// pointer to destination |v|
 	bl	__smul_256x63
 ___
-$code.=<<___	if ($i>3);
+$code.=<<___	if ($i>7);
 	bl	__smul_512x63_tail
 ___
-$code.=<<___	if ($i<=3);
+$code.=<<___	if ($i<=7);
 	adc	@t[3], @t[3], @t[4]
 	stp	@t[3], @t[3], [$out_ptr,#8*4]
 	stp	@t[3], @t[3], [$out_ptr,#8*6]
 ___
 }
 $code.=<<___;
-	////////////////////////////////////////// iteration before last
+	////////////////////////////////////////// two[!] last iterations
 	eor	$in_ptr, $in_ptr, #256		// flip-flop src |a|b|u|v|
-	mov	$cnt, #62
-	//bl	__ab_approximation_62_256	// |a| and |b| are exact,
-	ldp	$a_lo, $a_hi, [$in_ptr,#8*0]	// just load
-	ldp	$b_lo, $b_hi, [$in_ptr,#8*4]
-	bl	__inner_loop_62_256
-
-	eor	$out_ptr, $in_ptr, #256		// pointer to dst |a|b|u|v|
-	str	$a_lo, [$out_ptr,#8*0]
-	str	$b_lo, [$out_ptr,#8*4]
-
-	mov	$f_, $f0			// exact |f0|
-	mov	$g_, $g0			// exact |g0|
-	mov	$f0, $f1
-	mov	$g0, $g1
-	add	$out_ptr, $out_ptr, #8*8	// pointer to dst |u|
-	bl	__smul_256x63
-	adc	@t[3], @t[3], @t[4]
-	str	@t[3], [$out_ptr,#8*4]
-
-	mov	$f_, $f0			// exact |f1|
-	mov	$g_, $g0			// exact |g1|
-	add	$out_ptr, $out_ptr, #8*5	// pointer to dst |v|
-	bl	__smul_256x63
-	bl	__smul_512x63_tail
-
-	////////////////////////////////////////// last iteration
-	eor	$in_ptr, $in_ptr, #256		// flip-flop src |a|b|u|v|
-	mov	$cnt, #16			// 512 % 62
+	mov	$cnt, #47			// 31 + 512 % 31
 	//bl	__ab_approximation_62_256	// |a| and |b| are exact,
 	ldr	$a_lo, [$in_ptr,#8*0]		// just load
-	eor	$a_hi, $a_hi, $a_hi
 	ldr	$b_lo, [$in_ptr,#8*4]
-	eor	$b_hi, $b_hi, $b_hi
 	bl	__inner_loop_62_256
 
 	mov	$f_, $f1
@@ -281,9 +242,8 @@ $code.=<<___;
 	sbcs	@acc[1], @acc[1], @acc[5]
 	and	@acc[7], @acc[7], @t[0]
 	sbcs	@acc[2], @acc[2], @acc[6]
-	sbcs	@acc[3], @acc[3], @acc[7]
-
 	stp	@acc[0], @acc[1], [$out_ptr,#8*4]
+	sbcs	@acc[3], @acc[3], @acc[7]
 	stp	@acc[2], @acc[3], [$out_ptr,#8*6]
 
 	add	sp, sp, #$frame
@@ -403,9 +363,9 @@ __smul_512x63_tail:
 	ret
 .size	__smul_512x63_tail,.-__smul_512x63_tail
 
-.type	__smul_256_n_shift_by_62, %function
+.type	__smul_256_n_shift_by_31, %function
 .align	5
-__smul_256_n_shift_by_62:
+__smul_256_n_shift_by_31:
 ___
 for($j=0; $j<2; $j++) {
 my $f0 = $f0;   $f0 = $g0           if ($j);
@@ -450,11 +410,11 @@ $code.=<<___;
 	adcs	@acc[3], @acc[3], @acc[7]
 	adc	@acc[4], @t[3],   @t[4]
 
-	extr	@acc[0], @acc[1], @acc[0], #62
-	extr	@acc[1], @acc[2], @acc[1], #62
-	extr	@acc[2], @acc[3], @acc[2], #62
+	extr	@acc[0], @acc[1], @acc[0], #31
+	extr	@acc[1], @acc[2], @acc[1], #31
+	extr	@acc[2], @acc[3], @acc[2], #31
 	asr	@t[4], @acc[4], #63
-	extr	@acc[3], @acc[4], @acc[3], #62
+	extr	@acc[3], @acc[4], @acc[3], #31
 
 	eor	@acc[0], @acc[0], @t[4]
 	eor	@acc[1], @acc[1], @t[4]
@@ -463,8 +423,8 @@ $code.=<<___;
 	adcs	@acc[1], @acc[1], xzr
 	eor	@acc[3], @acc[3], @t[4]
 	adcs	@acc[2], @acc[2], xzr
-	adc	@acc[3], @acc[3], xzr
 	stp	@acc[0], @acc[1], [$out_ptr,#8*0]
+	adc	@acc[3], @acc[3], xzr
 	stp	@acc[2], @acc[3], [$out_ptr,#8*2]
 
 	eor	$f0, $f0, @t[4]
@@ -473,23 +433,24 @@ $code.=<<___;
 	sub	$g0, $g0, @t[4]
 
 	ret
-.size	__smul_256_n_shift_by_62,.-__smul_256_n_shift_by_62
+.size	__smul_256_n_shift_by_31,.-__smul_256_n_shift_by_31
 ___
 
 {
 my @a = @acc[0..3];
 my @b = @acc[4..7];
+my ($fg0, $fg1, $bias) = ($g0, $g1, @t[4]);
 
 $code.=<<___;
-.type	__ab_approximation_62_256, %function
+.type	__ab_approximation_31_256, %function
 .align	4
-__ab_approximation_62_256:
+__ab_approximation_31_256:
 	ldp	@a[2], @a[3], [$in_ptr,#8*2]
 	ldp	@b[2], @b[3], [$in_ptr,#8*6]
 	ldp	@a[0], @a[1], [$in_ptr,#8*0]
 	ldp	@b[0], @b[1], [$in_ptr,#8*4]
 
-.Lab_approximation_62_256_loaded:
+.Lab_approximation_31_256_loaded:
 	orr	@t[0], @a[3], @b[3]	// check top-most limbs, ...
 	cmp	@t[0], #0
 	csel	@a[3], @a[3], @a[2], ne
@@ -497,6 +458,13 @@ __ab_approximation_62_256:
 	csel	@a[2], @a[2], @a[1], ne
 	orr	@t[0], @a[3], @b[3]	// and ones before top-most, ...
 	csel	@b[2], @b[2], @b[1], ne
+
+	cmp	@t[0], #0
+	csel	@a[3], @a[3], @a[2], ne
+	csel	@b[3], @b[3], @b[2], ne
+	csel	@a[2], @a[2], @a[0], ne
+	orr	@t[0], @a[3], @b[3]	// and one more, ...
+	csel	@b[2], @b[2], @b[0], ne
 
 	clz	@t[0], @t[0]
 	cmp	@t[0], #64
@@ -514,12 +482,54 @@ __ab_approximation_62_256:
 	orr	@a[3], @a[3], @a[2]
 	orr	@b[3], @b[3], @b[2]
 
-	b	__inner_loop_62_256
+	bfxil	$a_lo, @a[0], #0, #31
+	bfxil	$b_lo, @b[0], #0, #31
+
+	b	__inner_loop_31_256
 	ret
-.size	__ab_approximation_62_256,.-__ab_approximation_62_256
-___
-}
-$code.=<<___;
+.size	__ab_approximation_31_256,.-__ab_approximation_31_256
+
+.type	__inner_loop_31_256, %function
+.align	4
+__inner_loop_31_256:
+	mov	$cnt, #31
+	mov	$fg0, #0x7FFFFFFF80000000	// |f0|=1, |g0|=0
+	mov	$fg1, #0x800000007FFFFFFF	// |f1|=0, |g1|=1
+	mov	$bias,#0x7FFFFFFF7FFFFFFF
+
+.Loop_31_256:
+	sbfx	@t[3], $a_lo, #0, #1	// if |a_| is odd, then we'll be subtracting
+	sub	$cnt, $cnt, #1
+	and	@t[0], $b_lo, @t[3]
+	sub	@t[1], $b_lo, $a_lo	// |b_|-|a_|
+	subs	@t[2], $a_lo, @t[0]	// |a_|-|b_| (or |a_|-0 if |a_| was even)
+	mov	@t[0], $fg1
+	csel	$b_lo, $b_lo, $a_lo, hs	// |b_| = |a_|
+	csel	$a_lo, @t[2], @t[1], hs	// borrow means |a_|<|b_|, replace with |b_|-|a_|
+	csel	$fg1, $fg1, $fg0,    hs	// exchange |fg0| and |fg1|
+	csel	$fg0, $fg0, @t[0],   hs
+	lsr	$a_lo, $a_lo, #1
+	and	@t[0], $fg1, @t[3]
+	and	@t[1], $bias, @t[3]
+	sub	$fg0, $fg0, @t[0]	// |f0|-=|f1| (or |f0-=0| if |a_| was even)
+	add	$fg1, $fg1, $fg1	// |f1|<<=1
+	add	$fg0, $fg0, @t[1]
+	sub	$fg1, $fg1, $bias
+	cbnz	$cnt, .Loop_31_256
+
+	ubfx	$bias, $bias, #0, #32
+	ubfx	$f0, $fg0, #0, #32
+	ubfx	$g0, $fg0, #32, #32
+	ubfx	$f1, $fg1, #0, #32
+	ubfx	$g1, $fg1, #32, #32
+	sub	$f0, $f0, $bias		// remove bias
+	sub	$g0, $g0, $bias
+	sub	$f1, $f1, $bias
+	sub	$g1, $g1, $bias
+
+	ret
+.size	__inner_loop_31_256,.-__inner_loop_31_256
+
 .type	__inner_loop_62_256, %function
 .align	4
 __inner_loop_62_256:
@@ -529,28 +539,22 @@ __inner_loop_62_256:
 	mov	$g1, #1		// |g1|=1
 
 .Loop_62_256:
-	sbfx	@t[6], $a_lo, #0, #1	// if |a_| is odd, then we'll be subtracting
+	sbfx	@t[3], $a_lo, #0, #1	// if |a_| is odd, then we'll be subtracting
 	sub	$cnt, $cnt, #1
-	subs	@t[2], $b_lo, $a_lo	// |b_|-|a_|
-	and	@t[0], $b_lo, @t[6]
-	sbc	@t[3], $b_hi, $a_hi
-	and	@t[1], $b_hi, @t[6]
-	subs	@t[4], $a_lo, @t[0]	// |a_|-|b_| (or |a_|-0 if |a_| was even)
+	and	@t[0], $b_lo, @t[3]
+	sub	@t[1], $b_lo, $a_lo	// |b_|-|a_|
+	subs	@t[2], $a_lo, @t[0]	// |a_|-|b_| (or |a_|-0 if |a_| was even)
 	mov	@t[0], $f0
-	sbcs	@t[5], $a_hi, @t[1]
-	mov	@t[1], $g0
 	csel	$b_lo, $b_lo, $a_lo, hs	// |b_| = |a_|
-	csel	$b_hi, $b_hi, $a_hi, hs
-	csel	$a_lo, @t[4], @t[2], hs	// borrow means |a_|<|b_|, replace with |b_|-|a_|
-	csel	$a_hi, @t[5], @t[3], hs
+	csel	$a_lo, @t[2], @t[1], hs	// borrow means |a_|<|b_|, replace with |b_|-|a_|
+	mov	@t[1], $g0
 	csel	$f0, $f0, $f1,       hs	// exchange |f0| and |f1|
 	csel	$f1, $f1, @t[0],     hs
 	csel	$g0, $g0, $g1,       hs	// exchange |g0| and |g1|
 	csel	$g1, $g1, @t[1],     hs
-	extr	$a_lo, $a_hi, $a_lo, #1
-	lsr	$a_hi, $a_hi, #1
-	and	@t[0], $f1, @t[6]
-	and	@t[1], $g1, @t[6]
+	lsr	$a_lo, $a_lo, #1
+	and	@t[0], $f1, @t[3]
+	and	@t[1], $g1, @t[3]
 	add	$f1, $f1, $f1		// |f1|<<=1
 	add	$g1, $g1, $g1		// |g1|<<=1
 	sub	$f0, $f0, @t[0]		// |f0|-=|f1| (or |f0-=0| if |a_| was even)
@@ -560,6 +564,7 @@ __inner_loop_62_256:
 	ret
 .size	__inner_loop_62_256,.-__inner_loop_62_256
 ___
+}
 
 print $code;
 close STDOUT;
