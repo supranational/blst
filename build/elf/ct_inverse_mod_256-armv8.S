@@ -403,7 +403,7 @@ ct_inverse_mod_256:
 	adc	x23, x23, x25
 	ldp	x10, x11, [x3,#8*2]
 
-	add	x20, x20, x23
+	add	x20, x20, x23		// x20 is 1, 0 or -1
 	asr	x19, x20, #63		// sign as mask
 
 	and	x23,   x8, x19		// add mod<<256 conditionally
@@ -414,7 +414,7 @@ ct_inverse_mod_256:
 	and	x26,   x11, x19
 	adcs	x6, x6, x25
 	adcs	x7, x22,   x26
-	adc	x20, x20, xzr
+	adc	x20, x20, xzr		// x20 is 1 or 0
 
 	neg	x19, x20
 
@@ -524,9 +524,9 @@ __smul_512x63_tail:
 	ldr	x7, [x1,#8*20]
 	and	x22, x22, x16
 
-	umulh	x11, x11, x17
+	umulh	x11, x11, x17	// resume |v|*|g1| chain
 
-	sub	x24, x24, x22
+	sub	x24, x24, x22	// tie up |u|*|f1| chain
 	asr	x25, x24, #63
 
 	eor	x5, x5, x14	// conditionally negate rest of |v|
@@ -548,13 +548,13 @@ __smul_512x63_tail:
 	mul	x22,   x7, x17
 	adcs	x6, x6, x20
 	adcs	x22,   x22,   x21
-	adc	x23, xzr, xzr
+	adc	x23, xzr, xzr		// used in the final step
 
 	adds	x4, x4, x24
 	adcs	x5, x5, x25
 	adcs	x6, x6, x25
 	stp	x4, x5, [x0,#8*4]
-	adcs	x22,   x22,   x25
+	adcs	x22,   x22,   x25	// carry is used in the final step
 	stp	x6, x22,   [x0,#8*6]
 
 	ret
@@ -580,18 +580,18 @@ __smul_256_n_shift_by_31:
 	umulh	x20, x5, x25
 	adc	x7, x7, xzr
 	umulh	x21, x6, x25
+	and	x24, x24, x25
 	umulh	x22, x7, x25
+	neg	x24, x24
 
 	mul	x4, x4, x25
 	mul	x5, x5, x25
-	and	x24, x24, x25
 	mul	x6, x6, x25
 	adds	x5, x5, x19
 	mul	x7, x7, x25
 	adcs	x6, x6, x20
-	sub	x22, x22, x24
 	adcs	x7, x7, x21
-	adc	x22, x22, xzr
+	adc	x22, x22, x24
 	ldp	x8, x9, [x1,#8*0+32]	// load |a| (or |b|)
 	asr	x24, x13, #63		// |f0|'s sign as mask (or |g0|'s)
 	ldp	x10, x11, [x1,#8*2+32]
@@ -609,18 +609,18 @@ __smul_256_n_shift_by_31:
 	umulh	x20, x9, x25
 	adc	x11, x11, xzr
 	umulh	x21, x10, x25
+	and	x24, x24, x25
 	umulh	x23, x11, x25
+	neg	x24, x24
 
 	mul	x8, x8, x25
 	mul	x9, x9, x25
-	and	x24, x24, x25
 	mul	x10, x10, x25
 	adds	x9, x9, x19
 	mul	x11, x11, x25
 	adcs	x10, x10, x20
-	sub	x23, x23, x24
 	adcs	x11, x11, x21
-	adc	x23, x23, xzr
+	adc	x23, x23, x24
 	adds	x4, x4, x8
 	adcs	x5, x5, x9
 	adcs	x6, x6, x10
@@ -630,10 +630,10 @@ __smul_256_n_shift_by_31:
 	extr	x4, x5, x4, #31
 	extr	x5, x6, x5, #31
 	extr	x6, x7, x6, #31
-	asr	x23, x8, #63
+	asr	x23, x8, #63	// result's sign as mask
 	extr	x7, x8, x7, #31
 
-	eor	x4, x4, x23
+	eor	x4, x4, x23	// ensure the result is positive
 	eor	x5, x5, x23
 	adds	x4, x4, x23, lsr#63
 	eor	x6, x6, x23
@@ -644,7 +644,7 @@ __smul_256_n_shift_by_31:
 	adc	x7, x7, xzr
 	stp	x6, x7, [x0,#8*2]
 
-	eor	x12, x12, x23
+	eor	x12, x12, x23		// adjust |f/g| accordingly
 	eor	x13, x13, x23
 	sub	x12, x12, x23
 	sub	x13, x13, x23
@@ -726,7 +726,7 @@ __inner_loop_31_256:
 	sub	x15, x15, x23
 	cbnz	x2, .Loop_31_256
 
-	ubfx	x23, x23, #0, #32
+	mov	x23, #0x7FFFFFFF
 	ubfx	x12, x13, #0, #32
 	ubfx	x13, x13, #32, #32
 	ubfx	x14, x15, #0, #32
