@@ -34,8 +34,14 @@ fi
 
 if [ ! -f blst.node -o blst_wrap.cpp -nt blst.node \
                     -o ../libblst.a  -nt blst.node ]; then
+    # figure out minimally required C++ standard and enforce it...
+    if [ `$NODE -e 'console.log(parseInt(process.versions["node"]))'` -gt 14 ]; then
+        min=14
+    else
+        min=11
+    fi
     STD=`c++ -dM -E -x c++ /dev/null | \
-         awk '{ if($2=="__cplusplus" && $3<"201103L") print "-std=c++11"; }'`
+         awk '{ if($2=="__cplusplus" && $3<"20'$min'") print "-std=c++'$min'"; }'`
     case `uname -s` in
     Darwin) (set -x; c++ -bundle -o blst.node -fPIC ${STD} \
                          ${INCS} -I.. -DBUILDING_NODE_EXTENSION \
