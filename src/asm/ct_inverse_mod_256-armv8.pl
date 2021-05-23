@@ -220,7 +220,7 @@ $code.=<<___;
 	adc	@t[4], @t[4], @t[6]
 	ldp	@acc[6], @acc[7], [$nx_ptr,#8*2]
 
-	add	@t[1], @t[1], @t[4]
+	add	@t[1], @t[1], @t[4]		// @t[1] is 1, 0 or -1
 	asr	@t[0], @t[1], #63		// sign as mask
 
 	and	@t[4],   @acc[4], @t[0]		// add mod<<256 conditionally
@@ -231,7 +231,7 @@ $code.=<<___;
 	and	@t[7],   @acc[7], @t[0]
 	adcs	@acc[2], @acc[2], @t[6]
 	adcs	@acc[3], @t[3],   @t[7]
-	adc	@t[1], @t[1], xzr
+	adc	@t[1], @t[1], xzr		// @t[1] is 1 or 0
 
 	neg	@t[0], @t[1]
 
@@ -327,9 +327,9 @@ __smul_512x63_tail:
 	ldr	@acc[3], [$in_ptr,#8*20]
 	and	@t[3], @t[3], $f_
 
-	umulh	@acc[7], @acc[7], $g_
+	umulh	@acc[7], @acc[7], $g_	// resume |v|*|g1| chain
 
-	sub	@t[5], @t[5], @t[3]
+	sub	@t[5], @t[5], @t[3]	// tie up |u|*|f1| chain
 	asr	@t[6], @t[5], #63
 
 	eor	@acc[1], @acc[1], $f1	// conditionally negate rest of |v|
@@ -351,13 +351,13 @@ __smul_512x63_tail:
 	mul	@t[3],   @acc[3], $g_
 	adcs	@acc[2], @acc[2], @t[1]
 	adcs	@t[3],   @t[3],   @t[2]
-	adc	@t[4], xzr, xzr
+	adc	@t[4], xzr, xzr		// used in the final step
 
 	adds	@acc[0], @acc[0], @t[5]
 	adcs	@acc[1], @acc[1], @t[6]
 	adcs	@acc[2], @acc[2], @t[6]
 	stp	@acc[0], @acc[1], [$out_ptr,#8*4]
-	adcs	@t[3],   @t[3],   @t[6]
+	adcs	@t[3],   @t[3],   @t[6]	// carry is used in the final step
 	stp	@acc[2], @t[3],   [$out_ptr,#8*6]
 
 	ret
@@ -389,18 +389,18 @@ $code.=<<___;
 	 umulh	@t[1], @acc[1], @t[6]
 	adc	@acc[3], @acc[3], xzr
 	 umulh	@t[2], @acc[2], @t[6]
+	and	@t[5], @t[5], @t[6]
 	 umulh	@t[3+$j], @acc[3], @t[6]
+	neg	@t[5], @t[5]
 
 	mul	@acc[0], @acc[0], @t[6]
 	mul	@acc[1], @acc[1], @t[6]
-	and	@t[5], @t[5], @t[6]
 	mul	@acc[2], @acc[2], @t[6]
 	adds	@acc[1], @acc[1], @t[0]
 	mul	@acc[3], @acc[3], @t[6]
 	adcs	@acc[2], @acc[2], @t[1]
-	sub	@t[3+$j], @t[3+$j], @t[5]
 	adcs	@acc[3], @acc[3], @t[2]
-	adc	@t[3+$j], @t[3+$j], xzr
+	adc	@t[3+$j], @t[3+$j], @t[5]
 ___
 }
 $code.=<<___;
@@ -413,10 +413,10 @@ $code.=<<___;
 	extr	@acc[0], @acc[1], @acc[0], #31
 	extr	@acc[1], @acc[2], @acc[1], #31
 	extr	@acc[2], @acc[3], @acc[2], #31
-	asr	@t[4], @acc[4], #63
+	asr	@t[4], @acc[4], #63	// result's sign as mask
 	extr	@acc[3], @acc[4], @acc[3], #31
 
-	eor	@acc[0], @acc[0], @t[4]
+	eor	@acc[0], @acc[0], @t[4]	// ensure the result is positive
 	eor	@acc[1], @acc[1], @t[4]
 	adds	@acc[0], @acc[0], @t[4], lsr#63
 	eor	@acc[2], @acc[2], @t[4]
@@ -427,7 +427,7 @@ $code.=<<___;
 	adc	@acc[3], @acc[3], xzr
 	stp	@acc[2], @acc[3], [$out_ptr,#8*2]
 
-	eor	$f0, $f0, @t[4]
+	eor	$f0, $f0, @t[4]		// adjust |f/g| accordingly
 	eor	$g0, $g0, @t[4]
 	sub	$f0, $f0, @t[4]
 	sub	$g0, $g0, @t[4]
@@ -479,8 +479,8 @@ __ab_approximation_31_256:
 	lsrv	@b[2], @b[2], @t[1]
 	and	@a[2], @a[2], @t[1], asr#6
 	and	@b[2], @b[2], @t[1], asr#6
-	orr	@a[3], @a[3], @a[2]
-	orr	@b[3], @b[3], @b[2]
+	orr	$a_lo, @a[3], @a[2]
+	orr	$b_lo, @b[3], @b[2]
 
 	bfxil	$a_lo, @a[0], #0, #31
 	bfxil	$b_lo, @b[0], #0, #31
@@ -517,7 +517,7 @@ __inner_loop_31_256:
 	sub	$fg1, $fg1, $bias
 	cbnz	$cnt, .Loop_31_256
 
-	ubfx	$bias, $bias, #0, #32
+	mov	$bias, #0x7FFFFFFF
 	ubfx	$f0, $fg0, #0, #32
 	ubfx	$g0, $fg0, #32, #32
 	ubfx	$f1, $fg1, #0, #32
