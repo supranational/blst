@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Both constant-time and fast Euclidean inversion as suggested in
-# https://eprint.iacr.org/2020/972.
+# https://eprint.iacr.org/2020/972. ~5.300 cycles on Coffee Lake.
 #
 # void ct_inverse_mod_256(vec512 ret, const vec256 inp, const vec256 mod,
 #                                                       const vec256 modx);
@@ -18,7 +18,7 @@ def ct_inverse_mod_256(inp, mod):
     k = 31
     mask = (1 << k) - 1
 
-    for i in range(0, 512 // k):
+    for i in range(0, 512 // k - 1):
         # __ab_approximation_31
         n = max(a.bit_length(), b.bit_length())
         if n < 64:
@@ -46,9 +46,9 @@ def ct_inverse_mod_256(inp, mod):
         # __smulq_512x63
         u, v = u*f0 + v*g0, u*f1 + v*g1
 
-    if 512 % k:
+    if 512 % k + k:
         f0, g0, f1, g1 = 1, 0, 0, 1
-        for j in range(0, 512 % k):
+        for j in range(0, 512 % k + k):
             if a & 1:
                 if a < b:
                     a, b, f0, g0, f1, g1 = b, a, f1, g1, f0, g0
@@ -727,7 +727,7 @@ ___
 }
 $code.=<<___;
 .type	__inner_loop_31_256,\@abi-omnipotent
-.align	32
+.align	32			# comment and punish Coffee Lake by up to 40%
 __inner_loop_31_256:		################# by Thomas Pornin
 	mov	\$0x7FFFFFFF80000000, $fg0	# |f0|=1, |g0|=0
 	mov	\$0x800000007FFFFFFF, $fg1	# |f1|=0, |g1|=1

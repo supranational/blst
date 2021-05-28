@@ -5,7 +5,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Both constant-time and fast Euclidean inversion as suggested in
-# https://eprint.iacr.org/2020/972.
+# https://eprint.iacr.org/2020/972. ~4.600 cycles on Apple M1, ~8.900 -
+# on Cortex-A57.
 #
 # void ct_inverse_mod_256(vec512 ret, const vec256 inp, const vec256 mod,
 #                                                       const vec256 modx);
@@ -18,8 +19,8 @@ def ct_inverse_mod_256(inp, mod):
     k = 31
     mask = (1 << k) - 1
 
-    for i in range(0, 512 // k):
-        # __ab_approximation_62
+    for i in range(0, 512 // k - 1):
+        # __ab_approximation_31
         n = max(a.bit_length(), b.bit_length())
         if n < 128:
             a_, b_ = a, b
@@ -27,7 +28,7 @@ def ct_inverse_mod_256(inp, mod):
             a_ = (a & mask) | ((a >> (n-k-2)) << k)
             b_ = (b & mask) | ((b >> (n-k-2)) << k)
 
-        # __inner_loop_62
+        # __inner_loop_31
         f0, g0, f1, g1 = 1, 0, 0, 1
         for j in range(0, k):
             if a_ & 1:
@@ -36,7 +37,7 @@ def ct_inverse_mod_256(inp, mod):
                 a_, f0, g0 = a_-b_, f0-f1, g0-g1
             a_, f1, g1 = a_ >> 1, f1 << 1, g1 << 1
 
-        # __smul_256_n_shift_by_62
+        # __smul_256_n_shift_by_31
         a, b = (a*f0 + b*g0) >> k, (a*f1 + b*g1) >> k
         if a < 0:
             a, f0, g0 = -a, -f0, -g0
@@ -46,9 +47,9 @@ def ct_inverse_mod_256(inp, mod):
         # __smul_512x63
         u, v = u*f0 + v*g0, u*f1 + v*g1
 
-    if 512 % k:
+    if 512 % k + k:
         f0, g0, f1, g1 = 1, 0, 0, 1
-        for j in range(0, 512 % k):
+        for j in range(0, 512 % k + k):
             if a & 1:
                 if a < b:
                     a, b, f0, g0, f1, g1 = b, a, f1, g1, f0, g0
@@ -149,17 +150,15 @@ ct_inverse_mod_256:
 
 	ldr	@acc[4], [$in_ptr,#8*8]		// |u|
 	ldr	@acc[5], [$in_ptr,#8*13]	// |v|
-	mul	@acc[0], $f_, @acc[4]		// |u|*|f0|
-	mul	@acc[2], $g_, @acc[5]		// |v|*|g0|
-	add	@acc[0], @acc[0], @acc[2]
+	smaddl	@acc[0], $f_, @acc[4], xzr	// |u|*|f0|
+	smaddl	@acc[0], $g_, @acc[5], @acc[0]	// |v|*|g0|
 	str	@acc[0], [$out_ptr,#8*4]
 	asr	@acc[1], @acc[0], #63		// sign extenstion
 	stp	@acc[1], @acc[1], [$out_ptr,#8*5]
 	stp	@acc[1], @acc[1], [$out_ptr,#8*7]
 
-	mul	@acc[0], $f0, @acc[4]		// |u|*|f1|
-	mul	@acc[2], $g0, @acc[5]		// |v|*|g1|
-	add	@acc[0], @acc[0], @acc[2]
+	smaddl	@acc[0], $f0, @acc[4], xzr	// |u|*|f1|
+	smaddl	@acc[0], $g0, @acc[5], @acc[0]	// |v|*|g1|
 	str	@acc[0], [$out_ptr,#8*9]
 	asr	@acc[1], @acc[0], #63		// sign extenstion
 	stp	@acc[1], @acc[1], [$out_ptr,#8*10]
@@ -566,5 +565,8 @@ __inner_loop_62_256:
 ___
 }
 
-print $code;
+foreach(split("\n",$code)) {
+    s/\b(smaddl\s+x[0-9]+,\s)x([0-9]+,\s+)x([0-9]+)/$1w$2w$3/;
+    print $_,"\n";
+}
 close STDOUT;
