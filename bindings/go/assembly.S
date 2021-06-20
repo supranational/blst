@@ -23,7 +23,6 @@
 #   include "elf/mulq_mont_256-x86_64.s"
 #  endif
 #  include "elf/add_mod_256-x86_64.s"
-#  include "elf/inverse_mod_256-x86_64.s"
 #  include "elf/ct_inverse_mod_256-x86_64.s"
 #  include "elf/div3w-x86_64.s"
 # elif defined(_WIN64) || defined(__CYGWIN__)
@@ -50,7 +49,6 @@
 #   include "coff/mulq_mont_256-x86_64.s"
 #  endif
 #  include "coff/add_mod_256-x86_64.s"
-#  include "coff/inverse_mod_256-x86_64.s"
 #  include "coff/ct_inverse_mod_256-x86_64.s"
 #  include "coff/div3w-x86_64.s"
 # elif defined(__APPLE__)
@@ -73,7 +71,6 @@
 #   include "mach-o/mulq_mont_256-x86_64.s"
 #  endif
 #  include "mach-o/add_mod_256-x86_64.s"
-#  include "mach-o/inverse_mod_256-x86_64.s"
 #  include "mach-o/ct_inverse_mod_256-x86_64.s"
 #  include "mach-o/div3w-x86_64.s"
 # endif
@@ -87,7 +84,6 @@
 #  include "elf/mul_mont_384-armv8.S"
 #  include "elf/mul_mont_256-armv8.S"
 #  include "elf/add_mod_256-armv8.S"
-#  include "elf/inverse_mod_256-armv8.S"
 #  include "elf/ct_inverse_mod_256-armv8.S"
 #  include "elf/div3w-armv8.S"
 # elif defined(_WIN64)
@@ -99,7 +95,6 @@
 #  include "coff/mul_mont_384-armv8.S"
 #  include "coff/mul_mont_256-armv8.S"
 #  include "coff/add_mod_256-armv8.S"
-#  include "coff/inverse_mod_256-armv8.S"
 #  include "coff/ct_inverse_mod_256-armv8.S"
 #  include "coff/div3w-armv8.S"
 # elif defined(__APPLE__)
@@ -111,7 +106,6 @@
 #  include "mach-o/mul_mont_384-armv8.S"
 #  include "mach-o/mul_mont_256-armv8.S"
 #  include "mach-o/add_mod_256-armv8.S"
-#  include "mach-o/inverse_mod_256-armv8.S"
 #  include "mach-o/ct_inverse_mod_256-armv8.S"
 #  include "mach-o/div3w-armv8.S"
 # endif
