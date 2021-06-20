@@ -100,16 +100,18 @@ static void ptype##s_mult_w##SZ(ptype *ret, \
     limb_t wmask, wval; \
     size_t i, j, window, nbytes; \
     const byte *scalar, **scalar_s = scalars; \
-    const ptype *point = NULL; \
     ptype temp[1]; \
 \
     if (table == NULL) \
         table = (ptype (*)[1<<(SZ-1)])alloca((1<<(SZ-1)) * sizeof(ptype) * \
                                              npoints); \
 \
-    for (i = 0; i < npoints; i++) \
-        point = *points ? *points++ : point+1, \
-        ptype##_precompute_w##SZ(table[i], point); \
+    if (points != NULL) { \
+        const ptype *point = NULL; \
+        for (i = 0; i < npoints; i++) \
+            point = *points ? *points++ : point+1, \
+            ptype##_precompute_w##SZ(table[i], point); \
+    } \
 \
     nbytes = (bits + 7)/8; /* convert |bits| to bytes */ \
     scalar = *scalar_s++; \
