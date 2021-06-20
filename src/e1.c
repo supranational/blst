@@ -404,7 +404,7 @@ static void sigma(POINTonE1 *out, const POINTonE1 *in)
     mul_fp(out->Z, in->Z, beta);
 }
 
-/* Gallant-Lambert-Vanstone, ~24-30% faster than POINTonE1_mult_w5 */
+/* Gallant-Lambert-Vanstone, ~45% faster than POINTonE1_mult_w5 */
 static void POINTonE1_mult_glv(POINTonE1 *out, const POINTonE1 *in,
                                const pow256 SK)
 {
@@ -417,15 +417,18 @@ static void POINTonE1_mult_glv(POINTonE1 *out, const POINTonE1 *in,
     le_bytes_from_limbs(val.s, val.l, 32);
 
     {
-        const POINTonE1 *points[2];
-        const byte *scalars[2];
-        POINTonE1 in_sigma[1];
+        const byte *scalars[2] = { val.s+16, val.s };
+        POINTonE1 table[2][1<<(5-1)];   /* 4.5KB */
+        size_t i;
 
-        sigma(in_sigma, in);
-        POINTonE1_cneg(in_sigma, 1);
-        points[0] = in,         scalars[0] = val.s + 16;
-        points[1] = in_sigma,   scalars[1] = val.s;
-        POINTonE1s_mult_w4(out, points, 2, scalars, 128, NULL);
+        POINTonE1_precompute_w5(table[0], in);
+        for (i = 0; i < 1<<(5-1); i++) {
+            mul_fp(table[1][i].X, table[0][i].X, beta);
+            cneg_fp(table[1][i].Y, table[0][i].Y, 1);
+            vec_copy(table[1][i].Z, table[0][i].Z, sizeof(table[1][i].Z));
+        }
+
+        POINTonE1s_mult_w5(out, NULL, 2, scalars, 128, table);
         POINTonE1_cneg(out, 1);
         mul_fp(out->Z, out->Z, beta);
         mul_fp(out->Z, out->Z, beta);
@@ -498,7 +501,7 @@ void blst_sign_pk2_in_g2(unsigned char out[96], POINTonE1_affine *sig,
 void blst_p1_mult(POINTonE1 *out, const POINTonE1 *a,
                                   const byte *scalar, size_t nbits)
 {
-    if (nbits < 192) {
+    if (nbits < 176) {
         if (nbits)
             POINTonE1_mult_w4(out, a, scalar, nbits);
         else

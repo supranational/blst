@@ -476,7 +476,7 @@ static void psi(POINTonE2 *out, const POINTonE2 *in)
     cneg_fp(out->Z[1], out->Z[1], 1);
 }
 
-/* Galbraith-Lin-Scott, ~36-39% faster than POINTonE2_mul_w5 */
+/* Galbraith-Lin-Scott, ~67% faster than POINTonE2_mul_w5 */
 static void POINTonE2_mult_gls(POINTonE2 *out, const POINTonE2 *in,
                                const pow256 SK)
 {
@@ -491,22 +491,20 @@ static void POINTonE2_mult_gls(POINTonE2 *out, const POINTonE2 *in,
     le_bytes_from_limbs(val.s, val.l, 32);
 
     {
-        const POINTonE2 *points[4];
-        const byte *scalars[4];
-        POINTonE2 P[3];
+        const byte *scalars[2] = { val.s, NULL };
+        POINTonE2 table[4][1<<(5-1)];   /* 18KB */
+        size_t i;
 
-        psi(&P[0], in);
-        psi(&P[1], &P[0]);
-        psi(&P[2], &P[1]);
+        POINTonE2_precompute_w5(table[0], in);
+        for (i = 0; i < 1<<(5-1); i++) {
+            psi(&table[1][i], &table[0][i]);
+            psi(&table[2][i], &table[1][i]);
+            psi(&table[3][i], &table[2][i]);
+            POINTonE2_cneg(&table[1][i], 1); /* account for z being negative */
+            POINTonE2_cneg(&table[3][i], 1);
+        }
 
-        POINTonE2_cneg(&P[0], 1);   /* account for z being negative */
-        POINTonE2_cneg(&P[2], 1);
-
-        points[0] = in,     scalars[0] = val.s;
-        points[1] = &P[0],  scalars[1] = val.s + 8;
-        points[2] = &P[1],  scalars[2] = val.s + 16;
-        points[3] = &P[2],  scalars[3] = val.s + 24;
-        POINTonE2s_mult_w4(out, points, 4, scalars, 64, NULL);
+        POINTonE2s_mult_w5(out, NULL, 4, scalars, 64, table);
     }
 
     vec_zero(val.l, sizeof(val));   /* scrub the copy of SK */
@@ -576,7 +574,7 @@ void blst_sign_pk2_in_g1(unsigned char out[192], POINTonE2_affine *sig,
 void blst_p2_mult(POINTonE2 *out, const POINTonE2 *a,
                                   const byte *scalar, size_t nbits)
 {
-    if (nbits < 160) {
+    if (nbits < 144) {
         if (nbits)
             POINTonE2_mult_w4(out, a, scalar, nbits);
         else
