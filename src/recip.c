@@ -134,3 +134,6 @@ static void reciprocal_fr(vec256 out, const vec256 inp)
 
 void blst_fr_inverse(vec256 out, const vec256 inp)
 {   reciprocal_fr(out, inp);   }
+
+void blst_fr_eucl_inverse(vec256 out, const vec256 inp)
+{   reciprocal_fr(out, inp);   }
