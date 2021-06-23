@@ -32,7 +32,7 @@ fn bindgen_test_layout_blst_scalar() {
         concat!("Alignment of ", stringify!(blst_scalar))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_scalar>())).b as *const _ as usize },
+        offsetof!(blst_scalar, b),
         0usize,
         concat!(
             "Offset of field: ",
@@ -60,7 +60,7 @@ fn bindgen_test_layout_blst_fr() {
         concat!("Alignment of ", stringify!(blst_fr))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_fr>())).l as *const _ as usize },
+        offsetof!(blst_fr, l),
         0usize,
         concat!(
             "Offset of field: ",
@@ -88,7 +88,7 @@ fn bindgen_test_layout_blst_fp() {
         concat!("Alignment of ", stringify!(blst_fp))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_fp>())).l as *const _ as usize },
+        offsetof!(blst_fp, l),
         0usize,
         concat!(
             "Offset of field: ",
@@ -116,7 +116,7 @@ fn bindgen_test_layout_blst_fp2() {
         concat!("Alignment of ", stringify!(blst_fp2))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_fp2>())).fp as *const _ as usize },
+        offsetof!(blst_fp2, fp),
         0usize,
         concat!(
             "Offset of field: ",
@@ -144,7 +144,7 @@ fn bindgen_test_layout_blst_fp6() {
         concat!("Alignment of ", stringify!(blst_fp6))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_fp6>())).fp2 as *const _ as usize },
+        offsetof!(blst_fp6, fp2),
         0usize,
         concat!(
             "Offset of field: ",
@@ -172,7 +172,7 @@ fn bindgen_test_layout_blst_fp12() {
         concat!("Alignment of ", stringify!(blst_fp12))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_fp12>())).fp6 as *const _ as usize },
+        offsetof!(blst_fp12, fp6),
         0usize,
         concat!(
             "Offset of field: ",
@@ -411,7 +411,7 @@ fn bindgen_test_layout_blst_p1() {
         concat!("Alignment of ", stringify!(blst_p1))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_p1>())).x as *const _ as usize },
+        offsetof!(blst_p1, x),
         0usize,
         concat!(
             "Offset of field: ",
@@ -421,7 +421,7 @@ fn bindgen_test_layout_blst_p1() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_p1>())).y as *const _ as usize },
+        offsetof!(blst_p1, y),
         48usize,
         concat!(
             "Offset of field: ",
@@ -431,7 +431,7 @@ fn bindgen_test_layout_blst_p1() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_p1>())).z as *const _ as usize },
+        offsetof!(blst_p1, z),
         96usize,
         concat!(
             "Offset of field: ",
@@ -460,7 +460,7 @@ fn bindgen_test_layout_blst_p1_affine() {
         concat!("Alignment of ", stringify!(blst_p1_affine))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_p1_affine>())).x as *const _ as usize },
+        offsetof!(blst_p1_affine, x),
         0usize,
         concat!(
             "Offset of field: ",
@@ -470,7 +470,7 @@ fn bindgen_test_layout_blst_p1_affine() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_p1_affine>())).y as *const _ as usize },
+        offsetof!(blst_p1_affine, y),
         48usize,
         concat!(
             "Offset of field: ",
@@ -561,7 +561,7 @@ fn bindgen_test_layout_blst_p2() {
         concat!("Alignment of ", stringify!(blst_p2))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_p2>())).x as *const _ as usize },
+        offsetof!(blst_p2, x),
         0usize,
         concat!(
             "Offset of field: ",
@@ -571,7 +571,7 @@ fn bindgen_test_layout_blst_p2() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_p2>())).y as *const _ as usize },
+        offsetof!(blst_p2, y),
         96usize,
         concat!(
             "Offset of field: ",
@@ -581,7 +581,7 @@ fn bindgen_test_layout_blst_p2() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_p2>())).z as *const _ as usize },
+        offsetof!(blst_p2, z),
         192usize,
         concat!(
             "Offset of field: ",
@@ -610,7 +610,7 @@ fn bindgen_test_layout_blst_p2_affine() {
         concat!("Alignment of ", stringify!(blst_p2_affine))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_p2_affine>())).x as *const _ as usize },
+        offsetof!(blst_p2_affine, x),
         0usize,
         concat!(
             "Offset of field: ",
@@ -620,7 +620,7 @@ fn bindgen_test_layout_blst_p2_affine() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<blst_p2_affine>())).y as *const _ as usize },
+        offsetof!(blst_p2_affine, y),
         96usize,
         concat!(
             "Offset of field: ",
