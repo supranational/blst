@@ -13,6 +13,7 @@ os:
 
 arch:
     - arm64
+    - s390x
 
 before_script:
     - env | sort
@@ -48,10 +49,6 @@ matrix:
       - os: linux
         arch: arm64
         language: go
-      - os: linux
-        arch: s390x
-        language: rust
-        env: CFLAGS=-D__BLST_NO_ASM__
 
 notifications:
     email: false
