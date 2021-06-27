@@ -5,28 +5,23 @@ extern crate cc;
 use std::env;
 use std::path::{Path, PathBuf};
 
-#[cfg(all(target_env = "msvc", target_arch = "x86_64"))]
-fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path) {
+#[cfg(target_env = "msvc")]
+fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, arch: &String) {
+    let sfx = match arch.as_str() {
+        "x86_64" => "x86_64",
+        "aarch64" => "armv8",
+        _ => "unknown",
+    };
     let files =
-        glob::glob(&format!("{}/win64/*-x86_64.asm", base_dir.display()))
+        glob::glob(&format!("{}/win64/*-{}.asm", base_dir.display(), sfx))
             .expect("unable to collect assembly files");
     for file in files {
         file_vec.push(file.unwrap());
     }
 }
 
-#[cfg(all(target_env = "msvc", target_arch = "aarch64"))]
-fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path) {
-    let files =
-        glob::glob(&format!("{}/win64/*-armv8.asm", base_dir.display()))
-            .expect("unable to collect assembly files");
-    for file in files {
-        file_vec.push(file.unwrap());
-    }
-}
-
-#[cfg(all(target_pointer_width = "64", not(target_env = "msvc")))]
-fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path) {
+#[cfg(not(target_env = "msvc"))]
+fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, _: &String) {
     file_vec.push(base_dir.join("assembly.S"))
 }
 
@@ -43,7 +38,10 @@ fn main() {
         return;
     }
 
-    let mut file_vec = Vec::new();
+    // Set CC environment variable to choose alternative C compiler.
+    // Optimization level depends on whether or not --release is passed
+    // or implied.
+    let mut cc = cc::Build::new();
 
     let blst_base_dir = match env::var("BLST_SRC_DIR") {
         Ok(val) => PathBuf::from(val),
@@ -71,17 +69,15 @@ fn main() {
 
     let c_src_dir = blst_base_dir.join("src");
 
-    file_vec.push(c_src_dir.join("server.c"));
-    #[cfg(all(target_pointer_width = "64"))]
-    assembly(&mut file_vec, &blst_base_dir.join("build"));
-
-    // Set CC environment variable to choose alternative C compiler.
-    // Optimization level depends on whether or not --release is passed
-    // or implied.
-    let mut cc = cc::Build::new();
+    let mut file_vec = vec![c_src_dir.join("server.c")];
 
     // account for cross-compilation
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    if target_arch.eq("x86_64") || target_arch.eq("aarch64") {
+        assembly(&mut file_vec, &blst_base_dir.join("build"), &target_arch);
+    } else {
+        cc.define("__BLST_NO_ASM__", None);
+    }
     match (cfg!(feature = "portable"), cfg!(feature = "force-adx")) {
         (true, false) => {
             println!("Compiling in portable mode without ISA extensions");
