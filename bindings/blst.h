@@ -72,6 +72,7 @@ bool blst_scalar_fr_check(const blst_scalar *a);
 bool blst_sk_check(const blst_scalar *a);
 bool blst_sk_add_n_check(blst_scalar *ret, const blst_scalar *a,
                                            const blst_scalar *b);
+void blst_sk_inverse(blst_scalar *ret, const blst_scalar *a);
 bool blst_scalar_from_le_bytes(blst_scalar *out, const byte *bytes, size_t n);
 bool blst_scalar_from_be_bytes(blst_scalar *out, const byte *bytes, size_t n);
 
