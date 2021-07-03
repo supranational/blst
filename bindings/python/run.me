@@ -187,4 +187,27 @@ a = blst.P2s.mult_pippenger(blst.P2s.to_affine(points), scalars)
 if not a.is_equal(blst.G2().mult(total)):
     raise AssertionError("disaster")
 
+########################################################################
+# rudimentary blind signature PoC
+
+# Signer's public key
+PK = blst.P1(SK).to_affine()
+
+# User wants to have |msg| signed, chooses random |r|,
+r = blst.Scalar().from_bendian(os.urandom(32))
+# blinds the H(|msg|) with |r| and sends it to the Signer.
+sig_for_wire = blst.P2().hash_to(msg, DST).sign_with(r).serialize()
+
+# Signer signs and sends the result back to the User.
+sig_for_wire = blst.P2(sig_for_wire).sign_with(SK).serialize()
+
+# User unblinds the result with 1/|r| to produce the actual |signature|,
+signature = blst.P2(sig_for_wire).sign_with(r.inverse()).to_affine()
+# and now it can be verified as following...
+ctx = blst.Pairing(True, DST)
+ctx.aggregate(PK, signature, msg)
+ctx.commit()
+if not ctx.finalverify():
+    raise AssertionError("disaster")
+
 print("OK")
