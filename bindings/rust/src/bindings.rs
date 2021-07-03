@@ -229,6 +229,9 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
+    pub fn blst_sk_inverse(ret: *mut blst_scalar, a: *const blst_scalar);
+}
+extern "C" {
     pub fn blst_scalar_from_le_bytes(out: *mut blst_scalar, bytes: *const byte, n: usize) -> bool;
 }
 extern "C" {
