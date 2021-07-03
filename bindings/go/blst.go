@@ -1584,10 +1584,8 @@ func (points P1s) ToAffine() P1Affines {
 	return P1sToAffine([]*P1{&points[0], nil}, len(points))
 }
 
-func (pa *P1Affine) ToProjective() *P1 {
-	var p P1
-	C.blst_p1_from_affine(&p, pa)
-	return &p
+func (p *P1) FromAffine(pa *P1Affine) {
+	C.blst_p1_from_affine(p, pa)
 }
 
 //
@@ -1812,10 +1810,8 @@ func (points P2s) ToAffine() P2Affines {
 	return P2sToAffine([]*P2{&points[0], nil}, len(points))
 }
 
-func (pa *P2Affine) ToProjective() *P2 {
-	var p P2
-	C.blst_p2_from_affine(&p, pa)
-	return &p
+func (p *P2) FromAffine(pa *P2Affine) {
+	C.blst_p2_from_affine(p, pa)
 }
 
 //
