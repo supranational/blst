@@ -86,6 +86,25 @@ public:
     {   blst_lendian_from_scalar(out, &key);   }
 };
 
+struct Scalar {
+private:
+    blst_scalar val;
+
+public:
+    Scalar dup() const { return *this; }
+    Scalar* from_bendian(const byte *msg, size_t msg_len)
+    {   blst_scalar_from_be_bytes(&val, msg, msg_len); return this;   }
+    Scalar* from_lendian(const byte *msg, size_t msg_len)
+    {   blst_scalar_from_le_bytes(&val, msg, msg_len); return this;   }
+    Scalar* inverse()
+    {   blst_sk_inverse(&val, &val); return this;   }
+
+private:
+    friend class P1;
+    friend class P2;
+    operator const blst_scalar*() const { return &val; }
+};
+
 class P1_Affine {
 private:
     blst_p1_affine point;
@@ -168,6 +187,8 @@ public:
     }
     P1* sign_with(const SecretKey& sk)
     {   blst_sign_pk_in_g2(&point, &point, &sk.key); return this;   }
+    P1* sign_with(const Scalar& scalar)
+    {   blst_sign_pk_in_g2(&point, &point, scalar); return this;   }
     P1* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
                 const byte* aug = nullptr, size_t aug_len = 0)
@@ -413,6 +434,8 @@ public:
     }
     P2* sign_with(const SecretKey& sk)
     {   blst_sign_pk_in_g1(&point, &point, &sk.key); return this;   }
+    P2* sign_with(const Scalar& scalar)
+    {   blst_sign_pk_in_g1(&point, &point, scalar); return this;   }
     P2* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
                 const byte* aug = nullptr, size_t aug_len = 0)
