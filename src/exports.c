@@ -96,6 +96,30 @@ int blst_sk_check(const pow256 a)
 int blst_sk_add_n_check(pow256 ret, const pow256 a, const pow256 b)
 {   return (int)add_n_check_mod_256(ret, a, b, BLS12_381_r);   }
 
+void blst_sk_inverse(pow256 ret, const pow256 a)
+{
+    const union {
+        long one;
+        char little;
+    } is_endian = { 1 };
+
+    if (((size_t)a|(size_t)ret)%sizeof(limb_t) == 0 && is_endian.little) {
+        limb_t *out = (limb_t *)ret;
+        mul_mont_sparse_256(out, (const limb_t *)a, BLS12_381_rRR,
+                                                    BLS12_381_r, r0);
+        reciprocal_fr(out, out);
+        from_mont_256(out, out, BLS12_381_r, r0);
+    } else {
+        vec256 out;
+        limbs_from_le_bytes(out, a, 32);
+        mul_mont_sparse_256(out, out, BLS12_381_rRR, BLS12_381_r, r0);
+        reciprocal_fr(out, out);
+        from_mont_256(out, out, BLS12_381_r, r0);
+        le_bytes_from_limbs(ret, out, 32);
+        vec_zero(out, sizeof(out));
+    }
+}
+
 /*
  * BLS12-381-specifc Fp shortcuts to assembly.
  */
