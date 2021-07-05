@@ -7,6 +7,7 @@ import re
 import json
 import glob
 import sysconfig
+import hashlib
 
 here = re.split(r'/(?=[^/]*$)', sys.argv[0])
 if len(here) > 1:
@@ -208,6 +209,97 @@ ctx = blst.Pairing(True, DST)
 ctx.aggregate(PK, signature, msg)
 ctx.commit()
 if not ctx.finalverify():
+    raise AssertionError("disaster")
+
+# or as following...
+C1 = blst.PT(signature)
+C2 = blst.PT(blst.P2().hash_to(msg, DST).to_affine(), PK)
+if not blst.PT.finalverify(C1, C2):
+    raise AssertionError("disaster")
+
+########################################################################
+# [a variant of] BBS+ PoC, https://eprint.iacr.org/2008/136.pdf
+
+# Signer's public key
+w = blst.P2(SK)
+w_for_wire = w.compress()
+
+msgs = ["assertion1", "assertion2", "assertion3", "assertionN"]
+
+count = len(msgs)
+g = []
+for i in range(count+1):
+    g.append(blst.P1().hash_to(b"\0" + i.to_bytes(4, "big") +
+                               b"\0" + count.to_bytes(4, "big"),
+                               DST, w_for_wire))
+
+m = []
+for msg in msgs:
+    h = hashlib.sha512()
+    h.update(msg.encode('utf-8'))
+    m.append(blst.Scalar().from_bendian(h.digest()))
+
+### Signing block of messages.
+
+e = blst.Scalar().from_bendian(os.urandom(32))  # should be PRF in real life...
+s = blst.Scalar().from_bendian(os.urandom(32))
+
+a = blst.G1().add(g[0].dup().mult(s))
+for i in range(count):
+    a.add(g[i+1].dup().mult(m[i]))
+
+A = a.dup().sign_with(e.dup().add(SK).inverse()).to_affine()
+
+signature = [A, e, s]               # serialize to application liking
+
+### Signature Verification.
+# Verifier deserializes |signature|, recalculates |a| and verifies.
+A, e, s = signature                 # fake deserialization
+a = blst.G1().add(g[0].dup().mult(s))
+for i in range(count):
+    a.add(g[i+1].dup().mult(m[i]))
+
+C1 = blst.PT(blst.G2().mult(e).add(w).to_affine(), A)
+C2 = blst.PT(a.to_affine())
+if not blst.PT.finalverify(C1, C2):
+    raise AssertionError("disaster")
+
+### Signing Committed Block of Messages.
+
+# User creates |commitment| and sends it Signer.
+s_prime = blst.Scalar().from_bendian(os.urandom(32))
+commitment = g[0].dup().mult(s_prime)
+for i in range(count):
+    commitment.add(g[i+1].dup().mult(m[i]))
+
+# Signer challenges User.
+# User provides proof of commitment.
+# Signer verifies the proof.
+
+# Signer signs the |commitment| and sends the |blind_signature| back.
+e = blst.Scalar().from_bendian(os.urandom(32))
+s_pprime = blst.Scalar().from_bendian(os.urandom(32))
+
+A = blst.G1().add(g[0].dup().mult(s_pprime)) \
+             .add(commitment) \
+             .sign_with(e.dup().add(SK).inverse()).to_affine()
+
+blind_signature = [A, e, s_pprime]  # serialize to application liking
+
+# User unblinds the |blind_signature| by adding |s_prime| and |s_pprime|.
+signature = blind_signature.copy()  # fake deserialization
+signature[2].add(s_prime)           # serialize to application liking
+
+### Signature Verification.
+# Verifier deserializes |signature|, recalculates |a| and verifies.
+A, e, s = signature                 # fake deserialization
+a = blst.G1().add(g[0].dup().mult(s))
+for i in range(count):
+    a.add(g[i+1].dup().mult(m[i]))
+
+C1 = blst.PT(blst.G2().mult(e).add(w).to_affine(), A)
+C2 = blst.PT(a.to_affine())
+if not blst.PT.finalverify(C1, C2):
     raise AssertionError("disaster")
 
 print("OK")
