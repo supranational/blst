@@ -723,6 +723,7 @@ import java.nio.file.*;
     blst::PT* final_exp,
     blst::Scalar* from_bendian,
     blst::Scalar* from_lendian,
+    blst::Scalar* add,
     blst::Scalar* inverse
 }
 

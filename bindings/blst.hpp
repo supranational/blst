@@ -96,6 +96,15 @@ public:
     {   blst_scalar_from_be_bytes(&val, msg, msg_len); return this;   }
     Scalar* from_lendian(const byte *msg, size_t msg_len)
     {   blst_scalar_from_le_bytes(&val, msg, msg_len); return this;   }
+    void to_bendian(byte out[32]) const
+    {   blst_bendian_from_scalar(out, &val);   }
+    void to_lendian(byte out[32]) const
+    {   blst_lendian_from_scalar(out, &val);   }
+
+    Scalar* add(const Scalar& a)
+    {   return blst_sk_add_n_check(&val, &val, a) ? this : nullptr;   }
+    Scalar* add(const SecretKey& a)
+    {   return blst_sk_add_n_check(&val, &val, &a.key) ? this : nullptr;   }
     Scalar* inverse()
     {   blst_sk_inverse(&val, &val); return this;   }
 
@@ -103,6 +112,7 @@ private:
     friend class P1;
     friend class P2;
     operator const blst_scalar*() const { return &val; }
+    operator const byte*() const        { return val.b; }
 };
 
 class P1_Affine {
@@ -217,6 +227,8 @@ public:
 #endif
     P1* mult(const byte* scalar, size_t nbits)
     {   blst_p1_mult(&point, &point, scalar, nbits); return this;   }
+    P1* mult(const Scalar& scalar)
+    {   blst_p1_mult(&point, &point, scalar, 255); return this;   }
     P1* cneg(bool flag)
     {   blst_p1_cneg(&point, flag); return this;   }
     P1* neg()
@@ -464,6 +476,8 @@ public:
 #endif
     P2* mult(const byte* scalar, size_t nbits)
     {   blst_p2_mult(&point, &point, scalar, nbits); return this;   }
+    P2* mult(const Scalar& scalar)
+    {   blst_p2_mult(&point, &point, scalar, 255); return this;   }
     P2* cneg(bool flag)
     {   blst_p2_cneg(&point, flag); return this;   }
     P2* neg()
