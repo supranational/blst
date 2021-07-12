@@ -272,7 +272,7 @@ if not blst.PT.finalverify(C1, C2):
 
 # User creates |commitment| and sends it Signer.
 s_prime = blst.Scalar().from_bendian(os.urandom(32))
-commitment = g[0].dup().mult(s_prime)
+commitment = g[0].dup().sign_with(s_prime)
 for i in range(count):
     commitment.add(g[i+1].dup().mult(m[i]))
 
