@@ -91,6 +91,10 @@ private:
     blst_scalar val;
 
 public:
+    Scalar() { memset(&val, 0, sizeof(val)); }
+    Scalar(const byte* scalar, size_t nbits)
+    {   blst_scalar_from_le_bytes(&val, scalar, (nbits+7)/8);   }
+
     Scalar dup() const { return *this; }
     Scalar* from_bendian(const byte *msg, size_t msg_len)
     {   blst_scalar_from_be_bytes(&val, msg, msg_len); return this;   }
