@@ -188,4 +188,6 @@ EXPORTS
 	blst_uniq_sizeof
 	blst_uniq_init
 	blst_uniq_test
+	blst_p1_unchecked_mult
+	blst_p2_unchecked_mult
 

@@ -1209,3 +1209,19 @@ extern "C" {
 extern "C" {
     pub fn blst_uniq_test(tree: *mut blst_uniq, msg: *const byte, len: usize) -> bool;
 }
+extern "C" {
+    pub fn blst_p1_unchecked_mult(
+        out: *mut blst_p1,
+        p: *const blst_p1,
+        scalar: *const byte,
+        nbits: usize,
+    );
+}
+extern "C" {
+    pub fn blst_p2_unchecked_mult(
+        out: *mut blst_p2,
+        p: *const blst_p2,
+        scalar: *const byte,
+        nbits: usize,
+    );
+}
