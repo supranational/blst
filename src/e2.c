@@ -601,6 +601,15 @@ void blst_p2_mult(POINTonE2 *out, const POINTonE2 *a,
     }
 }
 
+void blst_p2_unchecked_mult(POINTonE2 *out, const POINTonE2 *a,
+                                            const byte *scalar, size_t nbits)
+{
+    if (nbits)
+        POINTonE2_mult_w4(out, a, scalar, nbits);
+    else
+        vec_zero(out, sizeof(*out));
+}
+
 int blst_p2_affine_is_equal(const POINTonE2_affine *a,
                             const POINTonE2_affine *b)
 {   return (int)vec_is_equal(a, b, sizeof(*a));   }

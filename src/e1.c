@@ -528,6 +528,15 @@ void blst_p1_mult(POINTonE1 *out, const POINTonE1 *a,
     }
 }
 
+void blst_p1_unchecked_mult(POINTonE1 *out, const POINTonE1 *a,
+                                            const byte *scalar, size_t nbits)
+{
+    if (nbits)
+        POINTonE1_mult_w4(out, a, scalar, nbits);
+    else
+        vec_zero(out, sizeof(*out));
+}
+
 int blst_p1_affine_is_equal(const POINTonE1_affine *a,
                             const POINTonE1_affine *b)
 {   return (int)vec_is_equal(a, b, sizeof(*a));   }
