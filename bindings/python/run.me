@@ -309,7 +309,7 @@ if not blst.PT.finalverify(C1, C2):
 ########################################################################
 # low-order points
 
-p11 = blst.P1(bytes.fromhex("80d1d1ffc09ffab044764f30fc9a110ca90d1d61505636cedbd76e024f03b4e562dd6beaa4b5b5435f020bcad67a1c12"))
+p11 = blst.P1(bytes.fromhex("80803f0d09fec09a95f2ee7495323c15c162270c7cceaffa8566e941c66bcf206e72955d58b3b32e564de3209d672ca5"))
 if p11.in_group():
     raise AssertionError("disaster")
 if not p11.mult(11).is_inf():
