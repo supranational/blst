@@ -195,30 +195,39 @@ if not a.is_equal(blst.G2().mult(total)):
 ########################################################################
 # rudimentary blind signature PoC
 
-# Signer's public key
+# Signer's public key, implicitly trusted.
 PK = blst.P1(SK).to_affine()
 
-# User wants to have |msg| signed, chooses random |r|,
-r = blst.Scalar().from_bendian(os.urandom(32))
+# User wants to have |msg| signed,
+H_msg = blst.P2().hash_to(msg, DST)
+# chooses random |r|,
+r = blst.Scalar().from_bendian(os.urandom(32))  # should be PRF in real life...
 # blinds the H(|msg|) with |r| and sends it to the Signer.
-sig_for_wire = blst.P2().hash_to(msg, DST).sign_with(r).serialize()
+msg_for_wire = H_msg.dup().sign_with(r).serialize()
 
 # Signer signs and sends the result back to the User.
-sig_for_wire = blst.P2(sig_for_wire).sign_with(SK).serialize()
+blind_msg = blst.P2(msg_for_wire)
+if not blind_msg.in_group():    # is User messing with Signer?
+    raise AssertionError("disaster")
+sig_for_wire = blind_msg.sign_with(SK).serialize()
 
-# User unblinds the result with 1/|r| to produce the actual |signature|,
-signature = blst.P2(sig_for_wire).sign_with(r.inverse()).to_affine()
-# and now it can be verified as following...
+# User ...
+signature = blst.P2(sig_for_wire)
+if not signature.in_group():    # is Signer messing with User?
+    raise AssertionError("disaster")
+# unblinds the result with 1/|r| to produce the actual |signature|,
+signature = signature.sign_with(r.inverse()).to_affine()
+# and double-checks if the Signer was honest?
+C1 = blst.PT(signature)
+C2 = blst.PT(H_msg.to_affine(), PK)
+if not blst.PT.finalverify(C1, C2):
+    raise AssertionError("disaster")
+
+# Now |signature| can be verified as any other, e.g....
 ctx = blst.Pairing(True, DST)
 ctx.aggregate(PK, signature, msg)
 ctx.commit()
 if not ctx.finalverify():
-    raise AssertionError("disaster")
-
-# or as following...
-C1 = blst.PT(signature)
-C2 = blst.PT(blst.P2().hash_to(msg, DST).to_affine(), PK)
-if not blst.PT.finalverify(C1, C2):
     raise AssertionError("disaster")
 
 ########################################################################
