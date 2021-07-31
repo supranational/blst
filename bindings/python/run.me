@@ -237,8 +237,16 @@ if not ctx.finalverify():
 w = blst.P2(SK)
 w_for_wire = w.compress()
 
-# Everybody involved:
+### The block of messages
+
 msgs = ["assertion1", "assertion2", "assertion3", "assertionN"]
+m = []
+for msg in msgs:
+    h = hashlib.sha512()
+    h.update(msg.encode('utf-8'))
+    m.append(blst.Scalar().from_bendian(h.digest()))
+
+### Everybody involved:
 
 count = len(msgs)
 g = []
@@ -247,13 +255,7 @@ for i in range(count+1):
                                b"\0" + count.to_bytes(4, "big"),
                                DST, w_for_wire))
 
-m = []
-for msg in msgs:
-    h = hashlib.sha512()
-    h.update(msg.encode('utf-8'))
-    m.append(blst.Scalar().from_bendian(h.digest()))
-
-### Signing block of messages.
+### Signing the block of messages.
 
 e = blst.Scalar().from_bendian(os.urandom(32))  # should be PRF in real life...
 s = blst.Scalar().from_bendian(os.urandom(32))
