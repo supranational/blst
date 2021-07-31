@@ -12,6 +12,7 @@ EXPORTS
 	blst_scalar_fr_check
 	blst_sk_check
 	blst_sk_add_n_check
+	blst_sk_mul_n_check
 	blst_sk_inverse
 	blst_scalar_from_le_bytes
 	blst_scalar_from_be_bytes
