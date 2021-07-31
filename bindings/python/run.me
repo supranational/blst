@@ -321,4 +321,10 @@ if p13.in_group():
 if not p13.mult(13).is_inf():
     raise AssertionError("disaster")
 
+p23 = blst.P2(bytes.fromhex("acaaaa268d201642af7eeb2c46b03ecf8af71b902f652884577e52994047fcde2f8b5d931fdacb2575937b72ef2d3b0c0da315f7c31904614d8110d493d1d7a00da97d5b640be19e4cc5dd302ad8e17aa853035d7a56e5c24347164c186d6d00"))
+if p23.in_group():
+    raise AssertionError("disaster")
+if not p23.mult(23).is_inf():
+    raise AssertionError("disaster")
+
 print("OK")
