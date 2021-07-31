@@ -233,10 +233,11 @@ if not ctx.finalverify():
 ########################################################################
 # [a variant of] BBS+ PoC, https://eprint.iacr.org/2008/136.pdf
 
-# Signer's public key
+# Signer's public key, implicitly trusted.
 w = blst.P2(SK)
 w_for_wire = w.compress()
 
+# Everybody involved:
 msgs = ["assertion1", "assertion2", "assertion3", "assertionN"]
 
 count = len(msgs)
@@ -272,24 +273,41 @@ a = blst.G1().add(g[0].dup().mult(s))
 for i in range(count):
     a.add(g[i+1].dup().mult(m[i]))
 
+if not A.in_group():
+    AssertionError("disaster")
 C1 = blst.PT(blst.G2().mult(e).add(w).to_affine(), A)
 C2 = blst.PT(a.to_affine())
 if not blst.PT.finalverify(C1, C2):
     raise AssertionError("disaster")
 
-### Signing Committed Block of Messages.
+### Blind-signing Committed Block of Messages.
 
-# User creates |commitment| and sends it Signer.
+# User creates |commitment| and sends it to Signer.
 s_prime = blst.Scalar().from_bendian(os.urandom(32))
 commitment = g[0].dup().sign_with(s_prime)
 for i in range(count):
     commitment.add(g[i+1].dup().mult(m[i]))
 
-# Signer challenges User.
+# Signer challenges User with |c|.
+c = blst.Scalar().from_bendian(os.urandom(32))
 # User provides proof of commitment.
-# Signer verifies the proof.
+s_tilde = blst.Scalar().from_bendian(os.urandom(32))
+ZK = g[0].dup().sign_with(s_tilde)
+r = [s_tilde.add(c.dup().mul(s_prime))]
+for i in range(count):
+    r.append(blst.Scalar().from_bendian(os.urandom(32)))
+    ZK.add(g[i+1].dup().mult(r[-1]))
+    r[-1].add(c.dup().mul(m[i]))
+# Signer verifies the proof, |ZK| and |r|.
+ZK_verify = commitment.dup().neg().mult(c)
+for i in range(count+1):
+    ZK_verify.add(g[i].dup().mult(r[i]))
+if not ZK_verify.is_equal(ZK):
+    raise AssertionError("disaster")
 
 # Signer signs the |commitment| and sends the |blind_signature| back.
+if not commitment.in_group():   # is User messing with Signer?
+    raise AssertionError("disaster")
 e = blst.Scalar().from_bendian(os.urandom(32))
 s_pprime = blst.Scalar().from_bendian(os.urandom(32))
 
@@ -301,6 +319,8 @@ blind_signature = [A, e, s_pprime]  # serialize to application liking
 
 # User unblinds the |blind_signature| by adding |s_prime| and |s_pprime|.
 signature = blind_signature.copy()  # fake deserialization
+if not signature[0].in_group():     # is Signer messing with User?
+    raise AssertionError("disaster")
 signature[2].add(s_prime)           # serialize to application liking
 
 ### Signature Verification.
@@ -310,6 +330,8 @@ a = blst.G1().add(g[0].dup().mult(s))
 for i in range(count):
     a.add(g[i+1].dup().mult(m[i]))
 
+if not A.in_group():
+    raise AssertionError("disaster")
 C1 = blst.PT(blst.G2().mult(e).add(w).to_affine(), A)
 C2 = blst.PT(a.to_affine())
 if not blst.PT.finalverify(C1, C2):
