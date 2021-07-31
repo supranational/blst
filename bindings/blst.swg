@@ -724,6 +724,7 @@ import java.nio.file.*;
     blst::Scalar* from_bendian,
     blst::Scalar* from_lendian,
     blst::Scalar* add,
+    blst::Scalar* mul,
     blst::Scalar* inverse
 }
 
