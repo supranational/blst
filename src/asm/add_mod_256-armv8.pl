@@ -351,7 +351,7 @@ add_n_check_mod_256:
 .hidden	sub_n_check_mod_256
 .type	sub_n_check_mod_256,%function
 .align	5
-sub_mod_256:
+sub_n_check_mod_256:
 	ldp	@a[0],@a[1],[$a_ptr]
 	ldp	@b[0],@b[1],[$b_ptr]
 	ldp	@a[2],@a[3],[$a_ptr,#16]
