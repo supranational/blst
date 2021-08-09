@@ -529,21 +529,17 @@ BLST_ERROR blst_aggregate_in_g1(POINTonE1 *out, const POINTonE1 *in,
                                                 const unsigned char *zwire)
 {
     POINTonE1 P[1];
+    BLST_ERROR ret;
 
-    if (zwire[0] & 0x40) {      /* infinity? */
+    ret = POINTonE1_Deserialize_Z((POINTonE1_affine *)P, zwire);
+
+    if (ret != BLST_SUCCESS)
+        return ret;
+
+    if (vec_is_zero(P, sizeof(POINTonE1_affine))) {
         if (in == NULL)
             vec_zero(out, sizeof(*out));
         return BLST_SUCCESS;
-    }
-
-    if (zwire[0] & 0x80) {      /* compressed? */
-        BLST_ERROR ret = POINTonE1_Uncompress((POINTonE1_affine *)P, zwire);
-        if (ret != BLST_SUCCESS)
-            return ret;
-    } else {
-        POINTonE1_Deserialize_BE((POINTonE1_affine *)P, zwire);
-        if (!POINTonE1_affine_on_curve((POINTonE1_affine *)P))
-            return BLST_POINT_NOT_ON_CURVE;
     }
 
     vec_copy(P->Z, BLS12_381_Rx.p, sizeof(P->Z));
@@ -563,21 +559,17 @@ BLST_ERROR blst_aggregate_in_g2(POINTonE2 *out, const POINTonE2 *in,
                                                 const unsigned char *zwire)
 {
     POINTonE2 P[1];
+    BLST_ERROR ret;
 
-    if (zwire[0] & 0x40) {      /* infinity? */
+    ret = POINTonE2_Deserialize_Z((POINTonE2_affine *)P, zwire);
+
+    if (ret != BLST_SUCCESS)
+        return ret;
+
+    if (vec_is_zero(P, sizeof(POINTonE2_affine))) {
         if (in == NULL)
             vec_zero(out, sizeof(*out));
         return BLST_SUCCESS;
-    }
-
-    if (zwire[0] & 0x80) {      /* compressed? */
-        BLST_ERROR ret = POINTonE2_Uncompress((POINTonE2_affine *)P, zwire);
-        if (ret != BLST_SUCCESS)
-            return ret;
-    } else {
-        POINTonE2_Deserialize_BE((POINTonE2_affine *)P, zwire);
-        if (!POINTonE2_affine_on_curve((POINTonE2_affine *)P))
-            return BLST_POINT_NOT_ON_CURVE;
     }
 
     vec_copy(P->Z, BLS12_381_Rx.p, sizeof(P->Z));
