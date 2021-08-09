@@ -323,7 +323,7 @@ _add_n_check_mod_256:
 .private_extern	_sub_n_check_mod_256
 
 .align	5
-_sub_mod_256:
+_sub_n_check_mod_256:
 	ldp	x8,x9,[x1]
 	ldp	x12,x13,[x2]
 	ldp	x10,x11,[x1,#16]

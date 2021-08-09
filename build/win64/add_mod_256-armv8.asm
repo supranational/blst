@@ -323,7 +323,7 @@
 
 	EXPORT	|sub_n_check_mod_256|[FUNC]
 	ALIGN	32
-|sub_mod_256|
+|sub_n_check_mod_256| PROC
 	ldp	x8,x9,[x1]
 	ldp	x12,x13,[x2]
 	ldp	x10,x11,[x1,#16]
