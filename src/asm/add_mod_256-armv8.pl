@@ -346,6 +346,65 @@ add_n_check_mod_256:
 
 	ret
 .size	add_n_check_mod_256,.-add_n_check_mod_256
+
+.globl	sub_n_check_mod_256
+.hidden	sub_n_check_mod_256
+.type	sub_n_check_mod_256,%function
+.align	5
+sub_mod_256:
+	ldp	@a[0],@a[1],[$a_ptr]
+	ldp	@b[0],@b[1],[$b_ptr]
+	ldp	@a[2],@a[3],[$a_ptr,#16]
+	ldp	@b[2],@b[3],[$b_ptr,#16]
+
+#ifdef	__AARCH64EB__
+	rev	@a[0],@a[0]
+	rev	@b[0],@b[0]
+	rev	@a[1],@a[1]
+	rev	@b[1],@b[1]
+	rev	@a[2],@a[2]
+	rev	@b[2],@b[2]
+	rev	@a[3],@a[3]
+	rev	@b[3],@b[3]
+#endif
+
+	subs	@a[0],@a[0],@b[0]
+	sbcs	@a[1],@a[1],@b[1]
+	 ldp	@mod[0],@mod[1],[$n_ptr]
+	sbcs	@a[2],@a[2],@b[2]
+	 ldp	@mod[2],@mod[3],[$n_ptr,#16]
+	sbcs	@a[3],@a[3],@b[3]
+	sbc	@t[4],xzr,xzr
+
+	 and	@mod[0],@mod[0],@t[4]
+	 and	@mod[1],@mod[1],@t[4]
+	adds	@a[0],@a[0],@mod[0]
+	 and	@mod[2],@mod[2],@t[4]
+	adcs	@a[1],@a[1],@mod[1]
+	 and	@mod[3],@mod[3],@t[4]
+	adcs	@a[2],@a[2],@mod[2]
+	adc	@a[3],@a[3],@mod[3]
+
+	orr	@t[0], @a[0], @a[1]
+	orr	@t[1], @a[2], @a[3]
+	orr	@t[0], @t[0], @t[1]
+
+#ifdef	__AARCH64EB__
+	rev	@a[0],@a[0]
+	rev	@a[1],@a[1]
+	rev	@a[2],@a[2]
+	rev	@a[3],@a[3]
+#endif
+
+	stp	@a[0],@a[1],[$r_ptr]
+	stp	@a[2],@a[3],[$r_ptr,#16]
+
+	mov	@t[1], #1
+	cmp	@t[0], #0
+	csel	x0, @t[1], xzr, ne
+
+	ret
+.size	sub_n_check_mod_256,.-sub_n_check_mod_256
 ___
 
 print $code;

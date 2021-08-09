@@ -309,6 +309,29 @@ inline limb_t add_n_check_mod_##bits(pow##bits ret, const pow##bits a, \
 
 ADD_N_CHECK_MOD_IMPL(256)
 
+static limb_t sub_n_check_mod_n(byte ret[], const byte a[], const byte b[],
+                                            const limb_t p[], size_t n)
+{
+    limb_t ret_[n], a_[n], b_[n], zero;
+
+    limbs_from_le_bytes(a_, a, sizeof(a_));
+    limbs_from_le_bytes(b_, b, sizeof(b_));
+
+    sub_mod_n(ret_, a_, b_, p, n);
+    zero = vec_is_zero(ret_, sizeof(ret_));
+
+    le_bytes_from_limbs(ret, ret_, sizeof(ret_));
+
+    return zero^1;
+}
+
+#define SUB_N_CHECK_MOD_IMPL(bits) \
+inline limb_t sub_n_check_mod_##bits(pow##bits ret, const pow##bits a, \
+                                     const pow##bits b, const vec##bits p) \
+{   return sub_n_check_mod_n(ret, a, b, p, NLIMBS(bits));   }
+
+SUB_N_CHECK_MOD_IMPL(256)
+
 static void from_mont_n(limb_t ret[], const limb_t a[],
                         const limb_t p[], limb_t n0, size_t n)
 {

@@ -106,6 +106,8 @@ bool_t eucl_inverse_mod_256(vec256 ret, const vec256 a, const vec256 p,
 limb_t check_mod_256(const pow256 a, const vec256 p);
 limb_t add_n_check_mod_256(pow256 ret, const pow256 a, const pow256 b,
                                        const vec256 p);
+limb_t sub_n_check_mod_256(pow256 ret, const pow256 a, const pow256 b,
+                                       const vec256 p);
 
 void vec_prefetch(const void *ptr, size_t len);
 
