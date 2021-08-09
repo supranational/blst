@@ -96,6 +96,9 @@ int blst_sk_check(const pow256 a)
 int blst_sk_add_n_check(pow256 ret, const pow256 a, const pow256 b)
 {   return (int)add_n_check_mod_256(ret, a, b, BLS12_381_r);   }
 
+int blst_sk_sub_n_check(pow256 ret, const pow256 a, const pow256 b)
+{   return (int)sub_n_check_mod_256(ret, a, b, BLS12_381_r);   }
+
 int blst_sk_mul_n_check(pow256 ret, const pow256 a, const pow256 b)
 {
     vec256 a_fr, b_fr;
