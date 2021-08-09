@@ -430,6 +430,7 @@ check_mod_256:
 .cfi_endproc	
 .size	check_mod_256,.-check_mod_256
 
+
 .globl	add_n_check_mod_256
 .hidden	add_n_check_mod_256
 .type	add_n_check_mod_256,@function
@@ -495,6 +496,72 @@ add_n_check_mod_256:
 	.byte	0xf3,0xc3
 .cfi_endproc	
 .size	add_n_check_mod_256,.-add_n_check_mod_256
+
+
+.globl	sub_n_check_mod_256
+.hidden	sub_n_check_mod_256
+.type	sub_n_check_mod_256,@function
+.align	32
+sub_n_check_mod_256:
+.cfi_startproc
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+
+	pushq	%rbp
+.cfi_adjust_cfa_offset	8
+.cfi_offset	%rbp,-16
+	pushq	%rbx
+.cfi_adjust_cfa_offset	8
+.cfi_offset	%rbx,-24
+	subq	$8,%rsp
+.cfi_adjust_cfa_offset	8
+
+
+	movq	0(%rsi),%r8
+	movq	8(%rsi),%r9
+	movq	16(%rsi),%r10
+	movq	24(%rsi),%r11
+
+	subq	0(%rdx),%r8
+	movq	0(%rcx),%rax
+	sbbq	8(%rdx),%r9
+	movq	8(%rcx),%rsi
+	sbbq	16(%rdx),%r10
+	movq	16(%rcx),%rbx
+	sbbq	24(%rdx),%r11
+	movq	24(%rcx),%rbp
+	sbbq	%rdx,%rdx
+
+	andq	%rdx,%rax
+	andq	%rdx,%rsi
+	andq	%rdx,%rbx
+	andq	%rdx,%rbp
+
+	addq	%rax,%r8
+	adcq	%rsi,%r9
+	movq	%r8,0(%rdi)
+	adcq	%rbx,%r10
+	movq	%r9,8(%rdi)
+	adcq	%rbp,%r11
+	movq	%r10,16(%rdi)
+	movq	%r11,24(%rdi)
+
+	orq	%r9,%r8
+	orq	%r11,%r10
+	orq	%r10,%r8
+	movq	$1,%rax
+	cmovzq	%r8,%rax
+
+	movq	8(%rsp),%rbx
+.cfi_restore	%rbx
+	movq	16(%rsp),%rbp
+.cfi_restore	%rbp
+	leaq	24(%rsp),%rsp
+.cfi_adjust_cfa_offset	-24
+
+	.byte	0xf3,0xc3
+.cfi_endproc	
+.size	sub_n_check_mod_256,.-sub_n_check_mod_256
 
 .section	.note.GNU-stack,"",@progbits
 .section	.note.gnu.property,"a",@note

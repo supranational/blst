@@ -318,3 +318,62 @@ add_n_check_mod_256:
 
 	ret
 .size	add_n_check_mod_256,.-add_n_check_mod_256
+
+.globl	sub_n_check_mod_256
+.hidden	sub_n_check_mod_256
+.type	sub_n_check_mod_256,%function
+.align	5
+sub_mod_256:
+	ldp	x8,x9,[x1]
+	ldp	x12,x13,[x2]
+	ldp	x10,x11,[x1,#16]
+	ldp	x14,x15,[x2,#16]
+
+#ifdef	__AARCH64EB__
+	rev	x8,x8
+	rev	x12,x12
+	rev	x9,x9
+	rev	x13,x13
+	rev	x10,x10
+	rev	x14,x14
+	rev	x11,x11
+	rev	x15,x15
+#endif
+
+	subs	x8,x8,x12
+	sbcs	x9,x9,x13
+	ldp	x4,x5,[x3]
+	sbcs	x10,x10,x14
+	ldp	x6,x7,[x3,#16]
+	sbcs	x11,x11,x15
+	sbc	x3,xzr,xzr
+
+	and	x4,x4,x3
+	and	x5,x5,x3
+	adds	x8,x8,x4
+	and	x6,x6,x3
+	adcs	x9,x9,x5
+	and	x7,x7,x3
+	adcs	x10,x10,x6
+	adc	x11,x11,x7
+
+	orr	x16, x8, x9
+	orr	x17, x10, x11
+	orr	x16, x16, x17
+
+#ifdef	__AARCH64EB__
+	rev	x8,x8
+	rev	x9,x9
+	rev	x10,x10
+	rev	x11,x11
+#endif
+
+	stp	x8,x9,[x0]
+	stp	x10,x11,[x0,#16]
+
+	mov	x17, #1
+	cmp	x16, #0
+	csel	x0, x17, xzr, ne
+
+	ret
+.size	sub_n_check_mod_256,.-sub_n_check_mod_256

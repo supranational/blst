@@ -229,6 +229,13 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
+    pub fn blst_sk_sub_n_check(
+        ret: *mut blst_scalar,
+        a: *const blst_scalar,
+        b: *const blst_scalar,
+    ) -> bool;
+}
+extern "C" {
     pub fn blst_sk_mul_n_check(
         ret: *mut blst_scalar,
         a: *const blst_scalar,
