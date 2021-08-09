@@ -109,6 +109,8 @@ public:
     {   return blst_sk_add_n_check(&val, &val, a) ? this : nullptr;   }
     Scalar* add(const SecretKey& a)
     {   return blst_sk_add_n_check(&val, &val, &a.key) ? this : nullptr;   }
+    Scalar* sub(const Scalar& a)
+    {   return blst_sk_sub_n_check(&val, &val, a) ? this : nullptr;   }
     Scalar* mul(const Scalar& a)
     {   return blst_sk_mul_n_check(&val, &val, a) ? this : nullptr;   }
     Scalar* inverse()
