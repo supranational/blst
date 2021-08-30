@@ -142,8 +142,17 @@ private:
     P1_Affine(const blst_p1_affine *cptr) { point = *cptr; }
 public:
     P1_Affine() { memset(&point, 0, sizeof(point)); }
+#ifndef SWIG
     P1_Affine(const byte *in)
     {   BLST_ERROR err = blst_p1_deserialize(&point, in);
+        if (err != BLST_SUCCESS)
+            throw err;
+    }
+#endif
+    P1_Affine(const byte *in, size_t len)
+    {   if (len == 0 || len != (in[0]&0x80 ? 48 : 96))
+            throw BLST_BAD_ENCODING;
+        BLST_ERROR err = blst_p1_deserialize(&point, in);
         if (err != BLST_SUCCESS)
             throw err;
     }
@@ -191,8 +200,19 @@ private:
 public:
     P1() { memset(&point, 0, sizeof(point)); }
     P1(const SecretKey& sk) { blst_sk_to_pk_in_g1(&point, &sk.key); }
+#ifndef SWIG
     P1(const byte *in)
     {   blst_p1_affine a;
+        BLST_ERROR err = blst_p1_deserialize(&a, in);
+        if (err != BLST_SUCCESS)
+            throw err;
+        blst_p1_from_affine(&point, &a);
+    }
+#endif
+    P1(const byte *in, size_t len)
+    {   if (len == 0 || len != (in[0]&0x80 ? 48 : 96))
+            throw BLST_BAD_ENCODING;
+        blst_p1_affine a;
         BLST_ERROR err = blst_p1_deserialize(&a, in);
         if (err != BLST_SUCCESS)
             throw err;
@@ -415,8 +435,17 @@ private:
     P2_Affine(const blst_p2_affine *cptr) { point = *cptr; }
 public:
     P2_Affine() { memset(&point, 0, sizeof(point)); }
+#ifndef SWIG
     P2_Affine(const byte *in)
     {   BLST_ERROR err = blst_p2_deserialize(&point, in);
+        if (err != BLST_SUCCESS)
+            throw err;
+    }
+#endif
+    P2_Affine(const byte *in, size_t len)
+    {   if (len == 0 || len != (in[0]&0x80 ? 96 : 192))
+            throw BLST_BAD_ENCODING;
+        BLST_ERROR err = blst_p2_deserialize(&point, in);
         if (err != BLST_SUCCESS)
             throw err;
     }
@@ -464,8 +493,19 @@ private:
 public:
     P2() { memset(&point, 0, sizeof(point)); }
     P2(const SecretKey& sk) { blst_sk_to_pk_in_g2(&point, &sk.key); }
+#ifndef SWIG
     P2(const byte *in)
     {   blst_p2_affine a;
+        BLST_ERROR err = blst_p2_deserialize(&a, in);
+        if (err != BLST_SUCCESS)
+            throw err;
+        blst_p2_from_affine(&point, &a);
+    }
+#endif
+    P2(const byte *in, size_t len)
+    {   if (len == 0 || len != (in[0]&0x80 ? 96 : 192))
+            throw BLST_BAD_ENCODING;
+        blst_p2_affine a;
         BLST_ERROR err = blst_p2_deserialize(&a, in);
         if (err != BLST_SUCCESS)
             throw err;

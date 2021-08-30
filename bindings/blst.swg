@@ -646,7 +646,8 @@ import java.nio.file.*;
        (const byte *DST,    size_t DST_len),
        (const byte *aug,    size_t aug_len),
        (const byte *IKM,    size_t IKM_len),
-       (const byte *info,   size_t info_len)
+       (const byte *info,   size_t info_len),
+       (const byte *in,     size_t len)
 }
 
 // some sorcery to return byte[] from serialization methods
@@ -703,12 +704,12 @@ import java.nio.file.*;
 %ignore nullptr;
 %ignore None;
 %ignore C_bytes;
-%catches(BLST_ERROR) P1(const byte* in);
-%catches(BLST_ERROR) P1_Affine(const byte* in);
+%catches(BLST_ERROR) P1(const byte* in, size_t len);
+%catches(BLST_ERROR) P1_Affine(const byte* in, size_t len);
 %catches(BLST_ERROR) aggregate(const P1_Affine& in);
 
-%catches(BLST_ERROR) P2(const byte* in);
-%catches(BLST_ERROR) P2_Affine(const byte* in);
+%catches(BLST_ERROR) P2(const byte* in, size_t len);
+%catches(BLST_ERROR) P2_Affine(const byte* in, size_t len);
 %catches(BLST_ERROR) aggregate(const P2_Affine& in);
 
 %catches(BLST_ERROR) blst::Scalar::add;
