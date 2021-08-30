@@ -47,6 +47,7 @@ typedef enum {
     BLST_AGGR_TYPE_MISMATCH,
     BLST_VERIFY_FAIL,
     BLST_PK_IS_INFINITY,
+    BLST_BAD_SCALAR,
 } BLST_ERROR;
 
 typedef uint8_t byte;

@@ -86,7 +86,7 @@ public:
     {   blst_lendian_from_scalar(out, &key);   }
 };
 
-struct Scalar {
+class Scalar {
 private:
     blst_scalar val;
 
@@ -106,13 +106,25 @@ public:
     {   blst_lendian_from_scalar(out, &val);   }
 
     Scalar* add(const Scalar& a)
-    {   return blst_sk_add_n_check(&val, &val, a) ? this : nullptr;   }
+    {   if (!blst_sk_add_n_check(&val, &val, a))
+            throw BLST_BAD_SCALAR;
+        return this;
+    }
     Scalar* add(const SecretKey& a)
-    {   return blst_sk_add_n_check(&val, &val, &a.key) ? this : nullptr;   }
+    {   if (!blst_sk_add_n_check(&val, &val, &a.key))
+            throw BLST_BAD_SCALAR;
+        return this;
+    }
     Scalar* sub(const Scalar& a)
-    {   return blst_sk_sub_n_check(&val, &val, a) ? this : nullptr;   }
+    {   if (!blst_sk_sub_n_check(&val, &val, a))
+            throw BLST_BAD_SCALAR;
+        return this;
+    }
     Scalar* mul(const Scalar& a)
-    {   return blst_sk_mul_n_check(&val, &val, a) ? this : nullptr;   }
+    {   if (!blst_sk_mul_n_check(&val, &val, a))
+            throw BLST_BAD_SCALAR;
+        return this;
+    }
     Scalar* inverse()
     {   blst_sk_inverse(&val, &val); return this;   }
 

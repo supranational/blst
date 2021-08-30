@@ -709,6 +709,10 @@ import java.nio.file.*;
 %catches(BLST_ERROR) P2_Affine(const byte* in);
 %catches(BLST_ERROR) aggregate(const P2_Affine& in);
 
+%catches(BLST_ERROR) blst::Scalar::add;
+%catches(BLST_ERROR) blst::Scalar::sub;
+%catches(BLST_ERROR) blst::Scalar::mul;
+
 // methods returning |this|
 %apply SELF* OUTPUT {
     blst::P1* sign_with,    blst::P2* sign_with,
