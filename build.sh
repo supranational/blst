@@ -15,11 +15,8 @@
 
 TOP=`dirname $0`
 
-if [ "x$CC" = "x" ]; then
-    CC=gcc
-    which cc >/dev/null 2>&1 && CC=cc
-fi
-# if -Werror stands in the way, bypass with -Wno-error on command line
+# if -Werror stands in the way, bypass with -Wno-error on command line,
+# or suppress specific one with -Wno-<problematic-warning>
 CFLAGS=${CFLAGS:--O -fno-builtin-memcpy -fPIC -Wall -Wextra -Werror}
 PERL=${PERL:-perl}
 unset cflags shared
@@ -45,6 +42,26 @@ while [ "x$1" != "x" ]; do
     shift
 done
 
+if [ "x$CC" = "x" ]; then
+    CC=gcc
+    which ${CROSS_COMPILE}cc >/dev/null 2>&1 && CC=cc
+fi
+if which ${CROSS_COMPILE}${CC} >/dev/null 2>&1; then
+    CC=${CROSS_COMPILE}${CC}
+fi
+if [ "x$CROSS_COMPILE" = "x" ]; then
+    CROSS_COMPILE=`echo $CC |
+                   awk '{ print substr($1,0,match($1,"-(g?cc|clang)$")) }' 2>/dev/null`
+    # fix up android prefix...
+    CROSS_COMPILE=`echo $CROSS_COMPILE |
+                   awk '{ off=match($1,"-android[0-9]+-");
+                          if (off) { printf "%sandroid-\n",substr($1,0,off) }
+                          else     { print $1 } }'`
+fi
+NM=${NM:-${CROSS_COMPILE}nm}
+AR=${AR:-${CROSS_COMPILE}ar}
+OBJCOPY=${OBJCOPY:-${CROSS_COMPILE}objcopy}
+
 if (${CC} ${CFLAGS} -dM -E -x c /dev/null) 2>/dev/null | grep -q x86_64; then
     cflags="$cflags -mno-avx" # avoid costly transitions
     if (grep -q -e '^flags.*\badx\b' /proc/cpuinfo) 2>/dev/null; then
@@ -55,11 +72,24 @@ fi
 CFLAGS="$CFLAGS $cflags"
 
 rm -f libblst.a
-trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o' 0
+trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o /tmp/localize.blst.$$' 0
 
 (set -x; ${CC} ${CFLAGS} -c ${TOP}/src/server.c)
 (set -x; ${CC} ${CFLAGS} -c ${TOP}/build/assembly.S)
-(set -x; ${AR:-ar} rc libblst.a *.o)
+
+${NM} -P *.o | egrep -v -e '^_?blst_' |
+               awk '{ if($2=="T") print $1 }' > /tmp/localize.blst.$$
+if [ $flavour = "macosx" ]; then
+    (set -x; ${CC} ${CFLAGS} -nostdlib -r *.o -o blst.o \
+                             -unexported_symbols_list /tmp/localize.blst.$$
+             ${AR} rc libblst.a blst.o)
+elif which ${OBJCOPY} >/dev/null 2>&1; then
+    (set -x; ${CC} ${CFLAGS} -nostdlib -r *.o -o blst.o
+             ${OBJCOPY} --localize-symbols=/tmp/localize.blst.$$ blst.o
+             ${AR} rc libblst.a blst.o)
+else
+    (set -x; ${AR} rc libblst.a *.o)
+fi
 
 if [ $shared ]; then
     case $flavour in
