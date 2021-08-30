@@ -218,26 +218,28 @@
         // .itemsize to return size of point, and len() - amount of points
         PyMemoryView_GET_BUFFER($result)->itemsize  = sizeof($1[0]);
         PyMemoryView_GET_BUFFER($result)->shape[0] /= sizeof($1[0]);
+    } else {
+        Py_DECREF(obj$argnum);
     }
 %}
 %apply POINT points[] { blst_p1_affine dst[], blst_p2_affine dst[] }
 
-%extend blst::P1s {
-    static PyObject* to_affine(blst_p1_affine dst[], const blst::P1* points[],
+%extend blst::P1_Affines {
+    static PyObject* as_memory(blst_p1_affine dst[], const blst::P1* points[],
                                                      size_t npoints)
     {   blst_p1s_to_affine(dst, (const blst_p1 **)points, npoints);
         return NULL;    // ignored by 'argout' typemap above
     }
 }
-%extend blst::P2s {
-    static PyObject* to_affine(blst_p2_affine dst[], const blst::P2* points[],
+%extend blst::P2_Affines {
+    static PyObject* as_memory(blst_p2_affine dst[], const blst::P2* points[],
                                                      size_t npoints)
     {   blst_p2s_to_affine(dst, (const blst_p2 **)points, npoints);
         return NULL;    // ignored by 'argout' typemap above
     }
 }
-%ignore P1s::P1s(); %ignore P1s::to_affine; %ignore P1s::~P1s();
-%ignore P2s::P2s(); %ignore P2s::to_affine; %ignore P2s::~P2s();
+%nodefault blst::P1_Affines;
+%nodefault blst::P2_Affines;
 
 %typemap(in) (const byte* scalars[], size_t nbits)
     (std::unique_ptr<byte[]> bytes, byte *scalars[2]) %{
@@ -694,8 +696,8 @@ import java.nio.file.*;
 #pragma SWIG nowarn=509,516
 
 #if !defined(SWIGPYTHON)
-%ignore P1s;
-%ignore P2s;
+%ignore P1_Affines;
+%ignore P2_Affines;
 #endif
 
 %ignore nullptr;

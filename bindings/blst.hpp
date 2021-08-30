@@ -178,7 +178,7 @@ private:
     friend class P2_Affine;
     friend class PT;
     friend class P1;
-    friend class P1s;
+    friend class P1_Affines;
     operator const blst_p1_affine*() const { return &point; }
     operator blst_p1_affine*()             { return &point; }
 };
@@ -272,40 +272,41 @@ public:
 
 private:
     friend class P1_Affine;
-    friend class P1s;
+    friend class P1_Affines;
     operator const blst_p1*() const { return &point; }
     operator blst_p1*()             { return &point; }
 };
 
-class P1s {
+class P1_Affines {
 private:
     struct p1_affine_no_init {
         blst_p1_affine point;
         p1_affine_no_init() { }
-        operator blst_p1_affine*() { return &point; }
+        operator blst_p1_affine*()              { return &point; }
+        operator const blst_p1_affine*() const  { return &point; }
     };
 
     std::vector<p1_affine_no_init> table;
     size_t wbits, npoints;
 
 public:
-    P1s() {}
 #ifndef SWIG
-    P1s(size_t wbits, const P1_Affine* points[], size_t npoints)
+    P1_Affines() {}
+    P1_Affines(size_t wbits, const P1_Affine* points[], size_t npoints)
     {   this->wbits = wbits;
         this->npoints = npoints;
         table.resize(npoints << (wbits-1));
         blst_p1s_mult_wbits_precompute(table[0], wbits,
                     reinterpret_cast<const blst_p1_affine **>(points), npoints);
     }
-    P1s(size_t wbits, const P1_Affine points[], size_t npoints)
+    P1_Affines(size_t wbits, const P1_Affine points[], size_t npoints)
     {   const P1_Affine* ptrs[2] = { points, nullptr };
-        P1s(wbits, ptrs, npoints);
+        P1_Affines(wbits, ptrs, npoints);
     }
-    P1s(size_t wbits, const std::vector<P1_Affine> points)
-    {   P1s(wbits, &points[0], points.size());   }
+    P1_Affines(size_t wbits, const std::vector<P1_Affine> points)
+    {   P1_Affines(wbits, &points[0], points.size());   }
 
-    P1s(size_t wbits, const P1* points[], size_t npoints)
+    P1_Affines(size_t wbits, const P1* points[], size_t npoints)
     {   size_t cap = npoints << (wbits-1);
 
         this->wbits = wbits;
@@ -316,45 +317,68 @@ public:
         const blst_p1_affine* ptrs[2] = { table[cap-npoints], nullptr };
         blst_p1s_mult_wbits_precompute(table[0], wbits, ptrs, npoints);
     }
-    P1s(size_t wbits, const P1 points[], size_t npoints)
+    P1_Affines(size_t wbits, const P1 points[], size_t npoints)
     {   const P1* ptrs[2] = { points, nullptr };
-        P1s(wbits, ptrs, npoints);
+        P1_Affines(wbits, ptrs, npoints);
     }
-    P1s(size_t wbits, const std::vector<P1> points)
-    {   P1s(wbits, &points[0], points.size());   }
+    P1_Affines(size_t wbits, const std::vector<P1> points)
+    {   P1_Affines(wbits, &points[0], points.size());   }
 
-    P1 mult_wbits(const byte* scalars[], size_t nbits)
+    P1_Affines(const P1* points[], size_t npoints)
+    {   this->wbits = 0;
+        this->npoints = npoints;
+        table.resize(npoints);
+        blst_p1s_to_affine(table[0], reinterpret_cast<const blst_p1 **>(points),
+                                     npoints);
+    }
+    P1_Affines(const P1 points[], size_t npoints)
+    {   const P1* ptrs[2] = { points, nullptr };
+        P1_Affines(ptrs, npoints);
+    }
+    P1_Affines(const std::vector<P1> points)
+    {   P1_Affines(&points[0], points.size());   }
+
+    P1 mult(const byte* scalars[], size_t nbits) const
     {   P1 ret;
-        void* scratch = malloc(blst_p1s_mult_wbits_scratch_sizeof(npoints));
-        blst_p1s_mult_wbits(ret, table[0], wbits, npoints,
-                                 scalars, nbits, scratch);
-        free(scratch);
+        void* scratch;
+
+        if (wbits != 0) {
+            scratch = operator new(blst_p1s_mult_wbits_scratch_sizeof(npoints));
+            blst_p1s_mult_wbits(ret, table[0], wbits, npoints,
+                                     scalars, nbits, scratch);
+        } else {
+            scratch = operator new(blst_p1s_mult_pippenger_scratch_sizeof(npoints));
+            const blst_p1_affine* ptrs[2] = { table[0], nullptr };
+            blst_p1s_mult_pippenger(ret, ptrs, npoints,
+                                         scalars, nbits, scratch);
+        }
+        operator delete(scratch);
         return ret;
     }
 
-    static std::vector<P1_Affine> to_affine(const P1* points[], size_t npoints)
+    static std::vector<P1_Affine> from(const P1* points[], size_t npoints)
     {   std::vector<P1_Affine> ret;
         ret.resize(npoints);
         blst_p1s_to_affine(ret[0], reinterpret_cast<const blst_p1 **>(points),
                                    npoints);
         return ret;
     }
-    static std::vector<P1_Affine> to_affine(const P1 points[], size_t npoints)
+    static std::vector<P1_Affine> from(const P1 points[], size_t npoints)
     {   const P1* ptrs[2] = { points, nullptr };
-        return to_affine(ptrs, npoints);
+        return from(ptrs, npoints);
     }
-    static std::vector<P1_Affine> to_affine(std::vector<P1> points)
-    {   return to_affine(&points[0], points.size());   }
+    static std::vector<P1_Affine> from(std::vector<P1> points)
+    {   return from(&points[0], points.size());   }
 #endif
 
     static P1 mult_pippenger(const P1_Affine* points[], size_t npoints,
                              const byte* scalars[], size_t nbits)
     {   P1 ret;
-        void* scratch = malloc(blst_p1s_mult_pippenger_scratch_sizeof(npoints));
+        void* scratch = operator new(blst_p1s_mult_pippenger_scratch_sizeof(npoints));
         blst_p1s_mult_pippenger(ret,
                     reinterpret_cast<const blst_p1_affine **>(points), npoints,
                     scalars, nbits, scratch);
-        free(scratch);
+        operator delete(scratch);
         return ret;
     }
 #ifndef SWIG
@@ -427,7 +451,7 @@ private:
     friend class P1_Affine;
     friend class PT;
     friend class P2;
-    friend class P2s;
+    friend class P2_Affines;
     operator const blst_p2_affine*() const { return &point; }
     operator blst_p2_affine*()             { return &point; }
 };
@@ -521,40 +545,41 @@ public:
 
 private:
     friend class P2_Affine;
-    friend class P2s;
+    friend class P2_Affines;
     operator const blst_p2*() const { return &point; }
     operator blst_p2*()             { return &point; }
 };
 
-class P2s {
+class P2_Affines {
 private:
     struct p2_affine_no_init {
         blst_p2_affine point;
         p2_affine_no_init() { }
-        operator blst_p2_affine*() { return &point; }
+        operator blst_p2_affine*()              { return &point; }
+        operator const blst_p2_affine*() const  { return &point; }
     };
 
     std::vector<p2_affine_no_init> table;
     size_t wbits, npoints;
 
 public:
-    P2s() {}
 #ifndef SWIG
-    P2s(size_t wbits, const P2_Affine* points[], size_t npoints)
+    P2_Affines() {}
+    P2_Affines(size_t wbits, const P2_Affine* points[], size_t npoints)
     {   this->wbits = wbits;
         this->npoints = npoints;
         table.resize(npoints << (wbits-1));
         blst_p2s_mult_wbits_precompute(table[0], wbits,
                     reinterpret_cast<const blst_p2_affine **>(points), npoints);
     }
-    P2s(size_t wbits, const P2_Affine points[], size_t npoints)
+    P2_Affines(size_t wbits, const P2_Affine points[], size_t npoints)
     {   const P2_Affine* ptrs[2] = { points, nullptr };
-        P2s(wbits, ptrs, npoints);
+        P2_Affines(wbits, ptrs, npoints);
     }
-    P2s(size_t wbits, const std::vector<P2_Affine> points)
-    {   P2s(wbits, &points[0], points.size());   }
+    P2_Affines(size_t wbits, const std::vector<P2_Affine> points)
+    {   P2_Affines(wbits, &points[0], points.size());   }
 
-    P2s(size_t wbits, const P2* points[], size_t npoints)
+    P2_Affines(size_t wbits, const P2* points[], size_t npoints)
     {   size_t cap = npoints << (wbits-1);
 
         this->wbits = wbits;
@@ -565,45 +590,68 @@ public:
         const blst_p2_affine* ptrs[2] = { table[cap-npoints], nullptr };
         blst_p2s_mult_wbits_precompute(table[0], wbits, ptrs, npoints);
     }
-    P2s(size_t wbits, const P2 points[], size_t npoints)
+    P2_Affines(size_t wbits, const P2 points[], size_t npoints)
     {   const P2* ptrs[2] = { points, nullptr };
-        P2s(wbits, ptrs, npoints);
+        P2_Affines(wbits, ptrs, npoints);
     }
-    P2s(size_t wbits, const std::vector<P2> points)
-    {   P2s(wbits, &points[0], points.size());   }
+    P2_Affines(size_t wbits, const std::vector<P2> points)
+    {   P2_Affines(wbits, &points[0], points.size());   }
 
-    P2 mult_wbits(const byte* scalars[], size_t nbits)
+    P2_Affines(const P2* points[], size_t npoints)
+    {   this->wbits = 0;
+        this->npoints = npoints;
+        table.resize(npoints);
+        blst_p2s_to_affine(table[0], reinterpret_cast<const blst_p2 **>(points),
+                                     npoints);
+    }
+    P2_Affines(const P2 points[], size_t npoints)
+    {   const P2* ptrs[2] = { points, nullptr };
+        P2_Affines(ptrs, npoints);
+    }
+    P2_Affines(const std::vector<P2> points)
+    {   P2_Affines(&points[0], points.size());   }
+
+    P2 mult(const byte* scalars[], size_t nbits) const
     {   P2 ret;
-        void* scratch = malloc(blst_p2s_mult_wbits_scratch_sizeof(npoints));
-        blst_p2s_mult_wbits(ret, table[0], wbits, npoints,
-                                 scalars, nbits, scratch);
-        free(scratch);
+        void* scratch;
+
+        if (wbits != 0) {
+            scratch = operator new(blst_p2s_mult_wbits_scratch_sizeof(npoints));
+            blst_p2s_mult_wbits(ret, table[0], wbits, npoints,
+                                     scalars, nbits, scratch);
+        } else {
+            scratch = operator new(blst_p2s_mult_pippenger_scratch_sizeof(npoints));
+            const blst_p2_affine* ptrs[2] = { table[0], nullptr };
+            blst_p2s_mult_pippenger(ret, ptrs, npoints,
+                                         scalars, nbits, scratch);
+        }
+        operator delete(scratch);
         return ret;
     }
 
-    static std::vector<P2_Affine> to_affine(const P2* points[], size_t npoints)
+    static std::vector<P2_Affine> from(const P2* points[], size_t npoints)
     {   std::vector<P2_Affine> ret;
         ret.resize(npoints);
         blst_p2s_to_affine(ret[0],
                            reinterpret_cast<const blst_p2 **>(points), npoints);
         return ret;
     }
-    static std::vector<P2_Affine> to_affine(const P2 points[], size_t npoints)
+    static std::vector<P2_Affine> from(const P2 points[], size_t npoints)
     {   const P2* ptrs[2] = { points, nullptr };
-        return to_affine(ptrs, npoints);
+        return from(ptrs, npoints);
     }
-    static std::vector<P2_Affine> to_affine(std::vector<P2> points)
-    {   return to_affine(&points[0], points.size());   }
+    static std::vector<P2_Affine> from(std::vector<P2> points)
+    {   return from(&points[0], points.size());   }
 #endif
 
     static P2 mult_pippenger(const P2_Affine* points[], size_t npoints,
                              const byte* scalars[], size_t nbits)
     {   P2 ret;
-        void* scratch = malloc(blst_p2s_mult_pippenger_scratch_sizeof(npoints));
+        void* scratch = operator new(blst_p2s_mult_pippenger_scratch_sizeof(npoints));
         blst_p2s_mult_pippenger(ret,
                     reinterpret_cast<const blst_p2_affine **>(points), npoints,
                     scalars, nbits, scratch);
-        free(scratch);
+        operator delete(scratch);
         return ret;
     }
 #ifndef SWIG
