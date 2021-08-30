@@ -201,7 +201,7 @@ if not a.is_equal(blst.G2().mult(total)):
 PK = blst.P1(SK).to_affine()
 
 # User wants to have |msg| signed,
-H_msg = blst.P2().hash_to(msg, DST)
+H_msg = blst.P2().hash_to(msg, DST, PK.compress())
 # chooses random |r|,
 r = blst.Scalar().from_bendian(os.urandom(32))  # should be PRF in real life...
 # blinds the H(|msg|) with |r| and sends it to the Signer.
@@ -227,7 +227,7 @@ if not blst.PT.finalverify(C1, C2):
 
 # Now |signature| can be verified as any other, e.g....
 ctx = blst.Pairing(True, DST)
-ctx.aggregate(PK, signature, msg)
+ctx.aggregate(PK, signature, msg, PK.compress())
 ctx.commit()
 if not ctx.finalverify():
     raise AssertionError("disaster")
@@ -266,7 +266,7 @@ a = blst.G1().add(g[0].dup().mult(s))
 for i in range(count):
     a.add(g[i+1].dup().mult(m[i]))
 
-A = a.dup().sign_with(e.dup().add(SK).inverse()).to_affine()
+A = a.sign_with(e.dup().add(SK).inverse()).to_affine()
 
 signature = [A, e, s]               # serialize to application liking
 
