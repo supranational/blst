@@ -77,18 +77,22 @@ trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o /tmp/localize.blst.$$' 0
 (set -x; ${CC} ${CFLAGS} -c ${TOP}/src/server.c)
 (set -x; ${CC} ${CFLAGS} -c ${TOP}/build/assembly.S)
 
-${NM} -P *.o | egrep -v -e '^_?blst_' |
-               awk '{ if($2=="T") print $1 }' > /tmp/localize.blst.$$
-if [ $flavour = "macosx" ]; then
-    (set -x; ${CC} ${CFLAGS} -nostdlib -r *.o -o blst.o \
-                             -unexported_symbols_list /tmp/localize.blst.$$
-             ${AR} rc libblst.a blst.o)
-elif which ${OBJCOPY} >/dev/null 2>&1; then
-    (set -x; ${CC} ${CFLAGS} -nostdlib -r *.o -o blst.o
-             ${OBJCOPY} --localize-symbols=/tmp/localize.blst.$$ blst.o
-             ${AR} rc libblst.a blst.o)
-else
+if expr "${CFLAGS}" : '.*-fsanitize' > /dev/null; then
     (set -x; ${AR} rc libblst.a *.o)
+else
+    ${NM} -P *.o | egrep -v -e '^_?blst_' |
+                   awk '{ if($2=="T") print $1 }' > /tmp/localize.blst.$$
+    if [ $flavour = "macosx" ]; then
+        (set -x; ${CC} ${CFLAGS} -nostdlib -r *.o -o blst.o \
+                                 -unexported_symbols_list /tmp/localize.blst.$$
+                 ${AR} rc libblst.a blst.o)
+    elif which ${OBJCOPY} >/dev/null 2>&1; then
+        (set -x; ${CC} ${CFLAGS} -nostdlib -r *.o -o blst.o
+                 ${OBJCOPY} --localize-symbols=/tmp/localize.blst.$$ blst.o
+                 ${AR} rc libblst.a blst.o)
+    else
+        (set -x; ${AR} rc libblst.a *.o)
+    fi
 fi
 
 if [ $shared ]; then
