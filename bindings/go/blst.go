@@ -13,6 +13,11 @@ package blst
 // #cgo CFLAGS: -I${SRCDIR}/.. -I${SRCDIR}/../../build -I${SRCDIR}/../../src -D__BLST_CGO__
 // #cgo amd64 CFLAGS: -D__ADX__ -mno-avx -fno-builtin-memcpy
 // #include "blst.h"
+// static byte *copy_DST(limb_t *ctx, const byte *DST, size_t DST_len)
+// {   byte *dst = (byte*)ctx;
+//     while(DST_len--) *dst++ = *DST++;
+//     return (byte *)ctx;
+// }
 import "C"
 import (
 	"fmt"
@@ -99,10 +104,13 @@ func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
 // Pairing
 //
 func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
-	ctx := make([]uint64, C.blst_pairing_sizeof()/8)
+	sz := int(C.blst_pairing_sizeof()) / 8
+	add_sz := (len(DST) + 7) / 8
+	ctx := make([]uint64, sz+add_sz)
 	var uDST *C.byte
 	if len(DST) > 0 {
-		uDST = (*C.byte)(&DST[0])
+		uDST = C.copy_DST((*C.limb_t)(&ctx[sz]), (*C.byte)(&DST[0]),
+			C.size_t(len(DST)))
 	}
 	C.blst_pairing_init((*C.blst_pairing)(&ctx[0]), C.bool(hash_or_encode),
 		uDST, C.size_t(len(DST)))
