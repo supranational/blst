@@ -19,6 +19,7 @@ pub enum BLST_ERROR {
     BLST_AGGR_TYPE_MISMATCH = 4,
     BLST_VERIFY_FAIL = 5,
     BLST_PK_IS_INFINITY = 6,
+    BLST_BAD_SCALAR = 7,
 }
 pub type byte = u8;
 pub type limb_t = u64;
@@ -1238,4 +1239,14 @@ extern "C" {
         scalar: *const byte,
         nbits: usize,
     );
+}
+extern "C" {
+    pub fn blst_pairing_raw_aggregate(
+        ctx: *mut blst_pairing,
+        q: *const blst_p2_affine,
+        p: *const blst_p1_affine,
+    );
+}
+extern "C" {
+    pub fn blst_pairing_as_fp12(ctx: *mut blst_pairing) -> *mut blst_fp12;
 }
