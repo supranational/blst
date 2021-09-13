@@ -131,7 +131,7 @@ func TestSignVerifyMinSig(t *testing.T) {
     }
 
     // Verify serialized inputs
-    if !new(SignatureMinSig).AggregateVerifyCompressed(sig0.Serialize(), true,
+    if !new(SignatureMinSig).AggregateVerifyCompressed(sig0.Compress(), true,
                                                       [][]byte{pk0.Serialize()},
                                                       false,
                                                       []Message{msg0}, dstMinSig) {
@@ -224,14 +224,10 @@ func TestSignVerifyAggregateMinSig(t *testing.T) {
             t.Errorf("failed to not verify size %d", size)
         }
 
-        // Test compressed/serialized signature aggregation
+        // Test compressed signature aggregation
         compSigs := make([][]byte, size)
         for i := 0; i < size; i++ {
-            if (i % 2) == 0 {
-                compSigs[i] = sigs[i].Compress()
-            } else {
-                compSigs[i] = sigs[i].Serialize()
-            }
+            compSigs[i] = sigs[i].Compress()
         }
         agProj = new(AggregateSignatureMinSig)
         if !agProj.AggregateCompressed(compSigs, false) {

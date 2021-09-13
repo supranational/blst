@@ -391,16 +391,7 @@ func (dummy *P2Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
 
 	sigFn := func() *P2Affine {
 		sigP := new(P2Affine)
-		if len(sig) == BLST_P2_SERIALIZE_BYTES && (sig[0]&0x80) == 0 {
-			// Not compressed
-			if sigP.Deserialize(sig) == nil {
-				return nil
-			}
-		} else if len(sig) == BLST_P2_COMPRESS_BYTES && (sig[0]&0x80) != 0 {
-			if sigP.Uncompress(sig) == nil {
-				return nil
-			}
-		} else {
+		if sigP.Uncompress(sig) == nil {
 			return nil
 		}
 		return sigP
@@ -716,18 +707,8 @@ func (agg *P2Aggregate) AggregateCompressed(elmts [][]byte,
 	}
 	getter := func(i uint32, p *P2Affine) *P2Affine {
 		bytes := elmts[i]
-		if len(bytes) == 0 {
+		if p.Uncompress(bytes) == nil {
 			return nil
-		}
-		if bytes[0]&0x80 == 0 {
-			// Not compressed
-			if p.Deserialize(bytes) == nil {
-				return nil
-			}
-		} else {
-			if p.Uncompress(bytes) == nil {
-				return nil
-			}
 		}
 		return p
 	}
@@ -993,16 +974,7 @@ func (dummy *P1Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
 
 	sigFn := func() *P1Affine {
 		sigP := new(P1Affine)
-		if len(sig) == BLST_P1_SERIALIZE_BYTES && (sig[0]&0x80) == 0 {
-			// Not compressed
-			if sigP.Deserialize(sig) == nil {
-				return nil
-			}
-		} else if len(sig) == BLST_P1_COMPRESS_BYTES && (sig[0]&0x80) != 0 {
-			if sigP.Uncompress(sig) == nil {
-				return nil
-			}
-		} else {
+		if sigP.Uncompress(sig) == nil {
 			return nil
 		}
 		return sigP
@@ -1318,18 +1290,8 @@ func (agg *P1Aggregate) AggregateCompressed(elmts [][]byte,
 	}
 	getter := func(i uint32, p *P1Affine) *P1Affine {
 		bytes := elmts[i]
-		if len(bytes) == 0 {
+		if p.Uncompress(bytes) == nil {
 			return nil
-		}
-		if bytes[0]&0x80 == 0 {
-			// Not compressed
-			if p.Deserialize(bytes) == nil {
-				return nil
-			}
-		} else {
-			if p.Uncompress(bytes) == nil {
-				return nil
-			}
 		}
 		return p
 	}
