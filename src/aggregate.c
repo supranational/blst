@@ -517,6 +517,37 @@ int blst_fp12_finalverify(const vec384fp12 GT1, const vec384fp12 GT2)
                  vec_is_zero(GT[0][1], sizeof(GT) - sizeof(GT[0][0])));
 }
 
+void blst_pairing_raw_aggregate(PAIRING *ctx, const POINTonE2_affine *q,
+                                              const POINTonE1_affine *p)
+{
+    unsigned int n;
+
+    if (vec_is_zero(q, sizeof(*q)) & vec_is_zero(p, sizeof(*p)))
+        return;
+
+    n = ctx->nelems;
+    vec_copy(ctx->Q + n, q, sizeof(*q));
+    vec_copy(ctx->P + n, p, sizeof(*p));
+    if (++n == N_MAX) {
+        if (ctx->ctrl & AGGR_GT_SET) {
+            vec384fp12 GT;
+            miller_loop_n(GT, ctx->Q, ctx->P, n);
+            mul_fp12(ctx->GT, ctx->GT, GT);
+        } else {
+            miller_loop_n(ctx->GT, ctx->Q, ctx->P, n);
+            ctx->ctrl |= AGGR_GT_SET;
+        }
+        n = 0;
+    }
+    ctx->nelems = n;
+}
+
+vec384fp12 *blst_pairing_as_fp12(PAIRING *ctx)
+{
+    PAIRING_Commit(ctx);
+    return (vec384fp12 *)ctx->GT;
+}
+
 /*
  * PAIRING context-free entry points.
  *
