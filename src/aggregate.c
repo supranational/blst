@@ -419,6 +419,8 @@ BLST_ERROR blst_pairing_merge(PAIRING *ctx, const PAIRING *ctx1)
     if (ctx->nelems || ctx1->nelems)
         return BLST_AGGR_TYPE_MISMATCH;
 
+    ctx->ctrl |= ctx1->ctrl & MIN_SIG_OR_PK;
+
     switch (ctx->ctrl & MIN_SIG_OR_PK) {
         case AGGR_MIN_SIG:
             if (ctx->ctrl & ctx1->ctrl & AGGR_SIGN_SET) {
@@ -441,8 +443,7 @@ BLST_ERROR blst_pairing_merge(PAIRING *ctx, const PAIRING *ctx1)
             }
             break;
         case AGGR_UNDEFINED:
-            vec_copy(ctx, ctx1, sizeof(*ctx));
-            return BLST_SUCCESS;
+            break;
         default:
             return BLST_AGGR_TYPE_MISMATCH;
     }
