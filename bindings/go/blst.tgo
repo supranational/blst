@@ -230,6 +230,14 @@ func PairingFinalVerify(ctx Pairing, optional ...*Fp12) bool {
     return bool(C.blst_pairing_finalverify((*C.blst_pairing)(&ctx[0]), gtsig))
 }
 
+func PairingRawAggregate(ctx Pairing, q *P2Affine, p *P1Affine) {
+    C.blst_pairing_raw_aggregate((*C.blst_pairing)(&ctx[0]), q, p)
+}
+
+func PairingAsFp12(ctx Pairing) Fp12 {
+    return *C.blst_pairing_as_fp12((*C.blst_pairing)(&ctx[0]))
+}
+
 func Fp12One() Fp12 {
     return *C.blst_fp12_one()
 }
