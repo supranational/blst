@@ -62,6 +62,28 @@ impl PartialEq for blst_fp12 {
     }
 }
 
+impl blst_fp12 {
+    pub fn miller_loop(q: &blst_p2_affine, p: &blst_p1_affine) -> Self {
+        let mut out = std::mem::MaybeUninit::<blst_fp12>::uninit();
+        unsafe {
+            blst_miller_loop(out.as_mut_ptr(), q, p);
+            out.assume_init()
+        }
+    }
+
+    pub fn final_exp(&self) -> Self {
+        let mut out = std::mem::MaybeUninit::<blst_fp12>::uninit();
+        unsafe {
+            blst_final_exp(out.as_mut_ptr(), self);
+            out.assume_init()
+        }
+    }
+
+    pub fn finalverify(a: &Self, b: &Self) -> bool {
+        unsafe { blst_fp12_finalverify(a, b) }
+    }
+}
+
 #[derive(Debug)]
 pub struct Pairing {
     v: Box<[u64]>,
