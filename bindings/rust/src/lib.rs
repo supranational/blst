@@ -247,6 +247,14 @@ impl Pairing {
             )
         }
     }
+
+    pub fn raw_aggregate(&mut self, q: &blst_p2_affine, p: &blst_p1_affine) {
+        unsafe { blst_pairing_raw_aggregate(self.ctx(), q, p) }
+    }
+
+    pub fn as_fp12(&mut self) -> blst_fp12 {
+        unsafe { *blst_pairing_as_fp12(self.ctx()) }
+    }
 }
 
 pub fn uniq(msgs: &[&[u8]]) -> bool {
