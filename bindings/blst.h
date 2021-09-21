@@ -71,15 +71,15 @@ void blst_scalar_from_lendian(blst_scalar *out, const byte a[32]);
 void blst_lendian_from_scalar(byte out[32], const blst_scalar *a);
 bool blst_scalar_fr_check(const blst_scalar *a);
 bool blst_sk_check(const blst_scalar *a);
-bool blst_sk_add_n_check(blst_scalar *ret, const blst_scalar *a,
+bool blst_sk_add_n_check(blst_scalar *out, const blst_scalar *a,
                                            const blst_scalar *b);
-bool blst_sk_sub_n_check(blst_scalar *ret, const blst_scalar *a,
+bool blst_sk_sub_n_check(blst_scalar *out, const blst_scalar *a,
                                            const blst_scalar *b);
-bool blst_sk_mul_n_check(blst_scalar *ret, const blst_scalar *a,
+bool blst_sk_mul_n_check(blst_scalar *out, const blst_scalar *a,
                                            const blst_scalar *b);
-void blst_sk_inverse(blst_scalar *ret, const blst_scalar *a);
-bool blst_scalar_from_le_bytes(blst_scalar *out, const byte *bytes, size_t n);
-bool blst_scalar_from_be_bytes(blst_scalar *out, const byte *bytes, size_t n);
+void blst_sk_inverse(blst_scalar *out, const blst_scalar *a);
+bool blst_scalar_from_le_bytes(blst_scalar *out, const byte *in, size_t len);
+bool blst_scalar_from_be_bytes(blst_scalar *out, const byte *in, size_t len);
 
 #ifndef SWIG
 /*
