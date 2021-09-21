@@ -777,9 +777,9 @@ private:
 
 public:
     PT(const P1_Affine& p)  { blst_aggregated_in_g1(&value, p); }
-    PT(const P2_Affine& p)  { blst_aggregated_in_g2(&value, p); }
-    PT(const P2_Affine& p2, const P1_Affine& p1)
-    {   blst_miller_loop(&value, p2, p1);   }
+    PT(const P2_Affine& q)  { blst_aggregated_in_g2(&value, q); }
+    PT(const P2_Affine& q, const P1_Affine& p)
+    {   blst_miller_loop(&value, q, p);   }
 
     PT dup() const          { return *this; }
     bool is_one() const     { return blst_fp12_is_one(&value); }
