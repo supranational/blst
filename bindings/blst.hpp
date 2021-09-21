@@ -360,19 +360,19 @@ public:
 
     P1 mult(const byte* scalars[], size_t nbits) const
     {   P1 ret;
-        void* scratch;
+        limb_t* scratch;
 
         if (wbits != 0) {
-            scratch = operator new(blst_p1s_mult_wbits_scratch_sizeof(npoints));
+            scratch = new limb_t[blst_p1s_mult_wbits_scratch_sizeof(npoints)/sizeof(limb_t)];
             blst_p1s_mult_wbits(ret, table[0], wbits, npoints,
                                      scalars, nbits, scratch);
         } else {
-            scratch = operator new(blst_p1s_mult_pippenger_scratch_sizeof(npoints));
+            scratch = new limb_t[blst_p1s_mult_pippenger_scratch_sizeof(npoints)/sizeof(limb_t)];
             const blst_p1_affine* ptrs[2] = { table[0], nullptr };
             blst_p1s_mult_pippenger(ret, ptrs, npoints,
                                          scalars, nbits, scratch);
         }
-        operator delete(scratch);
+        delete[] scratch;
         return ret;
     }
 
@@ -394,11 +394,12 @@ public:
     static P1 mult_pippenger(const P1_Affine* points[], size_t npoints,
                              const byte* scalars[], size_t nbits)
     {   P1 ret;
-        void* scratch = operator new(blst_p1s_mult_pippenger_scratch_sizeof(npoints));
+        limb_t* scratch;
+        scratch = new limb_t[blst_p1s_mult_pippenger_scratch_sizeof(npoints)/sizeof(limb_t)];
         blst_p1s_mult_pippenger(ret,
                     reinterpret_cast<const blst_p1_affine **>(points), npoints,
                     scalars, nbits, scratch);
-        operator delete(scratch);
+        delete[] scratch;
         return ret;
     }
 #ifndef SWIG
@@ -653,19 +654,19 @@ public:
 
     P2 mult(const byte* scalars[], size_t nbits) const
     {   P2 ret;
-        void* scratch;
+        limb_t* scratch;
 
         if (wbits != 0) {
-            scratch = operator new(blst_p2s_mult_wbits_scratch_sizeof(npoints));
+            scratch = new limb_t[blst_p2s_mult_wbits_scratch_sizeof(npoints)/sizeof(limb_t)];
             blst_p2s_mult_wbits(ret, table[0], wbits, npoints,
                                      scalars, nbits, scratch);
         } else {
-            scratch = operator new(blst_p2s_mult_pippenger_scratch_sizeof(npoints));
+            scratch = new limb_t[blst_p2s_mult_pippenger_scratch_sizeof(npoints)/sizeof(limb_t)];
             const blst_p2_affine* ptrs[2] = { table[0], nullptr };
             blst_p2s_mult_pippenger(ret, ptrs, npoints,
                                          scalars, nbits, scratch);
         }
-        operator delete(scratch);
+        delete[] scratch;
         return ret;
     }
 
@@ -687,11 +688,12 @@ public:
     static P2 mult_pippenger(const P2_Affine* points[], size_t npoints,
                              const byte* scalars[], size_t nbits)
     {   P2 ret;
-        void* scratch = operator new(blst_p2s_mult_pippenger_scratch_sizeof(npoints));
+        limb_t* scratch;
+        scratch = new limb_t[blst_p2s_mult_pippenger_scratch_sizeof(npoints)/sizeof(limb_t)];
         blst_p2s_mult_pippenger(ret,
                     reinterpret_cast<const blst_p2_affine **>(points), npoints,
                     scalars, nbits, scratch);
-        operator delete(scratch);
+        delete[] scratch;
         return ret;
     }
 #ifndef SWIG
