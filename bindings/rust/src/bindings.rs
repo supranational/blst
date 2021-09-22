@@ -391,6 +391,10 @@ extern "C" {
     pub fn blst_fp12_cyclotomic_sqr(ret: *mut blst_fp12, a: *const blst_fp12);
 }
 extern "C" {
+    pub fn blst_fp12_raise_to_z(ret: *mut blst_fp12, a: *const blst_fp12);
+}
+
+extern "C" {
     pub fn blst_fp12_mul(ret: *mut blst_fp12, a: *const blst_fp12, b: *const blst_fp12);
 }
 extern "C" {

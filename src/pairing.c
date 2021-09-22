@@ -417,3 +417,7 @@ void blst_precompute_lines(vec384fp6 Qlines[68], const POINTonE2_affine *Q)
 void blst_miller_loop_lines(vec384fp12 ret, const vec384fp6 Qlines[68],
                                             const POINTonE1_affine *P)
 {   miller_loop_lines(ret, Qlines, P);   }
+
+void blst_fp12_raise_to_z(vec384fp12 ret, const vec384fp12 a)
+{   raise_to_z(ret, a);   }
+
