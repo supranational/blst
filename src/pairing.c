@@ -417,3 +417,27 @@ void blst_precompute_lines(vec384fp6 Qlines[68], const POINTonE2_affine *Q)
 void blst_miller_loop_lines(vec384fp12 ret, const vec384fp6 Qlines[68],
                                             const POINTonE1_affine *P)
 {   miller_loop_lines(ret, Qlines, P);   }
+
+static bool_t is_cyclotomic(const vec384fp12 f)
+{
+    vec384fp12 a, b;
+
+    frobenius_map_fp12(a, f, 2);
+    frobenius_map_fp12(b, a, 2);
+    mul_fp12(b, b, f);
+
+    return vec_is_equal(a, b, sizeof(a));
+}
+
+int blst_fp12_in_group(const vec384fp12 f)
+{
+    vec384fp12 a, b;
+
+    if (!is_cyclotomic(f))
+        return 0;
+
+    frobenius_map_fp12(a, f, 1);
+    raise_to_z(b, f);
+
+    return (int)vec_is_equal(a, b, sizeof(a));
+}
