@@ -224,33 +224,33 @@ extern "C" {
 }
 extern "C" {
     pub fn blst_sk_add_n_check(
-        ret: *mut blst_scalar,
+        out: *mut blst_scalar,
         a: *const blst_scalar,
         b: *const blst_scalar,
     ) -> bool;
 }
 extern "C" {
     pub fn blst_sk_sub_n_check(
-        ret: *mut blst_scalar,
+        out: *mut blst_scalar,
         a: *const blst_scalar,
         b: *const blst_scalar,
     ) -> bool;
 }
 extern "C" {
     pub fn blst_sk_mul_n_check(
-        ret: *mut blst_scalar,
+        out: *mut blst_scalar,
         a: *const blst_scalar,
         b: *const blst_scalar,
     ) -> bool;
 }
 extern "C" {
-    pub fn blst_sk_inverse(ret: *mut blst_scalar, a: *const blst_scalar);
+    pub fn blst_sk_inverse(out: *mut blst_scalar, a: *const blst_scalar);
 }
 extern "C" {
-    pub fn blst_scalar_from_le_bytes(out: *mut blst_scalar, bytes: *const byte, n: usize) -> bool;
+    pub fn blst_scalar_from_le_bytes(out: *mut blst_scalar, in_: *const byte, len: usize) -> bool;
 }
 extern "C" {
-    pub fn blst_scalar_from_be_bytes(out: *mut blst_scalar, bytes: *const byte, n: usize) -> bool;
+    pub fn blst_scalar_from_be_bytes(out: *mut blst_scalar, in_: *const byte, len: usize) -> bool;
 }
 extern "C" {
     pub fn blst_fr_add(ret: *mut blst_fr, a: *const blst_fr, b: *const blst_fr);
@@ -414,6 +414,9 @@ extern "C" {
 }
 extern "C" {
     pub fn blst_fp12_is_one(a: *const blst_fp12) -> bool;
+}
+extern "C" {
+    pub fn blst_fp12_in_group(a: *const blst_fp12) -> bool;
 }
 extern "C" {
     pub fn blst_fp12_one() -> *const blst_fp12;
@@ -750,7 +753,7 @@ extern "C" {
         npoints: usize,
         scalars: *mut *const byte,
         nbits: usize,
-        scratch: *mut ::std::os::raw::c_void,
+        scratch: *mut limb_t,
     );
 }
 extern "C" {
@@ -763,7 +766,7 @@ extern "C" {
         npoints: usize,
         scalars: *mut *const byte,
         nbits: usize,
-        scratch: *mut ::std::os::raw::c_void,
+        scratch: *mut limb_t,
     );
 }
 extern "C" {
@@ -798,7 +801,7 @@ extern "C" {
         npoints: usize,
         scalars: *mut *const byte,
         nbits: usize,
-        scratch: *mut ::std::os::raw::c_void,
+        scratch: *mut limb_t,
     );
 }
 extern "C" {
@@ -811,7 +814,7 @@ extern "C" {
         npoints: usize,
         scalars: *mut *const byte,
         nbits: usize,
-        scratch: *mut ::std::os::raw::c_void,
+        scratch: *mut limb_t,
     );
 }
 extern "C" {

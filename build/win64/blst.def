@@ -70,6 +70,7 @@ EXPORTS
 	blst_fp12_frobenius_map
 	blst_fp12_is_equal
 	blst_fp12_is_one
+	blst_fp12_in_group
 	blst_fp12_one
 	blst_p1_add
 	blst_p1_add_or_double
