@@ -255,10 +255,22 @@ func Fp12FinalVerify(pt1 *Fp12, pt2 *Fp12) bool {
 	return bool(C.blst_fp12_finalverify(pt1, pt2))
 }
 
-func Fp12MillerLoop(p2 *P2Affine, p1 *P1Affine) *Fp12 {
+func Fp12MillerLoop(q *P2Affine, p *P1Affine) *Fp12 {
 	var pt Fp12
-	C.blst_miller_loop(&pt, p2, p1)
+	C.blst_miller_loop(&pt, q, p)
 	return &pt
+}
+
+func (pt *Fp12) MulAssign(p *Fp12) {
+	C.blst_fp12_mul(pt, pt, p)
+}
+
+func (pt *Fp12) FinalExp() {
+	C.blst_final_exp(pt, pt)
+}
+
+func (pt *Fp12) InGroup() bool {
+	return bool(C.blst_fp12_in_group(pt))
 }
 
 //
