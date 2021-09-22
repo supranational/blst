@@ -154,6 +154,7 @@ void blst_fp12_inverse(blst_fp12 *ret, const blst_fp12 *a);
 void blst_fp12_frobenius_map(blst_fp12 *ret, const blst_fp12 *a, size_t n);
 bool blst_fp12_is_equal(const blst_fp12 *a, const blst_fp12 *b);
 bool blst_fp12_is_one(const blst_fp12 *a);
+bool blst_fp12_in_group(const blst_fp12 *a);
 const blst_fp12 *blst_fp12_one();
 #endif  // SWIG
 

@@ -791,6 +791,7 @@ public:
     PT* sqr()               { blst_fp12_sqr(&value, &value);    return this; }
     PT* mul(const PT& p)    { blst_fp12_mul(&value, &value, p); return this; }
     PT* final_exp()         { blst_final_exp(&value, &value);   return this; }
+    bool in_group() const   { return blst_fp12_in_group(&value); }
 
     static bool finalverify(const PT& gt1, const PT& gt2)
     {   return blst_fp12_finalverify(gt1, gt2);   }
