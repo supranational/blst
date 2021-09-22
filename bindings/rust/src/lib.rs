@@ -62,6 +62,24 @@ impl PartialEq for blst_fp12 {
     }
 }
 
+impl core::ops::Mul for blst_fp12 {
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self {
+        let mut out = std::mem::MaybeUninit::<blst_fp12>::uninit();
+        unsafe {
+            blst_fp12_mul(out.as_mut_ptr(), &self, &other);
+            out.assume_init()
+        }
+    }
+}
+
+impl core::ops::MulAssign for blst_fp12 {
+    fn mul_assign(&mut self, other: Self) {
+        unsafe { blst_fp12_mul(self, self, &other) }
+    }
+}
+
 impl blst_fp12 {
     pub fn miller_loop(q: &blst_p2_affine, p: &blst_p1_affine) -> Self {
         let mut out = std::mem::MaybeUninit::<blst_fp12>::uninit();
@@ -77,6 +95,10 @@ impl blst_fp12 {
             blst_final_exp(out.as_mut_ptr(), self);
             out.assume_init()
         }
+    }
+
+    pub fn in_group(&self) -> bool {
+        unsafe { blst_fp12_in_group(self) }
     }
 
     pub fn finalverify(a: &Self, b: &Self) -> bool {
