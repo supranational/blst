@@ -777,6 +777,7 @@ class PT {
 private:
     blst_fp12 value;
 
+    PT(const blst_fp12 *v)  { value = *v; }
 public:
     PT(const P1_Affine& p)  { blst_aggregated_in_g1(&value, p); }
     PT(const P2_Affine& q)  { blst_aggregated_in_g2(&value, q); }
@@ -793,6 +794,7 @@ public:
 
     static bool finalverify(const PT& gt1, const PT& gt2)
     {   return blst_fp12_finalverify(gt1, gt2);   }
+    static PT one() { return PT(blst_fp12_one()); }
 
 private:
     friend class Pairing;
@@ -895,6 +897,10 @@ public:
     {   return blst_pairing_merge(*this, *ctx);   }
     bool finalverify(const PT* sig = nullptr) const
     {   return blst_pairing_finalverify(*this, *sig);   }
+    void raw_aggregate(const P2_Affine* q, const P1_Affine* p)
+    {   blst_pairing_raw_aggregate(*this, *q, *p);   }
+    PT as_fp12()
+    {   return PT(blst_pairing_as_fp12(*this));   }
 };
 
 } // namespace blst
