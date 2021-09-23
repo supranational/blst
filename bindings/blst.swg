@@ -196,10 +196,10 @@
     }
 %}
 %apply (const POINT* points[], size_t npoints) {
-       (const blst::P1_Affine* points[], size_t npoints),
-       (const blst::P2_Affine* points[], size_t npoints),
-       (const blst::P1* points[], size_t npoints),
-       (const blst::P2* points[], size_t npoints)
+       (const blst::P1_Affine* const points[], size_t npoints),
+       (const blst::P2_Affine* const points[], size_t npoints),
+       (const blst::P1* const points[], size_t npoints),
+       (const blst::P2* const points[], size_t npoints)
 }
 
 %typemap(in, numinputs=0) POINT points[] (PyObject *obj) ""
@@ -225,23 +225,23 @@
 %apply POINT points[] { blst_p1_affine dst[], blst_p2_affine dst[] }
 
 %extend blst::P1_Affines {
-    static PyObject* as_memory(blst_p1_affine dst[], const blst::P1* points[],
-                                                     size_t npoints)
-    {   blst_p1s_to_affine(dst, (const blst_p1 **)points, npoints);
+    static PyObject* as_memory(blst_p1_affine dst[],
+                               const blst::P1* const points[], size_t npoints)
+    {   blst_p1s_to_affine(dst, (const blst_p1 *const*)points, npoints);
         return NULL;    // ignored by 'argout' typemap above
     }
 }
 %extend blst::P2_Affines {
-    static PyObject* as_memory(blst_p2_affine dst[], const blst::P2* points[],
-                                                     size_t npoints)
-    {   blst_p2s_to_affine(dst, (const blst_p2 **)points, npoints);
+    static PyObject* as_memory(blst_p2_affine dst[],
+                               const blst::P2* const points[], size_t npoints)
+    {   blst_p2s_to_affine(dst, (const blst_p2 *const*)points, npoints);
         return NULL;    // ignored by 'argout' typemap above
     }
 }
 %nodefault blst::P1_Affines;
 %nodefault blst::P2_Affines;
 
-%typemap(in) (const byte* scalars[], size_t nbits)
+%typemap(in) (const byte* const scalars[], size_t nbits)
     (std::unique_ptr<byte[]> bytes, byte *scalars[2]) %{
     if (PyList_Check($input)) {
         if ((size_t)PyList_Size($input) != _global_npoints)
