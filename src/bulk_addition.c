@@ -142,7 +142,8 @@ static void ptype##s_accumulate(ptype *sum, ptype points[], size_t n) \
         ptype##_dadd_affine(sum, sum, (const ptype##_affine *)points++); \
 } \
 \
-void prefix##s_add(ptype *sum, ptype##_affine *points[], size_t npoints) \
+void prefix##s_add(ptype *sum, const ptype##_affine *const points[], \
+                               size_t npoints) \
 { \
     /* Performance with 288K scratch is within 1-2-3% from optimal */ \
     const size_t stride = sizeof(ptype)==sizeof(POINTonE1) ? 2048 : 1024; \

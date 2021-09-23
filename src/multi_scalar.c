@@ -11,8 +11,8 @@
  * Infinite point among inputs would be devastating. Shall we change it?
  */
 #define POINTS_TO_AFFINE_IMPL(prefix, ptype, bits, field) \
-static void ptype##s_to_affine(ptype##_affine dst[], const ptype *points[], \
-                               size_t npoints) \
+static void ptype##s_to_affine(ptype##_affine dst[], \
+                               const ptype *const points[], size_t npoints) \
 { \
     size_t i; \
     vec##bits *acc, ZZ, ZZZ; \
@@ -42,7 +42,7 @@ static void ptype##s_to_affine(ptype##_affine dst[], const ptype *points[], \
     mul_##field(dst->Y, point->Y, ZZZ);         /* Y = Y'/Z^3 */\
 } \
 \
-void prefix##s_to_affine(ptype##_affine dst[], const ptype *points[], \
+void prefix##s_to_affine(ptype##_affine dst[], const ptype *const points[], \
                          size_t npoints) \
 {   ptype##s_to_affine(dst, points, npoints);   }
 
@@ -112,7 +112,7 @@ static void ptype##s_to_affine_row_wbits(ptype##_affine dst[], ptype src[], \
 \
 /* flat |points[n]| can be placed at the end of |table[n<<(wbits-1)]| */\
 static void ptype##s_precompute_wbits(ptype##_affine table[], size_t wbits, \
-                                      const ptype##_affine *points[], \
+                                      const ptype##_affine *const points[], \
                                       size_t npoints) \
 { \
     size_t total = npoints << (wbits-1); \
@@ -149,7 +149,7 @@ static void ptype##s_precompute_wbits(ptype##_affine table[], size_t wbits, \
 size_t prefix##s_mult_wbits_precompute_sizeof(size_t wbits, size_t npoints) \
 { return (sizeof(ptype##_affine)*npoints) << (wbits-1); } \
 void prefix##s_mult_wbits_precompute(ptype##_affine table[], size_t wbits, \
-                                     const ptype##_affine *points[], \
+                                     const ptype##_affine *const points[], \
                                      size_t npoints) \
 { ptype##s_precompute_wbits(table, wbits, points, npoints); }
 
@@ -170,12 +170,12 @@ static void ptype##_gather_booth_wbits(ptype *p, const ptype##_affine row[], \
 \
 static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
                                 size_t wbits, size_t npoints, \
-                                const byte *scalars[], size_t nbits, \
+                                const byte *const scalars[], size_t nbits, \
                                 ptype scratch[]) \
 { \
     limb_t wmask, wval; \
     size_t i, j, z, nbytes, window, nwin = (size_t)1 << (wbits-1); \
-    const byte *scalar, **scalar_s = scalars; \
+    const byte *scalar, *const *scalar_s = scalars; \
     const ptype##_affine *row = table; \
 \
     size_t scratch_sz = SCRATCH_SZ(ptype); \
@@ -237,8 +237,9 @@ size_t prefix##s_mult_wbits_scratch_sizeof(size_t npoints) \
     return sizeof(ptype) * (npoints < scratch_sz ? npoints : scratch_sz); \
 } \
 void prefix##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
-                          size_t wbits, size_t npoints, const byte *scalars[], \
-                          size_t nbits, ptype scratch[]) \
+                          size_t wbits, size_t npoints, \
+                          const byte *const scalars[], size_t nbits, \
+                          ptype scratch[]) \
 { ptype##s_mult_wbits(ret, table, wbits, npoints, scalars, nbits, scratch); }
 
 PRECOMPUTE_WBITS_IMPL(blst_p1, POINTonE1, 384, fp, BLS12_381_Rx.p)
@@ -302,9 +303,11 @@ static void ptype##_prefetch(const ptype##xyzz buckets[], limb_t booth_idx, \
         vec_prefetch(&buckets[booth_idx], sizeof(buckets[booth_idx])); \
 } \
 \
-static void ptype##s_tile_pippenger(ptype *ret, const ptype##_affine *points[], \
-                                    size_t npoints, const byte *scalars[], \
-                                    size_t nbits, ptype##xyzz buckets[], \
+static void ptype##s_tile_pippenger(ptype *ret, \
+                                    const ptype##_affine *const points[], \
+                                    size_t npoints, \
+                                    const byte *const scalars[], size_t nbits, \
+                                    ptype##xyzz buckets[], \
                                     size_t bit0, size_t wbits, size_t cbits) \
 { \
     limb_t wmask, wval, wnxt; \
@@ -338,10 +341,11 @@ static void ptype##s_tile_pippenger(ptype *ret, const ptype##_affine *points[], 
     ptype##_integrate_buckets(ret, buckets, cbits - 1); \
 } \
 \
-static void ptype##s_mult_pippenger(ptype *ret, const ptype##_affine *points[], \
-                                    size_t npoints, const byte *scalars[], \
-                                    size_t nbits, ptype##xyzz buckets[], \
-                                    size_t window) \
+static void ptype##s_mult_pippenger(ptype *ret, \
+                                    const ptype##_affine *const points[], \
+                                    size_t npoints, \
+                                    const byte *const scalars[], size_t nbits, \
+                                    ptype##xyzz buckets[], size_t window) \
 { \
     size_t i, wbits, cbits, bit0 = nbits; \
     ptype tile[1]; \
@@ -369,8 +373,9 @@ static void ptype##s_mult_pippenger(ptype *ret, const ptype##_affine *points[], 
 size_t prefix##s_mult_pippenger_scratch_sizeof(size_t npoints) \
 { return sizeof(ptype##xyzz) << (pippenger_window_size(npoints)-1); } \
 void prefix##s_mult_pippenger(ptype *ret, \
-                              const ptype##_affine *points[], size_t npoints, \
-                              const byte *scalars[], size_t nbits, \
+                              const ptype##_affine *const points[], \
+                              size_t npoints, \
+                              const byte *const scalars[], size_t nbits, \
                               ptype##xyzz scratch[]) \
 { ptype##s_mult_pippenger(ret, points, npoints, scalars, nbits, scratch, 0); }
 
