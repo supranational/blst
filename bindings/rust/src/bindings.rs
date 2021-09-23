@@ -724,12 +724,12 @@ extern "C" {
 extern "C" {
     pub fn blst_p1s_to_affine(
         dst: *mut blst_p1_affine,
-        points: *mut *const blst_p1,
+        points: *const *const blst_p1,
         npoints: usize,
     );
 }
 extern "C" {
-    pub fn blst_p1s_add(ret: *mut blst_p1, points: *mut *const blst_p1_affine, npoints: usize);
+    pub fn blst_p1s_add(ret: *mut blst_p1, points: *const *const blst_p1_affine, npoints: usize);
 }
 extern "C" {
     pub fn blst_p1s_mult_wbits_precompute_sizeof(wbits: usize, npoints: usize) -> usize;
@@ -738,7 +738,7 @@ extern "C" {
     pub fn blst_p1s_mult_wbits_precompute(
         table: *mut blst_p1_affine,
         wbits: usize,
-        points: *mut *const blst_p1_affine,
+        points: *const *const blst_p1_affine,
         npoints: usize,
     );
 }
@@ -751,7 +751,7 @@ extern "C" {
         table: *const blst_p1_affine,
         wbits: usize,
         npoints: usize,
-        scalars: *mut *const byte,
+        scalars: *const *const byte,
         nbits: usize,
         scratch: *mut limb_t,
     );
@@ -762,9 +762,9 @@ extern "C" {
 extern "C" {
     pub fn blst_p1s_mult_pippenger(
         ret: *mut blst_p1,
-        points: *mut *const blst_p1_affine,
+        points: *const *const blst_p1_affine,
         npoints: usize,
-        scalars: *mut *const byte,
+        scalars: *const *const byte,
         nbits: usize,
         scratch: *mut limb_t,
     );
@@ -772,12 +772,12 @@ extern "C" {
 extern "C" {
     pub fn blst_p2s_to_affine(
         dst: *mut blst_p2_affine,
-        points: *mut *const blst_p2,
+        points: *const *const blst_p2,
         npoints: usize,
     );
 }
 extern "C" {
-    pub fn blst_p2s_add(ret: *mut blst_p2, points: *mut *const blst_p2_affine, npoints: usize);
+    pub fn blst_p2s_add(ret: *mut blst_p2, points: *const *const blst_p2_affine, npoints: usize);
 }
 extern "C" {
     pub fn blst_p2s_mult_wbits_precompute_sizeof(wbits: usize, npoints: usize) -> usize;
@@ -786,7 +786,7 @@ extern "C" {
     pub fn blst_p2s_mult_wbits_precompute(
         table: *mut blst_p2_affine,
         wbits: usize,
-        points: *mut *const blst_p2_affine,
+        points: *const *const blst_p2_affine,
         npoints: usize,
     );
 }
@@ -799,7 +799,7 @@ extern "C" {
         table: *const blst_p2_affine,
         wbits: usize,
         npoints: usize,
-        scalars: *mut *const byte,
+        scalars: *const *const byte,
         nbits: usize,
         scratch: *mut limb_t,
     );
@@ -810,9 +810,9 @@ extern "C" {
 extern "C" {
     pub fn blst_p2s_mult_pippenger(
         ret: *mut blst_p2,
-        points: *mut *const blst_p2_affine,
+        points: *const *const blst_p2_affine,
         npoints: usize,
-        scalars: *mut *const byte,
+        scalars: *const *const byte,
         nbits: usize,
         scratch: *mut limb_t,
     );
