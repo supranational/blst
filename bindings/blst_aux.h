@@ -58,6 +58,10 @@ void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
                         const unsigned char *aug, size_t aug_len,
                         const unsigned char *msg, size_t msg_len,
                         const unsigned char *DST, size_t DST_len);
+#else
+void blst_expand_message_xmd(unsigned char *out, size_t out_len,
+                             const unsigned char *msg, size_t msg_len,
+                             const unsigned char *DST, size_t DST_len);
 #endif
 
 void blst_p1_unchecked_mult(blst_p1 *out, const blst_p1 *p, const byte *scalar,
