@@ -142,7 +142,7 @@ try:
         ret += bytes.fromhex(y.group(1))
         return ret
 
-    for file in glob.glob("../vectors/hash_to_curve/*.json"):
+    for file in glob.glob("../vectors/hash_to_curve/BLS12381G*.json"):
         print(file)
         data = json.load(open(file))
 
