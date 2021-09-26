@@ -1670,6 +1670,73 @@ func (points P1s) Add() *P1 {
 }
 
 //
+// Multi-scalar multiplication
+//
+
+func P1AffinesMult(points []*P1Affine, scalarsIf interface{}, nbits int,
+	optional ...int) *P1 {
+	var npoints int
+	if len(optional) > 0 {
+		npoints = optional[0]
+	} else {
+		npoints = len(points)
+	}
+
+	var scalars []*C.byte
+	switch val := scalarsIf.(type) {
+	case []byte:
+		if len(val) < npoints*((nbits+7)/8) {
+			return nil
+		}
+		scalars = []*C.byte{(*C.byte)(&val[0]), nil}
+	case [][]byte:
+		if len(val) < npoints {
+			return nil
+		}
+		scalars = make([]*C.byte, npoints)
+		for i := range scalars {
+			scalars[i] = (*C.byte)(&val[i][0])
+		}
+	case []Scalar:
+		if len(val) < npoints {
+			return nil
+		}
+		if nbits > 248 {
+			scalars = []*C.byte{&val[0].b[0], nil}
+		} else {
+			scalars = make([]*C.byte, npoints)
+			for i := range scalars {
+				scalars[i] = &val[i].b[0]
+			}
+		}
+	case []*Scalar:
+		if len(val) < npoints {
+			return nil
+		}
+		scalars = make([]*C.byte, npoints)
+		for i := range scalars {
+			scalars[i] = &val[i].b[0]
+		}
+	default:
+		return nil
+	}
+
+	sz := int(C.blst_p1s_mult_pippenger_scratch_sizeof(C.size_t(npoints))) / 8
+	scratch := make([]uint64, sz)
+
+	var ret P1
+	C.blst_p1s_mult_pippenger(&ret, &points[0], C.size_t(npoints),
+		&scalars[0], C.size_t(nbits),
+		(*C.limb_t)(&scratch[0]))
+	return &ret
+}
+
+func (points P1Affines) Mult(scalarsIf interface{}, nbits int) *P1 {
+	return P1AffinesMult([]*P1Affine{&points[0], nil}, scalarsIf, nbits,
+		len(points))
+}
+
+//
 // Serialization/Deserialization.
 //
 
@@ -1897,6 +1964,73 @@ func (points P2Affines) Add() *P2 {
 
 func (points P2s) Add() *P2 {
 	return points.ToAffine().Add()
+}
+
+//
+// Multi-scalar multiplication
+//
+
+func P2AffinesMult(points []*P2Affine, scalarsIf interface{}, nbits int,
+	optional ...int) *P2 {
+	var npoints int
+	if len(optional) > 0 {
+		npoints = optional[0]
+	} else {
+		npoints = len(points)
+	}
+
+	var scalars []*C.byte
+	switch val := scalarsIf.(type) {
+	case []byte:
+		if len(val) < npoints*((nbits+7)/8) {
+			return nil
+		}
+		scalars = []*C.byte{(*C.byte)(&val[0]), nil}
+	case [][]byte:
+		if len(val) < npoints {
+			return nil
+		}
+		scalars = make([]*C.byte, npoints)
+		for i := range scalars {
+			scalars[i] = (*C.byte)(&val[i][0])
+		}
+	case []Scalar:
+		if len(val) < npoints {
+			return nil
+		}
+		if nbits > 248 {
+			scalars = []*C.byte{&val[0].b[0], nil}
+		} else {
+			scalars = make([]*C.byte, npoints)
+			for i := range scalars {
+				scalars[i] = &val[i].b[0]
+			}
+		}
+	case []*Scalar:
+		if len(val) < npoints {
+			return nil
+		}
+		scalars = make([]*C.byte, npoints)
+		for i := range scalars {
+			scalars[i] = &val[i].b[0]
+		}
+	default:
+		return nil
+	}
+
+	sz := int(C.blst_p2s_mult_pippenger_scratch_sizeof(C.size_t(npoints))) / 8
+	scratch := make([]uint64, sz)
+
+	var ret P2
+	C.blst_p2s_mult_pippenger(&ret, &points[0], C.size_t(npoints),
+		&scalars[0], C.size_t(nbits),
+		(*C.limb_t)(&scratch[0]))
+	return &ret
+}
+
+func (points P2Affines) Mult(scalarsIf interface{}, nbits int) *P2 {
+	return P2AffinesMult([]*P2Affine{&points[0], nil}, scalarsIf, nbits,
+		len(points))
 }
 
 func parseOpts(optional ...interface{}) ([]byte, [][]byte, bool, bool) {
