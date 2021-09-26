@@ -7,11 +7,13 @@
 package blst
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -164,4 +166,56 @@ func testG2HashToCurve(t *testing.T, fname string) {
 func TestG2HashToCurve(t *testing.T) {
 	testG2HashToCurve(t, "../vectors/hash_to_curve/BLS12381G2_XMD_SHA-256_SSWU_RO_.json")
 	testG2HashToCurve(t, "../vectors/hash_to_curve/BLS12381G2_XMD_SHA-256_SSWU_NU_.json")
+}
+
+func testExpandMessageXmd(t *testing.T, fname string) {
+	vfile, err := os.Open(fname)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	defer vfile.Close()
+	buf, err := ioutil.ReadAll(vfile)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	var vectors map[string]interface{}
+	err = json.Unmarshal(buf, &vectors)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	DST := []byte(vectors["DST"].(string))
+
+	tests, ok := vectors["tests"].([]interface{})
+	if !ok {
+		t.Errorf("Could not cast 'tests' to an array")
+	}
+
+	for _, v := range tests {
+		test, ok := v.(map[string]interface{})
+		if !ok {
+			t.Errorf("Could not map 'tests[]' element")
+		}
+
+		len_in_bytes, err := strconv.ParseInt(test["len_in_bytes"].(string), 0, 0)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+		msg := []byte(test["msg"].(string))
+		expected, err := hex.DecodeString(test["uniform_bytes"].(string))
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+
+		hashed := expandMessageXmd(msg, DST, int(len_in_bytes))
+		if !bytes.Equal(hashed, expected) {
+			t.Errorf("hashed != expected")
+		}
+	}
+}
+
+func TestExpandMessageXmd(t *testing.T) {
+	testExpandMessageXmd(t, "../vectors/hash_to_curve/expand_message_xmd_SHA256_256.json")
+	testExpandMessageXmd(t, "../vectors/hash_to_curve/expand_message_xmd_SHA256_38.json")
 }
