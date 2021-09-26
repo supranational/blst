@@ -99,7 +99,10 @@ static void expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
     sha256_block_data_order(ctx.h, b_i.c, b_i_blocks / 64);
     sha256_emit(bytes, ctx.h);
 
-    len_in_bytes /= 32; /* divisible by 64, remember? hence 32 works too */
+    len_in_bytes += 31; /* ell = ceil(len_in_bytes / b_in_bytes), with */
+    len_in_bytes /= 32; /* caller being responsible for accordingly large
+                         * buffer. hash_to_field passes one with length
+                         * divisible by 64, remember? which works... */
     while (--len_in_bytes) {
         sha256_init_h(ctx.h);
         vec_xor(b_i.c, b_0.c, bytes, 32);
@@ -146,5 +149,28 @@ static void hash_to_field(vec384 elems[], size_t nelems,
         redc_mont_384(elems[0], elem, BLS12_381_P, p0);
         mul_mont_384(elems[0], elems[0], BLS12_381_RRRR, BLS12_381_P, p0);
         elems++;
+    }
+}
+
+void blst_expand_message_xmd(unsigned char *bytes, size_t len_in_bytes,
+                             const unsigned char *msg, size_t msg_len,
+                             const unsigned char *DST, size_t DST_len)
+{
+    size_t buf_len = (len_in_bytes+31) & ((size_t)0-32);
+    unsigned char *buf_ptr = bytes;
+
+    if (buf_len > 255*32)
+        return;
+
+    if (buf_len != len_in_bytes)
+        buf_ptr = alloca(buf_len);
+
+    expand_message_xmd(buf_ptr, len_in_bytes, NULL, 0, msg, msg_len,
+                                              DST, DST_len);
+    if (buf_ptr != bytes) {
+        unsigned char *ptr = buf_ptr;
+        while (len_in_bytes--)
+            *bytes++ = *ptr++;
+        vec_zero(buf_ptr, buf_len);
     }
 }
