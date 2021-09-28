@@ -7,7 +7,7 @@
 #![allow(non_snake_case)]
 
 use std::any::Any;
-use std::mem::transmute;
+use std::mem::{transmute, MaybeUninit};
 use std::sync::{atomic::*, mpsc::channel, Arc, Mutex, Once};
 use std::{ptr, slice};
 use threadpool::ThreadPool;
@@ -66,7 +66,7 @@ impl core::ops::Mul for blst_fp12 {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self {
-        let mut out = std::mem::MaybeUninit::<blst_fp12>::uninit();
+        let mut out = MaybeUninit::<blst_fp12>::uninit();
         unsafe {
             blst_fp12_mul(out.as_mut_ptr(), &self, &other);
             out.assume_init()
@@ -82,7 +82,7 @@ impl core::ops::MulAssign for blst_fp12 {
 
 impl blst_fp12 {
     pub fn miller_loop(q: &blst_p2_affine, p: &blst_p1_affine) -> Self {
-        let mut out = std::mem::MaybeUninit::<blst_fp12>::uninit();
+        let mut out = MaybeUninit::<blst_fp12>::uninit();
         unsafe {
             blst_miller_loop(out.as_mut_ptr(), q, p);
             out.assume_init()
@@ -90,7 +90,7 @@ impl blst_fp12 {
     }
 
     pub fn final_exp(&self) -> Self {
-        let mut out = std::mem::MaybeUninit::<blst_fp12>::uninit();
+        let mut out = MaybeUninit::<blst_fp12>::uninit();
         unsafe {
             blst_final_exp(out.as_mut_ptr(), self);
             out.assume_init()
@@ -1424,8 +1424,7 @@ macro_rules! sig_variant_impl {
                         // Reject zero as it is used for multiplication.
                         vals[0] = rng.next_u64();
                     }
-                    let mut rand_i =
-                        std::mem::MaybeUninit::<blst_scalar>::uninit();
+                    let mut rand_i = MaybeUninit::<blst_scalar>::uninit();
                     unsafe {
                         blst_scalar_from_uint64(
                             rand_i.as_mut_ptr(),
