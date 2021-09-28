@@ -1228,6 +1228,16 @@ extern "C" {
     pub fn blst_uniq_test(tree: *mut blst_uniq, msg: *const byte, len: usize) -> bool;
 }
 extern "C" {
+    pub fn blst_expand_message_xmd(
+        out: *mut byte,
+        out_len: usize,
+        msg: *const byte,
+        msg_len: usize,
+        DST: *const byte,
+        DST_len: usize,
+    );
+}
+extern "C" {
     pub fn blst_p1_unchecked_mult(
         out: *mut blst_p1,
         p: *const blst_p1,
