@@ -622,3 +622,25 @@ func TestEmptySignatureMinSig(t *testing.T) {
         t.Errorf("failed to NOT verify empty signature")
     }
 }
+
+func TestMultiScalarP2(t *testing.T) {
+    const npoints = 1027
+    scalars := make([]byte, npoints*16)
+    _, err := rand.Read(scalars[:])
+    if err != nil {
+        t.Errorf(err.Error())
+	return
+    }
+    points := make([]P2, npoints)
+    refs   := make([]P2, npoints)
+    generator := P2Generator()
+    for i := range points {
+        points[i] = *generator.Mult(scalars[i*4:(i+1)*4])
+        refs[i]   = *points[i].Mult(scalars[i*16:(i+1)*16], 128)
+    }
+    ref := P2s(refs).Add()
+    ret := P2s(points).Mult(scalars, 128)
+    if !ref.Equals(ret) {
+        t.Errorf("failed self-consistency multi-scalar test")
+    }
+}

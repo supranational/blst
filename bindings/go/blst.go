@@ -24,6 +24,7 @@ import (
 	"runtime"
 	"sync"
 	"sync/atomic"
+	"unsafe"
 )
 
 const BLST_SCALAR_BYTES = 256 / 8
@@ -1548,6 +1549,22 @@ func (p1 *P1) Compress() []byte {
 	return out[:]
 }
 
+func (p1 *P1) Mult(scalar []byte, optional ...int) *P1 {
+	var nbits int
+	if len(optional) > 0 {
+		nbits = optional[0]
+	} else {
+		nbits = len(scalar) * 8
+	}
+	var ret P1
+	C.blst_p1_mult(&ret, p1, (*C.byte)(&scalar[0]), C.size_t(nbits))
+	return &ret
+}
+
+func P1Generator() *P1 {
+	return C.blst_p1_generator()
+}
+
 //
 // Affine
 //
@@ -1637,7 +1654,8 @@ func P1sToAffine(points []*P1, optional ...int) P1Affines {
 		npoints = len(points)
 	}
 	ret := make([]P1Affine, npoints)
-	C.blst_p1s_to_affine(&ret[0], &points[0], C.size_t(npoints))
+	p := uintptr(unsafe.Pointer(&points[0]))
+	C.blst_p1s_to_affine(&ret[0], (**P1)(unsafe.Pointer(p)), C.size_t(npoints))
 	return ret
 }
 
@@ -1650,14 +1668,15 @@ func (points P1s) ToAffine() P1Affines {
 //
 
 func P1AffinesAdd(points []*P1Affine, optional ...int) *P1 {
-	var ret P1
 	var npoints int
 	if len(optional) > 0 {
 		npoints = optional[0]
 	} else {
 		npoints = len(points)
 	}
-	C.blst_p1s_add(&ret, &points[0], C.size_t(npoints))
+	var ret P1
+	p := uintptr(unsafe.Pointer(&points[0]))
+	C.blst_p1s_add(&ret, (**P1Affine)(unsafe.Pointer(p)), C.size_t(npoints))
 	return &ret
 }
 
@@ -1673,19 +1692,28 @@ func (points P1s) Add() *P1 {
 // Multi-scalar multiplication
 //
 
-func P1AffinesMult(points []*P1Affine, scalarsIf interface{}, nbits int,
-	optional ...int) *P1 {
+func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
+	var points []*P1Affine
 	var npoints int
-	if len(optional) > 0 {
-		npoints = optional[0]
-	} else {
-		npoints = len(points)
+	switch val := pointsIf.(type) {
+	case []*P1Affine:
+		points = val
+		npoints = len(val)
+	case []P1Affine:
+		points = []*P1Affine{&val[0], nil}
+		npoints = len(val)
+	case P1Affines:
+		points = []*P1Affine{&val[0], nil}
+		npoints = len(val)
+	default:
+		panic(fmt.Sprintf("unsupported type %T", val))
 	}
 
+	nbytes := (nbits + 7) / 8
 	var scalars []*C.byte
 	switch val := scalarsIf.(type) {
 	case []byte:
-		if len(val) < npoints*((nbits+7)/8) {
+		if len(val) < npoints*nbytes {
 			return nil
 		}
 		scalars = []*C.byte{(*C.byte)(&val[0]), nil}
@@ -1718,22 +1746,28 @@ func P1AffinesMult(points []*P1Affine, scalarsIf interface{}, nbits int,
 			scalars[i] = &val[i].b[0]
 		}
 	default:
-		return nil
+		panic(fmt.Sprintf("unsupported type %T", val))
 	}
 
 	sz := int(C.blst_p1s_mult_pippenger_scratch_sizeof(C.size_t(npoints))) / 8
 	scratch := make([]uint64, sz)
 
 	var ret P1
-	C.blst_p1s_mult_pippenger(&ret, &points[0], C.size_t(npoints),
-		&scalars[0], C.size_t(nbits),
-		(*C.limb_t)(&scratch[0]))
+	p := uintptr(unsafe.Pointer(&points[0]))
+	s := uintptr(unsafe.Pointer(&scalars[0]))
+	C.blst_p1s_mult_pippenger(&ret, (**P1Affine)(unsafe.Pointer(p)),
+		C.size_t(npoints),
+		(**C.byte)(unsafe.Pointer(s)),
+		C.size_t(nbits), (*C.limb_t)(&scratch[0]))
 	return &ret
 }
 
 func (points P1Affines) Mult(scalarsIf interface{}, nbits int) *P1 {
-	return P1AffinesMult([]*P1Affine{&points[0], nil}, scalarsIf, nbits,
-		len(points))
+	return P1AffinesMult(points, scalarsIf, nbits)
+}
+
+func (points P1s) Mult(scalarsIf interface{}, nbits int) *P1 {
+	return points.ToAffine().Mult(scalarsIf, nbits)
 }
 
 //
@@ -1845,6 +1879,22 @@ func (p2 *P2) Compress() []byte {
 	return out[:]
 }
 
+func (p2 *P2) Mult(scalar []byte, optional ...int) *P2 {
+	var nbits int
+	if len(optional) > 0 {
+		nbits = optional[0]
+	} else {
+		nbits = len(scalar) * 8
+	}
+	var ret P2
+	C.blst_p2_mult(&ret, p2, (*C.byte)(&scalar[0]), C.size_t(nbits))
+	return &ret
+}
+
+func P2Generator() *P2 {
+	return C.blst_p2_generator()
+}
+
 //
 // Affine
 //
@@ -1934,7 +1984,8 @@ func P2sToAffine(points []*P2, optional ...int) P2Affines {
 		npoints = len(points)
 	}
 	ret := make([]P2Affine, npoints)
-	C.blst_p2s_to_affine(&ret[0], &points[0], C.size_t(npoints))
+	p := uintptr(unsafe.Pointer(&points[0]))
+	C.blst_p2s_to_affine(&ret[0], (**P2)(unsafe.Pointer(p)), C.size_t(npoints))
 	return ret
 }
 
@@ -1947,14 +1998,15 @@ func (points P2s) ToAffine() P2Affines {
 //
 
 func P2AffinesAdd(points []*P2Affine, optional ...int) *P2 {
-	var ret P2
 	var npoints int
 	if len(optional) > 0 {
 		npoints = optional[0]
 	} else {
 		npoints = len(points)
 	}
-	C.blst_p2s_add(&ret, &points[0], C.size_t(npoints))
+	var ret P2
+	p := uintptr(unsafe.Pointer(&points[0]))
+	C.blst_p2s_add(&ret, (**P2Affine)(unsafe.Pointer(p)), C.size_t(npoints))
 	return &ret
 }
 
@@ -1970,19 +2022,28 @@ func (points P2s) Add() *P2 {
 // Multi-scalar multiplication
 //
 
-func P2AffinesMult(points []*P2Affine, scalarsIf interface{}, nbits int,
-	optional ...int) *P2 {
+func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
+	var points []*P2Affine
 	var npoints int
-	if len(optional) > 0 {
-		npoints = optional[0]
-	} else {
-		npoints = len(points)
+	switch val := pointsIf.(type) {
+	case []*P2Affine:
+		points = val
+		npoints = len(val)
+	case []P2Affine:
+		points = []*P2Affine{&val[0], nil}
+		npoints = len(val)
+	case P2Affines:
+		points = []*P2Affine{&val[0], nil}
+		npoints = len(val)
+	default:
+		panic(fmt.Sprintf("unsupported type %T", val))
 	}
 
+	nbytes := (nbits + 7) / 8
 	var scalars []*C.byte
 	switch val := scalarsIf.(type) {
 	case []byte:
-		if len(val) < npoints*((nbits+7)/8) {
+		if len(val) < npoints*nbytes {
 			return nil
 		}
 		scalars = []*C.byte{(*C.byte)(&val[0]), nil}
@@ -2015,22 +2076,28 @@ func P2AffinesMult(points []*P2Affine, scalarsIf interface{}, nbits int,
 			scalars[i] = &val[i].b[0]
 		}
 	default:
-		return nil
+		panic(fmt.Sprintf("unsupported type %T", val))
 	}
 
 	sz := int(C.blst_p2s_mult_pippenger_scratch_sizeof(C.size_t(npoints))) / 8
 	scratch := make([]uint64, sz)
 
 	var ret P2
-	C.blst_p2s_mult_pippenger(&ret, &points[0], C.size_t(npoints),
-		&scalars[0], C.size_t(nbits),
-		(*C.limb_t)(&scratch[0]))
+	p := uintptr(unsafe.Pointer(&points[0]))
+	s := uintptr(unsafe.Pointer(&scalars[0]))
+	C.blst_p2s_mult_pippenger(&ret, (**P2Affine)(unsafe.Pointer(p)),
+		C.size_t(npoints),
+		(**C.byte)(unsafe.Pointer(s)),
+		C.size_t(nbits), (*C.limb_t)(&scratch[0]))
 	return &ret
 }
 
 func (points P2Affines) Mult(scalarsIf interface{}, nbits int) *P2 {
-	return P2AffinesMult([]*P2Affine{&points[0], nil}, scalarsIf, nbits,
-		len(points))
+	return P2AffinesMult(points, scalarsIf, nbits)
+}
+
+func (points P2s) Mult(scalarsIf interface{}, nbits int) *P2 {
+	return points.ToAffine().Mult(scalarsIf, nbits)
 }
 
 func parseOpts(optional ...interface{}) ([]byte, [][]byte, bool, bool) {
