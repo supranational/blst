@@ -107,6 +107,22 @@ func (p1 *P1) Compress() []byte {
     return out[:]
 }
 
+func (p1 *P1) Mult(scalar []byte, optional ...int) *P1 {
+    var nbits int
+    if len(optional) > 0 {
+        nbits = optional[0]
+    } else {
+        nbits = len(scalar)*8
+    }
+    var ret P1
+    C.blst_p1_mult(&ret, p1, (*C.byte)(&scalar[0]), C.size_t(nbits))
+    return &ret
+}
+
+func P1Generator() *P1 {
+    return C.blst_p1_generator()
+}
+
 //
 // Affine
 //
