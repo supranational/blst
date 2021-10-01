@@ -259,7 +259,7 @@ static size_t pippenger_window_size(size_t npoints)
 
     for (wbits=0; npoints>>=1; wbits++) ;
 
-    return wbits>12 ? wbits-3 : (wbits>4 ? wbits-2 : 2);
+    return wbits>12 ? wbits-3 : (wbits>4 ? wbits-2 : (wbits ? 2 : 1));
 }
 
 #define DECLARE_PRIVATE_POINTXYZZ(ptype, bits) \
@@ -371,7 +371,21 @@ static void ptype##s_mult_pippenger(ptype *ret, \
 } \
 \
 size_t prefix##s_mult_pippenger_scratch_sizeof(size_t npoints) \
-{ return sizeof(ptype##xyzz) << (pippenger_window_size(npoints)-1); } \
+{   return sizeof(ptype##xyzz) << (pippenger_window_size(npoints)-1);   } \
+void prefix##s_tile_pippenger(ptype *ret, \
+                              const ptype##_affine *const points[], \
+                              size_t npoints, \
+                              const byte *const scalars[], size_t nbits, \
+                              ptype##xyzz scratch[], \
+                              size_t bit0, size_t window) \
+{ \
+    size_t wbits, cbits; \
+\
+    if (bit0 + window > nbits)  wbits = nbits - bit0, cbits = wbits + 1; \
+    else                        wbits = cbits = window; \
+    ptype##s_tile_pippenger(ret, points, npoints, scalars, nbits, scratch, \
+                                 bit0, wbits, cbits); \
+} \
 void prefix##s_mult_pippenger(ptype *ret, \
                               const ptype##_affine *const points[], \
                               size_t npoints, \
