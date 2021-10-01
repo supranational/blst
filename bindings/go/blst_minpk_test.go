@@ -640,3 +640,29 @@ func TestMultiScalarP1(t *testing.T) {
         t.Errorf("failed self-consistency multi-scalar test")
     }
 }
+
+func BenchmarkMultiScalarP1(b *testing.B) {
+    const npoints = 200000
+    scalars := make([]byte, npoints*32)
+    _, err := rand.Read(scalars[:])
+    if err != nil {
+        b.Fatal(err.Error())
+    }
+    temp := make([]P1, npoints)
+    generator := P1Generator()
+    for i := range temp {
+        temp[i] = *generator.Mult(scalars[i*4:(i+1)*4])
+    }
+    points := P1s(temp).ToAffine()
+    run := func(size int) func(b *testing.B) {
+        return func(b *testing.B) {
+            for i:=0; i<b.N; i++ {
+                P1Affines(points[:size]).Mult(scalars, 255)
+            }
+        }
+    }
+    b.Run(fmt.Sprintf("%d",npoints/8), run(npoints/8))
+    b.Run(fmt.Sprintf("%d",npoints/4), run(npoints/4))
+    b.Run(fmt.Sprintf("%d",npoints/2), run(npoints/2))
+    b.Run(fmt.Sprintf("%d",npoints), run(npoints))
+}
