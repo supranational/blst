@@ -1693,17 +1693,13 @@ func (points P1s) Add() *P1 {
 //
 
 func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
-	var points []*P1Affine
 	var npoints int
 	switch val := pointsIf.(type) {
 	case []*P1Affine:
-		points = val
 		npoints = len(val)
 	case []P1Affine:
-		points = []*P1Affine{&val[0], nil}
 		npoints = len(val)
 	case P1Affines:
-		points = []*P1Affine{&val[0], nil}
 		npoints = len(val)
 	default:
 		panic(fmt.Sprintf("unsupported type %T", val))
@@ -1716,7 +1712,6 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 		if len(val) < npoints*nbytes {
 			return nil
 		}
-		scalars = []*C.byte{(*C.byte)(&val[0]), nil}
 	case [][]byte:
 		if len(val) < npoints {
 			return nil
@@ -1729,9 +1724,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 		if len(val) < npoints {
 			return nil
 		}
-		if nbits > 248 {
-			scalars = []*C.byte{&val[0].b[0], nil}
-		} else {
+		if nbits <= 248 {
 			scalars = make([]*C.byte, npoints)
 			for i := range scalars {
 				scalars[i] = &val[i].b[0]
@@ -1749,16 +1742,186 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 		panic(fmt.Sprintf("unsupported type %T", val))
 	}
 
-	sz := int(C.blst_p1s_mult_pippenger_scratch_sizeof(C.size_t(npoints))) / 8
-	scratch := make([]uint64, sz)
+	numThreads := maxProcs
+	numCores := runtime.GOMAXPROCS(0)
+	if numCores < maxProcs {
+		numThreads = numCores
+	}
+
+	if numThreads < 2 || npoints < 32 {
+		sz := int(C.blst_p1s_mult_pippenger_scratch_sizeof(C.size_t(npoints))) / 8
+		scratch := make([]uint64, sz)
+
+		pointsBySlice := [2]*P1Affine{nil, nil}
+		var p_points **P1Affine
+		switch val := pointsIf.(type) {
+		case []*P1Affine:
+			p_points = &val[0]
+		case []P1Affine:
+			pointsBySlice[0] = &val[0]
+			p_points = &pointsBySlice[0]
+		case P1Affines:
+			pointsBySlice[0] = &val[0]
+			p_points = &pointsBySlice[0]
+		}
+
+		scalarsBySlice := [2]*C.byte{nil, nil}
+		var p_scalars **C.byte
+		switch val := scalarsIf.(type) {
+		case []byte:
+			scalarsBySlice[0] = (*C.byte)(&val[0])
+			p_scalars = &scalarsBySlice[0]
+		case [][]byte:
+			p_scalars = &scalars[0]
+		case []Scalar:
+			if nbits > 248 {
+				scalarsBySlice[0] = (*C.byte)(&val[0].b[0])
+				p_scalars = &scalarsBySlice[0]
+			} else {
+				p_scalars = &scalars[0]
+			}
+		case []*Scalar:
+			p_scalars = &scalars[0]
+		}
+
+		var ret P1
+		p := uintptr(unsafe.Pointer(p_points))
+		s := uintptr(unsafe.Pointer(p_scalars))
+		C.blst_p1s_mult_pippenger(&ret,
+			(**P1Affine)(unsafe.Pointer(p)),
+			C.size_t(npoints),
+			(**C.byte)(unsafe.Pointer(s)),
+			C.size_t(nbits), (*C.limb_t)(&scratch[0]))
+		return &ret
+	}
+
+	// this is sizeof(scratch[0])
+	sz := int(C.blst_p1s_mult_pippenger_scratch_sizeof(0)) / 8
+
+	nx, ny, window := breakdown(nbits, pippenger_window_size(npoints),
+		numThreads)
+
+	// |grid[]| holds "coordinates" and place for result
+	grid := make([]struct {
+		x, dx, y, dy int
+		point        P1
+	}, nx*ny)
+
+	dx := npoints / nx
+	y := window * (ny - 1)
+	total := 0
+	for ; total < nx; total++ {
+		grid[total].x = total * dx
+		grid[total].dx = dx
+		grid[total].y = y
+		grid[total].dy = nbits - y
+	}
+	grid[total-1].dx = npoints - grid[total-1].x
+
+	for y -= window; y >= 0; y -= window {
+		for i := 0; i < nx; i++ {
+			grid[total].x = i * dx
+			grid[total].dx = dx
+			grid[total].y = y
+			grid[total].dy = window
+			total++
+		}
+		grid[total-1].dx = npoints - grid[total-1].x
+	}
+
+	if numThreads > total {
+		numThreads = total
+	}
+
+	msgsCh := make(chan int, ny)
+	rowSync := make([]int32, ny) // count up to |nx|
+	curItem := int32(0)
+	for tid := 0; tid < numThreads; tid++ {
+		go func() {
+			scratch := make([]uint64, sz<<uint(window-1))
+			pointsBySlice := [2]*P1Affine{nil, nil}
+			scalarsBySlice := [2]*C.byte{nil, nil}
+
+			for {
+				workItem := atomic.AddInt32(&curItem, 1) - 1
+				if int(workItem) >= total {
+					break
+				}
+
+				x := grid[workItem].x
+				y := grid[workItem].y
+
+				var p_points **P1Affine
+				switch val := pointsIf.(type) {
+				case []*P1Affine:
+					p_points = &val[x]
+				case []P1Affine:
+					pointsBySlice[0] = &val[x]
+					p_points = &pointsBySlice[0]
+				case P1Affines:
+					pointsBySlice[0] = &val[x]
+					p_points = &pointsBySlice[0]
+				}
+
+				var p_scalars **C.byte
+				switch val := scalarsIf.(type) {
+				case []byte:
+					scalarsBySlice[0] = (*C.byte)(&val[x*nbytes])
+					p_scalars = &scalarsBySlice[0]
+				case [][]byte:
+					p_scalars = &scalars[x]
+				case []Scalar:
+					if nbits > 248 {
+						scalarsBySlice[0] = (*C.byte)(&val[x].b[0])
+						p_scalars = &scalarsBySlice[0]
+					} else {
+						p_scalars = &scalars[x]
+					}
+				case []*Scalar:
+					p_scalars = &scalars[x]
+				}
+
+				p := uintptr(unsafe.Pointer(p_points))
+				s := uintptr(unsafe.Pointer(p_scalars))
+				C.blst_p1s_tile_pippenger(&grid[workItem].point,
+					(**P1Affine)(unsafe.Pointer(p)),
+					C.size_t(grid[workItem].dx),
+					(**C.byte)(unsafe.Pointer(s)),
+					C.size_t(nbits),
+					(*C.limb_t)(&scratch[0]),
+					C.size_t(y), C.size_t(window))
+
+				if atomic.AddInt32(&rowSync[y/window], 1) == int32(nx) {
+					msgsCh <- y // "row" is done
+				}
+			}
+		}()
+	}
 
 	var ret P1
-	p := uintptr(unsafe.Pointer(&points[0]))
-	s := uintptr(unsafe.Pointer(&scalars[0]))
-	C.blst_p1s_mult_pippenger(&ret, (**P1Affine)(unsafe.Pointer(p)),
-		C.size_t(npoints),
-		(**C.byte)(unsafe.Pointer(s)),
-		C.size_t(nbits), (*C.limb_t)(&scratch[0]))
+	rows := make([]bool, ny)
+	row := 0                  // actually index in |grid[]|
+	for i := 0; i < ny; i++ { // we expect |ny| messages, one per "row"
+		y := <-msgsCh
+		rows[y/window] = true  // mark the "row"
+		for grid[row].y == y { // if it's current "row", process it
+			for row < total && grid[row].y == y {
+				C.blst_p1_add_or_double(&ret, &ret, &grid[row].point)
+				row++
+			}
+			if y == 0 {
+				break // one can as well 'return &ret' here
+			}
+			for j := 0; j < window; j++ {
+				C.blst_p1_double(&ret, &ret)
+			}
+			y -= window
+			if !rows[y/window] { // see if next "row" was marked already
+				break
+			}
+		}
+	}
+
 	return &ret
 }
 
@@ -2023,17 +2186,13 @@ func (points P2s) Add() *P2 {
 //
 
 func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
-	var points []*P2Affine
 	var npoints int
 	switch val := pointsIf.(type) {
 	case []*P2Affine:
-		points = val
 		npoints = len(val)
 	case []P2Affine:
-		points = []*P2Affine{&val[0], nil}
 		npoints = len(val)
 	case P2Affines:
-		points = []*P2Affine{&val[0], nil}
 		npoints = len(val)
 	default:
 		panic(fmt.Sprintf("unsupported type %T", val))
@@ -2046,7 +2205,6 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 		if len(val) < npoints*nbytes {
 			return nil
 		}
-		scalars = []*C.byte{(*C.byte)(&val[0]), nil}
 	case [][]byte:
 		if len(val) < npoints {
 			return nil
@@ -2059,9 +2217,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 		if len(val) < npoints {
 			return nil
 		}
-		if nbits > 248 {
-			scalars = []*C.byte{&val[0].b[0], nil}
-		} else {
+		if nbits <= 248 {
 			scalars = make([]*C.byte, npoints)
 			for i := range scalars {
 				scalars[i] = &val[i].b[0]
@@ -2079,16 +2235,186 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 		panic(fmt.Sprintf("unsupported type %T", val))
 	}
 
-	sz := int(C.blst_p2s_mult_pippenger_scratch_sizeof(C.size_t(npoints))) / 8
-	scratch := make([]uint64, sz)
+	numThreads := maxProcs
+	numCores := runtime.GOMAXPROCS(0)
+	if numCores < maxProcs {
+		numThreads = numCores
+	}
+
+	if numThreads < 2 || npoints < 32 {
+		sz := int(C.blst_p2s_mult_pippenger_scratch_sizeof(C.size_t(npoints))) / 8
+		scratch := make([]uint64, sz)
+
+		pointsBySlice := [2]*P2Affine{nil, nil}
+		var p_points **P2Affine
+		switch val := pointsIf.(type) {
+		case []*P2Affine:
+			p_points = &val[0]
+		case []P2Affine:
+			pointsBySlice[0] = &val[0]
+			p_points = &pointsBySlice[0]
+		case P2Affines:
+			pointsBySlice[0] = &val[0]
+			p_points = &pointsBySlice[0]
+		}
+
+		scalarsBySlice := [2]*C.byte{nil, nil}
+		var p_scalars **C.byte
+		switch val := scalarsIf.(type) {
+		case []byte:
+			scalarsBySlice[0] = (*C.byte)(&val[0])
+			p_scalars = &scalarsBySlice[0]
+		case [][]byte:
+			p_scalars = &scalars[0]
+		case []Scalar:
+			if nbits > 248 {
+				scalarsBySlice[0] = (*C.byte)(&val[0].b[0])
+				p_scalars = &scalarsBySlice[0]
+			} else {
+				p_scalars = &scalars[0]
+			}
+		case []*Scalar:
+			p_scalars = &scalars[0]
+		}
+
+		var ret P2
+		p := uintptr(unsafe.Pointer(p_points))
+		s := uintptr(unsafe.Pointer(p_scalars))
+		C.blst_p2s_mult_pippenger(&ret,
+			(**P2Affine)(unsafe.Pointer(p)),
+			C.size_t(npoints),
+			(**C.byte)(unsafe.Pointer(s)),
+			C.size_t(nbits), (*C.limb_t)(&scratch[0]))
+		return &ret
+	}
+
+	// this is sizeof(scratch[0])
+	sz := int(C.blst_p2s_mult_pippenger_scratch_sizeof(0)) / 8
+
+	nx, ny, window := breakdown(nbits, pippenger_window_size(npoints),
+		numThreads)
+
+	// |grid[]| holds "coordinates" and place for result
+	grid := make([]struct {
+		x, dx, y, dy int
+		point        P2
+	}, nx*ny)
+
+	dx := npoints / nx
+	y := window * (ny - 1)
+	total := 0
+	for ; total < nx; total++ {
+		grid[total].x = total * dx
+		grid[total].dx = dx
+		grid[total].y = y
+		grid[total].dy = nbits - y
+	}
+	grid[total-1].dx = npoints - grid[total-1].x
+
+	for y -= window; y >= 0; y -= window {
+		for i := 0; i < nx; i++ {
+			grid[total].x = i * dx
+			grid[total].dx = dx
+			grid[total].y = y
+			grid[total].dy = window
+			total++
+		}
+		grid[total-1].dx = npoints - grid[total-1].x
+	}
+
+	if numThreads > total {
+		numThreads = total
+	}
+
+	msgsCh := make(chan int, ny)
+	rowSync := make([]int32, ny) // count up to |nx|
+	curItem := int32(0)
+	for tid := 0; tid < numThreads; tid++ {
+		go func() {
+			scratch := make([]uint64, sz<<uint(window-1))
+			pointsBySlice := [2]*P2Affine{nil, nil}
+			scalarsBySlice := [2]*C.byte{nil, nil}
+
+			for {
+				workItem := atomic.AddInt32(&curItem, 1) - 1
+				if int(workItem) >= total {
+					break
+				}
+
+				x := grid[workItem].x
+				y := grid[workItem].y
+
+				var p_points **P2Affine
+				switch val := pointsIf.(type) {
+				case []*P2Affine:
+					p_points = &val[x]
+				case []P2Affine:
+					pointsBySlice[0] = &val[x]
+					p_points = &pointsBySlice[0]
+				case P2Affines:
+					pointsBySlice[0] = &val[x]
+					p_points = &pointsBySlice[0]
+				}
+
+				var p_scalars **C.byte
+				switch val := scalarsIf.(type) {
+				case []byte:
+					scalarsBySlice[0] = (*C.byte)(&val[x*nbytes])
+					p_scalars = &scalarsBySlice[0]
+				case [][]byte:
+					p_scalars = &scalars[x]
+				case []Scalar:
+					if nbits > 248 {
+						scalarsBySlice[0] = (*C.byte)(&val[x].b[0])
+						p_scalars = &scalarsBySlice[0]
+					} else {
+						p_scalars = &scalars[x]
+					}
+				case []*Scalar:
+					p_scalars = &scalars[x]
+				}
+
+				p := uintptr(unsafe.Pointer(p_points))
+				s := uintptr(unsafe.Pointer(p_scalars))
+				C.blst_p2s_tile_pippenger(&grid[workItem].point,
+					(**P2Affine)(unsafe.Pointer(p)),
+					C.size_t(grid[workItem].dx),
+					(**C.byte)(unsafe.Pointer(s)),
+					C.size_t(nbits),
+					(*C.limb_t)(&scratch[0]),
+					C.size_t(y), C.size_t(window))
+
+				if atomic.AddInt32(&rowSync[y/window], 1) == int32(nx) {
+					msgsCh <- y // "row" is done
+				}
+			}
+		}()
+	}
 
 	var ret P2
-	p := uintptr(unsafe.Pointer(&points[0]))
-	s := uintptr(unsafe.Pointer(&scalars[0]))
-	C.blst_p2s_mult_pippenger(&ret, (**P2Affine)(unsafe.Pointer(p)),
-		C.size_t(npoints),
-		(**C.byte)(unsafe.Pointer(s)),
-		C.size_t(nbits), (*C.limb_t)(&scratch[0]))
+	rows := make([]bool, ny)
+	row := 0                  // actually index in |grid[]|
+	for i := 0; i < ny; i++ { // we expect |ny| messages, one per "row"
+		y := <-msgsCh
+		rows[y/window] = true  // mark the "row"
+		for grid[row].y == y { // if it's current "row", process it
+			for row < total && grid[row].y == y {
+				C.blst_p2_add_or_double(&ret, &ret, &grid[row].point)
+				row++
+			}
+			if y == 0 {
+				break // one can as well 'return &ret' here
+			}
+			for j := 0; j < window; j++ {
+				C.blst_p2_double(&ret, &ret)
+			}
+			y -= window
+			if !rows[y/window] { // see if next "row" was marked already
+				break
+			}
+		}
+	}
+
 	return &ret
 }
 
@@ -2325,4 +2651,80 @@ func expandMessageXmd(msg []byte, dst []byte, len_in_bytes int) []byte {
 		msgC, C.size_t(len(msg)),
 		dstC, C.size_t(len(dst)))
 	return ret
+}
+
+const uintSize = 32 << (^uint(0) >> 32 & 1) // 32 or 64
+
+func is_zero(l uint) uint { return (^l & (l - 1)) >> (uintSize - 1) }
+
+func as_mask(l uint) uint { return (uint)(int(0-l) >> (uintSize - 1)) }
+
+func num_bits(l uint) int {
+	var x, mask uint
+	var bits = is_zero(l) ^ 1
+
+	if uintSize == 64 {
+		x = l >> (32 & (uintSize - 1))
+		mask = as_mask(x)
+		bits += 32 & mask
+		l ^= (x ^ l) & mask
+	}
+
+	x = l >> 16
+	mask = as_mask(x)
+	bits += 16 & mask
+	l ^= (x ^ l) & mask
+
+	x = l >> 8
+	mask = as_mask(x)
+	bits += 8 & mask
+	l ^= (x ^ l) & mask
+
+	x = l >> 4
+	mask = as_mask(x)
+	bits += 4 & mask
+	l ^= (x ^ l) & mask
+
+	x = l >> 2
+	mask = as_mask(x)
+	bits += 2 & mask
+	l ^= (x ^ l) & mask
+
+	bits += l >> 1
+
+	return int(bits)
+}
+
+func breakdown(nbits, window, ncpus int) (int, int, int) {
+	var nx, ny, wnd int
+
+	if nbits > window*ncpus {
+		nx = 1
+		wnd = window - num_bits(uint(ncpus)/4)
+	} else {
+		nx = 2
+		wnd = window - 2
+		for (nbits/wnd+1)*nx < ncpus {
+			nx += 1
+			wnd = window - num_bits(3*uint(nx)/2)
+		}
+		nx -= 1
+		wnd = window - num_bits(3*uint(nx)/2)
+	}
+	ny = nbits/wnd + 1
+	wnd = nbits/ny + 1
+
+	return nx, ny, wnd
+}
+
+func pippenger_window_size(npoints int) int {
+	wbits := num_bits(uint(npoints))
+
+	if wbits > 13 {
+		return wbits - 4
+	}
+	if wbits > 5 {
+		return wbits - 3
+	}
+	return 2
 }
