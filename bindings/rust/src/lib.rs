@@ -106,6 +106,32 @@ impl blst_fp12 {
     }
 }
 
+impl blst_scalar {
+    pub fn hash_to(msg: &[u8], dst: &[u8]) -> Option<Self> {
+        unsafe {
+            let mut out = MaybeUninit::<Self>::uninit().assume_init();
+            let mut elem: [u8; 48] = MaybeUninit::uninit().assume_init();
+            blst_expand_message_xmd(
+                elem.as_mut_ptr(),
+                elem.len(),
+                msg.as_ptr(),
+                msg.len(),
+                dst.as_ptr(),
+                dst.len(),
+            );
+            if blst_scalar_from_be_bytes(
+                &mut out,
+                elem.as_ptr(),
+                elem.len(),
+            ) {
+                Some(out)
+            } else {
+                None
+            }
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Pairing {
     v: Box<[u64]>,
