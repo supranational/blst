@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/supranational/blst.svg?branch=master)](https://travis-ci.com/supranational/blst) [![Actions status](https://github.com/supranational/blst/workflows/build/badge.svg)](https://github.com/supranational/blst/actions) [![Total alerts](https://img.shields.io/lgtm/alerts/g/supranational/blst.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/supranational/blst/alerts/)
+[![Build Status](https://travis-ci.com/supranational/blst.svg?branch=master)](https://travis-ci.com/github/supranational/blst) [![Actions status](https://github.com/supranational/blst/workflows/build/badge.svg)](https://github.com/supranational/blst/actions) [![Total alerts](https://img.shields.io/lgtm/alerts/g/supranational/blst.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/supranational/blst/alerts/)
 <div align="left">
   <img src=blst_logo_small.png>
 </div>
@@ -16,6 +16,7 @@ blst (pronounced 'blast') is a BLS12-381 signature library focused on performanc
     + [Public Keys and Signatures](#public-keys-and-signatures)
     + [Signature Verification](#signature-verification)
     + [Signature Aggregation](#signature-aggregation)
+    + [Serialization Format](#serialization-format)
   * [Build](#build)
     + [C static library](#c-static-library)
   * [Language-specific notes](#language-specific-notes)
@@ -36,7 +37,7 @@ This library is compliant with the following IETF draft specifications:
 - [IETF BLS Signature V4](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature)
 - [IETF Hash-to-Curve V12](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve)
 
-The serialization formatting is implemented according to [Appendix A. BLS12-381](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature#appendix-A) of the IETF spec that calls for using the ZCash definition.
+The serialization formatting is implemented according to [the ZCash definition](#serialization-format).
 
 ## General notes on implementation
 The goal of the blst library is to provide a foundational component for applications and other libraries that require high performance and formally verified BLS12-381 operations. With that in mind some decisions are made to maximize the public good beyond BLS12-381. For example, the field operations are optimized for general 384-bit usage, as opposed to tuned specifically for the 381-bit BLS12-381 curve parameters. With the formal verification of these foundational components, we believe they can provide a reliable building block for other curves that would like high performance and an extra element of security.
@@ -69,21 +70,6 @@ Note: there is also an auxiliary header file, [bindings/blst_aux.h](bindings/bls
 ## Introductory Tutorial
 
 Programming is understanding, and understanding implies mastering the lingo. So we have a pair of additive groups being mapped to multiplicative one... What does it mean? Well, this tutorial is not about explaining that, but rather about making the connection between what you're supposed to know about [pairing-based cryptography](https://en.wikipedia.org/wiki/Pairing-based_cryptography) and the interface provided by the library.
-
-### Serialization
-
-From the ZCash BLS12-381 specification
-
-* Fq elements are encoded in big-endian form. They occupy 48 bytes in this form.
-* Fq2 elements are encoded in big-endian form, meaning that the Fq element c0 + c1 * u is represented by the Fq element c1 followed by the Fq element c0. This means Fq2 elements occupy 96 bytes in this form.
-* The group G1 uses Fq elements for coordinates. The group G2 uses Fq2 elements for coordinates.
-* G1 and G2 elements can be encoded in uncompressed form (the x-coordinate followed by the y-coordinate) or in compressed form (just the x-coordinate). G1 elements occupy 96 bytes in uncompressed form, and 48 bytes in compressed form. G2 elements occupy 192 bytes in uncompressed form, and 96 bytes in compressed form.
-
-The most-significant three bits of a G1 or G2 encoding should be masked away before the coordinate(s) are interpreted. These bits are used to unambiguously represent the underlying element:
-
-* The most significant bit, when set, indicates that the point is in compressed form. Otherwise, the point is in uncompressed form.
-* The second-most significant bit indicates that the point is at infinity. If this bit is set, the remaining bits of the group element's encoding should be set to zero.
-* The third-most significant bit is set if (and only if) this point is in compressed form _and_ it is not the point at infinity _and_ its y-coordinate is the lexicographically largest of the two associated with the encoded x-coordinate.
 
 ### Public Keys and Signatures
 
@@ -131,6 +117,21 @@ Aggregation is a trivial operation of performing point additions, with `blst_p2_
 ---
 
 That's about what you need to know to get started with nitty-gritty of actual function declarations.
+
+### Serialization Format
+
+From the ZCash BLS12-381 specification
+
+* Fq elements are encoded in big-endian form. They occupy 48 bytes in this form.
+* Fq2 elements are encoded in big-endian form, meaning that the Fq2 element c0 + c1 * u is represented by the Fq element c1 followed by the Fq element c0. This means Fq2 elements occupy 96 bytes in this form.
+* The group G1 uses Fq elements for coordinates. The group G2 uses Fq2 elements for coordinates.
+* G1 and G2 elements can be encoded in uncompressed form (the x-coordinate followed by the y-coordinate) or in compressed form (just the x-coordinate). G1 elements occupy 96 bytes in uncompressed form, and 48 bytes in compressed form. G2 elements occupy 192 bytes in uncompressed form, and 96 bytes in compressed form.
+
+The most-significant three bits of a G1 or G2 encoding should be masked away before the coordinate(s) are interpreted. These bits are used to unambiguously represent the underlying element:
+
+* The most significant bit, when set, indicates that the point is in compressed form. Otherwise, the point is in uncompressed form.
+* The second-most significant bit indicates that the point is at infinity. If this bit is set, the remaining bits of the group element's encoding should be set to zero.
+* The third-most significant bit is set if (and only if) this point is in compressed form _and_ it is not the point at infinity _and_ its y-coordinate is the lexicographically largest of the two associated with the encoded x-coordinate.
 
 ## Build
 The build process is very simple and only requires a C complier. It's integrated into the Go and Rust ecosystems, so that respective users would go about as they would with any other external module. Otherwise, a binary library would have to be compiled.
