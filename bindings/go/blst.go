@@ -2481,6 +2481,39 @@ func (s *Scalar) Valid() bool {
 	return bool(C.blst_sk_check(s))
 }
 
+func (s *Scalar) HashTo(msg []byte, dst []byte) bool {
+	ret := HashToScalar(msg, dst)
+	if ret != nil {
+		*s = *ret
+		return true
+	}
+	return false
+}
+
+func HashToScalar(msg []byte, dst []byte) *Scalar {
+	var ret Scalar
+	var elem [48]C.byte
+
+	var msgC *C.byte
+	if len(msg) > 0 {
+		msgC = (*C.byte)(&msg[0])
+	}
+
+	var dstC *C.byte
+	if len(dst) > 0 {
+		dstC = (*C.byte)(&dst[0])
+	}
+
+	C.blst_expand_message_xmd(&elem[0], C.size_t(len(elem)),
+		msgC, C.size_t(len(msg)),
+		dstC, C.size_t(len(dst)))
+	if C.blst_scalar_from_be_bytes(&ret, &elem[0], C.size_t(len(elem))) {
+		return &ret
+	}
+
+	return nil
+}
+
 //
 // LEndian
 //
