@@ -119,11 +119,7 @@ impl blst_scalar {
                 dst.as_ptr(),
                 dst.len(),
             );
-            if blst_scalar_from_be_bytes(
-                &mut out,
-                elem.as_ptr(),
-                elem.len(),
-            ) {
+            if blst_scalar_from_be_bytes(&mut out, elem.as_ptr(), elem.len()) {
                 Some(out)
             } else {
                 None
@@ -1630,3 +1626,76 @@ pub mod min_sig {
         blst_p1_in_g1,
     );
 }
+
+macro_rules! pippenger_mult_impl {
+    (
+        $points:ident,
+        $point:ty,
+        $point_affine:ty,
+        $to_affines:ident,
+        $scratch_sizeof:ident,
+        $mult:ident,
+    ) => {
+        pub struct $points {
+            points: Vec<$point_affine>,
+        }
+
+        impl $points {
+            pub fn from(points: &[$point]) -> Self {
+                let npoints = points.len();
+                let mut ret = Self {
+                    points: Vec::with_capacity(npoints),
+                };
+                let p: [*const $point; 2] = [&points[0], ptr::null()];
+                unsafe {
+                    ret.points.set_len(npoints);
+                    $to_affines(&mut ret.points[0], &p[0], npoints);
+                }
+                ret
+            }
+
+            pub fn mult(&self, scalars: &[u8], nbits: usize) -> $point {
+                let npoints = self.points.len();
+                if scalars.len() < ((nbits + 7) / 8) * npoints {
+                    panic!("scalars length mismatch");
+                }
+                let p: [*const $point_affine; 2] =
+                    [&self.points[0], ptr::null()];
+                let s: [*const u8; 2] = [&scalars[0], ptr::null()];
+                unsafe {
+                    let mut scratch: Vec<u64> =
+                        Vec::with_capacity($scratch_sizeof(npoints) / 8);
+                    scratch.set_len(scratch.capacity());
+                    let mut ret = MaybeUninit::<$point>::uninit().assume_init();
+                    $mult(
+                        &mut ret,
+                        &p[0],
+                        npoints,
+                        &s[0],
+                        nbits,
+                        &mut scratch[0],
+                    );
+                    ret
+                }
+            }
+        }
+    };
+}
+
+pippenger_mult_impl!(
+    p1_affines,
+    blst_p1,
+    blst_p1_affine,
+    blst_p1s_to_affine,
+    blst_p1s_mult_pippenger_scratch_sizeof,
+    blst_p1s_mult_pippenger,
+);
+
+pippenger_mult_impl!(
+    p2_affines,
+    blst_p2,
+    blst_p2_affine,
+    blst_p2s_to_affine,
+    blst_p2s_mult_pippenger_scratch_sizeof,
+    blst_p2s_mult_pippenger,
+);
