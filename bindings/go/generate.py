@@ -3,6 +3,7 @@
 import os
 import sys
 import re
+import subprocess
 
 here = re.split(r'/(?=[^/]*$)', sys.argv[0])
 if len(here) > 1:
@@ -15,8 +16,16 @@ for dir in re.split(r':', os.getenv("GOPATH")):
   goimports = None
 
 if goimports is None:
-  print("goimports is not found on $GOPATH",                      file=sys.stderr)
-  print("install with 'go get golang.org/x/tools/cmd/goimports'", file=sys.stderr)
+  version = subprocess.check_output(["go", "version"]).decode('ascii')
+  v = re.search(r'version go([0-9]+\.[0-9]+)', version)
+  if not v:
+    raise OSError(2, "unparseable output from 'go version'")
+  if float(v.group(1)) < 1.17:
+    advice = "'go get golang.org/x/tools/cmd/goimports'"
+  else:
+    advice = "'go install golang.org/x/tools/cmd/goimports@latest'"
+  print("'goimports' is not found on $GOPATH, install with", file=sys.stderr)
+  print(advice,                                              file=sys.stderr)
   sys.exit(1)
 
 outFile = 'blst.go'
