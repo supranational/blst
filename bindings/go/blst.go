@@ -25,7 +25,6 @@ import (
 	"runtime"
 	"sync"
 	"sync/atomic"
-	"unsafe"
 )
 
 const BLST_SCALAR_BYTES = 256 / 8
@@ -1655,8 +1654,8 @@ func P1sToAffine(points []*P1, optional ...int) P1Affines {
 		npoints = len(points)
 	}
 	ret := make([]P1Affine, npoints)
-	p := uintptr(unsafe.Pointer(&points[0]))
-	C.blst_p1s_to_affine(&ret[0], (**P1)(unsafe.Pointer(p)), C.size_t(npoints))
+	_cgoCheckPointer := func(interface{}, interface{}) {}
+	C.blst_p1s_to_affine(&ret[0], &points[0], C.size_t(npoints))
 	return ret
 }
 
@@ -1676,8 +1675,8 @@ func P1AffinesAdd(points []*P1Affine, optional ...int) *P1 {
 		npoints = len(points)
 	}
 	var ret P1
-	p := uintptr(unsafe.Pointer(&points[0]))
-	C.blst_p1s_add(&ret, (**P1Affine)(unsafe.Pointer(p)), C.size_t(npoints))
+	_cgoCheckPointer := func(interface{}, interface{}) {}
+	C.blst_p1s_add(&ret, &points[0], C.size_t(npoints))
 	return &ret
 }
 
@@ -1786,13 +1785,15 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 		}
 
 		var ret P1
-		p := uintptr(unsafe.Pointer(p_points))
-		s := uintptr(unsafe.Pointer(p_scalars))
-		C.blst_p1s_mult_pippenger(&ret,
-			(**P1Affine)(unsafe.Pointer(p)),
-			C.size_t(npoints),
-			(**C.byte)(unsafe.Pointer(s)),
-			C.size_t(nbits), (*C.limb_t)(&scratch[0]))
+		_cgoCheckPointer := func(interface{}, interface{}) {}
+		C.blst_p1s_mult_pippenger(&ret, p_points, C.size_t(npoints),
+			p_scalars, C.size_t(nbits),
+			(*C.limb_t)(&scratch[0]))
+
+		for i := range scalars {
+			scalars[i] = nil
+		}
+
 		return &ret
 	}
 
@@ -1842,6 +1843,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 			scratch := make([]uint64, sz<<uint(window-1))
 			pointsBySlice := [2]*P1Affine{nil, nil}
 			scalarsBySlice := [2]*C.byte{nil, nil}
+			_cgoCheckPointer := func(interface{}, interface{}) {}
 
 			for {
 				workItem := atomic.AddInt32(&curItem, 1) - 1
@@ -1882,13 +1884,9 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 					p_scalars = &scalars[x]
 				}
 
-				p := uintptr(unsafe.Pointer(p_points))
-				s := uintptr(unsafe.Pointer(p_scalars))
 				C.blst_p1s_tile_pippenger(&grid[workItem].point,
-					(**P1Affine)(unsafe.Pointer(p)),
-					C.size_t(grid[workItem].dx),
-					(**C.byte)(unsafe.Pointer(s)),
-					C.size_t(nbits),
+					p_points, C.size_t(grid[workItem].dx),
+					p_scalars, C.size_t(nbits),
 					(*C.limb_t)(&scratch[0]),
 					C.size_t(y), C.size_t(window))
 
@@ -1896,6 +1894,9 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 					msgsCh <- y // "row" is done
 				}
 			}
+
+			pointsBySlice[0] = nil
+			scalarsBySlice[0] = nil
 		}()
 	}
 
@@ -1921,6 +1922,10 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 				break
 			}
 		}
+	}
+
+	for i := range scalars {
+		scalars[i] = nil
 	}
 
 	return &ret
@@ -2148,8 +2153,8 @@ func P2sToAffine(points []*P2, optional ...int) P2Affines {
 		npoints = len(points)
 	}
 	ret := make([]P2Affine, npoints)
-	p := uintptr(unsafe.Pointer(&points[0]))
-	C.blst_p2s_to_affine(&ret[0], (**P2)(unsafe.Pointer(p)), C.size_t(npoints))
+	_cgoCheckPointer := func(interface{}, interface{}) {}
+	C.blst_p2s_to_affine(&ret[0], &points[0], C.size_t(npoints))
 	return ret
 }
 
@@ -2169,8 +2174,8 @@ func P2AffinesAdd(points []*P2Affine, optional ...int) *P2 {
 		npoints = len(points)
 	}
 	var ret P2
-	p := uintptr(unsafe.Pointer(&points[0]))
-	C.blst_p2s_add(&ret, (**P2Affine)(unsafe.Pointer(p)), C.size_t(npoints))
+	_cgoCheckPointer := func(interface{}, interface{}) {}
+	C.blst_p2s_add(&ret, &points[0], C.size_t(npoints))
 	return &ret
 }
 
@@ -2279,13 +2284,15 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 		}
 
 		var ret P2
-		p := uintptr(unsafe.Pointer(p_points))
-		s := uintptr(unsafe.Pointer(p_scalars))
-		C.blst_p2s_mult_pippenger(&ret,
-			(**P2Affine)(unsafe.Pointer(p)),
-			C.size_t(npoints),
-			(**C.byte)(unsafe.Pointer(s)),
-			C.size_t(nbits), (*C.limb_t)(&scratch[0]))
+		_cgoCheckPointer := func(interface{}, interface{}) {}
+		C.blst_p2s_mult_pippenger(&ret, p_points, C.size_t(npoints),
+			p_scalars, C.size_t(nbits),
+			(*C.limb_t)(&scratch[0]))
+
+		for i := range scalars {
+			scalars[i] = nil
+		}
+
 		return &ret
 	}
 
@@ -2335,6 +2342,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 			scratch := make([]uint64, sz<<uint(window-1))
 			pointsBySlice := [2]*P2Affine{nil, nil}
 			scalarsBySlice := [2]*C.byte{nil, nil}
+			_cgoCheckPointer := func(interface{}, interface{}) {}
 
 			for {
 				workItem := atomic.AddInt32(&curItem, 1) - 1
@@ -2375,13 +2383,9 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 					p_scalars = &scalars[x]
 				}
 
-				p := uintptr(unsafe.Pointer(p_points))
-				s := uintptr(unsafe.Pointer(p_scalars))
 				C.blst_p2s_tile_pippenger(&grid[workItem].point,
-					(**P2Affine)(unsafe.Pointer(p)),
-					C.size_t(grid[workItem].dx),
-					(**C.byte)(unsafe.Pointer(s)),
-					C.size_t(nbits),
+					p_points, C.size_t(grid[workItem].dx),
+					p_scalars, C.size_t(nbits),
 					(*C.limb_t)(&scratch[0]),
 					C.size_t(y), C.size_t(window))
 
@@ -2389,6 +2393,9 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 					msgsCh <- y // "row" is done
 				}
 			}
+
+			pointsBySlice[0] = nil
+			scalarsBySlice[0] = nil
 		}()
 	}
 
@@ -2414,6 +2421,10 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 				break
 			}
 		}
+	}
+
+	for i := range scalars {
+		scalars[i] = nil
 	}
 
 	return &ret
