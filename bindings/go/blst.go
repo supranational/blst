@@ -21,6 +21,7 @@ package blst
 import "C"
 import (
 	"fmt"
+	"math/bits"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -2686,63 +2687,21 @@ func expandMessageXmd(msg []byte, dst []byte, len_in_bytes int) []byte {
 	return ret
 }
 
-const uintSize = 32 << (^uint(0) >> 32 & 1) // 32 or 64
-
-func is_zero(l uint) uint { return (^l & (l - 1)) >> (uintSize - 1) }
-
-func as_mask(l uint) uint { return (uint)(int(0-l) >> (uintSize - 1)) }
-
-func num_bits(l uint) int {
-	var x, mask uint
-	var bits = is_zero(l) ^ 1
-
-	if uintSize == 64 {
-		x = l >> (32 & (uintSize - 1))
-		mask = as_mask(x)
-		bits += 32 & mask
-		l ^= (x ^ l) & mask
-	}
-
-	x = l >> 16
-	mask = as_mask(x)
-	bits += 16 & mask
-	l ^= (x ^ l) & mask
-
-	x = l >> 8
-	mask = as_mask(x)
-	bits += 8 & mask
-	l ^= (x ^ l) & mask
-
-	x = l >> 4
-	mask = as_mask(x)
-	bits += 4 & mask
-	l ^= (x ^ l) & mask
-
-	x = l >> 2
-	mask = as_mask(x)
-	bits += 2 & mask
-	l ^= (x ^ l) & mask
-
-	bits += l >> 1
-
-	return int(bits)
-}
-
 func breakdown(nbits, window, ncpus int) (int, int, int) {
 	var nx, ny, wnd int
 
 	if nbits > window*ncpus {
 		nx = 1
-		wnd = window - num_bits(uint(ncpus)/4)
+		wnd = window - bits.Len(uint(ncpus)/4)
 	} else {
 		nx = 2
 		wnd = window - 2
 		for (nbits/wnd+1)*nx < ncpus {
 			nx += 1
-			wnd = window - num_bits(3*uint(nx)/2)
+			wnd = window - bits.Len(3*uint(nx)/2)
 		}
 		nx -= 1
-		wnd = window - num_bits(3*uint(nx)/2)
+		wnd = window - bits.Len(3*uint(nx)/2)
 	}
 	ny = nbits/wnd + 1
 	wnd = nbits/ny + 1
@@ -2751,7 +2710,7 @@ func breakdown(nbits, window, ncpus int) (int, int, int) {
 }
 
 func pippenger_window_size(npoints int) int {
-	wbits := num_bits(uint(npoints))
+	wbits := bits.Len(uint(npoints))
 
 	if wbits > 13 {
 		return wbits - 4
