@@ -282,7 +282,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
         if len(val) < npoints {
             return nil
         }
-        if (nbits <= 248) {
+        if nbits <= 248 {
             scalars = make([]*C.byte, npoints)
             for i := range scalars {
                 scalars[i] = &val[i].b[0]
@@ -332,7 +332,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
         case [][]byte:
             p_scalars = &scalars[0]
         case []Scalar:
-            if (nbits > 248) {
+            if nbits > 248 {
                 scalarsBySlice[0] = (*C.byte)(&val[0].b[0])
                 p_scalars = &scalarsBySlice[0]
             } else {
@@ -427,7 +427,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
                 case [][]byte:
                     p_scalars = &scalars[x]
                 case []Scalar:
-                    if (nbits > 248) {
+                    if nbits > 248 {
                         scalarsBySlice[0] = (*C.byte)(&val[x].b[0])
                         p_scalars = &scalarsBySlice[0]
                     } else {
