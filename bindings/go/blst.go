@@ -1654,7 +1654,7 @@ func P1sToAffine(points []*P1, optional ...int) P1Affines {
 		npoints = len(points)
 	}
 	ret := make([]P1Affine, npoints)
-	_cgoCheckPointer := func(interface{}, interface{}) {}
+	_cgoCheckPointer := func(...interface{}) {}
 	C.blst_p1s_to_affine(&ret[0], &points[0], C.size_t(npoints))
 	return ret
 }
@@ -1675,7 +1675,7 @@ func P1AffinesAdd(points []*P1Affine, optional ...int) *P1 {
 		npoints = len(points)
 	}
 	var ret P1
-	_cgoCheckPointer := func(interface{}, interface{}) {}
+	_cgoCheckPointer := func(...interface{}) {}
 	C.blst_p1s_add(&ret, &points[0], C.size_t(npoints))
 	return &ret
 }
@@ -1785,7 +1785,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 		}
 
 		var ret P1
-		_cgoCheckPointer := func(interface{}, interface{}) {}
+		_cgoCheckPointer := func(...interface{}) {}
 		C.blst_p1s_mult_pippenger(&ret, p_points, C.size_t(npoints),
 			p_scalars, C.size_t(nbits),
 			(*C.limb_t)(&scratch[0]))
@@ -1843,7 +1843,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 			scratch := make([]uint64, sz<<uint(window-1))
 			pointsBySlice := [2]*P1Affine{nil, nil}
 			scalarsBySlice := [2]*C.byte{nil, nil}
-			_cgoCheckPointer := func(interface{}, interface{}) {}
+			_cgoCheckPointer := func(...interface{}) {}
 
 			for {
 				workItem := atomic.AddInt32(&curItem, 1) - 1
@@ -2153,7 +2153,7 @@ func P2sToAffine(points []*P2, optional ...int) P2Affines {
 		npoints = len(points)
 	}
 	ret := make([]P2Affine, npoints)
-	_cgoCheckPointer := func(interface{}, interface{}) {}
+	_cgoCheckPointer := func(...interface{}) {}
 	C.blst_p2s_to_affine(&ret[0], &points[0], C.size_t(npoints))
 	return ret
 }
@@ -2174,7 +2174,7 @@ func P2AffinesAdd(points []*P2Affine, optional ...int) *P2 {
 		npoints = len(points)
 	}
 	var ret P2
-	_cgoCheckPointer := func(interface{}, interface{}) {}
+	_cgoCheckPointer := func(...interface{}) {}
 	C.blst_p2s_add(&ret, &points[0], C.size_t(npoints))
 	return &ret
 }
@@ -2284,7 +2284,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 		}
 
 		var ret P2
-		_cgoCheckPointer := func(interface{}, interface{}) {}
+		_cgoCheckPointer := func(...interface{}) {}
 		C.blst_p2s_mult_pippenger(&ret, p_points, C.size_t(npoints),
 			p_scalars, C.size_t(nbits),
 			(*C.limb_t)(&scratch[0]))
@@ -2342,7 +2342,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 			scratch := make([]uint64, sz<<uint(window-1))
 			pointsBySlice := [2]*P2Affine{nil, nil}
 			scalarsBySlice := [2]*C.byte{nil, nil}
-			_cgoCheckPointer := func(interface{}, interface{}) {}
+			_cgoCheckPointer := func(...interface{}) {}
 
 			for {
 				workItem := atomic.AddInt32(&curItem, 1) - 1
