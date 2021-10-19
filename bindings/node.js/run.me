@@ -21,7 +21,7 @@ include=`(cd $include/nodejs || cd $include; pwd) 2>/dev/null`
 [ -f $include/deps/v8/include/v8.h ] && INCS="$INCS -I$include/deps/v8/include"
 
 if [ ! -f ../libblst.a -o ../blst.h -nt ../libblst.a ]; then
-    (cd ..; ../build.sh)
+    (cd ..; ../build.sh "$@")
 fi
 
 if [ ! -f blst_wrap.cpp -o ../blst.swg -nt blst_wrap.cpp \

@@ -6,7 +6,7 @@ cd `dirname $0`
 
 #unset _JAVA_OPTIONS
 
-. ./build.sh
+. ./build.sh "$@"
 
 if [ ! -f runnable.class  -o runnable.java  -nt runnable.class ]; then
     (set -x; "$JAVA_HOME"/bin/javac runnable.java)

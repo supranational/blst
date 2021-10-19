@@ -59,7 +59,7 @@ LIBBLST_A=libblst.a
 if [ -f "$TOP"/libblst.a -a "$TOP"/libblst.a -nt "$TOP"/blst.h ]; then
     LIBBLST_A="$TOP"/libblst.a
 elif [ ! -f libblst.a -o "$TOP"/blst.h -nt libblst.a ]; then
-    $TOP/../build.sh
+    $TOP/../build.sh "$@"
 fi
 
 if [ ! -f $SO_NAME -o blst_wrap.cpp -nt $SO_NAME \
