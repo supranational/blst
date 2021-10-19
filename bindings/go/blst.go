@@ -1820,7 +1820,8 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 	}
 	grid[total-1].dx = npoints - grid[total-1].x
 
-	for y -= window; y >= 0; y -= window {
+	for y > 0 {
+		y -= window
 		for i := 0; i < nx; i++ {
 			grid[total].x = i * dx
 			grid[total].dx = dx
@@ -2319,7 +2320,8 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 	}
 	grid[total-1].dx = npoints - grid[total-1].x
 
-	for y -= window; y >= 0; y -= window {
+	for y > 0 {
+		y -= window
 		for i := 0; i < nx; i++ {
 			grid[total].x = i * dx
 			grid[total].dx = dx
