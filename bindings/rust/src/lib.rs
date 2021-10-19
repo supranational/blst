@@ -8,20 +8,33 @@
 
 use std::any::Any;
 use std::mem::{transmute, MaybeUninit};
-use std::sync::{atomic::*, mpsc::channel, Arc, Mutex, Once};
+use std::sync::{atomic::*, mpsc::channel, Arc};
 use std::{ptr, slice};
-use threadpool::ThreadPool;
 use zeroize::Zeroize;
 
-fn da_pool() -> ThreadPool {
-    static INIT: Once = Once::new();
-    static mut POOL: *const Mutex<ThreadPool> = 0 as *const Mutex<ThreadPool>;
+mod mt {
+    use std::mem::transmute;
+    use std::sync::{Mutex, Once};
+    use threadpool::ThreadPool;
 
-    INIT.call_once(|| {
-        let pool = Mutex::new(ThreadPool::default());
-        unsafe { POOL = transmute(Box::new(pool)) };
-    });
-    unsafe { (*POOL).lock().unwrap().clone() }
+    pub fn da_pool() -> ThreadPool {
+        static INIT: Once = Once::new();
+        static mut POOL: *const Mutex<ThreadPool> =
+            0 as *const Mutex<ThreadPool>;
+
+        INIT.call_once(|| {
+            let pool = Mutex::new(ThreadPool::default());
+            unsafe { POOL = transmute(Box::new(pool)) };
+        });
+        unsafe { (*POOL).lock().unwrap().clone() }
+    }
+
+    macro_rules! execute_in {
+        ($pool:ident, $closure:block) => {
+            $pool.execute(move || $closure)
+        };
+    }
+    pub(crate) use execute_in;
 }
 
 include!("bindings.rs");
@@ -776,7 +789,7 @@ macro_rules! sig_variant_impl {
 
                 // TODO - check msg uniqueness?
 
-                let pool = da_pool();
+                let pool = mt::da_pool();
                 let (tx, rx) = channel();
                 let counter = Arc::new(AtomicUsize::new(0));
                 let valid = Arc::new(AtomicBool::new(true));
@@ -797,7 +810,7 @@ macro_rules! sig_variant_impl {
                     let counter = counter.clone();
                     let valid = valid.clone();
 
-                    pool.execute(move || {
+                    mt::execute_in!(pool, {
                         let mut pairing = Pairing::new($hash_or_encode, dst);
                         // reconstruct input slices...
                         let msgs = unsafe {
@@ -919,7 +932,7 @@ macro_rules! sig_variant_impl {
 
                 // TODO - check msg uniqueness?
 
-                let pool = da_pool();
+                let pool = mt::da_pool();
                 let (tx, rx) = channel();
                 let counter = Arc::new(AtomicUsize::new(0));
                 let valid = Arc::new(AtomicBool::new(true));
@@ -946,7 +959,7 @@ macro_rules! sig_variant_impl {
                     let counter = counter.clone();
                     let valid = valid.clone();
 
-                    pool.execute(move || {
+                    mt::execute_in!(pool, {
                         let mut pairing = Pairing::new($hash_or_encode, dst);
                         // reconstruct input slices...
                         let rands = unsafe {
