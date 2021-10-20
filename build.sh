@@ -11,7 +11,11 @@
 #	/some/where/build.sh flavour=mingw64 CC=x86_64-w64-mingw32-gcc
 #
 # In addition script recognizes -shared flag and creates shared library
-# alongside libblst.lib.
+# alongside libblst.a.
+#
+# To cross-compile for WebAssembly with Emscripten SDK:
+#
+#	/some/where/build.sh CROSS_COMPILE=em
 
 TOP=`dirname $0`
 
