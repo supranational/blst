@@ -77,6 +77,9 @@ fn main() {
         assembly(&mut file_vec, &blst_base_dir.join("build"), &target_arch);
     } else {
         cc.define("__BLST_NO_ASM__", None);
+        if target_arch.eq("wasm32") {
+            println!("cargo:rustc-cfg=feature=\"no-threads\"");
+        }
     }
     match (cfg!(feature = "portable"), cfg!(feature = "force-adx")) {
         (true, false) => {

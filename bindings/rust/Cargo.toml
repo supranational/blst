@@ -30,14 +30,19 @@ portable = []
 # Enable ADX even if the host CPU doesn't support it.
 # Binary can be executed on Broadwell+ and Ryzen+ systems.
 force-adx = []
+# Suppress multi-threading.
+# Engaged on wasm32 target architecture automatically.
+no-threads = []
 
 [build-dependencies]
 cc = "1.0"
 glob = "0.3"
 
 [dependencies]
-threadpool = "^1.8.1"
 zeroize = { version = "^1.1", features = ["zeroize_derive"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+threadpool = "^1.8.1"
 
 [dev-dependencies]
 rand = "0.7"
