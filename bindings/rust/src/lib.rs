@@ -28,13 +28,6 @@ mod mt {
         });
         unsafe { (*POOL).lock().unwrap().clone() }
     }
-
-    macro_rules! execute_in {
-        ($pool:ident, $closure:block) => {
-            $pool.execute(move || $closure)
-        };
-    }
-    pub(crate) use execute_in;
 }
 
 include!("bindings.rs");
@@ -810,7 +803,7 @@ macro_rules! sig_variant_impl {
                     let counter = counter.clone();
                     let valid = valid.clone();
 
-                    mt::execute_in!(pool, {
+                    pool.execute(move || {
                         let mut pairing = Pairing::new($hash_or_encode, dst);
                         // reconstruct input slices...
                         let msgs = unsafe {
@@ -959,7 +952,7 @@ macro_rules! sig_variant_impl {
                     let counter = counter.clone();
                     let valid = valid.clone();
 
-                    mt::execute_in!(pool, {
+                    pool.execute(move || {
                         let mut pairing = Pairing::new($hash_or_encode, dst);
                         // reconstruct input slices...
                         let rands = unsafe {
