@@ -12,6 +12,7 @@ use std::sync::{atomic::*, mpsc::channel, Arc};
 use std::{ptr, slice};
 use zeroize::Zeroize;
 
+#[cfg(not(feature = "no-threads"))]
 mod mt {
     use std::mem::transmute;
     use std::sync::{Mutex, Once};
@@ -27,6 +28,27 @@ mod mt {
             unsafe { POOL = transmute(Box::new(pool)) };
         });
         unsafe { (*POOL).lock().unwrap().clone() }
+    }
+}
+
+#[cfg(feature = "no-threads")]
+mod mt {
+    pub struct EmptyPool {}
+
+    pub fn da_pool() -> EmptyPool {
+        EmptyPool {}
+    }
+
+    impl EmptyPool {
+        pub fn max_count(&self) -> usize {
+            1
+        }
+        pub fn execute<F>(&self, job: F)
+        where
+            F: FnOnce() + Send + 'static,
+        {
+            job()
+        }
     }
 }
 
