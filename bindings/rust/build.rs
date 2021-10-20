@@ -26,6 +26,13 @@ fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, _: &String) {
 }
 
 fn main() {
+    // account for cross-compilation [by examining environment variable]
+    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+
+    if target_arch.eq("wasm32") {
+        println!("cargo:rustc-cfg=feature=\"no-threads\"");
+    }
+
     /*
      * Use pre-built libblst.a if there is one. This is primarily
      * for trouble-shooting purposes. Idea is that libblst.a can be
@@ -71,15 +78,10 @@ fn main() {
 
     let mut file_vec = vec![c_src_dir.join("server.c")];
 
-    // account for cross-compilation
-    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     if target_arch.eq("x86_64") || target_arch.eq("aarch64") {
         assembly(&mut file_vec, &blst_base_dir.join("build"), &target_arch);
     } else {
         cc.define("__BLST_NO_ASM__", None);
-        if target_arch.eq("wasm32") {
-            println!("cargo:rustc-cfg=feature=\"no-threads\"");
-        }
     }
     match (cfg!(feature = "portable"), cfg!(feature = "force-adx")) {
         (true, false) => {
