@@ -1673,6 +1673,9 @@ macro_rules! pippenger_mult_impl {
         $tile_mult:ident,
         $add_or_double:ident,
         $double:ident,
+        $test_mod:ident,
+        $generator:ident,
+        $mult:ident,
     ) => {
         pub struct $points {
             points: Vec<$point_affine>,
@@ -1862,6 +1865,45 @@ macro_rules! pippenger_mult_impl {
                 ret
             }
         }
+
+        #[cfg(test)]
+        mod $test_mod {
+            use super::*;
+            use rand::{RngCore, SeedableRng};
+            use rand_chacha::ChaCha20Rng;
+
+            #[test]
+            fn test_mult() {
+                const npoints: usize = 2000;
+                const nbits: usize = 160;
+                const nbytes: usize = (nbits + 7) / 8;
+
+                let mut scalars = [0u8; nbytes * npoints];
+                ChaCha20Rng::from_seed([0u8; 32]).fill_bytes(&mut scalars);
+
+                let mut points: Vec<$point> = Vec::with_capacity(npoints);
+                unsafe { points.set_len(points.capacity()) };
+
+                let mut naive = <$point>::default();
+                for i in 0..npoints {
+                    unsafe {
+                        let mut t =
+                            MaybeUninit::<$point>::uninit().assume_init();
+                        $mult(
+                            &mut points[i],
+                            $generator(),
+                            &scalars[i * nbytes],
+                            core::cmp::min(32, nbits),
+                        );
+                        $mult(&mut t, &points[i], &scalars[i * nbytes], nbits);
+                        $add_or_double(&mut naive, &naive, &t);
+                    }
+                }
+
+                let points = $points::from(&points);
+                assert_eq!(naive, points.mult(&scalars, nbits));
+            }
+        }
     };
 }
 
@@ -1875,6 +1917,9 @@ pippenger_mult_impl!(
     blst_p1s_tile_pippenger,
     blst_p1_add_or_double,
     blst_p1_double,
+    p1_multi_scalar,
+    blst_p1_generator,
+    blst_p1_mult,
 );
 
 pippenger_mult_impl!(
@@ -1887,6 +1932,9 @@ pippenger_mult_impl!(
     blst_p2s_tile_pippenger,
     blst_p2_add_or_double,
     blst_p2_double,
+    p2_multi_scalar,
+    blst_p2_generator,
+    blst_p2_mult,
 );
 
 fn static_lifetime<'any, T: ?Sized>(r: &'any T) -> &'static T {
