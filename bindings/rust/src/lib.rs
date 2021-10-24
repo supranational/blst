@@ -1840,7 +1840,7 @@ macro_rules! pippenger_mult_impl {
                     let mut y = rx.recv().unwrap();
                     rows[y / window] = true;
                     while grid[row].0.y == y {
-                        if row < total && grid[row].0.y == y {
+                        while row < total && grid[row].0.y == y {
                             unsafe {
                                 $add_or_double(
                                     &mut ret,
