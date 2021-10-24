@@ -118,6 +118,7 @@ EXPORTS
 	blst_p1s_mult_wbits
 	blst_p1s_mult_pippenger_scratch_sizeof
 	blst_p1s_mult_pippenger
+	blst_p1s_tile_pippenger
 	blst_p2s_to_affine
 	blst_p2s_add
 	blst_p2s_mult_wbits_precompute_sizeof
@@ -126,6 +127,7 @@ EXPORTS
 	blst_p2s_mult_wbits
 	blst_p2s_mult_pippenger_scratch_sizeof
 	blst_p2s_mult_pippenger
+	blst_p2s_tile_pippenger
 	blst_map_to_g1
 	blst_map_to_g2
 	blst_encode_to_g1

@@ -770,6 +770,18 @@ extern "C" {
     );
 }
 extern "C" {
+    pub fn blst_p1s_tile_pippenger(
+        ret: *mut blst_p1,
+        points: *const *const blst_p1_affine,
+        npoints: usize,
+        scalars: *const *const byte,
+        nbits: usize,
+        scratch: *mut limb_t,
+        bit0: usize,
+        window: usize,
+    );
+}
+extern "C" {
     pub fn blst_p2s_to_affine(
         dst: *mut blst_p2_affine,
         points: *const *const blst_p2,
@@ -815,6 +827,18 @@ extern "C" {
         scalars: *const *const byte,
         nbits: usize,
         scratch: *mut limb_t,
+    );
+}
+extern "C" {
+    pub fn blst_p2s_tile_pippenger(
+        ret: *mut blst_p2,
+        points: *const *const blst_p2_affine,
+        npoints: usize,
+        scalars: *const *const byte,
+        nbits: usize,
+        scratch: *mut limb_t,
+        bit0: usize,
+        window: usize,
     );
 }
 extern "C" {
