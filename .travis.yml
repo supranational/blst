@@ -16,6 +16,7 @@ arch:
     - s390x
 
 before_script:
+    - lscpu 2>/dev/null && echo --- || true
     - env | sort
 
 script:
