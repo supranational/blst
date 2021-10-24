@@ -9,7 +9,7 @@
 use std::any::Any;
 use std::mem::{transmute, MaybeUninit};
 use std::sync::{atomic::*, mpsc::channel, Arc};
-use std::{ptr, slice};
+use std::{cell::Cell, ptr, slice};
 use zeroize::Zeroize;
 
 #[cfg(not(feature = "no-threads"))]
@@ -1655,6 +1655,13 @@ pub mod min_sig {
     );
 }
 
+struct tile {
+    x: usize,
+    dx: usize,
+    y: usize,
+    dy: usize,
+}
+
 macro_rules! pippenger_mult_impl {
     (
         $points:ident,
@@ -1662,7 +1669,10 @@ macro_rules! pippenger_mult_impl {
         $point_affine:ty,
         $to_affines:ident,
         $scratch_sizeof:ident,
-        $mult:ident,
+        $multi_scalar_mult:ident,
+        $tile_mult:ident,
+        $add_or_double:ident,
+        $double:ident,
     ) => {
         pub struct $points {
             points: Vec<$point_affine>,
@@ -1684,27 +1694,172 @@ macro_rules! pippenger_mult_impl {
 
             pub fn mult(&self, scalars: &[u8], nbits: usize) -> $point {
                 let npoints = self.points.len();
-                if scalars.len() < ((nbits + 7) / 8) * npoints {
+                let nbytes = (nbits + 7) / 8;
+
+                if scalars.len() < nbytes * npoints {
                     panic!("scalars length mismatch");
                 }
-                let p: [*const $point_affine; 2] =
-                    [&self.points[0], ptr::null()];
-                let s: [*const u8; 2] = [&scalars[0], ptr::null()];
-                unsafe {
-                    let mut scratch: Vec<u64> =
-                        Vec::with_capacity($scratch_sizeof(npoints) / 8);
-                    scratch.set_len(scratch.capacity());
-                    let mut ret = MaybeUninit::<$point>::uninit().assume_init();
-                    $mult(
-                        &mut ret,
-                        &p[0],
-                        npoints,
-                        &s[0],
-                        nbits,
-                        &mut scratch[0],
-                    );
-                    ret
+
+                let pool = mt::da_pool();
+                let ncpus = pool.max_count();
+                if ncpus < 2 || npoints < 32 {
+                    let p: [*const $point_affine; 2] =
+                        [&self.points[0], ptr::null()];
+                    let s: [*const u8; 2] = [&scalars[0], ptr::null()];
+
+                    unsafe {
+                        let mut scratch: Vec<u64> =
+                            Vec::with_capacity($scratch_sizeof(npoints) / 8);
+                        scratch.set_len(scratch.capacity());
+                        let mut ret =
+                            MaybeUninit::<$point>::uninit().assume_init();
+                        $multi_scalar_mult(
+                            &mut ret,
+                            &p[0],
+                            npoints,
+                            &s[0],
+                            nbits,
+                            &mut scratch[0],
+                        );
+                        return ret;
+                    }
                 }
+
+                let (nx, ny, window) =
+                    breakdown(nbits, pippenger_window_size(npoints), ncpus);
+
+                // |grid[]| holds "coordinates" and place for result
+                let mut grid: Vec<(tile, Cell<$point>)> =
+                    Vec::with_capacity(nx * ny);
+                unsafe { grid.set_len(grid.capacity()) };
+                let dx = npoints / nx;
+                let mut y = window * (ny - 1);
+                let mut total = 0usize;
+
+                while total < nx {
+                    grid[total].0.x = total * dx;
+                    grid[total].0.dx = dx;
+                    grid[total].0.y = y;
+                    grid[total].0.dy = nbits - y;
+                    total += 1;
+                }
+                grid[total - 1].0.dx = npoints - grid[total - 1].0.x;
+                while y != 0 {
+                    y -= window;
+                    for i in 0..nx {
+                        grid[total].0.x = i * dx;
+                        grid[total].0.dx = dx;
+                        grid[total].0.y = y;
+                        grid[total].0.dy = window;
+                        total += 1;
+                    }
+                    grid[total - 1].0.dx = npoints - grid[total - 1].0.x;
+                }
+
+                let mut row_sync: Vec<AtomicUsize> = Vec::with_capacity(ny);
+                row_sync.resize_with(ny, Default::default);
+                let row_sync = Arc::new(row_sync);
+                let counter = Arc::new(AtomicUsize::new(0));
+
+                // Bypass 'lifetime limitations by brute force. It works,
+                // because we explicitly join the threads...
+                let points = static_lifetime(&self.points[..]);
+                let scalars = static_lifetime(&scalars[..]);
+
+                // Bypass Cell's thread sharing limitations. It works,
+                // because only one thread writes to each Cell.
+                let raw_grid = unsafe {
+                    transmute::<*const (tile, Cell<$point>), usize>(
+                        grid.as_ptr(),
+                    )
+                };
+
+                let (tx, rx) = channel();
+                let sz = unsafe { $scratch_sizeof(0) / 8 };
+                let n_workers = core::cmp::min(ncpus, total);
+                for _ in 0..n_workers {
+                    let tx = tx.clone();
+                    let counter = counter.clone();
+                    let row_sync = row_sync.clone();
+
+                    pool.execute(move || {
+                        let mut scratch = vec![0u64; sz << (window - 1)];
+                        let mut p: [*const $point_affine; 2] =
+                            [ptr::null(), ptr::null()];
+                        let mut s: [*const u8; 2] = [ptr::null(), ptr::null()];
+
+                        // reconstruct |grid| as slice...
+                        let grid = unsafe {
+                            slice::from_raw_parts(
+                                transmute::<usize, *const (tile, Cell<$point>)>(
+                                    raw_grid,
+                                ),
+                                total,
+                            )
+                        };
+
+                        loop {
+                            let work = counter.fetch_add(1, Ordering::Relaxed);
+                            if work >= total {
+                                break;
+                            }
+                            let x = grid[work].0.x;
+                            let y = grid[work].0.y;
+
+                            p[0] = &points[x];
+                            s[0] = &scalars[x * nbytes];
+                            unsafe {
+                                $tile_mult(
+                                    grid[work].1.as_ptr(),
+                                    &p[0],
+                                    grid[work].0.dx,
+                                    &s[0],
+                                    nbits,
+                                    &mut scratch[0],
+                                    y,
+                                    window,
+                                );
+                            }
+                            if row_sync[y / window]
+                                .fetch_add(1, Ordering::AcqRel)
+                                == nx - 1
+                            {
+                                tx.send(y).expect("disaster");
+                            }
+                        }
+                    });
+                }
+
+                let mut ret = <$point>::default();
+                let mut rows = vec![false; ny];
+                let mut row = 0usize;
+                for _ in 0..ny {
+                    let mut y = rx.recv().unwrap();
+                    rows[y / window] = true;
+                    while grid[row].0.y == y {
+                        if row < total && grid[row].0.y == y {
+                            unsafe {
+                                $add_or_double(
+                                    &mut ret,
+                                    &ret,
+                                    grid[row].1.as_ptr(),
+                                );
+                            }
+                            row += 1;
+                        }
+                        if y == 0 {
+                            break;
+                        }
+                        for _ in 0..window {
+                            unsafe { $double(&mut ret, &ret) };
+                        }
+                        y -= window;
+                        if !rows[y / window] {
+                            break;
+                        }
+                    }
+                }
+                ret
             }
         }
     };
@@ -1717,6 +1872,9 @@ pippenger_mult_impl!(
     blst_p1s_to_affine,
     blst_p1s_mult_pippenger_scratch_sizeof,
     blst_p1s_mult_pippenger,
+    blst_p1s_tile_pippenger,
+    blst_p1_add_or_double,
+    blst_p1_double,
 );
 
 pippenger_mult_impl!(
@@ -1726,4 +1884,54 @@ pippenger_mult_impl!(
     blst_p2s_to_affine,
     blst_p2s_mult_pippenger_scratch_sizeof,
     blst_p2s_mult_pippenger,
+    blst_p2s_tile_pippenger,
+    blst_p2_add_or_double,
+    blst_p2_double,
 );
+
+fn static_lifetime<'any, T: ?Sized>(r: &'any T) -> &'static T {
+    unsafe { transmute::<&'any T, &'static T>(r) }
+}
+
+fn num_bits(l: usize) -> usize {
+    8 * core::mem::size_of_val(&l) - l.leading_zeros() as usize
+}
+
+fn breakdown(
+    nbits: usize,
+    window: usize,
+    ncpus: usize,
+) -> (usize, usize, usize) {
+    let mut nx: usize;
+    let mut wnd: usize;
+
+    if nbits > window * ncpus {
+        nx = 1;
+        wnd = window - num_bits(ncpus / 4);
+    } else {
+        nx = 2;
+        wnd = window - 2;
+        while (nbits / wnd + 1) * nx < ncpus {
+            nx += 1;
+            wnd = window - num_bits(3 * nx / 2);
+        }
+        nx -= 1;
+        wnd = window - num_bits(3 * nx / 2);
+    }
+    let ny = nbits / wnd + 1;
+    wnd = nbits / ny + 1;
+
+    (nx, ny, wnd)
+}
+
+fn pippenger_window_size(npoints: usize) -> usize {
+    let wbits = num_bits(npoints);
+
+    if wbits > 13 {
+        return wbits - 4;
+    }
+    if wbits > 5 {
+        return wbits - 3;
+    }
+    2
+}
