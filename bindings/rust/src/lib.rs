@@ -13,8 +13,14 @@ use std::{cell::Cell, ptr, slice};
 use zeroize::Zeroize;
 
 #[cfg(not(feature = "no-threads"))]
+trait ThreadPoolExt {
+    fn joined_execute<'any, F>(&self, job: F)
+    where
+        F: FnOnce() + Send + 'any;
+}
+#[cfg(not(feature = "no-threads"))]
 mod mt {
-    use std::mem::transmute;
+    use super::*;
     use std::sync::{Mutex, Once};
     use threadpool::ThreadPool;
 
@@ -28,6 +34,21 @@ mod mt {
             unsafe { POOL = transmute(Box::new(pool)) };
         });
         unsafe { (*POOL).lock().unwrap().clone() }
+    }
+
+    type Thunk<'any> = Box<dyn FnOnce() + Send + 'any>;
+
+    impl ThreadPoolExt for ThreadPool {
+        fn joined_execute<'scope, F>(&self, job: F)
+        where
+            F: FnOnce() + Send + 'scope,
+        {
+            // Bypass 'lifetime limitations by brute force. It works,
+            // because we explicitly join the threads...
+            self.execute(unsafe {
+                transmute::<Thunk<'scope>, Thunk<'static>>(Box::new(job))
+            })
+        }
     }
 }
 
@@ -43,9 +64,9 @@ mod mt {
         pub fn max_count(&self) -> usize {
             1
         }
-        pub fn execute<F>(&self, job: F)
+        pub fn joined_execute<'scope, F>(&self, job: F)
         where
-            F: FnOnce() + Send + 'static,
+            F: FnOnce() + Send + 'scope,
         {
             job()
         }
@@ -809,37 +830,14 @@ macro_rules! sig_variant_impl {
                 let counter = Arc::new(AtomicUsize::new(0));
                 let valid = Arc::new(AtomicBool::new(true));
 
-                // Bypass 'lifetime limitations by brute force. It works,
-                // because we explicitly join the threads...
-                let raw_pks = unsafe {
-                    transmute::<*const &PublicKey, usize>(pks.as_ptr())
-                };
-                let raw_msgs =
-                    unsafe { transmute::<*const &[u8], usize>(msgs.as_ptr()) };
-                let dst =
-                    unsafe { slice::from_raw_parts(dst.as_ptr(), dst.len()) };
-
                 let n_workers = std::cmp::min(pool.max_count(), n_elems);
                 for _ in 0..n_workers {
                     let tx = tx.clone();
                     let counter = counter.clone();
                     let valid = valid.clone();
 
-                    pool.execute(move || {
+                    pool.joined_execute(move || {
                         let mut pairing = Pairing::new($hash_or_encode, dst);
-                        // reconstruct input slices...
-                        let msgs = unsafe {
-                            slice::from_raw_parts(
-                                transmute::<usize, *const &[u8]>(raw_msgs),
-                                n_elems,
-                            )
-                        };
-                        let pks = unsafe {
-                            slice::from_raw_parts(
-                                transmute::<usize, *const &PublicKey>(raw_pks),
-                                n_elems,
-                            )
-                        };
 
                         while valid.load(Ordering::Relaxed) {
                             let work = counter.fetch_add(1, Ordering::Relaxed);
@@ -952,57 +950,14 @@ macro_rules! sig_variant_impl {
                 let counter = Arc::new(AtomicUsize::new(0));
                 let valid = Arc::new(AtomicBool::new(true));
 
-                // Bypass 'lifetime limitations by brute force. It works,
-                // because we explicitly join the threads...
-                let raw_pks = unsafe {
-                    transmute::<*const &PublicKey, usize>(pks.as_ptr())
-                };
-                let raw_sigs = unsafe {
-                    transmute::<*const &Signature, usize>(sigs.as_ptr())
-                };
-                let raw_rands = unsafe {
-                    transmute::<*const blst_scalar, usize>(rands.as_ptr())
-                };
-                let raw_msgs =
-                    unsafe { transmute::<*const &[u8], usize>(msgs.as_ptr()) };
-                let dst =
-                    unsafe { slice::from_raw_parts(dst.as_ptr(), dst.len()) };
-
                 let n_workers = std::cmp::min(pool.max_count(), n_elems);
                 for _ in 0..n_workers {
                     let tx = tx.clone();
                     let counter = counter.clone();
                     let valid = valid.clone();
 
-                    pool.execute(move || {
+                    pool.joined_execute(move || {
                         let mut pairing = Pairing::new($hash_or_encode, dst);
-                        // reconstruct input slices...
-                        let rands = unsafe {
-                            slice::from_raw_parts(
-                                transmute::<usize, *const blst_scalar>(
-                                    raw_rands,
-                                ),
-                                n_elems,
-                            )
-                        };
-                        let msgs = unsafe {
-                            slice::from_raw_parts(
-                                transmute::<usize, *const &[u8]>(raw_msgs),
-                                n_elems,
-                            )
-                        };
-                        let sigs = unsafe {
-                            slice::from_raw_parts(
-                                transmute::<usize, *const &Signature>(raw_sigs),
-                                n_elems,
-                            )
-                        };
-                        let pks = unsafe {
-                            slice::from_raw_parts(
-                                transmute::<usize, *const &PublicKey>(raw_pks),
-                                n_elems,
-                            )
-                        };
 
                         // TODO - engage multi-point mul-n-add for larger
                         // amount of inputs...
@@ -1764,10 +1719,7 @@ macro_rules! pippenger_mult_impl {
                 let row_sync = Arc::new(row_sync);
                 let counter = Arc::new(AtomicUsize::new(0));
 
-                // Bypass 'lifetime limitations by brute force. It works,
-                // because we explicitly join the threads...
-                let points = static_lifetime(&self.points[..]);
-                let scalars = static_lifetime(&scalars[..]);
+                let points = &self.points[..];
 
                 // Bypass Cell's thread sharing limitations. It works,
                 // because only one thread writes to each Cell.
@@ -1785,7 +1737,7 @@ macro_rules! pippenger_mult_impl {
                     let counter = counter.clone();
                     let row_sync = row_sync.clone();
 
-                    pool.execute(move || {
+                    pool.joined_execute(move || {
                         let mut scratch = vec![0u64; sz << (window - 1)];
                         let mut p: [*const $point_affine; 2] =
                             [ptr::null(), ptr::null()];
@@ -1936,10 +1888,6 @@ pippenger_mult_impl!(
     blst_p2_generator,
     blst_p2_mult,
 );
-
-fn static_lifetime<'any, T: ?Sized>(r: &'any T) -> &'static T {
-    unsafe { transmute::<&'any T, &'static T>(r) }
-}
 
 fn num_bits(l: usize) -> usize {
     8 * core::mem::size_of_val(&l) - l.leading_zeros() as usize
