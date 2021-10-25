@@ -6,10 +6,11 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
-use std::any::Any;
-use std::mem::{transmute, MaybeUninit};
-use std::sync::{atomic::*, mpsc::channel, Arc};
-use std::{cell::Cell, ptr, slice};
+use core::any::Any;
+use core::mem::{transmute, MaybeUninit};
+use core::sync::atomic::*;
+use core::{cell::Cell, ptr, slice};
+use std::sync::{mpsc::channel, Arc};
 use zeroize::Zeroize;
 
 #[cfg(not(feature = "no-threads"))]
@@ -830,7 +831,7 @@ macro_rules! sig_variant_impl {
                 let counter = Arc::new(AtomicUsize::new(0));
                 let valid = Arc::new(AtomicBool::new(true));
 
-                let n_workers = std::cmp::min(pool.max_count(), n_elems);
+                let n_workers = core::cmp::min(pool.max_count(), n_elems);
                 for _ in 0..n_workers {
                     let tx = tx.clone();
                     let counter = counter.clone();
@@ -950,7 +951,7 @@ macro_rules! sig_variant_impl {
                 let counter = Arc::new(AtomicUsize::new(0));
                 let valid = Arc::new(AtomicBool::new(true));
 
-                let n_workers = std::cmp::min(pool.max_count(), n_elems);
+                let n_workers = core::cmp::min(pool.max_count(), n_elems);
                 for _ in 0..n_workers {
                     let tx = tx.clone();
                     let counter = counter.clone();
