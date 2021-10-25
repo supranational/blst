@@ -28,8 +28,8 @@ jobs:
           ~/.cargo/registry
           **/Cargo.lock
           **/bindings/rust/target
-        key: ${{ runner.os }}-cargo-17
-        restore-keys: ${{ runner.os }}-cargo-16
+        key: ${{ runner.os }}-cargo-18
+        restore-keys: ${{ runner.os }}-cargo-17
 
     - name: Environment
       shell: bash
@@ -46,6 +46,7 @@ jobs:
             cargo update
         fi
         cargo test --release
+        cargo test --release --features=no-threads
         cargo clean -p blst
         cargo clean -p blst --release
         rm -rf target/.rustc_info.json
