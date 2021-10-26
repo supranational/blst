@@ -7,9 +7,9 @@
 #![allow(non_snake_case)]
 
 use core::any::Any;
-use core::mem::{transmute, MaybeUninit};
+use core::mem::MaybeUninit;
+use core::ptr;
 use core::sync::atomic::*;
-use core::{cell::Cell, ptr, slice};
 use std::sync::{mpsc::channel, Arc};
 use zeroize::Zeroize;
 
@@ -22,6 +22,7 @@ trait ThreadPoolExt {
 #[cfg(not(feature = "no-threads"))]
 mod mt {
     use super::*;
+    use core::mem::transmute;
     use std::sync::{Mutex, Once};
     use threadpool::ThreadPool;
 
@@ -1618,6 +1619,20 @@ struct tile {
     dy: usize,
 }
 
+// Minimalist core::cell::Cell stand-in, but with Sync marker, which
+// makes it possible to pass it to multiple threads. It works, because
+// *here* each Cell is written only once and by just one thread.
+#[repr(transparent)]
+struct Cell<T: ?Sized> {
+    value: T,
+}
+unsafe impl<T: ?Sized + Sync> Sync for Cell<T> {}
+impl<T> Cell<T> {
+    pub fn as_ptr(&self) -> *mut T {
+        &self.value as *const T as *mut T
+    }
+}
+
 macro_rules! pippenger_mult_impl {
     (
         $points:ident,
@@ -1714,24 +1729,16 @@ macro_rules! pippenger_mult_impl {
                     }
                     grid[total - 1].0.dx = npoints - grid[total - 1].0.x;
                 }
+                let grid = &grid[..];
+
+                let points = &self.points[..];
+                let sz = unsafe { $scratch_sizeof(0) / 8 };
 
                 let mut row_sync: Vec<AtomicUsize> = Vec::with_capacity(ny);
                 row_sync.resize_with(ny, Default::default);
                 let row_sync = Arc::new(row_sync);
                 let counter = Arc::new(AtomicUsize::new(0));
-
-                let points = &self.points[..];
-
-                // Bypass Cell's thread sharing limitations. It works,
-                // because only one thread writes to each Cell.
-                let raw_grid = unsafe {
-                    transmute::<*const (tile, Cell<$point>), usize>(
-                        grid.as_ptr(),
-                    )
-                };
-
                 let (tx, rx) = channel();
-                let sz = unsafe { $scratch_sizeof(0) / 8 };
                 let n_workers = core::cmp::min(ncpus, total);
                 for _ in 0..n_workers {
                     let tx = tx.clone();
@@ -1743,16 +1750,6 @@ macro_rules! pippenger_mult_impl {
                         let mut p: [*const $point_affine; 2] =
                             [ptr::null(), ptr::null()];
                         let mut s: [*const u8; 2] = [ptr::null(), ptr::null()];
-
-                        // reconstruct |grid| as slice...
-                        let grid = unsafe {
-                            slice::from_raw_parts(
-                                transmute::<usize, *const (tile, Cell<$point>)>(
-                                    raw_grid,
-                                ),
-                                total,
-                            )
-                        };
 
                         loop {
                             let work = counter.fetch_add(1, Ordering::Relaxed);
