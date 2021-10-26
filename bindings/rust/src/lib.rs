@@ -160,7 +160,7 @@ impl blst_fp12 {
 impl blst_scalar {
     pub fn hash_to(msg: &[u8], dst: &[u8]) -> Option<Self> {
         unsafe {
-            let mut out = MaybeUninit::<Self>::uninit().assume_init();
+            let mut out = <Self>::default();
             let mut elem: [u8; 48] = MaybeUninit::uninit().assume_init();
             blst_expand_message_xmd(
                 elem.as_mut_ptr(),
@@ -1685,8 +1685,7 @@ macro_rules! pippenger_mult_impl {
                         let mut scratch: Vec<u64> =
                             Vec::with_capacity($scratch_sizeof(npoints) / 8);
                         scratch.set_len(scratch.capacity());
-                        let mut ret =
-                            MaybeUninit::<$point>::uninit().assume_init();
+                        let mut ret = <$point>::default();
                         $multi_scalar_mult(
                             &mut ret,
                             &p[0],
@@ -1837,8 +1836,7 @@ macro_rules! pippenger_mult_impl {
                 let mut naive = <$point>::default();
                 for i in 0..npoints {
                     unsafe {
-                        let mut t =
-                            MaybeUninit::<$point>::uninit().assume_init();
+                        let mut t = <$point>::default();
                         $mult(
                             &mut points[i],
                             $generator(),
