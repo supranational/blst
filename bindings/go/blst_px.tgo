@@ -449,6 +449,8 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 
                 if atomic.AddInt32(&rowSync[y/window], 1) == int32(nx) {
                     msgsCh <- y     // "row" is done
+                } else {
+                    runtime.Gosched()   // be nice to the application
                 }
             }
 
