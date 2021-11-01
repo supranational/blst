@@ -1823,13 +1823,12 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 	for y > 0 {
 		y -= window
 		for i := 0; i < nx; i++ {
-			grid[total].x = i * dx
-			grid[total].dx = dx
+			grid[total].x = grid[i].x
+			grid[total].dx = grid[i].dx
 			grid[total].y = y
 			grid[total].dy = window
 			total++
 		}
-		grid[total-1].dx = npoints - grid[total-1].x
 	}
 
 	if numThreads > total {
@@ -1893,6 +1892,8 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 
 				if atomic.AddInt32(&rowSync[y/window], 1) == int32(nx) {
 					msgsCh <- y // "row" is done
+				} else {
+					runtime.Gosched() // be nice to the application
 				}
 			}
 
@@ -2323,13 +2324,12 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 	for y > 0 {
 		y -= window
 		for i := 0; i < nx; i++ {
-			grid[total].x = i * dx
-			grid[total].dx = dx
+			grid[total].x = grid[i].x
+			grid[total].dx = grid[i].dx
 			grid[total].y = y
 			grid[total].dy = window
 			total++
 		}
-		grid[total-1].dx = npoints - grid[total-1].x
 	}
 
 	if numThreads > total {
@@ -2393,6 +2393,8 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 
 				if atomic.AddInt32(&rowSync[y/window], 1) == int32(nx) {
 					msgsCh <- y // "row" is done
+				} else {
+					runtime.Gosched() // be nice to the application
 				}
 			}
 
