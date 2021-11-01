@@ -1720,13 +1720,12 @@ macro_rules! pippenger_mult_impl {
                 while y != 0 {
                     y -= window;
                     for i in 0..nx {
-                        grid[total].0.x = i * dx;
-                        grid[total].0.dx = dx;
+                        grid[total].0.x = grid[i].0.x;
+                        grid[total].0.dx = grid[i].0.dx;
                         grid[total].0.y = y;
                         grid[total].0.dy = window;
                         total += 1;
                     }
-                    grid[total - 1].0.dx = npoints - grid[total - 1].0.x;
                 }
                 let grid = &grid[..];
 
