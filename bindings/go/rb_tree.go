@@ -139,8 +139,8 @@ func Uniq(msgs []Message) bool {
     var tree rbTree
     tree.nodes = make([]node, n)
 
-    for _, msg := range msgs {
-        if !tree.insert(&msg) {
+    for i := 0; i < n; i++ {
+        if !tree.insert(&msgs[i]) {
             return false
         }
     }
