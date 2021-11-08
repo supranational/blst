@@ -6,7 +6,7 @@
 #ifndef __BLS12_381_ASM_SHA256_H__
 #define __BLS12_381_ASM_SHA256_H__
 
-#include <stddef.h>
+#include "vect.h"
 
 #if (defined(__x86_64__) || defined(__x86_64) || defined(_M_X64)) && \
      defined(__SHA__) /* -msha */ && !defined(__BLST_PORTABLE__)
