@@ -381,11 +381,21 @@ static void map_to_isogenous_E1(POINTonE1 *p, const vec384 u)
 #undef sgn0_fp
 }
 
-static void POINTonE1_dbl_n_add(POINTonE1 *out, size_t n, const POINTonE1 *p)
+static void POINTonE1_add_n_dbl(POINTonE1 *out, const POINTonE1 *p, size_t n)
 {
+    POINTonE1_dadd(out, out, p, NULL);
     while(n--)
         POINTonE1_double(out, out);
-    POINTonE1_dadd(out, out, p, NULL);
+}
+
+static void POINTonE1_times_minus_z(POINTonE1 *out, const POINTonE1 *in)
+{
+    POINTonE1_double(out, in);          /*      1: 0x2                  */
+    POINTonE1_add_n_dbl(out, in, 2);    /*   2..4: 0x3..0xc             */
+    POINTonE1_add_n_dbl(out, in, 3);    /*   5..8: 0xd..0x68            */
+    POINTonE1_add_n_dbl(out, in, 9);    /*  9..18: 0x69..0xd200         */
+    POINTonE1_add_n_dbl(out, in, 32);   /* 19..51: ..0xd20100000000     */
+    POINTonE1_add_n_dbl(out, in, 16);   /* 52..68: ..0xd201000000010000 */
 }
 
 /*
@@ -405,13 +415,8 @@ static void map_to_g1(POINTonE1 *out, const vec384 u, const vec384 v)
     isogeny_map_to_E1(&p, &p);          /* sprinkle isogenous powder    */
 
     /* clear the cofactor by multiplying |p| by 1-z, 0xd201000000010001 */
-    POINTonE1_double(out, &p);          /* 0x2 */
-    POINTonE1_add(out, out, &p);        /* 0x3 */
-    POINTonE1_dbl_n_add(out, 2, &p);    /* 0xd */
-    POINTonE1_dbl_n_add(out, 3, &p);    /* 0x69 */
-    POINTonE1_dbl_n_add(out, 9, &p);    /* 0xd201 */
-    POINTonE1_dbl_n_add(out, 32, &p);   /* 0xd20100000001 */
-    POINTonE1_dbl_n_add(out, 16, &p);   /* 0xd201000000010001 */
+    POINTonE1_times_minus_z(out, &p);
+    POINTonE1_dadd(out, out, &p, NULL);
 }
 
 void blst_map_to_g1(POINTonE1 *out, const vec384 u, const vec384 v)
@@ -464,6 +469,13 @@ static void POINTonE1_times_zz_minus_1_div_by_3(POINTonE1 *out,
     }
 }
 #else
+static void POINTonE1_dbl_n_add(POINTonE1 *out, size_t n, const POINTonE1 *p)
+{
+    while(n--)
+        POINTonE1_double(out, out);
+    POINTonE1_dadd(out, out, p, NULL);
+}
+
 static void POINTonE1_times_zz_minus_1_div_by_3(POINTonE1 *out,
                                                 const POINTonE1 *in)
 {
