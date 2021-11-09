@@ -402,6 +402,7 @@ void blst_hash_to_g2(POINTonE2 *p, const unsigned char *msg, size_t msg_len,
 
 static bool_t POINTonE2_in_G2(const POINTonE2 *P)
 {
+#if 0
     POINTonE2 t0, t1, t2;
 
     /* Bowe, S., "Faster subgroup checks for BLS12-381"                 */
@@ -415,6 +416,17 @@ static bool_t POINTonE2_in_G2(const POINTonE2 *P)
     POINTonE2_dadd(&t0, &t0, P, NULL);  /* [z]Ψ³(P) - Ψ²(P) + P         */
 
     return vec_is_zero(t0.Z, sizeof(t0.Z));
+#else
+    POINTonE2 t0, t1;
+
+    /* Scott, M., https://eprint.iacr.org/2021/1130 */
+    psi(&t0, P);                            /* Ψ(P) */
+
+    POINTonE2_times_minus_z(&t1, P);
+    POINTonE2_cneg(&t1, 1);                 /* [z]P */
+
+    return POINTonE2_is_equal(&t0, &t1);
+#endif
 }
 
 int blst_p2_in_g2(const POINTonE2 *p)
