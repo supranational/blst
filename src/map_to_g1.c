@@ -452,6 +452,9 @@ void blst_hash_to_g1(POINTonE1 *p, const unsigned char *msg, size_t msg_len,
                                    const unsigned char *aug, size_t aug_len)
 {   Hash_to_G1(p, msg, msg_len, DST, DST_len, aug, aug_len);   }
 
+static void sigma(POINTonE1 *out, const POINTonE1 *in);
+
+#if 0
 #ifdef __OPTIMIZE_SIZE__
 static void POINTonE1_times_zz_minus_1_div_by_3(POINTonE1 *out,
                                                 const POINTonE1 *in)
@@ -506,8 +509,6 @@ static void POINTonE1_times_zz_minus_1_div_by_3(POINTonE1 *out,
 }
 #endif
 
-static void sigma(POINTonE1 *out, const POINTonE1 *in);
-
 static bool_t POINTonE1_in_G1(const POINTonE1 *P)
 {
     POINTonE1 t0, t1, t2;
@@ -526,6 +527,22 @@ static bool_t POINTonE1_in_G1(const POINTonE1 *P)
                                           /* - σ²(P) */
     return vec_is_zero(t0.Z, sizeof(t0.Z));
 }
+#else
+static bool_t POINTonE1_in_G1(const POINTonE1 *P)
+{
+    POINTonE1 t0, t1;
+
+    /* Scott, M., https://eprint.iacr.org/2021/1130 */
+    POINTonE1_times_minus_z(&t0, P);
+    POINTonE1_times_minus_z(&t1, &t0);
+    POINTonE1_cneg(&t1, 1);             /* [-z²]P   */
+
+    sigma(&t0, P);                      /* σ(P)     */
+    sigma(&t0, &t0);                    /* σ²(P)    */
+
+    return POINTonE1_is_equal(&t0, &t1);
+}
+#endif
 
 int blst_p1_in_g1(const POINTonE1 *p)
 {   return (int)POINTonE1_in_G1(p);   }
