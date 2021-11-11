@@ -25,6 +25,7 @@
 #  include "elf/add_mod_256-x86_64.s"
 #  include "elf/ct_inverse_mod_256-x86_64.s"
 #  include "elf/div3w-x86_64.s"
+#  include "elf/ct_is_square_mod_384-x86_64.s"
 # elif defined(_WIN64) || defined(__CYGWIN__)
 #  if defined(__BLST_PORTABLE__)
 #   include "coff/sha256-portable-x86_64.s"
@@ -51,6 +52,7 @@
 #  include "coff/add_mod_256-x86_64.s"
 #  include "coff/ct_inverse_mod_256-x86_64.s"
 #  include "coff/div3w-x86_64.s"
+#  include "coff/ct_is_square_mod_384-x86_64.s"
 # elif defined(__APPLE__)
 #  include "mach-o/sha256-x86_64.s"
 #  if defined(__ADX__) && !defined(__BLST_PORTABLE__)
@@ -73,6 +75,7 @@
 #  include "mach-o/add_mod_256-x86_64.s"
 #  include "mach-o/ct_inverse_mod_256-x86_64.s"
 #  include "mach-o/div3w-x86_64.s"
+#  include "mach-o/ct_is_square_mod_384-x86_64.s"
 # endif
 #elif defined(__aarch64__)
 # if defined(__ELF__)
@@ -86,6 +89,7 @@
 #  include "elf/add_mod_256-armv8.S"
 #  include "elf/ct_inverse_mod_256-armv8.S"
 #  include "elf/div3w-armv8.S"
+#  include "elf/ct_is_square_mod_384-armv8.S"
 # elif defined(_WIN64)
 #  include "coff/sha256-armv8.S"
 #  include "coff/ct_inverse_mod_384-armv8.S"
@@ -97,6 +101,7 @@
 #  include "coff/add_mod_256-armv8.S"
 #  include "coff/ct_inverse_mod_256-armv8.S"
 #  include "coff/div3w-armv8.S"
+#  include "coff/ct_is_square_mod_384-armv8.S"
 # elif defined(__APPLE__)
 #  include "mach-o/sha256-armv8.S"
 #  include "mach-o/ct_inverse_mod_384-armv8.S"
@@ -108,6 +113,7 @@
 #  include "mach-o/add_mod_256-armv8.S"
 #  include "mach-o/ct_inverse_mod_256-armv8.S"
 #  include "mach-o/div3w-armv8.S"
+#  include "mach-o/ct_is_square_mod_384-armv8.S"
 # endif
 #elif defined(__BLST_NO_ASM__) || \
       (defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__==4)
