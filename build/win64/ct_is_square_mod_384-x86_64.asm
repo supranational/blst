@@ -382,7 +382,7 @@ $L$oop_30::
 	cmp	r8,r9
 	mov	r10,r8
 	mov	r11,r9
-	lea	rbp,(%rax), %rax
+	lea	rax,QWORD PTR[rbp*1+rax]
 	mov	r12,rbx
 	mov	r13,rcx
 	mov	r14,rbp
@@ -407,7 +407,7 @@ $L$oop_30::
 	shr	r8,1
 	shr	rax,2
 	add	rcx,rcx
-	lea	rbp,(%rax), %rbp
+	lea	rbp,QWORD PTR[rbp*1+rax]
 	sub	rcx,r15
 
 	sub	edi,1
@@ -440,7 +440,7 @@ $L$oop_48::
 	cmp	r8,r9
 	mov	r10,r8
 	mov	r11,r9
-	lea	rbp,(%rax), %rax
+	lea	rax,QWORD PTR[rbp*1+rax]
 	mov	r12,rbp
 	cmovb	r8,r9
 	cmovb	r9,r10

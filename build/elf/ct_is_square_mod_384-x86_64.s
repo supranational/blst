@@ -384,7 +384,7 @@ __inner_loop_30:
 	cmpq	%r9,%r8
 	movq	%r8,%r10
 	movq	%r9,%r11
-	leaq	(%rax,%rbp), %rax
+	leaq	(%rax,%rbp,1),%rax
 	movq	%rbx,%r12
 	movq	%rcx,%r13
 	movq	%rbp,%r14
@@ -409,7 +409,7 @@ __inner_loop_30:
 	shrq	$1,%r8
 	shrq	$2,%rax
 	addq	%rcx,%rcx
-	leaq	(%rax,%rbp), %rbp
+	leaq	(%rax,%rbp,1),%rbp
 	subq	%r15,%rcx
 
 	subl	$1,%edi
@@ -445,7 +445,7 @@ __inner_loop_48:
 	cmpq	%r9,%r8
 	movq	%r8,%r10
 	movq	%r9,%r11
-	leaq	(%rax,%rbp), %rax
+	leaq	(%rax,%rbp,1),%rax
 	movq	%rbp,%r12
 	cmovbq	%r9,%r8
 	cmovbq	%r10,%r9
