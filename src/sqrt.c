@@ -89,6 +89,11 @@ static bool_t sqrt_fp(vec384 out, const vec384 inp)
 int blst_fp_sqrt(vec384 out, const vec384 inp)
 {   return (int)sqrt_fp(out, inp);   }
 
+int blst_fp_is_square(const vec384 inp)
+{
+    return (int)ct_is_square_mod_384(inp, BLS12_381_P);
+}
+
 static bool_t sqrt_align_fp2(vec384x out, const vec384x ret,
                              const vec384x sqrt, const vec384x inp)
 {
@@ -243,3 +248,14 @@ static bool_t sqrt_fp2(vec384x out, const vec384x inp)
 
 int blst_fp2_sqrt(vec384x out, const vec384x inp)
 {   return (int)sqrt_fp2(out, inp);   }
+
+int blst_fp2_is_square(const vec384x inp)
+{
+    vec384 aa, bb;
+
+    sqr_fp(aa, inp[0]);
+    sqr_fp(bb, inp[1]);
+    add_fp(aa, aa, bb);
+
+    return (int)ct_is_square_mod_384(aa, BLS12_381_P);
+}
