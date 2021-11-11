@@ -407,7 +407,7 @@ __inner_loop_30:		################# by Thomas Pornin
 	cmp	$b_, $a_		# if |a_|<|b_|, swap the variables
 	mov	$a_, $t0
 	mov	$b_, $t1
-	 lea	(%rax, $L), %rax	# pre-"negate" |L|
+	 lea	(%rax,$L), %rax		# pre-"negate" |L|
 	mov	$fg0, $t2
 	mov	$fg1, $t3
 	 mov	$L,   $t4
@@ -432,7 +432,7 @@ __inner_loop_30:		################# by Thomas Pornin
 	shr	\$1, $a_		# |a_|>>=1
 	 shr	\$2, %rax
 	add	$fg1, $fg1		# |f1|<<=1, |g1|<<=1
-	 lea	(%rax, $L), $L		# "negate" |L| if |b|%8 is 3 or 5
+	 lea	(%rax,$L), $L		# "negate" |L| if |b|%8 is 3 or 5
 	sub	$bias, $fg1
 
 	sub	\$1, $cnt
@@ -464,7 +464,7 @@ __inner_loop_48:
 	cmp	$b_, $a_		# if |a_|<|b_|, swap the variables
 	mov	$a_, $t0
 	mov	$b_, $t1
-	 lea	(%rax, $L), %rax
+	 lea	(%rax,$L), %rax
 	 mov	$L,  $t2
 	cmovb	$b_, $a_
 	cmovb	$t0, $b_
