@@ -13,6 +13,11 @@ package blst
 // #cgo CFLAGS: -I${SRCDIR}/.. -I${SRCDIR}/../../build -I${SRCDIR}/../../src -D__BLST_CGO__
 // #cgo amd64 CFLAGS: -D__ADX__ -mno-avx -fno-builtin-memcpy
 // #include "blst.h"
+//
+// static size_t go_pairing_sizeof(size_t DST_len)
+// {   return (blst_pairing_sizeof() + DST_len + sizeof(blst_pairing) - 1) /
+//            sizeof(blst_pairing);
+// }
 // static void go_pairing_init(blst_pairing *new_ctx, bool hash_or_encode,
 //                             const byte *DST, size_t DST_len)
 // {   if (DST != NULL) {
@@ -22,6 +27,7 @@ package blst
 //     }
 //     blst_pairing_init(new_ctx, hash_or_encode, DST, DST_len);
 // }
+//
 // static void blst_p1slice_to_affine(blst_p1_affine dst[],
 //                                    const blst_p1 points[], size_t npoints)
 // {   const blst_p1 *ppoints[2] = { points, NULL };
@@ -68,7 +74,7 @@ type P2 = C.blst_p2
 type P1Affine = C.blst_p1_affine
 type P2Affine = C.blst_p2_affine
 type Message = []byte
-type Pairing = []uint64
+type Pairing = []C.blst_pairing
 type SecretKey = Scalar
 type P1s []P1
 type P2s []P2
@@ -129,15 +135,13 @@ func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
 // Pairing
 //
 func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
-	sz := int(C.blst_pairing_sizeof()) / 8
-	add_sz := (len(DST) + 7) / 8
-	ctx := make([]uint64, sz+add_sz)
+	DST_len := C.size_t(len(DST))
+	ctx := make([]C.blst_pairing, int(C.go_pairing_sizeof(DST_len)))
 	var uDST *C.byte
-	if len(DST) > 0 {
+	if DST_len > 0 {
 		uDST = (*C.byte)(&DST[0])
 	}
-	C.go_pairing_init((*C.blst_pairing)(&ctx[0]), C.bool(hash_or_encode),
-		uDST, C.size_t(len(DST)))
+	C.go_pairing_init(&ctx[0], C.bool(hash_or_encode), uDST, DST_len)
 	return ctx
 }
 
@@ -157,7 +161,7 @@ func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
 		umsg = (*C.byte)(&msg[0])
 	}
 
-	r := C.blst_pairing_chk_n_aggr_pk_in_g1((*C.blst_pairing)(&ctx[0]),
+	r := C.blst_pairing_chk_n_aggr_pk_in_g1(&ctx[0],
 		PK, C.bool(pkValidate),
 		sig, C.bool(sigGroupcheck),
 		umsg, C.size_t(len(msg)),
@@ -182,7 +186,7 @@ func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
 		umsg = (*C.byte)(&msg[0])
 	}
 
-	r := C.blst_pairing_chk_n_aggr_pk_in_g2((*C.blst_pairing)(&ctx[0]),
+	r := C.blst_pairing_chk_n_aggr_pk_in_g2(&ctx[0],
 		PK, C.bool(pkValidate),
 		sig, C.bool(sigGroupcheck),
 		umsg, C.size_t(len(msg)),
@@ -208,7 +212,7 @@ func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
 		umsg = (*C.byte)(&msg[0])
 	}
 
-	r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g1((*C.blst_pairing)(&ctx[0]),
+	r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g1(&ctx[0],
 		PK, C.bool(pkValidate),
 		sig, C.bool(sigGroupcheck),
 		&rand.b[0], C.size_t(randBits),
@@ -235,7 +239,7 @@ func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
 		umsg = (*C.byte)(&msg[0])
 	}
 
-	r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g2((*C.blst_pairing)(&ctx[0]),
+	r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g2(&ctx[0],
 		PK, C.bool(pkValidate),
 		sig, C.bool(sigGroupcheck),
 		&rand.b[0], C.size_t(randBits),
@@ -246,12 +250,11 @@ func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
 }
 
 func PairingCommit(ctx Pairing) {
-	C.blst_pairing_commit((*C.blst_pairing)(&ctx[0]))
+	C.blst_pairing_commit(&ctx[0])
 }
 
 func PairingMerge(ctx Pairing, ctx1 Pairing) int {
-	r := C.blst_pairing_merge((*C.blst_pairing)(&ctx[0]),
-		(*C.blst_pairing)(&ctx1[0]))
+	r := C.blst_pairing_merge(&ctx[0], &ctx1[0])
 	return int(r)
 }
 
@@ -260,15 +263,15 @@ func PairingFinalVerify(ctx Pairing, optional ...*Fp12) bool {
 	if len(optional) > 0 {
 		gtsig = optional[0]
 	}
-	return bool(C.blst_pairing_finalverify((*C.blst_pairing)(&ctx[0]), gtsig))
+	return bool(C.blst_pairing_finalverify(&ctx[0], gtsig))
 }
 
 func PairingRawAggregate(ctx Pairing, q *P2Affine, p *P1Affine) {
-	C.blst_pairing_raw_aggregate((*C.blst_pairing)(&ctx[0]), q, p)
+	C.blst_pairing_raw_aggregate(&ctx[0], q, p)
 }
 
 func PairingAsFp12(ctx Pairing) Fp12 {
-	return *C.blst_pairing_as_fp12((*C.blst_pairing)(&ctx[0]))
+	return *C.blst_pairing_as_fp12(&ctx[0])
 }
 
 func Fp12One() Fp12 {
