@@ -13,10 +13,34 @@ package blst
 // #cgo CFLAGS: -I${SRCDIR}/.. -I${SRCDIR}/../../build -I${SRCDIR}/../../src -D__BLST_CGO__
 // #cgo amd64 CFLAGS: -D__ADX__ -mno-avx -fno-builtin-memcpy
 // #include "blst.h"
-// static byte *copy_DST(limb_t *ctx, const byte *DST, size_t DST_len)
-// {   byte *dst = (byte*)ctx;
-//     while(DST_len--) *dst++ = *DST++;
-//     return (byte *)ctx;
+// static void go_pairing_init(blst_pairing *new_ctx, bool hash_or_encode,
+//                             const byte *DST, size_t DST_len)
+// {   if (DST != NULL) {
+//         byte *dst = (byte*)new_ctx + blst_pairing_sizeof();
+//         for(size_t i = 0; i < DST_len; i++) dst[i] = DST[i];
+//         DST = dst;
+//     }
+//     blst_pairing_init(new_ctx, hash_or_encode, DST, DST_len);
+// }
+// static void blst_p1slice_to_affine(blst_p1_affine dst[],
+//                                    const blst_p1 points[], size_t npoints)
+// {   const blst_p1 *ppoints[2] = { points, NULL };
+//     blst_p1s_to_affine(dst, ppoints, npoints);
+// }
+// static void blst_p1slice_add(blst_p1 *dst, const blst_p1_affine points[],
+//                                            size_t npoints)
+// {   const blst_p1_affine *ppoints[2] = { points, NULL };
+//     blst_p1s_add(dst, ppoints, npoints);
+// }
+// static void blst_p2slice_to_affine(blst_p2_affine dst[],
+//                                    const blst_p2 points[], size_t npoints)
+// {   const blst_p2 *ppoints[2] = { points, NULL };
+//     blst_p2s_to_affine(dst, ppoints, npoints);
+// }
+// static void blst_p2slice_add(blst_p2 *dst, const blst_p2_affine points[],
+//                                            size_t npoints)
+// {   const blst_p2_affine *ppoints[2] = { points, NULL };
+//     blst_p2s_add(dst, ppoints, npoints);
 // }
 import "C"
 import (
@@ -110,10 +134,9 @@ func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
 	ctx := make([]uint64, sz+add_sz)
 	var uDST *C.byte
 	if len(DST) > 0 {
-		uDST = C.copy_DST((*C.limb_t)(&ctx[sz]), (*C.byte)(&DST[0]),
-			C.size_t(len(DST)))
+		uDST = (*C.byte)(&DST[0])
 	}
-	C.blst_pairing_init((*C.blst_pairing)(&ctx[0]), C.bool(hash_or_encode),
+	C.go_pairing_init((*C.blst_pairing)(&ctx[0]), C.bool(hash_or_encode),
 		uDST, C.size_t(len(DST)))
 	return ctx
 }
@@ -1660,7 +1683,9 @@ func P1sToAffine(points []*P1, optional ...int) P1Affines {
 }
 
 func (points P1s) ToAffine() P1Affines {
-	return P1sToAffine([]*P1{&points[0], nil}, len(points))
+	ret := make([]P1Affine, len(points))
+	C.blst_p1slice_to_affine(&ret[0], &points[0], C.size_t(len(points)))
+	return ret
 }
 
 //
@@ -1681,7 +1706,9 @@ func P1AffinesAdd(points []*P1Affine, optional ...int) *P1 {
 }
 
 func (points P1Affines) Add() *P1 {
-	return P1AffinesAdd([]*P1Affine{&points[0], nil}, len(points))
+	var ret P1
+	C.blst_p1slice_add(&ret, &points[0], C.size_t(len(points)))
+	return &ret
 }
 
 func (points P1s) Add() *P1 {
@@ -2161,7 +2188,9 @@ func P2sToAffine(points []*P2, optional ...int) P2Affines {
 }
 
 func (points P2s) ToAffine() P2Affines {
-	return P2sToAffine([]*P2{&points[0], nil}, len(points))
+	ret := make([]P2Affine, len(points))
+	C.blst_p2slice_to_affine(&ret[0], &points[0], C.size_t(len(points)))
+	return ret
 }
 
 //
@@ -2182,7 +2211,9 @@ func P2AffinesAdd(points []*P2Affine, optional ...int) *P2 {
 }
 
 func (points P2Affines) Add() *P2 {
-	return P2AffinesAdd([]*P2Affine{&points[0], nil}, len(points))
+	var ret P2
+	C.blst_p2slice_add(&ret, &points[0], C.size_t(len(points)))
+	return &ret
 }
 
 func (points P2s) Add() *P2 {
