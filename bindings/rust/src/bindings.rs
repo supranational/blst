@@ -1188,6 +1188,12 @@ extern "C" {
     pub fn blst_fp_from(ret: *mut blst_fp, a: *const blst_fp);
 }
 extern "C" {
+    pub fn blst_fp_is_square(a: *const blst_fp) -> bool;
+}
+extern "C" {
+    pub fn blst_fp2_is_square(a: *const blst_fp2) -> bool;
+}
+extern "C" {
     pub fn blst_p1_from_jacobian(out: *mut blst_p1, in_: *const blst_p1);
 }
 extern "C" {

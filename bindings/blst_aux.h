@@ -16,6 +16,9 @@ void blst_fr_from(blst_fr *ret, const blst_fr *a);
 void blst_fp_to(blst_fp *ret, const blst_fp *a);
 void blst_fp_from(blst_fp *ret, const blst_fp *a);
 
+bool blst_fp_is_square(const blst_fp *a);
+bool blst_fp2_is_square(const blst_fp2 *a);
+
 void blst_p1_from_jacobian(blst_p1 *out, const blst_p1 *in);
 void blst_p2_from_jacobian(blst_p2 *out, const blst_p2 *in);
 

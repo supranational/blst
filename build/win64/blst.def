@@ -184,6 +184,8 @@ EXPORTS
 	blst_fr_from
 	blst_fp_to
 	blst_fp_from
+	blst_fp_is_square
+	blst_fp2_is_square
 	blst_p1_from_jacobian
 	blst_p2_from_jacobian
 	blst_sk_to_pk2_in_g1
