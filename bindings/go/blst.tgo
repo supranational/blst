@@ -9,10 +9,14 @@ package blst
 // #cgo CFLAGS: -I${SRCDIR}/.. -I${SRCDIR}/../../build -I${SRCDIR}/../../src -D__BLST_CGO__
 // #cgo amd64 CFLAGS: -D__ADX__ -mno-avx -fno-builtin-memcpy
 // #include "blst.h"
-// static byte *copy_DST(limb_t *ctx, const byte *DST, size_t DST_len)
-// {   byte *dst = (byte*)ctx;
-//     while(DST_len--) *dst++ = *DST++;
-//     return (byte *)ctx;
+// static void go_pairing_init(blst_pairing *new_ctx, bool hash_or_encode,
+//                             const byte *DST, size_t DST_len)
+// {   if (DST != NULL) {
+//         byte *dst = (byte*)new_ctx + blst_pairing_sizeof();
+//         for(size_t i = 0; i < DST_len; i++) dst[i] = DST[i];
+//         DST = dst;
+//     }
+//     blst_pairing_init(new_ctx, hash_or_encode, DST, DST_len);
 // }
 import "C"
 import "runtime"
@@ -100,11 +104,10 @@ func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
     ctx := make([]uint64, sz+add_sz)
     var uDST *C.byte
     if len(DST) > 0 {
-        uDST = C.copy_DST((*C.limb_t)(&ctx[sz]), (*C.byte)(&DST[0]),
-                                                 C.size_t(len(DST)))
+        uDST = (*C.byte)(&DST[0])
     }
-    C.blst_pairing_init((*C.blst_pairing)(&ctx[0]), C.bool(hash_or_encode),
-                                                    uDST, C.size_t(len(DST)))
+    C.go_pairing_init((*C.blst_pairing)(&ctx[0]), C.bool(hash_or_encode),
+                                                  uDST, C.size_t(len(DST)))
     return ctx
 }
 
