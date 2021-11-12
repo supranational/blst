@@ -1,5 +1,6 @@
 export interface Blst {
   SecretKey: SecretKeyConstructor;
+  Scalar: ScalarConstructor;
   P1_Affine: P1_AffineConstructor;
   P2_Affine: P2_AffineConstructor;
   P1: P1Constructor;
@@ -13,7 +14,7 @@ export interface Blst {
 // blst.hpp types
 
 type bytes = Uint8Array;
-type scalar = bigint | bytes;
+type scalar = Scalar | bigint | bytes;
 type binary_string = string | bytes;
 
 // SecretKey
@@ -28,6 +29,25 @@ export interface SecretKey {
   from_lendian(_32: bytes): void;
   to_bendian(): bytes;
   to_lendian(): bytes;
+}
+
+// Scalar
+
+export interface ScalarConstructor {
+  new (): Scalar;
+  new (le: bytes): Scalar;
+}
+
+export interface Scalar {
+  dup(): Scalar;
+  from_bendian(be: bytes): void;
+  from_lendian(le: bytes): void;
+  to_bendian(): bytes;
+  to_lendian(): bytes;
+  add(s: this | SecretKey): this;
+  sub(s: this): this;
+  mul(s: this): this;
+  inverse(): this;
 }
 
 // P1
@@ -144,7 +164,9 @@ export interface P2 {
 
 export interface PTConstructor {
   new (p: P1_Affine): PT;
-  new (p: P2_Affine): PT;
+  new (q: P2_Affine): PT;
+  new (q: P2_Affine | P2, p: P1_Affine | P1): PT;
+  new (p: P1_Affine | P1, q: P2_Affine | P2): PT;
 }
 
 export interface PT {
