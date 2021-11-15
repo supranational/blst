@@ -76,28 +76,11 @@ fi
 CFLAGS="$CFLAGS $cflags"
 
 rm -f libblst.a
-trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o /tmp/localize.blst.$$' 0
+trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o /tmp/*.blst.$$' 0
 
 (set -x; ${CC} ${CFLAGS} -c ${TOP}/src/server.c)
 (set -x; ${CC} ${CFLAGS} -c ${TOP}/build/assembly.S)
-
-if expr "${CFLAGS}" : '.*-fsanitize' > /dev/null; then
-    (set -x; ${AR} rc libblst.a *.o)
-else
-    ${NM} -P *.o | egrep -v -e '^_?blst_' |
-                   awk '{ if($2=="T") print $1 }' > /tmp/localize.blst.$$
-    if [ $flavour = "macosx" ]; then
-        (set -x; ${CC} ${CFLAGS} -nostdlib -r *.o -o blst.o \
-                                 -unexported_symbols_list /tmp/localize.blst.$$
-                 ${AR} rc libblst.a blst.o)
-    elif which ${OBJCOPY} >/dev/null 2>&1; then
-        (set -x; ${CC} ${CFLAGS} -nostdlib -r *.o -o blst.o
-                 ${OBJCOPY} --localize-symbols=/tmp/localize.blst.$$ blst.o
-                 ${AR} rc libblst.a blst.o)
-    else
-        (set -x; ${AR} rc libblst.a *.o)
-    fi
-fi
+(set -x; ${AR} rc libblst.a *.o)
 
 if [ $shared ]; then
     case $flavour in
@@ -108,8 +91,8 @@ if [ $shared ]; then
                 CFLAGS="${CFLAGS} -nostdlib -lgcc";;
         *)      sharedlib=libblst.so;;
     esac
-    echo "{ global: blst_*; BLS12_381_*; local: *; };" |\
+    echo "{ global: blst_*; BLS12_381_*; local: *; };" > /tmp/ld.blst.$$
     (set -x; ${CC} -shared -o $sharedlib libblst.a ${CFLAGS} \
                    -Wl,-Bsymbolic,--require-defined=blst_keygen \
-                   -Wl,--version-script=/dev/fd/0)
+                   -Wl,--version-script=/tmp/ld.blst.$$)
 fi
