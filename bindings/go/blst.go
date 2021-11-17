@@ -88,7 +88,13 @@ type P2Affines []P2Affine
 var maxProcs = initMaxProcs()
 
 func initMaxProcs() int {
-	maxProcs := runtime.GOMAXPROCS(0) - 1
+	maxProcs := runtime.GOMAXPROCS(0)
+	var version float32
+	_, err := fmt.Sscanf(runtime.Version(), "go%f", &version)
+	if err != nil || version < 1.14 {
+		// be cooperative and leave one processor for the application
+		maxProcs -= 1
+	}
 	if maxProcs <= 0 {
 		maxProcs = 1
 	}
