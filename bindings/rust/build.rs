@@ -109,7 +109,7 @@ fn main() {
         ),
     }
     cc.flag_if_supported("-mno-avx") // avoid costly transitions
-        .flag_if_supported("-fno-builtin-memcpy")
+        .flag_if_supported("-fno-builtin")
         .flag_if_supported("-Wno-unused-command-line-argument");
     if !cfg!(debug_assertions) {
         cc.opt_level(2);

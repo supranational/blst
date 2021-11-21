@@ -21,7 +21,7 @@ TOP=`dirname $0`
 
 # if -Werror stands in the way, bypass with -Wno-error on command line,
 # or suppress specific one with -Wno-<problematic-warning>
-CFLAGS=${CFLAGS:--O -fno-builtin-memcpy -fPIC -Wall -Wextra -Werror}
+CFLAGS=${CFLAGS:--O -fno-builtin -fPIC -Wall -Wextra -Werror}
 PERL=${PERL:-perl}
 unset cflags shared
 
