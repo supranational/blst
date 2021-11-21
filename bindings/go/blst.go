@@ -10,8 +10,8 @@
 
 package blst
 
-// #cgo CFLAGS: -I${SRCDIR}/.. -I${SRCDIR}/../../build -I${SRCDIR}/../../src -D__BLST_CGO__
-// #cgo amd64 CFLAGS: -D__ADX__ -mno-avx -fno-builtin
+// #cgo CFLAGS: -I${SRCDIR}/.. -I${SRCDIR}/../../build -I${SRCDIR}/../../src -D__BLST_CGO__ -fno-builtin-memcpy -fno-builtin-memset
+// #cgo amd64 CFLAGS: -D__ADX__ -mno-avx
 // #include "blst.h"
 //
 // static size_t go_pairing_sizeof(size_t DST_len)
