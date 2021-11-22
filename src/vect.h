@@ -463,7 +463,9 @@ static inline void le_bytes_from_limbs(unsigned char *out, const limb_t *in,
 # pragma warning(disable: 4127 4189)
 #endif
 
-#include <stdlib.h>
+#if !defined(__wasm__)
+# include <stdlib.h>
+#endif
 
 #if defined(__GNUC__)
 # ifndef alloca
