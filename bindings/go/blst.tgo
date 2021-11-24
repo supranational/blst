@@ -23,6 +23,8 @@ package blst
 //     }
 //     blst_pairing_init(new_ctx, hash_or_encode, DST, DST_len);
 // }
+// static void go_pairing_as_fp12(blst_fp12 *pt, blst_pairing *ctx)
+// {   *pt = *blst_pairing_as_fp12(ctx);   }
 //
 // static void blst_p1slice_to_affine(blst_p1_affine dst[],
 //                                    const blst_p1 points[], size_t npoints)
@@ -266,8 +268,10 @@ func PairingRawAggregate(ctx Pairing, q *P2Affine, p *P1Affine) {
     C.blst_pairing_raw_aggregate(&ctx[0], q, p)
 }
 
-func PairingAsFp12(ctx Pairing) Fp12 {
-    return *C.blst_pairing_as_fp12(&ctx[0])
+func PairingAsFp12(ctx Pairing) *Fp12 {
+    var pt Fp12
+    C.go_pairing_as_fp12(&pt, &ctx[0])
+    return &pt
 }
 
 func Fp12One() Fp12 {
