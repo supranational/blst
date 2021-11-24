@@ -27,6 +27,8 @@ package blst
 //     }
 //     blst_pairing_init(new_ctx, hash_or_encode, DST, DST_len);
 // }
+// static void go_pairing_as_fp12(blst_fp12 *pt, blst_pairing *ctx)
+// {   *pt = *blst_pairing_as_fp12(ctx);   }
 //
 // static void blst_p1slice_to_affine(blst_p1_affine dst[],
 //                                    const blst_p1 points[], size_t npoints)
@@ -151,110 +153,6 @@ func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
 	return ctx
 }
 
-func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
-	sig *P2Affine, sigGroupcheck bool, msg []byte,
-	optional ...[]byte) int { // aug
-	var aug []byte
-	var uaug *C.byte
-	if len(optional) > 0 {
-		aug = optional[0]
-		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
-		}
-	}
-	var umsg *C.byte
-	if len(msg) > 0 {
-		umsg = (*C.byte)(&msg[0])
-	}
-
-	r := C.blst_pairing_chk_n_aggr_pk_in_g1(&ctx[0],
-		PK, C.bool(pkValidate),
-		sig, C.bool(sigGroupcheck),
-		umsg, C.size_t(len(msg)),
-		uaug, C.size_t(len(aug)))
-
-	return int(r)
-}
-
-func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
-	sig *P1Affine, sigGroupcheck bool, msg []byte,
-	optional ...[]byte) int { // aug
-	var aug []byte
-	var uaug *C.byte
-	if len(optional) > 0 {
-		aug = optional[0]
-		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
-		}
-	}
-	var umsg *C.byte
-	if len(msg) > 0 {
-		umsg = (*C.byte)(&msg[0])
-	}
-
-	r := C.blst_pairing_chk_n_aggr_pk_in_g2(&ctx[0],
-		PK, C.bool(pkValidate),
-		sig, C.bool(sigGroupcheck),
-		umsg, C.size_t(len(msg)),
-		uaug, C.size_t(len(aug)))
-
-	return int(r)
-}
-
-func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
-	sig *P2Affine, sigGroupcheck bool,
-	rand *Scalar, randBits int, msg []byte,
-	optional ...[]byte) int { // aug
-	var aug []byte
-	var uaug *C.byte
-	if len(optional) > 0 {
-		aug = optional[0]
-		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
-		}
-	}
-	var umsg *C.byte
-	if len(msg) > 0 {
-		umsg = (*C.byte)(&msg[0])
-	}
-
-	r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g1(&ctx[0],
-		PK, C.bool(pkValidate),
-		sig, C.bool(sigGroupcheck),
-		&rand.b[0], C.size_t(randBits),
-		umsg, C.size_t(len(msg)),
-		uaug, C.size_t(len(aug)))
-
-	return int(r)
-}
-
-func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
-	sig *P1Affine, sigGroupcheck bool,
-	rand *Scalar, randBits int, msg []byte,
-	optional ...[]byte) int { // aug
-	var aug []byte
-	var uaug *C.byte
-	if len(optional) > 0 {
-		aug = optional[0]
-		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
-		}
-	}
-	var umsg *C.byte
-	if len(msg) > 0 {
-		umsg = (*C.byte)(&msg[0])
-	}
-
-	r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g2(&ctx[0],
-		PK, C.bool(pkValidate),
-		sig, C.bool(sigGroupcheck),
-		&rand.b[0], C.size_t(randBits),
-		umsg, C.size_t(len(msg)),
-		uaug, C.size_t(len(aug)))
-
-	return int(r)
-}
-
 func PairingCommit(ctx Pairing) {
 	C.blst_pairing_commit(&ctx[0])
 }
@@ -276,8 +174,10 @@ func PairingRawAggregate(ctx Pairing, q *P2Affine, p *P1Affine) {
 	C.blst_pairing_raw_aggregate(&ctx[0], q, p)
 }
 
-func PairingAsFp12(ctx Pairing) Fp12 {
-	return *C.blst_pairing_as_fp12(&ctx[0])
+func PairingAsFp12(ctx Pairing) *Fp12 {
+	var pt Fp12
+	C.go_pairing_as_fp12(&pt, &ctx[0])
+	return &pt
 }
 
 func Fp12One() Fp12 {
@@ -1471,6 +1371,57 @@ func (agg *P1Aggregate) aggregate(getter aggGetterP1, groupcheck bool,
 	}
 	return true
 }
+func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
+	sig *P2Affine, sigGroupcheck bool, msg []byte,
+	optional ...[]byte) int { // aug
+	var aug []byte
+	var uaug *C.byte
+	if len(optional) > 0 {
+		aug = optional[0]
+		if len(aug) > 0 {
+			uaug = (*C.byte)(&aug[0])
+		}
+	}
+	var umsg *C.byte
+	if len(msg) > 0 {
+		umsg = (*C.byte)(&msg[0])
+	}
+
+	r := C.blst_pairing_chk_n_aggr_pk_in_g1(&ctx[0],
+		PK, C.bool(pkValidate),
+		sig, C.bool(sigGroupcheck),
+		umsg, C.size_t(len(msg)),
+		uaug, C.size_t(len(aug)))
+
+	return int(r)
+}
+
+func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
+	sig *P2Affine, sigGroupcheck bool,
+	rand *Scalar, randBits int, msg []byte,
+	optional ...[]byte) int { // aug
+	var aug []byte
+	var uaug *C.byte
+	if len(optional) > 0 {
+		aug = optional[0]
+		if len(aug) > 0 {
+			uaug = (*C.byte)(&aug[0])
+		}
+	}
+	var umsg *C.byte
+	if len(msg) > 0 {
+		umsg = (*C.byte)(&msg[0])
+	}
+
+	r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g1(&ctx[0],
+		PK, C.bool(pkValidate),
+		sig, C.bool(sigGroupcheck),
+		&rand.b[0], C.size_t(randBits),
+		umsg, C.size_t(len(msg)),
+		uaug, C.size_t(len(aug)))
+
+	return int(r)
+}
 
 //
 // Serialization/Deserialization.
@@ -1975,6 +1926,57 @@ func (points P1Affines) Mult(scalarsIf interface{}, nbits int) *P1 {
 
 func (points P1s) Mult(scalarsIf interface{}, nbits int) *P1 {
 	return points.ToAffine().Mult(scalarsIf, nbits)
+}
+func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
+	sig *P1Affine, sigGroupcheck bool, msg []byte,
+	optional ...[]byte) int { // aug
+	var aug []byte
+	var uaug *C.byte
+	if len(optional) > 0 {
+		aug = optional[0]
+		if len(aug) > 0 {
+			uaug = (*C.byte)(&aug[0])
+		}
+	}
+	var umsg *C.byte
+	if len(msg) > 0 {
+		umsg = (*C.byte)(&msg[0])
+	}
+
+	r := C.blst_pairing_chk_n_aggr_pk_in_g2(&ctx[0],
+		PK, C.bool(pkValidate),
+		sig, C.bool(sigGroupcheck),
+		umsg, C.size_t(len(msg)),
+		uaug, C.size_t(len(aug)))
+
+	return int(r)
+}
+
+func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
+	sig *P1Affine, sigGroupcheck bool,
+	rand *Scalar, randBits int, msg []byte,
+	optional ...[]byte) int { // aug
+	var aug []byte
+	var uaug *C.byte
+	if len(optional) > 0 {
+		aug = optional[0]
+		if len(aug) > 0 {
+			uaug = (*C.byte)(&aug[0])
+		}
+	}
+	var umsg *C.byte
+	if len(msg) > 0 {
+		umsg = (*C.byte)(&msg[0])
+	}
+
+	r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g2(&ctx[0],
+		PK, C.bool(pkValidate),
+		sig, C.bool(sigGroupcheck),
+		&rand.b[0], C.size_t(randBits),
+		umsg, C.size_t(len(msg)),
+		uaug, C.size_t(len(aug)))
+
+	return int(r)
 }
 
 //
