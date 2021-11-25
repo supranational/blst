@@ -30,22 +30,22 @@ package blst
 // static void go_pairing_as_fp12(blst_fp12 *pt, blst_pairing *ctx)
 // {   *pt = *blst_pairing_as_fp12(ctx);   }
 //
-// static void blst_p1slice_to_affine(blst_p1_affine dst[],
+// static void go_p1slice_to_affine(blst_p1_affine dst[],
 //                                    const blst_p1 points[], size_t npoints)
 // {   const blst_p1 *ppoints[2] = { points, NULL };
 //     blst_p1s_to_affine(dst, ppoints, npoints);
 // }
-// static void blst_p1slice_add(blst_p1 *dst, const blst_p1_affine points[],
+// static void go_p1slice_add(blst_p1 *dst, const blst_p1_affine points[],
 //                                            size_t npoints)
 // {   const blst_p1_affine *ppoints[2] = { points, NULL };
 //     blst_p1s_add(dst, ppoints, npoints);
 // }
-// static void blst_p2slice_to_affine(blst_p2_affine dst[],
+// static void go_p2slice_to_affine(blst_p2_affine dst[],
 //                                    const blst_p2 points[], size_t npoints)
 // {   const blst_p2 *ppoints[2] = { points, NULL };
 //     blst_p2s_to_affine(dst, ppoints, npoints);
 // }
-// static void blst_p2slice_add(blst_p2 *dst, const blst_p2_affine points[],
+// static void go_p2slice_add(blst_p2 *dst, const blst_p2_affine points[],
 //                                            size_t npoints)
 // {   const blst_p2_affine *ppoints[2] = { points, NULL };
 //     blst_p2s_add(dst, ppoints, npoints);
@@ -1644,7 +1644,7 @@ func P1sToAffine(points []*P1, optional ...int) P1Affines {
 
 func (points P1s) ToAffine() P1Affines {
 	ret := make([]P1Affine, len(points))
-	C.blst_p1slice_to_affine(&ret[0], &points[0], C.size_t(len(points)))
+	C.go_p1slice_to_affine(&ret[0], &points[0], C.size_t(len(points)))
 	return ret
 }
 
@@ -1667,7 +1667,7 @@ func P1AffinesAdd(points []*P1Affine, optional ...int) *P1 {
 
 func (points P1Affines) Add() *P1 {
 	var ret P1
-	C.blst_p1slice_add(&ret, &points[0], C.size_t(len(points)))
+	C.go_p1slice_add(&ret, &points[0], C.size_t(len(points)))
 	return &ret
 }
 
@@ -2200,7 +2200,7 @@ func P2sToAffine(points []*P2, optional ...int) P2Affines {
 
 func (points P2s) ToAffine() P2Affines {
 	ret := make([]P2Affine, len(points))
-	C.blst_p2slice_to_affine(&ret[0], &points[0], C.size_t(len(points)))
+	C.go_p2slice_to_affine(&ret[0], &points[0], C.size_t(len(points)))
 	return ret
 }
 
@@ -2223,7 +2223,7 @@ func P2AffinesAdd(points []*P2Affine, optional ...int) *P2 {
 
 func (points P2Affines) Add() *P2 {
 	var ret P2
-	C.blst_p2slice_add(&ret, &points[0], C.size_t(len(points)))
+	C.go_p2slice_add(&ret, &points[0], C.size_t(len(points)))
 	return &ret
 }
 
