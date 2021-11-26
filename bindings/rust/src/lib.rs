@@ -10,7 +10,7 @@ use core::any::Any;
 use core::mem::MaybeUninit;
 use core::ptr;
 use core::sync::atomic::*;
-use std::sync::{mpsc::channel, Arc};
+use std::sync::{mpsc::channel, Arc, Barrier};
 use zeroize::Zeroize;
 
 #[cfg(not(feature = "no-threads"))]
@@ -1658,11 +1658,42 @@ macro_rules! pippenger_mult_impl {
                 let mut ret = Self {
                     points: Vec::with_capacity(npoints),
                 };
-                let p: [*const $point; 2] = [&points[0], ptr::null()];
-                unsafe {
-                    ret.points.set_len(npoints);
-                    $to_affines(&mut ret.points[0], &p[0], npoints);
+                unsafe { ret.points.set_len(npoints) };
+
+                let pool = mt::da_pool();
+                let ncpus = pool.max_count();
+                if ncpus < 2 || npoints < 768 {
+                    let p: [*const $point; 2] = [&points[0], ptr::null()];
+                    unsafe { $to_affines(&mut ret.points[0], &p[0], npoints) };
+                    return ret;
                 }
+
+                let mut nslices = (npoints + 511) / 512;
+                nslices = core::cmp::min(nslices, ncpus);
+                let wg = Arc::new((Barrier::new(2), AtomicUsize::new(nslices)));
+
+                let (mut delta, mut rem) =
+                    (npoints / nslices + 1, npoints % nslices);
+                let mut x = 0usize;
+                while x < npoints {
+                    let out = &mut ret.points[x];
+                    let inp = &points[x];
+
+                    delta -= (rem == 0) as usize;
+                    rem -= 1;
+                    x += delta;
+
+                    let wg = wg.clone();
+                    pool.joined_execute(move || {
+                        let p: [*const $point; 2] = [inp, ptr::null()];
+                        unsafe { $to_affines(out, &p[0], delta) };
+                        if wg.1.fetch_sub(1, Ordering::AcqRel) == 1 {
+                            wg.0.wait();
+                        }
+                    });
+                }
+                wg.0.wait();
+
                 ret
             }
 
