@@ -1642,9 +1642,44 @@ func P1sToAffine(points []*P1, optional ...int) P1Affines {
 	return ret
 }
 
-func (points P1s) ToAffine() P1Affines {
-	ret := make([]P1Affine, len(points))
-	C.go_p1slice_to_affine(&ret[0], &points[0], C.size_t(len(points)))
+func (points P1s) ToAffine(optional ...P1Affines) P1Affines {
+	npoints := len(points)
+	var ret P1Affines
+
+	if len(optional) > 0 { // used in benchmark
+		ret = optional[0]
+		if len(ret) < npoints {
+			panic("npoints mismatch")
+		}
+	} else {
+		ret = make([]P1Affine, npoints)
+	}
+
+	if maxProcs < 2 || npoints < 768 {
+		C.go_p1slice_to_affine(&ret[0], &points[0], C.size_t(npoints))
+		return ret
+	}
+
+	nslices := (npoints + 511) / 512
+	if nslices > maxProcs {
+		nslices = maxProcs
+	}
+	delta, rem := npoints/nslices+1, npoints%nslices
+
+	var wg sync.WaitGroup
+	wg.Add(nslices)
+	for x := 0; x < npoints; x += delta {
+		if rem == 0 {
+			delta -= 1
+		}
+		rem -= 1
+		go func(out *P1Affine, inp *P1, delta int) {
+			C.go_p1slice_to_affine(out, inp, C.size_t(delta))
+			wg.Done()
+		}(&ret[x], &points[x], delta)
+	}
+	wg.Wait()
+
 	return ret
 }
 
@@ -1666,8 +1701,37 @@ func P1AffinesAdd(points []*P1Affine, optional ...int) *P1 {
 }
 
 func (points P1Affines) Add() *P1 {
-	var ret P1
-	C.go_p1slice_add(&ret, &points[0], C.size_t(len(points)))
+	npoints := len(points)
+	if maxProcs < 2 || npoints < 768 {
+		var ret P1
+		C.go_p1slice_add(&ret, &points[0], C.size_t(npoints))
+		return &ret
+	}
+
+	nslices := (npoints + 511) / 512
+	if nslices > maxProcs {
+		nslices = maxProcs
+	}
+	delta, rem := npoints/nslices+1, npoints%nslices
+
+	msgs := make(chan P1, nslices)
+	for x := 0; x < npoints; x += delta {
+		if rem == 0 {
+			delta -= 1
+		}
+		rem -= 1
+		go func(points *P1Affine, delta int) {
+			var ret P1
+			C.go_p1slice_add(&ret, points, C.size_t(delta))
+			msgs <- ret
+		}(&points[x], delta)
+	}
+
+	ret := <-msgs
+	for i := 1; i < nslices; i++ {
+		msg := <-msgs
+		C.blst_p1_add_or_double(&ret, &ret, &msg)
+	}
 	return &ret
 }
 
@@ -2198,9 +2262,44 @@ func P2sToAffine(points []*P2, optional ...int) P2Affines {
 	return ret
 }
 
-func (points P2s) ToAffine() P2Affines {
-	ret := make([]P2Affine, len(points))
-	C.go_p2slice_to_affine(&ret[0], &points[0], C.size_t(len(points)))
+func (points P2s) ToAffine(optional ...P2Affines) P2Affines {
+	npoints := len(points)
+	var ret P2Affines
+
+	if len(optional) > 0 { // used in benchmark
+		ret = optional[0]
+		if len(ret) < npoints {
+			panic("npoints mismatch")
+		}
+	} else {
+		ret = make([]P2Affine, npoints)
+	}
+
+	if maxProcs < 2 || npoints < 768 {
+		C.go_p2slice_to_affine(&ret[0], &points[0], C.size_t(npoints))
+		return ret
+	}
+
+	nslices := (npoints + 511) / 512
+	if nslices > maxProcs {
+		nslices = maxProcs
+	}
+	delta, rem := npoints/nslices+1, npoints%nslices
+
+	var wg sync.WaitGroup
+	wg.Add(nslices)
+	for x := 0; x < npoints; x += delta {
+		if rem == 0 {
+			delta -= 1
+		}
+		rem -= 1
+		go func(out *P2Affine, inp *P2, delta int) {
+			C.go_p2slice_to_affine(out, inp, C.size_t(delta))
+			wg.Done()
+		}(&ret[x], &points[x], delta)
+	}
+	wg.Wait()
+
 	return ret
 }
 
@@ -2222,8 +2321,37 @@ func P2AffinesAdd(points []*P2Affine, optional ...int) *P2 {
 }
 
 func (points P2Affines) Add() *P2 {
-	var ret P2
-	C.go_p2slice_add(&ret, &points[0], C.size_t(len(points)))
+	npoints := len(points)
+	if maxProcs < 2 || npoints < 768 {
+		var ret P2
+		C.go_p2slice_add(&ret, &points[0], C.size_t(npoints))
+		return &ret
+	}
+
+	nslices := (npoints + 511) / 512
+	if nslices > maxProcs {
+		nslices = maxProcs
+	}
+	delta, rem := npoints/nslices+1, npoints%nslices
+
+	msgs := make(chan P2, nslices)
+	for x := 0; x < npoints; x += delta {
+		if rem == 0 {
+			delta -= 1
+		}
+		rem -= 1
+		go func(points *P2Affine, delta int) {
+			var ret P2
+			C.go_p2slice_add(&ret, points, C.size_t(delta))
+			msgs <- ret
+		}(&points[x], delta)
+	}
+
+	ret := <-msgs
+	for i := 1; i < nslices; i++ {
+		msg := <-msgs
+		C.blst_p2_add_or_double(&ret, &ret, &msg)
+	}
 	return &ret
 }
 

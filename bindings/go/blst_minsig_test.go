@@ -670,3 +670,32 @@ func BenchmarkMultiScalarP2(b *testing.B) {
     b.Run(fmt.Sprintf("%d",npoints/2), run(npoints/2))
     b.Run(fmt.Sprintf("%d",npoints), run(npoints))
 }
+
+func BenchmarkToP2Affines(b *testing.B) {
+    const npoints = 32000
+    scalars := make([]byte, npoints*32)
+    _, err := rand.Read(scalars[:])
+    if err != nil {
+        b.Fatal(err.Error())
+    }
+    temp := make([]P2, npoints)
+    generator := P2Generator()
+    for i := range temp {
+        temp[i] = *generator.Mult(scalars[i*4:(i+1)*4])
+    }
+    scratch := make([]P2Affine, npoints)
+    run := func(size int) func(b *testing.B) {
+        return func(b *testing.B) {
+            b.ResetTimer()
+            for i:=0; i<b.N; i++ {
+                P2s(temp[:size]).ToAffine(scratch)
+            }
+        }
+    }
+    b.Run(fmt.Sprintf("%d",npoints/128), run(npoints/128))
+    b.Run(fmt.Sprintf("%d",npoints/64), run(npoints/64))
+    b.Run(fmt.Sprintf("%d",npoints/32), run(npoints/32))
+    b.Run(fmt.Sprintf("%d",npoints/16), run(npoints/16))
+    b.Run(fmt.Sprintf("%d",npoints/4), run(npoints/4))
+    b.Run(fmt.Sprintf("%d",npoints), run(npoints))
+}
