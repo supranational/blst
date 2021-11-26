@@ -16,30 +16,38 @@ static void ptype##s_to_affine(ptype##_affine dst[], \
 { \
     size_t i; \
     vec##bits *acc, ZZ, ZZZ; \
-    const ptype *point = *points++; \
+    const ptype *point = NULL; \
+    const size_t stride = sizeof(ptype)==sizeof(POINTonE1) ? 1536 : 768; \
 \
-    acc = (vec##bits *)dst; \
-    vec_copy(acc++, point->Z, sizeof(vec##bits)); \
-    for (i = 1; i < npoints; i++, acc++) \
-        point = *points ? *points++ : point+1, \
-        mul_##field(acc[0], acc[-1], point->Z); \
+    while (npoints) { \
+        const ptype *p, *const *walkback; \
+        size_t delta = stride<npoints ? stride : npoints; \
 \
-    --acc; reciprocal_##field(acc[0], acc[0]); \
+        point = *points ? *points++ : point+1; \
+        acc = (vec##bits *)dst; \
+        vec_copy(acc++, point->Z, sizeof(vec##bits)); \
+        for (i = 1; i < delta; i++, acc++) \
+            point = *points ? *points++ : point+1, \
+            mul_##field(acc[0], acc[-1], point->Z); \
 \
-    --points, --npoints, dst += npoints; \
-    for (i = 0; i < npoints; i++, acc--, dst--) { \
-        mul_##field(acc[-1], acc[-1], acc[0]);  /* 1/Z        */\
-        sqr_##field(ZZ, acc[-1]);               /* 1/Z^2      */\
-        mul_##field(ZZZ, ZZ, acc[-1]);          /* 1/Z^3      */\
-        mul_##field(acc[-1], point->Z, acc[0]);                 \
-        mul_##field(dst->X,  point->X, ZZ);     /* X = X'/Z^2 */\
-        mul_##field(dst->Y,  point->Y, ZZZ);    /* Y = Y'/Z^3 */\
-        point = (point == *points) ? *--points : point-1; \
+        --acc; reciprocal_##field(acc[0], acc[0]); \
+\
+        walkback = points-1, p = point, --delta, dst += delta; \
+        for (i = 0; i < delta; i++, acc--, dst--) { \
+            mul_##field(acc[-1], acc[-1], acc[0]);  /* 1/Z        */\
+            sqr_##field(ZZ, acc[-1]);               /* 1/Z^2      */\
+            mul_##field(ZZZ, ZZ, acc[-1]);          /* 1/Z^3      */\
+            mul_##field(acc[-1], p->Z, acc[0]);     \
+            mul_##field(dst->X,  p->X, ZZ);         /* X = X'/Z^2 */\
+            mul_##field(dst->Y,  p->Y, ZZZ);        /* Y = Y'/Z^3 */\
+            p = (p == *walkback) ? *--walkback : p-1; \
+        } \
+        sqr_##field(ZZ, acc[0]);                    /* 1/Z^2      */\
+        mul_##field(ZZZ, ZZ, acc[0]);               /* 1/Z^3      */\
+        mul_##field(dst->X, p->X, ZZ);              /* X = X'/Z^2 */\
+        mul_##field(dst->Y, p->Y, ZZZ);             /* Y = Y'/Z^3 */\
+        ++delta, dst += delta, npoints -= delta; \
     } \
-    sqr_##field(ZZ, acc[0]);                    /* 1/Z^2      */\
-    mul_##field(ZZZ, ZZ, acc[0]);               /* 1/Z^3      */\
-    mul_##field(dst->X, point->X, ZZ);          /* X = X'/Z^2 */\
-    mul_##field(dst->Y, point->Y, ZZZ);         /* Y = Y'/Z^3 */\
 } \
 \
 void prefix##s_to_affine(ptype##_affine dst[], const ptype *const points[], \
