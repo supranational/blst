@@ -350,7 +350,9 @@ import java.nio.file.*;
                                 + "/" + System.getProperty("os.arch")
                                 + "/" + libName;
     static {
-        InputStream res = $imclassname.class.getResourceAsStream(resName);
+        Class<?> imClazz = $imclassname.class;
+        InputStream res = imClazz.getResourceAsStream(
+                        System.getProperty(imClazz.getPackageName() + ".jniResource", resName));
         if (res == null) {
             try {
                 System.loadLibrary("$module");
