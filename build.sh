@@ -17,6 +17,8 @@
 #
 #	/some/where/build.sh CROSS_COMPILE=em
 
+[ -d /usr/xpg4/bin ] && PATH=/usr/xpg4/bin:$PATH # Solaris
+
 TOP=`dirname $0`
 
 # if -Werror stands in the way, bypass with -Wno-error on command line,
@@ -39,7 +41,7 @@ esac
 while [ "x$1" != "x" ]; do
     case $1 in
         -shared)    shared=1;;
-        -target*)   CFLAGS="$CFLAGS $1";;
+        -*target*)  CFLAGS="$CFLAGS $1";;
         -*)         cflags="$cflags $1";;
         *=*)        eval "$1";;
     esac
@@ -92,7 +94,7 @@ if [ $shared ]; then
         *)      sharedlib=libblst.so;;
     esac
     echo "{ global: blst_*; BLS12_381_*; local: *; };" > /tmp/ld.blst.$$
-    (set -x; ${CC} -shared -o $sharedlib libblst.a ${CFLAGS} \
-                   -Wl,-Bsymbolic,--require-defined=blst_keygen \
-                   -Wl,--version-script=/tmp/ld.blst.$$)
+    (set -x; ${CC} -shared -o $sharedlib \
+                   -Wl,--whole-archive,libblst.a,--no-whole-archive ${CFLAGS} \
+                   -Wl,-Bsymbolic,--version-script=/tmp/ld.blst.$$)
 fi
