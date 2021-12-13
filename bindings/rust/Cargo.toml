@@ -9,15 +9,15 @@ repository = "https://github.com/supranational/blst"
 readme = "README.md"
 include = [
     "**/*.rs",
-    "Cargo.toml",
-    "README.md",
-    "rustfmt.toml",
-    "blst/src/*.c",
-    "blst/src/*.h",
-    "blst/build/**",
-    "blst/src/asm/*.pl",
-    "blst/bindings/blst.h",
-    "blst/bindings/blst_aux.h",
+    "/Cargo.toml",
+    "/README.md",
+    "/rustfmt.toml",
+    "/blst/src/*.c",
+    "/blst/src/*.h",
+    "/blst/build/**",
+    "/blst/bindings/blst.h",
+    "/blst/bindings/blst_aux.h",
+    "/blst/bindings/blst.hpp",
 ]
 
 [features]
