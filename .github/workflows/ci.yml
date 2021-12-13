@@ -47,9 +47,11 @@ jobs:
         fi
         cargo test --release
         cargo test --release --features=no-threads
+        [ `uname -s` = "Linux" ] && ./publish.sh --dry-run
         cargo clean -p blst
         cargo clean -p blst --release
         rm -rf target/.rustc_info.json
+        rm -rf target/package
         rm -rf target/{debug,release}/incremental
         rm -rf ~/.cargo/registry/src
         rm -rf ~/.cargo/registry/index/*/.cache
