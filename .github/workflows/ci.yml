@@ -28,8 +28,8 @@ jobs:
           ~/.cargo/registry
           **/Cargo.lock
           **/bindings/rust/target
-        key: ${{ runner.os }}-cargo-20
-        restore-keys: ${{ runner.os }}-cargo-19
+        key: ${{ runner.os }}-cargo-21
+        restore-keys: ${{ runner.os }}-cargo-20
 
     - name: Environment
       shell: bash
