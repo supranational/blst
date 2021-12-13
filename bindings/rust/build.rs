@@ -109,4 +109,11 @@ fn main() {
         cc.opt_level(2);
     }
     cc.files(&file_vec).compile("libblst.a");
+
+    // pass some DEP_BLST_* variables to dependents
+    println!(
+        "cargo:BINDINGS={}",
+        blst_base_dir.join("bindings").to_string_lossy()
+    );
+    println!("cargo:C_SRC={}", c_src_dir.to_string_lossy());
 }
