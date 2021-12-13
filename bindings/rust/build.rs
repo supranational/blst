@@ -45,41 +45,35 @@ fn main() {
         return;
     }
 
+    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+
+    let mut blst_base_dir = manifest_dir.join("blst");
+    if !blst_base_dir.exists() {
+        // Reach out to ../.., which is the root of the blst repo.
+        // Use an absolute path to avoid issues with relative paths
+        // being treated as strings by `cc` and getting concatenated
+        // in ways that reach out of the OUT_DIR.
+        blst_base_dir = manifest_dir
+            .parent()
+            .and_then(|dir| dir.parent())
+            .expect("can't access parent of parent of current directory")
+            .into();
+    }
+    println!("Using blst source directory {}", blst_base_dir.display());
+
     // Set CC environment variable to choose alternative C compiler.
     // Optimization level depends on whether or not --release is passed
     // or implied.
     let mut cc = cc::Build::new();
 
-    let blst_base_dir = match env::var("BLST_SRC_DIR") {
-        Ok(val) => PathBuf::from(val),
-        Err(_) => {
-            let local_blst = PathBuf::from("blst");
-            if local_blst.exists() {
-                local_blst
-            } else {
-                // Reach out to ../.., which is the root of the blst repo.
-                // Use an absolute path to avoid issues with relative paths
-                // being treated as strings by `cc` and getting concatenated
-                // in ways that reach out of the OUT_DIR.
-                env::current_dir()
-                    .expect("can't access current directory")
-                    .parent()
-                    .and_then(|dir| dir.parent())
-                    .expect(
-                        "can't access parent of parent of current directory",
-                    )
-                    .into()
-            }
-        }
-    };
-    println!("Using blst source directory {}", blst_base_dir.display());
-
     let c_src_dir = blst_base_dir.join("src");
-
+    println!("cargo:rerun-if-changed={}", c_src_dir.display());
     let mut file_vec = vec![c_src_dir.join("server.c")];
 
     if target_arch.eq("x86_64") || target_arch.eq("aarch64") {
-        assembly(&mut file_vec, &blst_base_dir.join("build"), &target_arch);
+        let asm_dir = blst_base_dir.join("build");
+        println!("cargo:rerun-if-changed={}", asm_dir.display());
+        assembly(&mut file_vec, &asm_dir, &target_arch);
     } else {
         cc.define("__BLST_NO_ASM__", None);
     }
