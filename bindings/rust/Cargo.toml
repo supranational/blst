@@ -19,6 +19,7 @@ include = [
     "/blst/bindings/blst_aux.h",
     "/blst/bindings/blst.hpp",
 ]
+links = "blst"
 
 [features]
 # By default, compile with ADX extension if the host supports it.
