@@ -76,9 +76,10 @@ if (${CC} ${CFLAGS} -dM -E -x c /dev/null) 2>/dev/null | grep -q x86_64; then
 fi
 
 CFLAGS="$CFLAGS $cflags"
+TMPDIR=${TMPDIR:-/tmp}
 
 rm -f libblst.a
-trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o /tmp/*.blst.$$' 0
+trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o ${TMPDIR}/*.blst.$$' 0
 
 (set -x; ${CC} ${CFLAGS} -c ${TOP}/src/server.c)
 (set -x; ${CC} ${CFLAGS} -c ${TOP}/build/assembly.S)
@@ -93,8 +94,8 @@ if [ $shared ]; then
                 CFLAGS="${CFLAGS} -nostdlib -lgcc";;
         *)      sharedlib=libblst.so;;
     esac
-    echo "{ global: blst_*; BLS12_381_*; local: *; };" > /tmp/ld.blst.$$
+    echo "{ global: blst_*; BLS12_381_*; local: *; };" > ${TMPDIR}/ld.blst.$$
     (set -x; ${CC} -shared -o $sharedlib \
                    -Wl,--whole-archive,libblst.a,--no-whole-archive ${CFLAGS} \
-                   -Wl,-Bsymbolic,--version-script=/tmp/ld.blst.$$)
+                   -Wl,-Bsymbolic,--version-script=${TMPDIR}/ld.blst.$$)
 fi
