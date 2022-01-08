@@ -42,6 +42,7 @@ fn main() {
     if Path::new("libblst.a").exists() {
         println!("cargo:rustc-link-search=.");
         println!("cargo:rustc-link-lib=blst");
+        println!("cargo:rerun-if-changed=libblst.a");
         return;
     }
 
