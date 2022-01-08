@@ -42,6 +42,14 @@ if newer("blst_wrap.cpp", "../libblst.a", "_blst.so"):
     cmd.extend(["-o", "_blst.so", "-fPIC",
                 "-I"+sysconfig.get_config_var('INCLUDEPY'), "-I..",
                 "-O", "-Wall", "blst_wrap.cpp", "../libblst.a"])
+    try:
+        pre = subprocess.check_output(["c++", "-dM", "-E", "-x", "c++", "/dev/null"],
+                                      stderr=subprocess.STDOUT)
+        std = re.search(r'\b__cplusplus\s+([0-9]+)L', pre.decode('ascii'))
+        if std and std.group(1) < "2011":
+            cmd.extend(["-std=c++11"])
+    except:
+        pass
     subprocess.check_call(cmd)
 
 print("testing...") or sys.stdout.flush()
