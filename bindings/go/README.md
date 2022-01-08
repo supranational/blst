@@ -73,3 +73,8 @@ func main() {
 ```
 
 See the tests for further examples of usage.
+
+If you're cross-compiling, you have to set `CC` environment variable to the target C cross-compiler and `CGO_ENABLED` to 1. For example, to compile the test program for ARM:
+```
+env GOARCH=arm CC=arm-linux-gnueabi-gcc CGO_ENABLED=1 go test -c
+```
