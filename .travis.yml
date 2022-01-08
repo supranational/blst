@@ -9,7 +9,6 @@ git:
 
 os:
     - linux
-    - osx
 
 arch:
     - arm64
