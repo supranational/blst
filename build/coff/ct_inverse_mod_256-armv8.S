@@ -59,15 +59,15 @@ ct_inverse_mod_256:
 
 	ldr	x8, [x1,#8*8]		// |u|
 	ldr	x9, [x1,#8*13]	// |v|
-	smaddl	x4, w16, w8, xzr	// |u|*|f0|
-	smaddl	x4, w17, w9, x4	// |v|*|g0|
+	madd	x4, x16, x8, xzr	// |u|*|f0|
+	madd	x4, x17, x9, x4	// |v|*|g0|
 	str	x4, [x0,#8*4]
 	asr	x5, x4, #63		// sign extenstion
 	stp	x5, x5, [x0,#8*5]
 	stp	x5, x5, [x0,#8*7]
 
-	smaddl	x4, w12, w8, xzr	// |u|*|f1|
-	smaddl	x4, w13, w9, x4	// |v|*|g1|
+	madd	x4, x12, x8, xzr	// |u|*|f1|
+	madd	x4, x13, x9, x4	// |v|*|g1|
 	str	x4, [x0,#8*9]
 	asr	x5, x4, #63		// sign extenstion
 	stp	x5, x5, [x0,#8*10]
