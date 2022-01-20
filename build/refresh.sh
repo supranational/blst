@@ -24,7 +24,9 @@ for pl in ../src/asm/*-armv8.pl; do
 done
 
 ( cd ../bindings;
-  echo "LIBRARY blst\n\nEXPORTS"
+  echo "LIBRARY blst"
+  echo
+  echo "EXPORTS"
   cc -E blst.h | \
   ${PERL} -ne '{ (/(blst_[\w]+)\s*\(/ || /(BLS12_[\w]+);/) &&  print "\t$1\n" }'
   echo
