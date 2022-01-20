@@ -150,15 +150,15 @@ ct_inverse_mod_256:
 
 	ldr	@acc[4], [$in_ptr,#8*8]		// |u|
 	ldr	@acc[5], [$in_ptr,#8*13]	// |v|
-	smaddl	@acc[0], $f_, @acc[4], xzr	// |u|*|f0|
-	smaddl	@acc[0], $g_, @acc[5], @acc[0]	// |v|*|g0|
+	madd	@acc[0], $f_, @acc[4], xzr	// |u|*|f0|
+	madd	@acc[0], $g_, @acc[5], @acc[0]	// |v|*|g0|
 	str	@acc[0], [$out_ptr,#8*4]
 	asr	@acc[1], @acc[0], #63		// sign extenstion
 	stp	@acc[1], @acc[1], [$out_ptr,#8*5]
 	stp	@acc[1], @acc[1], [$out_ptr,#8*7]
 
-	smaddl	@acc[0], $f0, @acc[4], xzr	// |u|*|f1|
-	smaddl	@acc[0], $g0, @acc[5], @acc[0]	// |v|*|g1|
+	madd	@acc[0], $f0, @acc[4], xzr	// |u|*|f1|
+	madd	@acc[0], $g0, @acc[5], @acc[0]	// |v|*|g1|
 	str	@acc[0], [$out_ptr,#8*9]
 	asr	@acc[1], @acc[0], #63		// sign extenstion
 	stp	@acc[1], @acc[1], [$out_ptr,#8*10]
