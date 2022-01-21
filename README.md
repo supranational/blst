@@ -46,7 +46,7 @@ The library deliberately abstains from dealing with memory management and multi-
 
 ## Platform and Language Compatibility
 
-This library supports x86_64 and ARM64 hardware platforms, and Linux, Mac, and Windows operating systems.
+This library primarily supports x86_64 and ARM64 hardware platforms, and Linux, Mac, and Windows operating systems. But it does have a portable replacement for the assembly modules, which can be compiled for a plethora of other platforms. Problem reports for these will be considered and are likely to be addressed.
 
 This repository includes explicit bindings for:
 - [Go](bindings/go)
