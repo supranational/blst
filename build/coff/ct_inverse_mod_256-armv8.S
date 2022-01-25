@@ -414,19 +414,31 @@ ct_inverse_mod_256:
 	and	x26,   x11, x19
 	adcs	x6, x6, x25
 	adcs	x7, x22,   x26
-	adc	x20, x20, xzr		// x20 is 1 or 0
+	adc	x20, x20, xzr		// x20 is 1, 0 or -1
 
 	neg	x19, x20
+	orr	x20, x20, x19		// excess bit or sign as mask
+	asr	x19, x19, #63		// excess bit as mask
 
-	and	x8, x8, x19		// subtract mod<<256 conditionally
-	and	x9, x9, x19
-	subs	x4, x4, x8
-	and	x10, x10, x19
-	sbcs	x5, x5, x9
-	and	x11, x11, x19
-	sbcs	x6, x6, x10
+	and	x8, x8, x20		// mask |mod|
+	and	x9, x9, x20
+	and	x10, x10, x20
+	and	x11, x11, x20
+
+	eor	x8, x8, x19		// conditionally negate |mod|
+	eor	x9, x9, x19
+	adds	x8, x8, x19, lsr#63
+	eor	x10, x10, x19
+	adcs	x9, x9, xzr
+	eor	x11, x11, x19
+	adcs	x10, x10, xzr
+	adc	x11, x11, xzr
+
+	adds	x4, x4, x8	// final adjustment for |mod|<<256
+	adcs	x5, x5, x9
+	adcs	x6, x6, x10
 	stp	x4, x5, [x0,#8*4]
-	sbcs	x7, x7, x11
+	adc	x7, x7, x11
 	stp	x6, x7, [x0,#8*6]
 
 	add	sp, sp, #1040

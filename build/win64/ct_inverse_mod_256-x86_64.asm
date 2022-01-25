@@ -582,20 +582,34 @@ $L$SEH_body_ct_inverse_mod_256::
 	adc	r15,rdx
 	adc	rax,0
 
+	mov	rdx,rax
 	neg	rax
+	or	rdx,rax
+	sar	rax,63
 
-	mov	r8,rax
-	mov	r9,rax
+	mov	r8,rdx
+	mov	r9,rdx
 	and	r8,QWORD PTR[rsi]
-	mov	r10,rax
+	mov	r10,rdx
 	and	r9,QWORD PTR[8+rsi]
 	and	r10,QWORD PTR[16+rsi]
-	and	rax,QWORD PTR[24+rsi]
+	and	rdx,QWORD PTR[24+rsi]
 
-	sub	r12,r8
-	sbb	r13,r9
-	sbb	r14,r10
-	sbb	r15,rax
+	xor	r8,rax
+	xor	rcx,rcx
+	xor	r9,rax
+	sub	rcx,rax
+	xor	r10,rax
+	xor	rdx,rax
+	add	r8,rcx
+	adc	r9,0
+	adc	r10,0
+	adc	rdx,0
+
+	add	r12,r8
+	adc	r13,r9
+	adc	r14,r10
+	adc	r15,rdx
 
 	mov	QWORD PTR[32+rdi],r12
 	mov	QWORD PTR[40+rdi],r13

@@ -578,20 +578,34 @@ _ct_inverse_mod_256:
 	adcq	%rdx,%r15
 	adcq	$0,%rax
 
+	movq	%rax,%rdx
 	negq	%rax
+	orq	%rax,%rdx
+	sarq	$63,%rax
 
-	movq	%rax,%r8
-	movq	%rax,%r9
+	movq	%rdx,%r8
+	movq	%rdx,%r9
 	andq	0(%rsi),%r8
-	movq	%rax,%r10
+	movq	%rdx,%r10
 	andq	8(%rsi),%r9
 	andq	16(%rsi),%r10
-	andq	24(%rsi),%rax
+	andq	24(%rsi),%rdx
 
-	subq	%r8,%r12
-	sbbq	%r9,%r13
-	sbbq	%r10,%r14
-	sbbq	%rax,%r15
+	xorq	%rax,%r8
+	xorq	%rcx,%rcx
+	xorq	%rax,%r9
+	subq	%rax,%rcx
+	xorq	%rax,%r10
+	xorq	%rax,%rdx
+	addq	%rcx,%r8
+	adcq	$0,%r9
+	adcq	$0,%r10
+	adcq	$0,%rdx
+
+	addq	%r8,%r12
+	adcq	%r9,%r13
+	adcq	%r10,%r14
+	adcq	%rdx,%r15
 
 	movq	%r12,32(%rdi)
 	movq	%r13,40(%rdi)
