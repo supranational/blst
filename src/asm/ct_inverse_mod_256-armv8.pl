@@ -230,19 +230,31 @@ $code.=<<___;
 	and	@t[7],   @acc[7], @t[0]
 	adcs	@acc[2], @acc[2], @t[6]
 	adcs	@acc[3], @t[3],   @t[7]
-	adc	@t[1], @t[1], xzr		// @t[1] is 1 or 0
+	adc	@t[1], @t[1], xzr		// @t[1] is 1, 0 or -1
 
 	neg	@t[0], @t[1]
+	orr	@t[1], @t[1], @t[0]		// excess bit or sign as mask
+	asr	@t[0], @t[0], #63		// excess bit as mask
 
-	and	@acc[4], @acc[4], @t[0]		// subtract mod<<256 conditionally
-	and	@acc[5], @acc[5], @t[0]
-	subs	@acc[0], @acc[0], @acc[4]
-	and	@acc[6], @acc[6], @t[0]
-	sbcs	@acc[1], @acc[1], @acc[5]
-	and	@acc[7], @acc[7], @t[0]
-	sbcs	@acc[2], @acc[2], @acc[6]
+	and	@acc[4], @acc[4], @t[1]		// mask |mod|
+	and	@acc[5], @acc[5], @t[1]
+	and	@acc[6], @acc[6], @t[1]
+	and	@acc[7], @acc[7], @t[1]
+
+	eor	@acc[4], @acc[4], @t[0]		// conditionally negate |mod|
+	eor	@acc[5], @acc[5], @t[0]
+	adds	@acc[4], @acc[4], @t[0], lsr#63
+	eor	@acc[6], @acc[6], @t[0]
+	adcs	@acc[5], @acc[5], xzr
+	eor	@acc[7], @acc[7], @t[0]
+	adcs	@acc[6], @acc[6], xzr
+	adc	@acc[7], @acc[7], xzr
+
+	adds	@acc[0], @acc[0], @acc[4]	// final adjustment for |mod|<<256
+	adcs	@acc[1], @acc[1], @acc[5]
+	adcs	@acc[2], @acc[2], @acc[6]
 	stp	@acc[0], @acc[1], [$out_ptr,#8*4]
-	sbcs	@acc[3], @acc[3], @acc[7]
+	adc	@acc[3], @acc[3], @acc[7]
 	stp	@acc[2], @acc[3], [$out_ptr,#8*6]
 
 	add	sp, sp, #$frame

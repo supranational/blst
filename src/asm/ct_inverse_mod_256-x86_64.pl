@@ -297,20 +297,34 @@ $code.=<<___;
 	adc	%rdx,    @acc[7]
 	adc	\$0,     %rax
 
-	neg	%rax			# excess bit as mask
+	mov	%rax, %rdx
+	neg	%rax
+	or	%rax, %rdx		# excess bit or sign as mask
+	sar	\$63, %rax		# excess bit as mask
 
-	mov	%rax, @acc[0]		# mask |modulus|
-	mov	%rax, @acc[1]
+	mov	%rdx, @acc[0]		# mask |modulus|
+	mov	%rdx, @acc[1]
 	and	8*0($in_ptr), @acc[0]
-	mov	%rax, @acc[2]
+	mov	%rdx, @acc[2]
 	and	8*1($in_ptr), @acc[1]
 	and	8*2($in_ptr), @acc[2]
-	and	8*3($in_ptr), %rax
+	and	8*3($in_ptr), %rdx
 
-	sub	@acc[0], @acc[4]	# conditionally subtract |modulus|<<256
-	sbb	@acc[1], @acc[5]
-	sbb	@acc[2], @acc[6]
-	sbb	%rax,    @acc[7]
+	xor	%rax, @acc[0]		# conditionally negate |modulus|
+	xor	%rcx, %rcx
+	xor	%rax, @acc[1]
+	sub	%rax, %rcx
+	xor	%rax, @acc[2]
+	xor	%rax, %rdx
+	add	%rcx, @acc[0]
+	adc	\$0, @acc[1]
+	adc	\$0, @acc[2]
+	adc	\$0, %rdx
+
+	add	@acc[0], @acc[4]	# final adjustment for |modulus|<<256
+	adc	@acc[1], @acc[5]
+	adc	@acc[2], @acc[6]
+	adc	%rdx,    @acc[7]
 
 	mov	@acc[4], 8*4($out_ptr)	# store absolute value
 	mov	@acc[5], 8*5($out_ptr)
