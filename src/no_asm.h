@@ -923,12 +923,12 @@ static void ct_inverse_mod_n(limb_t ret[], const limb_t inp[],
         carry = (limb_t)(limbx >> LIMB_T_BITS);
     }
     top += carry;
-    sign = 0 - top;         /* top is 1 or 0 */
-    for (carry=0, i=0; i<n; i++) {
-        limbx = ret[n+i] - ((modx[i] & sign) + (llimb_t)carry);
-        ret[n+i] = (limb_t)limbx;
-        carry = (limb_t)(limbx >> LIMB_T_BITS) & 1;
-    }
+    sign = 0 - top;         /* top is 1, 0 or -1 */
+    top |= sign;
+    for (i=0; i<n; i++)
+        a[i] = modx[i] & top;
+    (void)cneg_n(a, a, 0 - MSB(sign), n);
+    add_n(ret+n, ret+n, a, n);
 }
 
 #define CT_INVERSE_MOD_IMPL(bits) \
