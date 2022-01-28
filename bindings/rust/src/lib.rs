@@ -10,6 +10,7 @@ use core::any::Any;
 use core::mem::MaybeUninit;
 use core::ptr;
 use core::sync::atomic::*;
+use std::num::Wrapping;
 use std::sync::{mpsc::channel, Arc, Barrier};
 use zeroize::Zeroize;
 
@@ -1673,14 +1674,14 @@ macro_rules! pippenger_mult_impl {
                 let wg = Arc::new((Barrier::new(2), AtomicUsize::new(nslices)));
 
                 let (mut delta, mut rem) =
-                    (npoints / nslices + 1, npoints % nslices);
+                    (npoints / nslices + 1, Wrapping(npoints % nslices));
                 let mut x = 0usize;
                 while x < npoints {
                     let out = &mut ret.points[x];
                     let inp = &points[x];
 
-                    delta -= (rem == 0) as usize;
-                    rem -= 1;
+                    delta -= (rem == Wrapping(0)) as usize;
+                    rem -= Wrapping(1);
                     x += delta;
 
                     let wg = wg.clone();
