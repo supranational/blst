@@ -156,6 +156,14 @@ impl blst_fp12 {
     pub fn finalverify(a: &Self, b: &Self) -> bool {
         unsafe { blst_fp12_finalverify(a, b) }
     }
+
+    pub fn to_bendian(&self) -> [u8; 48 * 12] {
+        let mut out = MaybeUninit::<[u8; 48 * 12]>::uninit();
+        unsafe {
+            blst_bendian_from_fp12(out.as_mut_ptr() as *mut u8, self);
+            out.assume_init()
+        }
+    }
 }
 
 impl blst_scalar {
