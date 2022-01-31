@@ -769,3 +769,18 @@ int blst_fp12_is_one(const vec384fp12 a)
 
 const vec384fp12 *blst_fp12_one(void)
 {   return (const vec384fp12 *)BLS12_381_Rx.p12;   }
+
+void blst_bendian_from_fp12(unsigned char ret[48*12], const vec384fp12 a)
+{
+    size_t i, j;
+    vec384 out;
+
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 2; j++) {
+            from_fp(out, a[j][i][0]);
+            be_bytes_from_limbs(ret, out, sizeof(vec384));  ret += 48;
+            from_fp(out, a[j][i][1]);
+            be_bytes_from_limbs(ret, out, sizeof(vec384));  ret += 48;
+        }
+    }
+}
