@@ -207,6 +207,12 @@ func (pt *Fp12) InGroup() bool {
 	return bool(C.blst_fp12_in_group(pt))
 }
 
+func (pt *Fp12) ToBendian() []byte {
+	var out [BLST_FP_BYTES * 12]byte
+	C.blst_bendian_from_fp12((*C.byte)(&out[0]), pt)
+	return out[:]
+}
+
 //
 // MIN-PK
 //
