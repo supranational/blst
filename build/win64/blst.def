@@ -200,6 +200,7 @@ EXPORTS
 	blst_p2_unchecked_mult
 	blst_pairing_raw_aggregate
 	blst_pairing_as_fp12
+	blst_bendian_from_fp12
 	blst_keygen_v3
 	blst_derive_master_eip2333
 	blst_derive_child_eip2333
