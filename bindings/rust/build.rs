@@ -65,6 +65,14 @@ fn main() {
     // Set CC environment variable to choose alternative C compiler.
     // Optimization level depends on whether or not --release is passed
     // or implied.
+    #[cfg(target_env = "msvc")]
+    if env::var("CARGO_CFG_TARGET_POINTER_WIDTH").unwrap().eq("32")
+        && !env::var("CC").is_ok()
+        && which::which("clang-cl").is_ok()
+    {
+        env::set_var("CC", "clang-cl");
+    }
+
     let mut cc = cc::Build::new();
 
     let c_src_dir = blst_base_dir.join("src");
@@ -105,6 +113,7 @@ fn main() {
     }
     cc.flag_if_supported("-mno-avx") // avoid costly transitions
         .flag_if_supported("-fno-builtin")
+        .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-command-line-argument");
     if !cfg!(debug_assertions) {
         cc.opt_level(2);
