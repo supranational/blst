@@ -58,9 +58,9 @@ def ct_inverse_mod_383(inp, mod):
         v = u*f1 + v*g1
 
     if v < 0:
-        v += mod << 387 # left aligned
+        v += mod << (768 - mod.bit_length())    # left aligned
 
-    return v    # to be reduced % mod
+    return v & (2**768 - 1) # to be reduced % mod
 ___
 
 $flavour = shift;

@@ -22,7 +22,7 @@ def ct_inverse_mod_256(inp, mod):
     for i in range(0, 512 // k - 1):
         # __ab_approximation_31
         n = max(a.bit_length(), b.bit_length())
-        if n < 128:
+        if n < 64:
             a_, b_ = a, b
         else:
             a_ = (a & mask) | ((a >> (n-k-2)) << k)
@@ -61,10 +61,12 @@ def ct_inverse_mod_256(inp, mod):
     mod <<= 512 - mod.bit_length()  # align to the left
     if v < 0:
         v += mod
+    if v < 0:
+        v += mod
     elif v == 1<<512
         v -= mod
 
-    return v    # to be reduced % mod
+    return v & (2**512 - 1) # to be reduced % mod
 ___
 
 $flavour = shift;

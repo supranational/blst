@@ -60,10 +60,12 @@ def ct_inverse_mod_256(inp, mod):
     mod <<= 512 - mod.bit_length()  # align to the left
     if v < 0:
         v += mod
+    if v < 0:
+        v += mod
     elif v == 1<<512
         v -= mod
 
-    return v    # to be reduced % mod
+    return v & (2**512 - 1) # to be reduced % mod
 ___
 
 $flavour = shift;
