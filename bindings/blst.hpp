@@ -808,7 +808,7 @@ public:
     PT* mul(const PT& p)    { blst_fp12_mul(&value, &value, p); return this; }
     PT* final_exp()         { blst_final_exp(&value, &value);   return this; }
     bool in_group() const   { return blst_fp12_in_group(&value); }
-    void to_bendian(byte out[46*12]) const
+    void to_bendian(byte out[48*12]) const
     {   blst_bendian_from_fp12(out, &value);   }
 
     static bool finalverify(const PT& gt1, const PT& gt2)
