@@ -40,7 +40,8 @@ if which bindgen > /dev/null 2>&1; then
             --with-derive-eq \
             --size_t-is-usize \
             --rustified-enum BLST.\* \
-        blst.h | ${PERL} ../build/bindings_trim.pl > rust/src/bindings.rs
+        blst.h -- -D__BLST_RUST_BINDGEN__ \
+    | ${PERL} ../build/bindings_trim.pl > rust/src/bindings.rs
   )
 else
     echo "Install Rust bindgen with 'cargo install bindgen'" 1>&2
