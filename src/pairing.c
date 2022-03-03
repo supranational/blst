@@ -433,7 +433,7 @@ int blst_fp12_in_group(const vec384fp12 f)
 {
     vec384fp12 a, b;
 
-    if (!is_cyclotomic(f))
+    if (vec_is_zero(f, sizeof(vec384fp12)) || !is_cyclotomic(f))
         return 0;
 
     frobenius_map_fp12(a, f, 1);
