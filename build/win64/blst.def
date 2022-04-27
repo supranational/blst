@@ -200,4 +200,5 @@ EXPORTS
 	blst_p2_unchecked_mult
 	blst_pairing_raw_aggregate
 	blst_pairing_as_fp12
+	blst_keygen_v3
 
