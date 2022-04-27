@@ -144,11 +144,13 @@ static void keygen(pow256 SK, const void *IKM, size_t IKM_len,
     info_len = info==NULL ? 0 : info_len;
 
     do {
-        /* salt = H(salt) */
-        sha256_init(&scratch.ctx.ctx);
-        sha256_update(&scratch.ctx.ctx, salt, salt_len);
-        sha256_final(salt, &scratch.ctx.ctx);
-        salt_len = sizeof(salt);
+        if (version >= 4) {
+            /* salt = H(salt) */
+            sha256_init(&scratch.ctx.ctx);
+            sha256_update(&scratch.ctx.ctx, salt, salt_len);
+            sha256_final(salt, &scratch.ctx.ctx);
+            salt_len = sizeof(salt);
+        }
 
         /* PRK = HKDF-Extract(salt, IKM || I2OSP(0, 1)) */
         HKDF_Extract(scratch.PRK, salt, salt_len,
@@ -170,7 +172,7 @@ static void keygen(pow256 SK, const void *IKM, size_t IKM_len,
          */
         mul_mont_sparse_256(scratch.key, scratch.key, BLS12_381_rRR,
                             BLS12_381_r, r0);
-    } while (vec_is_zero(scratch.key, sizeof(vec256)));
+    } while (version >= 4 && vec_is_zero(scratch.key, sizeof(vec256)));
 
     le_bytes_from_limbs(SK, scratch.key, sizeof(pow256));
 
@@ -184,4 +186,8 @@ static void keygen(pow256 SK, const void *IKM, size_t IKM_len,
 void blst_keygen(pow256 SK, const void *IKM, size_t IKM_len,
                             const void *info, size_t info_len)
 {   keygen(SK, IKM, IKM_len, info, info_len, 4);   }
+
+void blst_keygen_v3(pow256 SK, const void *IKM, size_t IKM_len,
+                               const void *info, size_t info_len)
+{   keygen(SK, IKM, IKM_len, info, info_len, 3);   }
 #endif
