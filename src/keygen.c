@@ -121,7 +121,8 @@ static void HKDF_Expand(unsigned char *OKM, size_t L,
 
 #ifndef __BLST_HKDF_TESTMODE__
 static void keygen(pow256 SK, const void *IKM, size_t IKM_len,
-                              const void *info, size_t info_len)
+                              const void *info, size_t info_len,
+                              int version)
 {
     struct {
         HMAC_SHA256_CTX ctx;
@@ -182,5 +183,5 @@ static void keygen(pow256 SK, const void *IKM, size_t IKM_len,
 
 void blst_keygen(pow256 SK, const void *IKM, size_t IKM_len,
                             const void *info, size_t info_len)
-{   keygen(SK, IKM, IKM_len, info, info_len);   }
+{   keygen(SK, IKM, IKM_len, info, info_len, 4);   }
 #endif
