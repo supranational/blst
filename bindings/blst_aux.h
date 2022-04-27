@@ -76,4 +76,6 @@ void blst_pairing_raw_aggregate(blst_pairing *ctx, const blst_p2_affine *q,
                                                    const blst_p1_affine *p);
 blst_fp12 *blst_pairing_as_fp12(blst_pairing *ctx);
 
+void blst_keygen_v3(blst_scalar *out_SK, const byte *IKM, size_t IKM_len,
+                    const byte *info DEFNULL, size_t info_len DEFNULL);
 #endif
