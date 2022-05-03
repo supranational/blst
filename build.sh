@@ -15,7 +15,7 @@
 #
 # To cross-compile for WebAssembly with Emscripten SDK:
 #
-#	/some/where/build.sh CROSS_COMPILE=em
+#	CROSS_COMPILE=em CFLAGS="/path/to/additonal/source.cpp" /some/where/build.sh -link -no-archive
 
 [ -d /usr/xpg4/bin ] && PATH=/usr/xpg4/bin:$PATH # Solaris
 
@@ -25,7 +25,7 @@ TOP=`dirname $0`
 # or suppress specific one with -Wno-<problematic-warning>
 CFLAGS=${CFLAGS:--O -fno-builtin -fPIC -Wall -Wextra -Werror}
 PERL=${PERL:-perl}
-unset cflags shared
+unset cflags shared link noarchive
 
 case `uname -s` in
     Darwin)	flavour=macosx
@@ -40,10 +40,12 @@ esac
 
 while [ "x$1" != "x" ]; do
     case $1 in
-        -shared)    shared=1;;
-        -*target*)  CFLAGS="$CFLAGS $1";;
-        -*)         cflags="$cflags $1";;
-        *=*)        eval "$1";;
+        -link)       link=1;;
+        -no-archive) noarchive=1;;
+        -shared)     shared=1;;
+        -*target*)   CFLAGS="$CFLAGS $1";;
+        -*)          echo "$1";;
+        *=*)         eval "$1";;
     esac
     shift
 done
@@ -81,9 +83,11 @@ TMPDIR=${TMPDIR:-/tmp}
 rm -f libblst.a
 trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o ${TMPDIR}/*.blst.$$' 0
 
-(set -x; ${CC} ${CFLAGS} -c ${TOP}/src/server.c)
-(set -x; ${CC} ${CFLAGS} -c ${TOP}/build/assembly.S)
-(set -x; ${AR} rc libblst.a *.o)
+if [ ! noarchive ]; then
+  (set -x; ${CC} ${CFLAGS} -c ${TOP}/src/server.c)
+  (set -x; ${CC} ${CFLAGS} -c ${TOP}/build/assembly.S)
+  (set -x; ${AR} rc libblst.a *.o)
+fi
 
 if [ $shared ]; then
     case $flavour in
@@ -98,4 +102,8 @@ if [ $shared ]; then
     (set -x; ${CC} -shared -o $sharedlib \
                    -Wl,--whole-archive,libblst.a,--no-whole-archive ${CFLAGS} \
                    -Wl,-Bsymbolic,--version-script=${TMPDIR}/ld.blst.$$)
+fi
+
+if [ $link ]; then
+  (set -x; ${CC} ${CFLAGS} ${TOP}/src/server.c ${TOP}/build/assembly.S)
 fi
