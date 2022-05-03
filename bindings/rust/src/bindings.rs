@@ -1302,3 +1302,13 @@ extern "C" {
         info_len: usize,
     );
 }
+extern "C" {
+    pub fn blst_derive_master_eip2333(out_SK: *mut blst_scalar, IKM: *const byte, IKM_len: usize);
+}
+extern "C" {
+    pub fn blst_derive_child_eip2333(
+        out_SK: *mut blst_scalar,
+        SK: *const blst_scalar,
+        child_index: u32,
+    );
+}
