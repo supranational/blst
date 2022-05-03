@@ -78,4 +78,8 @@ blst_fp12 *blst_pairing_as_fp12(blst_pairing *ctx);
 
 void blst_keygen_v3(blst_scalar *out_SK, const byte *IKM, size_t IKM_len,
                     const byte *info DEFNULL, size_t info_len DEFNULL);
+void blst_derive_master_eip2333(blst_scalar *out_SK,
+                                const byte *IKM, size_t IKM_len);
+void blst_derive_child_eip2333(blst_scalar *out_SK, const blst_scalar *SK,
+                               uint32_t child_index);
 #endif
