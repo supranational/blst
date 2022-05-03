@@ -70,6 +70,9 @@ static void HMAC_final(unsigned char md[32], HMAC_SHA256_CTX *ctx)
 static void HKDF_Extract(unsigned char PRK[32],
                          const void *salt, size_t salt_len,
                          const void *IKM,  size_t IKM_len,
+#ifndef __BLST_HKDF_TESTMODE__
+                         int IKM_fixup,
+#endif
                          HMAC_SHA256_CTX *ctx)
 {
     unsigned char zero[1] = { 0 };
@@ -77,8 +80,10 @@ static void HKDF_Extract(unsigned char PRK[32],
     HMAC_init(ctx, salt != NULL ? salt : zero, salt_len);
     HMAC_update(ctx, IKM, IKM_len);
 #ifndef __BLST_HKDF_TESTMODE__
-    /* Section 2.3 KeyGen in BLS-signature draft */
-    HMAC_update(ctx, zero, 1);
+    if (IKM_fixup) {
+        /* Section 2.3 KeyGen in BLS-signature draft */
+        HMAC_update(ctx, zero, 1);
+    }
 #endif
     HMAC_final(PRK, ctx);
 }
@@ -86,6 +91,9 @@ static void HKDF_Extract(unsigned char PRK[32],
 static void HKDF_Expand(unsigned char *OKM, size_t L,
                         const unsigned char PRK[32],
                         const void *info, size_t info_len,
+#ifndef __BLST_HKDF_TESTMODE__
+                        int info_fixup,
+#endif
                         HMAC_SHA256_CTX *ctx)
 {
 #if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901 \
@@ -100,10 +108,12 @@ static void HKDF_Expand(unsigned char *OKM, size_t L,
     if (info_len != 0)
         sha256_bcopy(info_prime, info, info_len);
 #ifndef __BLST_HKDF_TESTMODE__
-    /* Section 2.3 KeyGen in BLS-signature draft */
-    info_prime[info_len + 0] = (unsigned char)(L >> 8);
-    info_prime[info_len + 1] = (unsigned char)(L);
-    info_len += 2;
+    if (info_fixup) {
+        /* Section 2.3 KeyGen in BLS-signature draft */
+        info_prime[info_len + 0] = (unsigned char)(L >> 8);
+        info_prime[info_len + 1] = (unsigned char)(L);
+        info_len += 2;
+    }
 #endif
     info_prime[info_len] = 1;   /* counter */
     HMAC_update(ctx, info_prime, info_len + 1);
@@ -155,11 +165,11 @@ static void keygen(pow256 SK, const void *IKM, size_t IKM_len,
 
         /* PRK = HKDF-Extract(salt, IKM || I2OSP(0, 1)) */
         HKDF_Extract(scratch.PRK, salt, salt_len,
-                                  IKM, IKM_len, &scratch.ctx);
+                                  IKM, IKM_len, 1, &scratch.ctx);
 
         /* OKM = HKDF-Expand(PRK, key_info || I2OSP(L, 2), L) */
         HKDF_Expand(scratch.OKM, sizeof(scratch.OKM), scratch.PRK,
-                    info, info_len, &scratch.ctx);
+                    info, info_len, 1, &scratch.ctx);
 
         /* SK = OS2IP(OKM) mod r */
         vec_zero(scratch.key, sizeof(scratch.key));
