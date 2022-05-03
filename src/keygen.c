@@ -201,4 +201,92 @@ void blst_keygen(pow256 SK, const void *IKM, size_t IKM_len,
 void blst_keygen_v3(pow256 SK, const void *IKM, size_t IKM_len,
                                const void *info, size_t info_len)
 {   keygen(SK, IKM, IKM_len, info, info_len, 3);   }
+
+/*
+ * https://eips.ethereum.org/EIPS/eip-2333
+ */
+void blst_derive_master_eip2333(pow256 SK, const void *seed, size_t seed_len)
+{   keygen(SK, seed, seed_len, NULL, 0, 4);   }
+
+static void parent_SK_to_lamport_PK(pow256 PK, const pow256 parent_SK,
+                                    unsigned int index)
+{
+    size_t i;
+    struct {
+        HMAC_SHA256_CTX ctx;
+        SHA256_CTX ret;
+        unsigned char PRK[32], IKM[32];
+        unsigned char lamport[255][32];
+    } scratch;
+
+    /* salt = I2OSP(index, 4) */
+    unsigned char salt[4] = { (unsigned char)(index>>24),
+                              (unsigned char)(index>>16),
+                              (unsigned char)(index>>8),
+                              (unsigned char)(index) };
+
+    /* IKM = I2OSP(parent_SK, 32) */
+    for (i = 0; i < 32; i++)
+        scratch.IKM[i] = parent_SK[31-i];
+
+    /* lamport_0 = IKM_to_lamport_SK(IKM, salt) */
+    HKDF_Extract(scratch.PRK, salt, sizeof(salt), scratch.IKM, 32, 0,
+                 &scratch.ctx);
+    HKDF_Expand(scratch.lamport[0], sizeof(scratch.lamport),
+                scratch.PRK, NULL, 0, 0, &scratch.ctx);
+
+    vec_zero(scratch.ctx.ctx.buf, sizeof(scratch.ctx.ctx.buf));
+    scratch.ctx.ctx.buf[32] = 0x80;
+    scratch.ctx.ctx.buf[62] = 1;    /* 32*8 in big endian */
+    scratch.ctx.ctx.buf[63] = 0;
+    for (i = 0; i < 255; i++) {
+        /* lamport_PK = lamport_PK | SHA256(lamport_0[i]) */
+        sha256_init_h(scratch.ctx.ctx.h);
+        sha256_bcopy(scratch.ctx.ctx.buf, scratch.lamport[i], 32);
+        sha256_block_data_order(scratch.ctx.ctx.h, scratch.ctx.ctx.buf, 1);
+        sha256_emit(scratch.lamport[i], scratch.ctx.ctx.h);
+    }
+
+    /* compressed_lamport_PK = SHA256(lamport_PK) */
+    sha256_init(&scratch.ret);
+    sha256_update(&scratch.ret, scratch.lamport, sizeof(scratch.lamport));
+
+    /* not_IKM = flip_bits(IKM) */
+    for (i = 0; i< 32; i++)
+        scratch.IKM[i] = ~scratch.IKM[i];
+
+    /* lamport_1 = IKM_to_lamport_SK(not_IKM, salt) */
+    HKDF_Extract(scratch.PRK, salt, sizeof(salt), scratch.IKM, 32, 0,
+                 &scratch.ctx);
+    HKDF_Expand(scratch.lamport[0], sizeof(scratch.lamport),
+                scratch.PRK, NULL, 0, 0, &scratch.ctx);
+
+    vec_zero(scratch.ctx.ctx.buf, sizeof(scratch.ctx.ctx.buf));
+    scratch.ctx.ctx.buf[32] = 0x80;
+    scratch.ctx.ctx.buf[62] = 1;
+    for (i = 0; i < 255; i++) {
+        /* lamport_PK = lamport_PK | SHA256(lamport_1[i]) */
+        sha256_init_h(scratch.ctx.ctx.h);
+        sha256_bcopy(scratch.ctx.ctx.buf, scratch.lamport[i], 32);
+        sha256_block_data_order(scratch.ctx.ctx.h, scratch.ctx.ctx.buf, 1);
+        sha256_emit(scratch.lamport[i], scratch.ctx.ctx.h);
+    }
+
+    /* compressed_lamport_PK = SHA256(lamport_PK) */
+    sha256_update(&scratch.ret, scratch.lamport, sizeof(scratch.lamport));
+    sha256_final(PK, &scratch.ret);
+
+    /*
+     * scrub the stack just in case next callee inadvertently flashes
+     * a fragment across application boundary...
+     */
+    vec_zero(&scratch, sizeof(scratch));
+}
+
+void blst_derive_child_eip2333(pow256 SK, const pow256 parent_SK,
+                               unsigned int child_index)
+{
+    parent_SK_to_lamport_PK(SK, parent_SK, child_index);
+    keygen(SK, SK, sizeof(pow256), NULL, 0, 4);
+}
 #endif
