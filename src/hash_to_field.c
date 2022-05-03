@@ -124,7 +124,8 @@ static void hash_to_field(vec384 elems[], size_t nelems,
 {
     size_t L = sizeof(vec384) + 128/8;  /* ceil((ceil(log2(p)) + k) / 8) */
     size_t len_in_bytes = L * nelems;   /* divisible by 64, hurray!      */
-#if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901 \
+                               || defined(__STDC_NO_VLA__)
     limb_t *pseudo_random = alloca(len_in_bytes);
 #else
     limb_t pseudo_random[len_in_bytes/sizeof(limb_t)];

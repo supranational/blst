@@ -220,7 +220,8 @@ static void add_n_dbl_n(vec384fp12 ret, POINTonE2 T[],
 static void miller_loop_n(vec384fp12 ret, const POINTonE2_affine Q[],
                                           const POINTonE1_affine P[], size_t n)
 {
-#if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901 \
+                               || defined(__STDC_NO_VLA__)
     POINTonE2 *T = alloca(n*sizeof(POINTonE2));
     POINTonE1_affine *Px2 = alloca(n*sizeof(POINTonE1_affine));
 #else

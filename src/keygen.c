@@ -88,7 +88,8 @@ static void HKDF_Expand(unsigned char *OKM, size_t L,
                         const void *info, size_t info_len,
                         HMAC_SHA256_CTX *ctx)
 {
-#if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901 \
+                               || defined(__STDC_NO_VLA__)
     unsigned char *info_prime = alloca(info_len + 2 + 1);
 #else
     unsigned char info_prime[info_len + 2 + 1];
