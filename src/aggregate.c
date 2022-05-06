@@ -287,6 +287,7 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
     if (PK != NULL) {
         unsigned int n;
         POINTonE2 H[1];
+        POINTonE1 pk[1];
         const void *DST = pairing_get_dst(ctx);
 
         /*
@@ -311,8 +312,6 @@ static BLST_ERROR PAIRING_Aggregate_PK_in_G1(PAIRING *ctx,
         POINTonE2_from_Jacobian(H, H);
 
         if (nbits != 0 && scalar != NULL) {
-            POINTonE1 pk[1];
-
             FROM_AFFINE(pk, PK);
             POINTonE1_mult_w5(pk, pk, scalar, nbits);
             POINTonE1_from_Jacobian(pk, pk);
