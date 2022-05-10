@@ -1,3 +1,3 @@
-module github.com/supranational/blst
+module github.com/photon-storage/blst
 
 go 1.11
