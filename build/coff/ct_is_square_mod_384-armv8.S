@@ -60,8 +60,8 @@ ct_is_square_mod_384:
 
 	////////////////////////////////////////// last iteration
 	//bl	__ab_approximation_30		// |a| and |b| are exact,
-	//ldr	x8, [x0,#8*6]		// just load
-	mov	x14, x9			// ldr	x14, [x0,#8*0]
+	//ldr	x8, [x0,#8*6]		// and loaded
+	//ldr	x14, [x0,#8*0]
 	mov	x15, #48			// 48 is 768%30 + 30
 	bl	__inner_loop_48
 	ldr	x30, [x29,#8]
@@ -314,18 +314,18 @@ __inner_loop_30:
 .p2align	4
 __inner_loop_48:
 .Loop_48:
-	sbfx	x24, x8, #0, #1	// if |a_| is odd, then we'll be subtracting
-	and	x25, x8, x14
+	sbfx	x24, x3, #0, #1	// if |a_| is odd, then we'll be subtracting
+	and	x25, x3, x9
 	sub	x15, x15, #1
-	and	x21, x14, x24
-	sub	x22, x14, x8		// |b_|-|a_|
-	subs	x23, x8, x21	// |a_|-|b_| (or |a_|-0 if |a_| was even)
+	and	x21, x9, x24
+	sub	x22, x9, x3		// |b_|-|a_|
+	subs	x23, x3, x21	// |a_|-|b_| (or |a_|-0 if |a_| was even)
 	add	x25, x2, x25, lsr#1
-	csel	x14, x14, x8, hs	// |b_| = |a_|
-	csel	x8, x23, x22, hs	// borrow means |a_|<|b_|, replace with |b_|-|a_|
+	csel	x9, x9, x3, hs	// |b_| = |a_|
+	csel	x3, x23, x22, hs	// borrow means |a_|<|b_|, replace with |b_|-|a_|
 	csel	x2,   x2,   x25, hs
-	add	x23, x14, #2
-	lsr	x8, x8, #1
+	add	x23, x9, #2
+	lsr	x3, x3, #1
 	add	x2, x2, x23, lsr#2	// "negate" |L| if |b|%8 is 3 or 5
 
 	cbnz	x15, .Loop_48
