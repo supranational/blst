@@ -147,8 +147,8 @@ ct_is_square_mod_384:
 
 	////////////////////////////////////////// last iteration
 	//bl	__ab_approximation_30		// |a| and |b| are exact,
-	//ldr	$a_, [$in_ptr,#8*6]		// just load
-	mov	$b_, @acc[6]			// ldr	$b_, [$in_ptr,#8*0]
+	//ldr	$a_, [$in_ptr,#8*6]		// and loaded
+	//ldr	$b_, [$in_ptr,#8*0]
 	mov	$cnt, #48			// 48 is 768%30 + 30
 	bl	__inner_loop_48
 	ldr	x30, [x29,#8]
@@ -369,6 +369,8 @@ __inner_loop_30:
 ___
 }
 
+{
+my ($a_, $b_) = (@acc[0], @acc[6]);
 $code.=<<___;
 .type	__inner_loop_48, %function
 .align	4
@@ -393,6 +395,7 @@ __inner_loop_48:
 	ret
 .size	__inner_loop_48,.-__inner_loop_48
 ___
+}
 
 print $code;
 close STDOUT;
