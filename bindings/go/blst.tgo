@@ -28,24 +28,47 @@ package blst
 // {   *pt = *blst_pairing_as_fp12(ctx);   }
 //
 // static void go_p1slice_to_affine(blst_p1_affine dst[],
-//                                    const blst_p1 points[], size_t npoints)
+//                                  const blst_p1 points[], size_t npoints)
 // {   const blst_p1 *ppoints[2] = { points, NULL };
 //     blst_p1s_to_affine(dst, ppoints, npoints);
 // }
 // static void go_p1slice_add(blst_p1 *dst, const blst_p1_affine points[],
-//                                            size_t npoints)
+//                                          size_t npoints)
 // {   const blst_p1_affine *ppoints[2] = { points, NULL };
 //     blst_p1s_add(dst, ppoints, npoints);
 // }
 // static void go_p2slice_to_affine(blst_p2_affine dst[],
-//                                    const blst_p2 points[], size_t npoints)
+//                                  const blst_p2 points[], size_t npoints)
 // {   const blst_p2 *ppoints[2] = { points, NULL };
 //     blst_p2s_to_affine(dst, ppoints, npoints);
 // }
 // static void go_p2slice_add(blst_p2 *dst, const blst_p2_affine points[],
-//                                            size_t npoints)
+//                                          size_t npoints)
 // {   const blst_p2_affine *ppoints[2] = { points, NULL };
 //     blst_p2s_add(dst, ppoints, npoints);
+// }
+//
+// static void go_p1_mult_n_acc(blst_p1 *acc, const blst_fp *x, bool affine,
+//                                            const byte *scalar, size_t nbits)
+// {   blst_p1 m[1];
+//     const void *p = x;
+//     if (p == NULL)
+//         p = blst_p1_generator();
+//     else if (affine)
+//         blst_p1_from_affine(m, p), p = m;
+//     blst_p1_mult(m, p, scalar, nbits);
+//     blst_p1_add_or_double(acc, acc, m);
+// }
+// static void go_p2_mult_n_acc(blst_p2 *acc, const blst_fp2 *x, bool affine,
+//                                            const byte *scalar, size_t nbits)
+// {   blst_p2 m[1];
+//     const void *p = x;
+//     if (p == NULL)
+//         p = blst_p2_generator();
+//     else if (affine)
+//         blst_p2_from_affine(m, p), p = m;
+//     blst_p2_mult(m, p, scalar, nbits);
+//     blst_p2_add_or_double(acc, acc, m);
 // }
 import "C"
 import "runtime"
