@@ -86,6 +86,7 @@ dont_touch = (('Fp12', 'foo1234'),)
 # We're going to swap these names to get from min-pk to min-sig
 mapping = [('P1', 'P2'),
            ('p1', 'p2'),
+           ('Fp', 'Fp2'),
            ('G1', 'G2'),
            ('g1', 'g2')
           ]

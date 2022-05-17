@@ -32,24 +32,47 @@ package blst
 // {   *pt = *blst_pairing_as_fp12(ctx);   }
 //
 // static void go_p1slice_to_affine(blst_p1_affine dst[],
-//                                    const blst_p1 points[], size_t npoints)
+//                                  const blst_p1 points[], size_t npoints)
 // {   const blst_p1 *ppoints[2] = { points, NULL };
 //     blst_p1s_to_affine(dst, ppoints, npoints);
 // }
 // static void go_p1slice_add(blst_p1 *dst, const blst_p1_affine points[],
-//                                            size_t npoints)
+//                                          size_t npoints)
 // {   const blst_p1_affine *ppoints[2] = { points, NULL };
 //     blst_p1s_add(dst, ppoints, npoints);
 // }
 // static void go_p2slice_to_affine(blst_p2_affine dst[],
-//                                    const blst_p2 points[], size_t npoints)
+//                                  const blst_p2 points[], size_t npoints)
 // {   const blst_p2 *ppoints[2] = { points, NULL };
 //     blst_p2s_to_affine(dst, ppoints, npoints);
 // }
 // static void go_p2slice_add(blst_p2 *dst, const blst_p2_affine points[],
-//                                            size_t npoints)
+//                                          size_t npoints)
 // {   const blst_p2_affine *ppoints[2] = { points, NULL };
 //     blst_p2s_add(dst, ppoints, npoints);
+// }
+//
+// static void go_p1_mult_n_acc(blst_p1 *acc, const blst_fp *x, bool affine,
+//                                            const byte *scalar, size_t nbits)
+// {   blst_p1 m[1];
+//     const void *p = x;
+//     if (p == NULL)
+//         p = blst_p1_generator();
+//     else if (affine)
+//         blst_p1_from_affine(m, p), p = m;
+//     blst_p1_mult(m, p, scalar, nbits);
+//     blst_p1_add_or_double(acc, acc, m);
+// }
+// static void go_p2_mult_n_acc(blst_p2 *acc, const blst_fp2 *x, bool affine,
+//                                            const byte *scalar, size_t nbits)
+// {   blst_p2 m[1];
+//     const void *p = x;
+//     if (p == NULL)
+//         p = blst_p2_generator();
+//     else if (affine)
+//         blst_p2_from_affine(m, p), p = m;
+//     blst_p2_mult(m, p, scalar, nbits);
+//     blst_p2_add_or_double(acc, acc, m);
 // }
 import "C"
 import (
@@ -1533,20 +1556,87 @@ func (p1 *P1) Compress() []byte {
 	return out[:]
 }
 
-func (p1 *P1) Mult(scalar []byte, optional ...int) *P1 {
+func (p1 *P1) MultAssign(scalarIf interface{}, optional ...int) *P1 {
 	var nbits int
+	var scalar *C.byte
+	switch val := scalarIf.(type) {
+	case []byte:
+		scalar = (*C.byte)(&val[0])
+		nbits = len(val) * 8
+	case *Scalar:
+		scalar = &val.b[0]
+		nbits = 255
+	default:
+		panic(fmt.Sprintf("unsupported type %T", val))
+	}
 	if len(optional) > 0 {
 		nbits = optional[0]
-	} else {
-		nbits = len(scalar) * 8
 	}
-	var ret P1
-	C.blst_p1_mult(&ret, p1, (*C.byte)(&scalar[0]), C.size_t(nbits))
-	return &ret
+	C.blst_p1_mult(p1, p1, scalar, C.size_t(nbits))
+	return p1
+}
+
+func (p1 *P1) Mult(scalarIf interface{}, optional ...int) *P1 {
+	ret := *p1
+	return ret.MultAssign(scalarIf, optional...)
+}
+
+func (p1 *P1) AddAssign(pointIf interface{}) *P1 {
+	switch val := pointIf.(type) {
+	case *P1:
+		C.blst_p1_add_or_double(p1, p1, val)
+	case *P1Affine:
+		C.blst_p1_add_or_double_affine(p1, p1, val)
+	default:
+		panic(fmt.Sprintf("unsupported type %T", val))
+	}
+	return p1
+}
+
+func (p1 *P1) Add(pointIf interface{}) *P1 {
+	ret := *p1
+	return ret.AddAssign(pointIf)
 }
 
 func P1Generator() *P1 {
 	return C.blst_p1_generator()
+}
+
+// 'acc += point * scalar', passing 'nil' for 'point' means "use the
+//                          group generator point"
+func (acc *P1) MultNAccumulate(pointIf interface{}, scalarIf interface{},
+	optional ...int) *P1 {
+	var x *Fp
+	var affine C.bool
+	if pointIf != nil {
+		switch val := pointIf.(type) {
+		case *P1:
+			x = &val.x
+			affine = false
+		case *P1Affine:
+			x = &val.x
+			affine = true
+		default:
+			panic(fmt.Sprintf("unsupported type %T", val))
+		}
+	}
+	var nbits int
+	var scalar *C.byte
+	switch val := scalarIf.(type) {
+	case []byte:
+		scalar = (*C.byte)(&val[0])
+		nbits = len(val) * 8
+	case *Scalar:
+		scalar = &val.b[0]
+		nbits = 255
+	default:
+		panic(fmt.Sprintf("unsupported type %T", val))
+	}
+	if len(optional) > 0 {
+		nbits = optional[0]
+	}
+	C.go_p1_mult_n_acc(acc, x, affine, scalar, C.size_t(nbits))
+	return acc
 }
 
 //
@@ -2153,20 +2243,87 @@ func (p2 *P2) Compress() []byte {
 	return out[:]
 }
 
-func (p2 *P2) Mult(scalar []byte, optional ...int) *P2 {
+func (p2 *P2) MultAssign(scalarIf interface{}, optional ...int) *P2 {
 	var nbits int
+	var scalar *C.byte
+	switch val := scalarIf.(type) {
+	case []byte:
+		scalar = (*C.byte)(&val[0])
+		nbits = len(val) * 8
+	case *Scalar:
+		scalar = &val.b[0]
+		nbits = 255
+	default:
+		panic(fmt.Sprintf("unsupported type %T", val))
+	}
 	if len(optional) > 0 {
 		nbits = optional[0]
-	} else {
-		nbits = len(scalar) * 8
 	}
-	var ret P2
-	C.blst_p2_mult(&ret, p2, (*C.byte)(&scalar[0]), C.size_t(nbits))
-	return &ret
+	C.blst_p2_mult(p2, p2, scalar, C.size_t(nbits))
+	return p2
+}
+
+func (p2 *P2) Mult(scalarIf interface{}, optional ...int) *P2 {
+	ret := *p2
+	return ret.MultAssign(scalarIf, optional...)
+}
+
+func (p2 *P2) AddAssign(pointIf interface{}) *P2 {
+	switch val := pointIf.(type) {
+	case *P2:
+		C.blst_p2_add_or_double(p2, p2, val)
+	case *P2Affine:
+		C.blst_p2_add_or_double_affine(p2, p2, val)
+	default:
+		panic(fmt.Sprintf("unsupported type %T", val))
+	}
+	return p2
+}
+
+func (p2 *P2) Add(pointIf interface{}) *P2 {
+	ret := *p2
+	return ret.AddAssign(pointIf)
 }
 
 func P2Generator() *P2 {
 	return C.blst_p2_generator()
+}
+
+// 'acc += point * scalar', passing 'nil' for 'point' means "use the
+//                          group generator point"
+func (acc *P2) MultNAccumulate(pointIf interface{}, scalarIf interface{},
+	optional ...int) *P2 {
+	var x *Fp2
+	var affine C.bool
+	if pointIf != nil {
+		switch val := pointIf.(type) {
+		case *P2:
+			x = &val.x
+			affine = false
+		case *P2Affine:
+			x = &val.x
+			affine = true
+		default:
+			panic(fmt.Sprintf("unsupported type %T", val))
+		}
+	}
+	var nbits int
+	var scalar *C.byte
+	switch val := scalarIf.(type) {
+	case []byte:
+		scalar = (*C.byte)(&val[0])
+		nbits = len(val) * 8
+	case *Scalar:
+		scalar = &val.b[0]
+		nbits = 255
+	default:
+		panic(fmt.Sprintf("unsupported type %T", val))
+	}
+	if len(optional) > 0 {
+		nbits = optional[0]
+	}
+	C.go_p2_mult_n_acc(acc, x, affine, scalar, C.size_t(nbits))
+	return acc
 }
 
 //
@@ -2719,11 +2876,8 @@ func (fp *Fp) ToLEndian() []byte {
 
 func (fr *Scalar) FromLEndian(arr []byte) *Scalar {
 	nbytes := len(arr)
-	if nbytes == BLST_SCALAR_BYTES {
-		C.blst_scalar_from_lendian(fr, (*C.byte)(&arr[0]))
-	} else if nbytes > BLST_SCALAR_BYTES {
-		C.blst_scalar_from_le_bytes(fr, (*C.byte)(&arr[0]), C.size_t(nbytes))
-	} else {
+	if nbytes < BLST_SCALAR_BYTES ||
+		!C.blst_scalar_from_le_bytes(fr, (*C.byte)(&arr[0]), C.size_t(nbytes)) {
 		return nil
 	}
 	return fr
@@ -2755,11 +2909,8 @@ func (fp *Fp) ToBEndian() []byte {
 
 func (fr *Scalar) FromBEndian(arr []byte) *Scalar {
 	nbytes := len(arr)
-	if nbytes == BLST_SCALAR_BYTES {
-		C.blst_scalar_from_bendian(fr, (*C.byte)(&arr[0]))
-	} else if nbytes > BLST_SCALAR_BYTES {
-		C.blst_scalar_from_be_bytes(fr, (*C.byte)(&arr[0]), C.size_t(nbytes))
-	} else {
+	if nbytes < BLST_SCALAR_BYTES ||
+		!C.blst_scalar_from_be_bytes(fr, (*C.byte)(&arr[0]), C.size_t(nbytes)) {
 		return nil
 	}
 	return fr
