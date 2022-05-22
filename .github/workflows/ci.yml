@@ -28,8 +28,8 @@ jobs:
           ~/.cargo/registry
           **/Cargo.lock
           **/bindings/rust/target
-        key: ${{ runner.os }}-cargo-21
-        restore-keys: ${{ runner.os }}-cargo-20
+        key: ${{ runner.os }}-cargo-22
+        restore-keys: ${{ runner.os }}-cargo-21
 
     - name: Environment
       shell: bash
@@ -47,12 +47,20 @@ jobs:
         fi
         cargo test --release
         cargo test --release --features=no-threads
+        if [ `uname -s` = "Linux" ]; then
+            rustup target add wasm32-wasi
+            curl https://wasmtime.dev/install.sh -sSf | bash
+            env PATH=$PATH:~/.wasmtime/bin:`clang -print-search-dirs | awk -F= '/^programs:/{print$2}'` \
+                AR=llvm-ar CARGO_TARGET_WASM32_WASI_RUNNER=wasmtime \
+                cargo test --release --target=wasm32-wasi
+        fi
         [ `uname -s` = "Linux" ] && ./publish.sh --dry-run
         cargo clean -p blst
         cargo clean -p blst --release
         rm -rf target/.rustc_info.json
         rm -rf target/package
         rm -rf target/{debug,release}/incremental
+        rm -rf target/*/{debug,release}/incremental
         rm -rf ~/.cargo/registry/src
         rm -rf ~/.cargo/registry/index/*/.cache
 
