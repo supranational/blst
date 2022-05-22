@@ -44,11 +44,8 @@ func (s *Scalar) Serialize() []byte {
 }
 
 func (s *Scalar) Deserialize(in []byte) *Scalar {
-    if len(in) != BLST_SCALAR_BYTES {
-        return nil
-    }
-    C.blst_scalar_from_bendian(s, (*C.byte)(&in[0]))
-    if !C.blst_sk_check(s) {
+    if len(in) != BLST_SCALAR_BYTES ||
+        !C.go_scalar_from_bendian(s, (*C.byte)(&in[0])) {
         return nil
     }
     return s
@@ -69,7 +66,6 @@ func (s *Scalar) HashTo(msg []byte, dst []byte) bool {
 
 func HashToScalar(msg []byte, dst []byte) *Scalar {
     var ret Scalar
-    var elem [48]C.byte
 
     var msgC *C.byte
     if len(msg) > 0 {
@@ -81,10 +77,8 @@ func HashToScalar(msg []byte, dst []byte) *Scalar {
         dstC = (*C.byte)(&dst[0])
     }
 
-    C.blst_expand_message_xmd(&elem[0], C.size_t(len(elem)),
-                              msgC, C.size_t(len(msg)),
-                              dstC, C.size_t(len(dst)))
-    if C.blst_scalar_from_be_bytes(&ret, &elem[0], C.size_t(len(elem))) {
+    if C.go_hash_to_scalar(&ret, msgC, C.size_t(len(msg)),
+                                 dstC, C.size_t(len(dst))) {
         return &ret
     }
 

@@ -70,6 +70,18 @@ package blst
 //     blst_p2_mult(m, p, scalar, nbits);
 //     blst_p2_add_or_double(acc, acc, m);
 // }
+//
+// static bool go_scalar_from_bendian(blst_scalar *ret, const byte *in)
+// {   blst_scalar_from_bendian(ret, in);
+//     return blst_sk_check(ret);
+// }
+// static bool go_hash_to_scalar(blst_scalar *ret,
+//                               const byte *msg, size_t msg_len,
+//                               const byte *DST, size_t DST_len)
+// {   byte elem[48];
+//     blst_expand_message_xmd(elem, sizeof(elem), msg, msg_len, DST, DST_len);
+//     return blst_scalar_from_be_bytes(ret, elem, sizeof(elem));
+// }
 import "C"
 import "runtime"
 
