@@ -544,15 +544,42 @@ int blst_scalar_from_be_bytes(pow256 out, const unsigned char *bytes, size_t n)
  */
 static unsigned char nibble(char c)
 {
-    if (c >= '0' && c <= '9')
-        return c - '0';
-    else if (c >= 'a' && c <= 'f')
-        return 10 + c - 'a';
-    else if (c >= 'A' && c <= 'F')
-        return 10 + c - 'A';
-    else
-        return 16;
+    int mask, ret;
+
+    mask = (('a'-c-1) & (c-1-'f')) >> 31;
+    ret  = (10 + c - 'a') & mask;
+    mask = (('A'-c-1) & (c-1-'F')) >> 31;
+    ret |= (10 + c - 'A') & mask;
+    mask = (('0'-c-1) & (c-1-'9')) >> 31;
+    ret |= (c - '0') & mask;
+    mask = ((ret-1) & ~mask) >> 31;
+    ret |= 16 & mask;
+
+    return (unsigned char)ret;
 }
+
+static void bytes_from_hexascii(byte *ret, size_t sz, const char *hex)
+{
+    size_t len;
+    byte b = 0;
+
+    if (hex[0]=='0' && (hex[1]=='x' || hex[1]=='X'))
+        hex += 2;
+
+    for (len = 0; len<2*sz && nibble(hex[len])<16; len++) ;
+
+    vec_zero(ret, sz);
+
+    while(len--) {
+        b <<= 4;
+        b |= nibble(*hex++);
+        if (len % 2 == 0)
+            ret[len / 2] = b;
+    }
+}
+
+void blst_scalar_from_hexascii(pow256 ret, const char *hex)
+{   bytes_from_hexascii(ret, sizeof(pow256), hex);   }
 
 static void limbs_from_hexascii(limb_t *ret, size_t sz, const char *hex)
 {
@@ -574,8 +601,11 @@ static void limbs_from_hexascii(limb_t *ret, size_t sz, const char *hex)
     }
 }
 
-void blst_scalar_from_hexascii(vec256 ret, const char *hex)
-{   limbs_from_hexascii(ret, sizeof(vec256), hex);   }
+void blst_fr_from_hexascii(vec256 ret, const char *hex)
+{
+    limbs_from_hexascii(ret, sizeof(vec256), hex);
+    mul_mont_sparse_256(ret, ret, BLS12_381_rRR, BLS12_381_r, r0);
+}
 
 void blst_fp_from_hexascii(vec384 ret, const char *hex)
 {
