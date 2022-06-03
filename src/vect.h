@@ -200,10 +200,6 @@ typedef const void *uptr_t;
 # endif
 #endif
 
-#if defined(__CUDA_ARCH__)
-# define inline inline __device__
-#endif
-
 #if !defined(inline) && !defined(__cplusplus)
 # if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901
 #  if defined(__GNUC__) && __GNUC__>=2
@@ -259,26 +255,11 @@ static inline void vec_cswap(void *restrict a, void *restrict b, size_t num,
 }
 
 /* ret = bit ? a : b */
-#ifdef __CUDA_ARCH__
-extern "C" {
-__device__ void vec_select_48(void *ret, const void *a, const void *b,
-                                         unsigned int sel_a);
-__device__ void vec_select_96(void *ret, const void *a, const void *b,
-                                         unsigned int sel_a);
-__device__ void vec_select_192(void *ret, const void *a, const void *b,
-                                          unsigned int sel_a);
-__device__ void vec_select_144(void *ret, const void *a, const void *b,
-                                          unsigned int sel_a);
-__device__ void vec_select_288(void *ret, const void *a, const void *b,
-                                          unsigned int sel_a);
-}
-#else
 void vec_select_48(void *ret, const void *a, const void *b, bool_t sel_a);
 void vec_select_96(void *ret, const void *a, const void *b, bool_t sel_a);
 void vec_select_144(void *ret, const void *a, const void *b, bool_t sel_a);
 void vec_select_192(void *ret, const void *a, const void *b, bool_t sel_a);
 void vec_select_288(void *ret, const void *a, const void *b, bool_t sel_a);
-#endif
 static inline void vec_select(void *ret, const void *a, const void *b,
                               size_t num, bool_t sel_a)
 {
