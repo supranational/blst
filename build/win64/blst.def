@@ -204,4 +204,7 @@ EXPORTS
 	blst_keygen_v3
 	blst_derive_master_eip2333
 	blst_derive_child_eip2333
+	blst_scalar_from_hexascii
+	blst_fr_from_hexascii
+	blst_fp_from_hexascii
 
