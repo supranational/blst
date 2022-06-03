@@ -83,4 +83,8 @@ void blst_derive_master_eip2333(blst_scalar *out_SK,
                                 const byte *IKM, size_t IKM_len);
 void blst_derive_child_eip2333(blst_scalar *out_SK, const blst_scalar *SK,
                                uint32_t child_index);
+
+void blst_scalar_from_hexascii(blst_scalar *out, const byte *hex);
+void blst_fr_from_hexascii(blst_fr *ret, const byte *hex);
+void blst_fp_from_hexascii(blst_fp *ret, const byte *hex);
 #endif
