@@ -804,12 +804,10 @@ public:
     PT(const P2_Affine& q)  { blst_aggregated_in_g2(&value, q); }
     PT(const P2_Affine& q, const P1_Affine& p)
     {   blst_miller_loop(&value, q, p);   }
-    PT(const P1_Affine& p, const P2_Affine& q)
-    {   blst_miller_loop(&value, q, p);   }
+    PT(const P1_Affine& p, const P2_Affine& q) : PT(q, p) {}
     PT(const P2& q, const P1& p)
     {   blst_miller_loop(&value, P2_Affine(q), P1_Affine(p));   }
-    PT(const P1& p, const P2& q)
-    {   blst_miller_loop(&value, P2_Affine(q), P1_Affine(p));   }
+    PT(const P1& p, const P2& q) : PT(q, p) {}
 
     PT dup() const          { return *this; }
     bool is_one() const     { return blst_fp12_is_one(&value); }
