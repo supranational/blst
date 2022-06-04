@@ -72,11 +72,22 @@ public:
     void keygen(const byte* IKM, size_t IKM_len,
                 const std::string& info = "")
     {   blst_keygen(&key, IKM, IKM_len, C_bytes(info.data()), info.size());   }
+    void keygen_v3(const byte* IKM, size_t IKM_len,
+                   const std::string& info = "")
+    {   blst_keygen_v3(&key, IKM, IKM_len, C_bytes(info.data()), info.size());   }
 #if __cplusplus >= 201703L
     void keygen(const app__string_view IKM, // string_view by value, cool!
                 const std::string& info = "")
     {   keygen(C_bytes(IKM.data()), IKM.size(), info);   }
+    void keygen_v3(const app__string_view IKM, // string_view by value, cool!
+                   const std::string& info = "")
+    {   keygen_v3(C_bytes(IKM.data()), IKM.size(), info);   }
 #endif
+    void derive_master_eip2333(const byte* IKM, size_t IKM_len)
+    {   blst_derive_master_eip2333(&key, IKM, IKM_len);   }
+    void derive_child_eip2333(const SecretKey& SK, unsigned int child_index)
+    {   blst_derive_child_eip2333(&key, &SK.key, child_index);   }
+
     void from_bendian(const byte in[32]) { blst_scalar_from_bendian(&key, in); }
     void from_lendian(const byte in[32]) { blst_scalar_from_lendian(&key, in); }
 
