@@ -115,10 +115,13 @@ fn main() {
         .flag_if_supported("-fno-builtin")
         .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-command-line-argument");
+    if target_arch.eq("wasm32") {
+        cc.flag_if_supported("-ffreestanding");
+    }
     if !cfg!(debug_assertions) {
         cc.opt_level(2);
     }
-    cc.files(&file_vec).compile("libblst.a");
+    cc.files(&file_vec).compile("blst");
 
     // pass some DEP_BLST_* variables to dependents
     println!(
