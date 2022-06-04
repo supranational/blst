@@ -5,6 +5,7 @@
  */
 
 #include "consts.h"
+#include "bytes.h"
 #include "sha256.h"
 
 typedef struct {
