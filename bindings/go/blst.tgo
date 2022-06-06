@@ -183,6 +183,48 @@ func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
     return &sk
 }
 
+func KeyGenV3(ikm []byte, optional ...[]byte) *SecretKey {
+    if len(ikm) < 32 {
+        return nil
+    }
+    var sk SecretKey
+    var info []byte
+    var infoP *C.byte
+    if len(optional) > 0 {
+        info = optional[0]
+        if len(info) > 0 {
+            infoP = (*C.byte)(&info[0])
+        }
+    }
+    C.blst_keygen_v3(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
+                          infoP, C.size_t(len(info)))
+    // Postponing secret key zeroing till garbage collection can be too
+    // late to be effective, but every little bit helps...
+    runtime.SetFinalizer(&sk, func(sk *SecretKey) { sk.Zeroize() })
+    return &sk
+}
+
+func DeriveMasterEip2333(ikm []byte) *SecretKey {
+    if len(ikm) < 32 {
+        return nil
+    }
+    var sk SecretKey
+    C.blst_derive_master_eip2333(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)))
+    // Postponing secret key zeroing till garbage collection can be too
+    // late to be effective, but every little bit helps...
+    runtime.SetFinalizer(&sk, func(sk *SecretKey) { sk.Zeroize() })
+    return &sk
+}
+
+func (master *SecretKey) DeriveChildEip2333(child_index uint32) *SecretKey {
+    var sk SecretKey
+    C.blst_derive_child_eip2333(&sk, master, C.uint(child_index))
+    // Postponing secret key zeroing till garbage collection can be too
+    // late to be effective, but every little bit helps...
+    runtime.SetFinalizer(&sk, func(sk *SecretKey) { sk.Zeroize() })
+    return &sk
+}
+
 //
 // Pairing
 //
