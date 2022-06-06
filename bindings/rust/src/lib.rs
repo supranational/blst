@@ -483,6 +483,55 @@ macro_rules! sig_variant_impl {
                 Ok(sk)
             }
 
+            pub fn key_gen_v3(
+                ikm: &[u8],
+                key_info: &[u8],
+            ) -> Result<Self, BLST_ERROR> {
+                if ikm.len() < 32 {
+                    return Err(BLST_ERROR::BLST_BAD_ENCODING);
+                }
+                let mut sk = SecretKey::default();
+                unsafe {
+                    blst_keygen_v3(
+                        &mut sk.value,
+                        ikm.as_ptr(),
+                        ikm.len(),
+                        key_info.as_ptr(),
+                        key_info.len(),
+                    );
+                }
+                Ok(sk)
+            }
+
+            pub fn derive_master_eip2333(
+                ikm: &[u8],
+            ) -> Result<Self, BLST_ERROR> {
+                if ikm.len() < 32 {
+                    return Err(BLST_ERROR::BLST_BAD_ENCODING);
+                }
+                let mut sk = SecretKey::default();
+                unsafe {
+                    blst_derive_master_eip2333(
+                        &mut sk.value,
+                        ikm.as_ptr(),
+                        ikm.len(),
+                    );
+                }
+                Ok(sk)
+            }
+
+            pub fn derive_child_eip2333(&self, child_index: u32) -> Self {
+                let mut sk = SecretKey::default();
+                unsafe {
+                    blst_derive_child_eip2333(
+                        &mut sk.value,
+                        &self.value,
+                        child_index,
+                    );
+                }
+                sk
+            }
+
             // sk_to_pk
             pub fn sk_to_pk(&self) -> PublicKey {
                 // TODO - would the user like the serialized/compressed pk as well?
