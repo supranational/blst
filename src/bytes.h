@@ -87,7 +87,13 @@ static inline void le_bytes_from_limbs(unsigned char *out, const limb_t *in,
     }
 }
 
-static unsigned char nibble(char c)
+static inline char hex_from_nibble(unsigned char nibble)
+{
+    int mask = (9 - (nibble &= 0xf)) >> 31;
+    return (char)(nibble + ((('a'-10) & mask) | ('0' & ~mask)));
+}
+
+static unsigned char nibble_from_hex(char c)
 {
     int mask, ret;
 
@@ -103,21 +109,21 @@ static unsigned char nibble(char c)
     return (unsigned char)ret;
 }
 
-static void bytes_from_hexascii(byte *ret, size_t sz, const char *hex)
+static void bytes_from_hexascii(unsigned char *ret, size_t sz, const char *hex)
 {
     size_t len;
-    byte b = 0;
+    unsigned char b = 0;
 
     if (hex[0]=='0' && (hex[1]=='x' || hex[1]=='X'))
         hex += 2;
 
-    for (len = 0; len<2*sz && nibble(hex[len])<16; len++) ;
+    for (len = 0; len<2*sz && nibble_from_hex(hex[len])<16; len++) ;
 
     bytes_zero(ret, sz);
 
     while(len--) {
         b <<= 4;
-        b |= nibble(*hex++);
+        b |= nibble_from_hex(*hex++);
         if (len % 2 == 0)
             ret[len / 2] = b;
     }
@@ -131,13 +137,13 @@ static void limbs_from_hexascii(limb_t *ret, size_t sz, const char *hex)
     if (hex[0]=='0' && (hex[1]=='x' || hex[1]=='X'))
         hex += 2;
 
-    for (len = 0; len<2*sz && nibble(hex[len])<16; len++) ;
+    for (len = 0; len<2*sz && nibble_from_hex(hex[len])<16; len++) ;
 
     vec_zero(ret, sz);
 
     while(len--) {
         limb <<= 4;
-        limb |= nibble(*hex++);
+        limb |= nibble_from_hex(*hex++);
         if (len % (2*sizeof(limb_t)) == 0)
             ret[len / (2*sizeof(limb_t))] = limb;
     }
