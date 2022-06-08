@@ -213,7 +213,7 @@ public:
     friend inline bool operator!=(const blst_384_t& a, const blst_384_t& b)
     {   return !vec_is_equal(a, b, sizeof(vec384));   }
 
-# ifdef stdout  // a kludge to detect if stdio.h was included 
+# if defined(_GLIBCXX_IOSTREAM) || defined(_IOSTREAM_) // non-standard
     friend std::ostream& operator<<(std::ostream& os, const blst_384_t& obj)
     {
         unsigned char be[sizeof(obj)];
@@ -396,7 +396,7 @@ public:
     friend inline bool operator!=(const blst_256_t& a, const blst_256_t& b)
     {   return !vec_is_equal(a, b, sizeof(vec256));   }
 
-# ifdef stdout  // a kludge to detect if stdio.h was included 
+# if defined(_GLIBCXX_IOSTREAM) || defined(_IOSTREAM_) // non-standard
     friend std::ostream& operator<<(std::ostream& os, const blst_256_t& obj)
     {
         unsigned char be[sizeof(obj)];
