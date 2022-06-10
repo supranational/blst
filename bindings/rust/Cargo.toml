@@ -1,6 +1,6 @@
 [package]
 name = "blst"
-version = "0.3.8"
+version = "0.3.9"
 authors = ["sean-sn <sean@supranational.net>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -13,7 +13,7 @@ include = [
     "/README.md",
     "/rustfmt.toml",
     "/blst/src/*.c",
-    "/blst/src/*.h",
+    "/blst/src/*.h*",
     "/blst/build/**",
     "/blst/bindings/blst.h",
     "/blst/bindings/blst_aux.h",
