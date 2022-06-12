@@ -15,6 +15,10 @@
  * blst_256_t, modulus has to be not larger than 2^256-2^192-1.
  */
 
+#ifdef __GNUC__
+# pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 extern "C" {
 #include "vect.h"
 }
