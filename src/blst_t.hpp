@@ -16,6 +16,7 @@
  */
 
 #ifdef __GNUC__
+# pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
@@ -25,6 +26,10 @@ extern "C" {
 
 #ifndef NDEBUG
 # include "bytes.h"
+#endif
+
+#ifdef __GNUC__
+# pragma GCC diagnostic pop
 #endif
 
 static inline void left_align(limb_t *out, const limb_t *inp, size_t n)
