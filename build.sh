@@ -64,9 +64,13 @@ if [ "x$CROSS_COMPILE" = "x" ]; then
                           if (off) { printf "%sandroid-\n",substr($1,0,off) }
                           else     { print $1 } }'`
 fi
-NM=${NM:-${CROSS_COMPILE}nm}
+
+if [ -z "${CROSS_COMPILE}${AR}" ] && \
+   (${CC} -dM -E -x c /dev/null) 2>/dev/null | grep -q clang; then
+    search_dirs=`${CC} -print-search-dirs  | awk -F= '/^programs:/{print$2}'`
+    AR=`(env PATH=$search_dirs which llvm-ar) 2>/dev/null`
+fi
 AR=${AR:-${CROSS_COMPILE}ar}
-OBJCOPY=${OBJCOPY:-${CROSS_COMPILE}objcopy}
 
 if (${CC} ${CFLAGS} -dM -E -x c /dev/null) 2>/dev/null | grep -q x86_64; then
     cflags="$cflags -mno-avx" # avoid costly transitions
