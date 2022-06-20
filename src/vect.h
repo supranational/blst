@@ -69,7 +69,7 @@ typedef limb_t bool_t;
 /*
  * Assembly subroutines...
  */
-#if defined(__ADX__) /* e.g. -march=broadwell */ && !defined(__BLST_PORTABLE__)
+#if defined(__ADX__) /* e.g. -march=broadwell */ && !defined(__BLST_PORTABLE__) && !defined(__BLST_NO_ASM__)
 # define mul_mont_sparse_256 mulx_mont_sparse_256
 # define sqr_mont_sparse_256 sqrx_mont_sparse_256
 # define from_mont_256 fromx_mont_256
