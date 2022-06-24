@@ -67,8 +67,13 @@ fi
 
 if [ -z "${CROSS_COMPILE}${AR}" ] && \
    (${CC} -dM -E -x c /dev/null) 2>/dev/null | grep -q clang; then
-    search_dirs=`${CC} -print-search-dirs  | awk -F= '/^programs:/{print$2}'`
-    AR=`(env PATH=$search_dirs which llvm-ar) 2>/dev/null`
+    search_dirs=`${CC} -print-search-dirs  | awk -F= '/^programs:/{print$2}' | \
+                 (sed -E -e 's/([a-z]):\\\/\/\1\//gi' -e 'y/\\\;/\/:/' 2>/dev/null || true)`
+    if [ -n "$search_dirs" ] && \
+       env PATH="$search_dirs:$PATH" which llvm-ar > /dev/null 2>&1; then
+        PATH="$search_dirs:$PATH"
+        AR=llvm-ar
+    fi
 fi
 AR=${AR:-${CROSS_COMPILE}ar}
 
