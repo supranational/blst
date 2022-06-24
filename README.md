@@ -34,8 +34,8 @@ An initial audit of this library was conducted by NCC Group in January 2021 and 
 Formal verification of this library by Galois is on-going and can be found [here](https://github.com/GaloisInc/BLST-Verification).
 
 This library is compliant with the following IETF draft specifications:
-- [IETF BLS Signature V4](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature)
-- [IETF Hash-to-Curve V13](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve)
+- [IETF BLS Signature V5](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature)
+- [IETF Hash-to-Curve V16](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve)
 
 The serialization formatting is implemented according to [the ZCash definition](#serialization-format).
 
