@@ -13,3 +13,8 @@ extraction:
       build_command:
       - (cd bindings/go; go test -c)
 
+  csharp:
+    index:
+      buildless: true
+      nuget_restore: false
+

@@ -66,3 +66,6 @@ bindings/rust/blst
 bindings/python
 bindings/java
 bindings/node.js
+
+bin/
+obj/
