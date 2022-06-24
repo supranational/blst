@@ -32,7 +32,7 @@ extern "C" {
 # pragma GCC diagnostic pop
 #endif
 
-static inline void left_align(limb_t *out, const limb_t *inp, size_t n)
+static inline void vec_left_align(limb_t *out, const limb_t *inp, size_t n)
 {
     const unsigned int nbits = sizeof(inp[0])*8;
     unsigned int align = 0;
@@ -56,6 +56,18 @@ static inline void left_align(limb_t *out, const limb_t *inp, size_t n)
     }
 }
 
+constexpr static inline size_t vec_nbits(const limb_t *inp, size_t n)
+{
+    const unsigned int nbits = sizeof(inp[0])*8;
+    size_t align = 0;
+    limb_t top = inp[n-1];
+
+    while ((top >> (nbits-1)) == 0)
+        top <<= 1, align++;
+
+    return n*nbits - align;
+}
+
 template<const vec384 MOD, const limb_t M0, const vec384 RR, const vec384 ONE>
 class blst_384_t {
 private:
@@ -67,13 +79,33 @@ private:
     inline const limb_t& operator[](size_t i) const { return val[i]; }
 
 public:
+    static const size_t nbits = vec_nbits(MOD, sizeof(vec384)/sizeof(limb_t));
+    typedef byte pow_t[384/8];
+
     inline blst_384_t() {}
     inline blst_384_t(const vec384 p, bool align = false)
     {
         if (align)
-            left_align(val, p, sizeof(val)/sizeof(val[0]));
+            vec_left_align(val, p, sizeof(val)/sizeof(val[0]));
         else
             vec_copy(val, p, sizeof(val));
+    }
+
+    inline void to_scalar(pow_t& scalar) const
+    {
+        const union {
+            long one;
+            char little;
+        } is_endian = { 1 };
+
+        if ((size_t)scalar%sizeof(limb_t) == 0 && is_endian.little) {
+            from_mont_384((limb_t *)scalar, val, MOD, M0);
+        } else {
+            vec384 out;
+            from_mont_384(out, val, MOD, M0);
+            le_bytes_from_limbs(scalar, out, sizeof(pow_t));
+            vec_zero(out, sizeof(out));
+        }
     }
 
     static inline const blst_384_t& one()
@@ -251,13 +283,33 @@ class blst_256_t {
     inline const limb_t& operator[](size_t i) const { return val[i]; }
 
 public:
+    static const size_t nbits = vec_nbits(MOD, sizeof(vec256)/sizeof(limb_t));
+    typedef byte pow_t[256/8];
+
     inline blst_256_t() {}
     inline blst_256_t(const vec256 p, bool align = false)
     {
         if (align)
-            left_align(val, p, sizeof(val)/sizeof(val[0]));
+            vec_left_align(val, p, sizeof(val)/sizeof(val[0]));
         else
             vec_copy(val, p, sizeof(val));
+    }
+
+    inline void to_scalar(pow_t& scalar) const
+    {
+        const union {
+            long one;
+            char little;
+        } is_endian = { 1 };
+
+        if ((size_t)scalar%sizeof(limb_t) == 0 && is_endian.little) {
+            from_mont_256((limb_t *)scalar, val, MOD, M0);
+        } else {
+            vec256 out;
+            from_mont_256(out, val, MOD, M0);
+            le_bytes_from_limbs(scalar, out, sizeof(pow_t));
+            vec_zero(out, sizeof(out));
+        }
     }
 
     static inline const blst_256_t& one()
