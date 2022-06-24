@@ -209,4 +209,9 @@ EXPORTS
 	blst_scalar_from_hexascii
 	blst_fr_from_hexascii
 	blst_fp_from_hexascii
+	blst_p1_sizeof
+	blst_p1_affine_sizeof
+	blst_p2_sizeof
+	blst_p2_affine_sizeof
+	blst_fp12_sizeof
 

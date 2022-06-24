@@ -1346,3 +1346,18 @@ extern "C" {
 extern "C" {
     pub fn blst_fp_from_hexascii(ret: *mut blst_fp, hex: *const byte);
 }
+extern "C" {
+    pub fn blst_p1_sizeof() -> usize;
+}
+extern "C" {
+    pub fn blst_p1_affine_sizeof() -> usize;
+}
+extern "C" {
+    pub fn blst_p2_sizeof() -> usize;
+}
+extern "C" {
+    pub fn blst_p2_affine_sizeof() -> usize;
+}
+extern "C" {
+    pub fn blst_fp12_sizeof() -> usize;
+}
