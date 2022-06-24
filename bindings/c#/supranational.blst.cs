@@ -26,7 +26,7 @@ public enum ERROR {
 }
 
 public class Exception : ApplicationException {
-    private ERROR code;
+    private readonly ERROR code;
 
     public Exception(ERROR err) { code = err; }
     public override string Message
@@ -264,7 +264,7 @@ static extern ERROR blst_core_verify_pk_in_g2([In] long[] pk, [In] long[] sig,
                                               [In] byte[] aug, size_t aug_len);
 
 public struct P1_Affine {
-    internal long[] point;
+    internal readonly long[] point;
 
     private static readonly int sz = (int)blst_p1_affine_sizeof()/sizeof(long);
 
@@ -379,7 +379,7 @@ public struct P1 {
     private P1(bool _)      { point = new long[sz]; }
     private P1(P1 p)        { point = (long[])p.point.Clone(); }
     private long[] self()
-    {   if (point==null) point = new long[sz]; return point;   }
+    {   if (point==null) { point = new long[sz]; } return point;   }
 
     public P1(SecretKey sk) : this(true)
     {   blst_sk_to_pk_in_g1(point, sk.key);   }
@@ -527,7 +527,7 @@ static extern ERROR blst_core_verify_pk_in_g1([In] long[] pk, [In] long[] sig,
                                               [In] byte[] aug, size_t aug_len);
 
 public struct P2_Affine {
-    internal long[] point;
+    internal readonly long[] point;
 
     private static readonly int sz = (int)blst_p2_affine_sizeof()/sizeof(long);
 
@@ -642,7 +642,7 @@ public struct P2 {
     private P2(bool _)      { point = new long[sz]; }
     private P2(P2 p)        { point = (long[])p.point.Clone(); }
     private long[] self()
-    {   if (point==null) point = new long[sz]; return point;   }
+    {   if (point==null) { point = new long[sz]; } return point;   }
 
     public P2(SecretKey sk) : this(true)
     {   blst_sk_to_pk_in_g2(point, sk.key);   }
@@ -784,7 +784,7 @@ static extern bool blst_fp12_in_group([In] long[] a);
 static extern void blst_bendian_from_fp12([Out] byte[] ret, [In] long[] a);
 
 public struct PT {
-    internal long[] fp12;
+    internal readonly long[] fp12;
 
     private static readonly int sz = (int)blst_fp12_sizeof()/sizeof(long);
 
@@ -852,7 +852,7 @@ void blst_pairing_raw_aggregate([In, Out] long[] ctx, [In] long[] q,
 static extern IntPtr blst_pairing_as_fp12([In] long[] ctx);
 
 public struct Pairing {
-    private long[] ctx;
+    private readonly long[] ctx;
 
     private static readonly int sz = (int)blst_pairing_sizeof()/sizeof(long);
 

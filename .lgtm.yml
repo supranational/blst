@@ -2,6 +2,8 @@ queries:
   - include: "*"
   - exclude: cpp/unused-static-function
   - exclude: cpp/include-non-header
+  - exclude: cs/call-to-unmanaged-code
+  - exclude: cs/unmanaged-code
 
 extraction:
   cpp:
@@ -15,6 +17,5 @@ extraction:
 
   csharp:
     index:
-      buildless: true
       nuget_restore: false
 
