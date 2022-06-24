@@ -503,6 +503,52 @@ macro_rules! sig_variant_impl {
                 Ok(sk)
             }
 
+            pub fn key_gen_v4_5(
+                ikm: &[u8],
+                salt: &[u8],
+                info: &[u8],
+            ) -> Result<Self, BLST_ERROR> {
+                if ikm.len() < 32 {
+                    return Err(BLST_ERROR::BLST_BAD_ENCODING);
+                }
+                let mut sk = SecretKey::default();
+                unsafe {
+                    blst_keygen_v4_5(
+                        &mut sk.value,
+                        ikm.as_ptr(),
+                        ikm.len(),
+                        salt.as_ptr(),
+                        salt.len(),
+                        info.as_ptr(),
+                        info.len(),
+                    );
+                }
+                Ok(sk)
+            }
+
+            pub fn key_gen_v5(
+                ikm: &[u8],
+                salt: &[u8],
+                info: &[u8],
+            ) -> Result<Self, BLST_ERROR> {
+                if ikm.len() < 32 {
+                    return Err(BLST_ERROR::BLST_BAD_ENCODING);
+                }
+                let mut sk = SecretKey::default();
+                unsafe {
+                    blst_keygen_v5(
+                        &mut sk.value,
+                        ikm.as_ptr(),
+                        ikm.len(),
+                        salt.as_ptr(),
+                        salt.len(),
+                        info.as_ptr(),
+                        info.len(),
+                    );
+                }
+                Ok(sk)
+            }
+
             pub fn derive_master_eip2333(
                 ikm: &[u8],
             ) -> Result<Self, BLST_ERROR> {
