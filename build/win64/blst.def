@@ -202,6 +202,8 @@ EXPORTS
 	blst_pairing_as_fp12
 	blst_bendian_from_fp12
 	blst_keygen_v3
+	blst_keygen_v4_5
+	blst_keygen_v5
 	blst_derive_master_eip2333
 	blst_derive_child_eip2333
 	blst_scalar_from_hexascii

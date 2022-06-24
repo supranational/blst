@@ -1306,6 +1306,28 @@ extern "C" {
     );
 }
 extern "C" {
+    pub fn blst_keygen_v4_5(
+        out_SK: *mut blst_scalar,
+        IKM: *const byte,
+        IKM_len: usize,
+        salt: *const byte,
+        salt_len: usize,
+        info: *const byte,
+        info_len: usize,
+    );
+}
+extern "C" {
+    pub fn blst_keygen_v5(
+        out_SK: *mut blst_scalar,
+        IKM: *const byte,
+        IKM_len: usize,
+        salt: *const byte,
+        salt_len: usize,
+        info: *const byte,
+        info_len: usize,
+    );
+}
+extern "C" {
     pub fn blst_derive_master_eip2333(out_SK: *mut blst_scalar, IKM: *const byte, IKM_len: usize);
 }
 extern "C" {
