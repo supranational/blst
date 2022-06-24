@@ -79,6 +79,12 @@ void blst_bendian_from_fp12(byte out[48*12], const blst_fp12 *a);
 
 void blst_keygen_v3(blst_scalar *out_SK, const byte *IKM, size_t IKM_len,
                     const byte *info DEFNULL, size_t info_len DEFNULL);
+void blst_keygen_v4_5(blst_scalar *out_SK, const byte *IKM, size_t IKM_len,
+                      const byte *salt, size_t salt_len,
+                      const byte *info DEFNULL, size_t info_len DEFNULL);
+void blst_keygen_v5(blst_scalar *out_SK, const byte *IKM, size_t IKM_len,
+                    const byte *salt, size_t salt_len,
+                    const byte *info DEFNULL, size_t info_len DEFNULL);
 void blst_derive_master_eip2333(blst_scalar *out_SK,
                                 const byte *IKM, size_t IKM_len);
 void blst_derive_child_eip2333(blst_scalar *out_SK, const blst_scalar *SK,
