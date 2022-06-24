@@ -59,6 +59,16 @@ static extern
 void blst_keygen_v3([Out] byte[] key, [In] byte[] IKM, size_t IKM_len,
                                       [In] byte[] info, size_t info_len);
 [DllImport("blst.dll", CallingConvention = CallingConvention.Cdecl)]
+static extern
+void blst_keygen_v4_5([Out] byte[] key, [In] byte[] IKM, size_t IKM_len,
+                                        [In] byte[] salt, size_t salt_len,
+                                        [In] byte[] info, size_t info_len);
+[DllImport("blst.dll", CallingConvention = CallingConvention.Cdecl)]
+static extern
+void blst_keygen_v5([Out] byte[] key, [In] byte[] IKM, size_t IKM_len,
+                                      [In] byte[] salt, size_t salt_len,
+                                      [In] byte[] info, size_t info_len);
+[DllImport("blst.dll", CallingConvention = CallingConvention.Cdecl)]
 static extern void blst_derive_master_eip2333([Out] byte[] key,
                                               [In] byte[] IKM, size_t IKM_len);
 [DllImport("blst.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -103,6 +113,23 @@ public struct SecretKey {
         blst_keygen_v3(key, IKM, (size_t)IKM.Length,
                             info_bytes, (size_t)info_bytes.Length);
     }
+    public void keygen_v4_5(byte[] IKM, string salt, string info="")
+    {   if (key == null) key = new byte[32];
+        byte[] salt_bytes = Encoding.UTF8.GetBytes(salt);
+        byte[] info_bytes = Encoding.UTF8.GetBytes(info);
+        blst_keygen_v4_5(key, IKM, (size_t)IKM.Length,
+                              salt_bytes, (size_t)salt_bytes.Length,
+                              info_bytes, (size_t)info_bytes.Length);
+    }
+    public void keygen_v5(byte[] IKM, byte[] salt, string info="")
+    {   if (key == null) key = new byte[32];
+        byte[] info_bytes = Encoding.UTF8.GetBytes(info);
+        blst_keygen_v5(key, IKM, (size_t)IKM.Length,
+                            salt, (size_t)salt.Length,
+                            info_bytes, (size_t)info_bytes.Length);
+    }
+    public void keygen_v5(byte[] IKM, string salt, string info="")
+    {   keygen_v5(IKM, Encoding.UTF8.GetBytes(salt), info);   }
     public void derive_master_eip2333(byte[] IKM)
     {   if (key == null) key = new byte[32];
         blst_derive_master_eip2333(key, IKM, (size_t)IKM.Length);
