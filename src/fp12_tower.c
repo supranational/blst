@@ -784,3 +784,6 @@ void blst_bendian_from_fp12(unsigned char ret[48*12], const vec384fp12 a)
         }
     }
 }
+
+size_t blst_fp12_sizeof(void)
+{   return sizeof(vec384fp12);   }

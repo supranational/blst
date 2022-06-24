@@ -630,3 +630,9 @@ int blst_p2_affine_is_inf(const POINTonE2_affine *p)
 
 const POINTonE2_affine *blst_p2_affine_generator(void)
 {   return (const POINTonE2_affine *)&BLS12_381_G2;   }
+
+size_t blst_p2_sizeof(void)
+{   return sizeof(POINTonE2);   }
+
+size_t blst_p2_affine_sizeof(void)
+{   return sizeof(POINTonE2_affine);   }
