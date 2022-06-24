@@ -25,7 +25,7 @@ TOP=`dirname $0`
 # or suppress specific one with -Wno-<problematic-warning>
 CFLAGS=${CFLAGS:--O -fno-builtin -fPIC -Wall -Wextra -Werror}
 PERL=${PERL:-perl}
-unset cflags shared
+unset cflags shared dll
 
 case `uname -s` in
     Darwin)	flavour=macosx
@@ -41,6 +41,8 @@ esac
 while [ "x$1" != "x" ]; do
     case $1 in
         -shared)    shared=1;;
+        -dll)       shared=1; dll=".dll";;
+        -m*)        CFLAGS="$CFLAGS $1";;
         -*target*)  CFLAGS="$CFLAGS $1";;
         -*)         cflags="$cflags $1";;
         *=*)        eval "$1";;
@@ -96,12 +98,12 @@ trap '[ $? -ne 0 ] && rm -f libblst.a; rm -f *.o ${TMPDIR}/*.blst.$$' 0
 
 if [ $shared ]; then
     case $flavour in
-        macosx) (set -x; ${CC} -dynamiclib -o libblst.dylib \
+        macosx) (set -x; ${CC} -dynamiclib -o libblst$dll.dylib \
                                -all_load libblst.a ${CFLAGS}); exit 0;;
         mingw*) sharedlib=blst.dll
                 CFLAGS="${CFLAGS} --entry=DllMain ${TOP}/build/win64/dll.c"
                 CFLAGS="${CFLAGS} -nostdlib -lgcc";;
-        *)      sharedlib=libblst.so;;
+        *)      sharedlib=libblst$dll.so;;
     esac
     echo "{ global: blst_*; BLS12_381_*; local: *; };" > ${TMPDIR}/ld.blst.$$
     (set -x; ${CC} -shared -o $sharedlib \
