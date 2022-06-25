@@ -2033,7 +2033,17 @@ fn breakdown(
 
     if nbits > window * ncpus {
         nx = 1;
-        wnd = window - num_bits(ncpus / 4);
+        wnd = num_bits(ncpus / 4);
+        if (window + wnd) > 18 {
+            wnd = window - wnd;
+        } else {
+            wnd = (nbits / window + ncpus - 1) / ncpus;
+            if (nbits / (window + 1) + ncpus - 1) / ncpus < wnd {
+                wnd = window + 1;
+            } else {
+                wnd = window;
+            }
+        }
     } else {
         nx = 2;
         wnd = window - 2;
