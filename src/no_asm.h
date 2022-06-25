@@ -8,6 +8,11 @@
 typedef unsigned long long llimb_t;
 #endif
 
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901 || defined(__STDC_NO_
+VLA__)
+# error "unsupported compiler"
+#endif
+
 #if defined(__clang__)
 # pragma GCC diagnostic ignored "-Wstatic-in-inline"
 #endif
