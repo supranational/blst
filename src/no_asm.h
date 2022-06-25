@@ -8,8 +8,7 @@
 typedef unsigned long long llimb_t;
 #endif
 
-#if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901 || defined(__STDC_NO_
-VLA__)
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901 || defined(__STDC_NO_VLA__)
 # error "unsupported compiler"
 #endif
 
