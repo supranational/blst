@@ -129,6 +129,24 @@ public:
     Scalar() { memset(&val, 0, sizeof(val)); }
     Scalar(const byte* scalar, size_t nbits)
     {   blst_scalar_from_le_bytes(&val, scalar, (nbits+7)/8);   }
+    Scalar(const byte *msg, size_t msg_len, const std::string& DST)
+    {   (void)hash_to(msg, msg_len, DST);   }
+#if __cplusplus >= 201703L
+    Scalar(const app__string_view msg, const std::string& DST = "")
+    {   (void)hash_to(C_bytes(msg.data()), msg.size(), DST);   }
+#endif
+
+    Scalar* hash_to(const byte *msg, size_t msg_len, const std::string& DST = "")
+    {   byte elem[48];
+        blst_expand_message_xmd(elem, sizeof(elem), msg, msg_len,
+                                                    C_bytes(DST.data()), DST.size());
+        blst_scalar_from_be_bytes(&val, elem, sizeof(elem));
+        return this;
+    }
+#if __cplusplus >= 201703L
+    Scalar* hash_to(const app__string_view msg, const std::string& DST = "")
+    {   return hash_to(C_bytes(msg.data()), msg.size(), DST);   }
+#endif
 
     Scalar dup() const { return *this; }
     Scalar* from_bendian(const byte *msg, size_t msg_len)
