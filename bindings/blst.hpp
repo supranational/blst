@@ -966,7 +966,9 @@ public:
     BLST_ERROR merge(const Pairing* ctx)
     {   return blst_pairing_merge(*this, *ctx);   }
     bool finalverify(const PT* sig = nullptr) const
-    {   return blst_pairing_finalverify(*this, *sig);   }
+    {   return sig == nullptr ? blst_pairing_finalverify(*this, nullptr)
+                              : blst_pairing_finalverify(*this, *sig);
+    }
     void raw_aggregate(const P2_Affine* q, const P1_Affine* p)
     {   blst_pairing_raw_aggregate(*this, *q, *p);   }
     PT as_fp12()
