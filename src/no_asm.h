@@ -16,9 +16,18 @@ typedef unsigned long long llimb_t;
 # pragma GCC diagnostic ignored "-Wstatic-in-inline"
 #endif
 
+#if !defined(__clang__)
+# if defined(__GNUC__) && __GNUC__>=5
+#  define __builtin_assume(condition) if (!(condition)) __builtin_unreachable()
+# else
+#  define __builtin_assume(condition)
+# endif
+#endif
+
 static void mul_mont_n(limb_t ret[], const limb_t a[], const limb_t b[],
                        const limb_t p[], limb_t n0, size_t n)
 {
+    __builtin_assume(n != 0 && n%2 == 0);
     llimb_t limbx;
     limb_t mask, borrow, mx, hi, tmp[n+1], carry;
     size_t i, j;
@@ -92,6 +101,7 @@ MUL_MONT_IMPL(384)
 static void add_mod_n(limb_t ret[], const limb_t a[], const limb_t b[],
                       const limb_t p[], size_t n)
 {
+    __builtin_assume(n != 0);
     llimb_t limbx;
     limb_t mask, carry, borrow, tmp[n];
     size_t i;
@@ -125,6 +135,7 @@ ADD_MOD_IMPL(384)
 static void sub_mod_n(limb_t ret[], const limb_t a[], const limb_t b[],
                       const limb_t p[], size_t n)
 {
+    __builtin_assume(n != 0);
     llimb_t limbx;
     limb_t mask, carry, borrow;
     size_t i;
@@ -155,6 +166,7 @@ SUB_MOD_IMPL(384)
 static void mul_by_3_mod_n(limb_t ret[], const limb_t a[], const limb_t p[],
                            size_t n)
 {
+    __builtin_assume(n != 0);
     llimb_t limbx;
     limb_t mask, carry, borrow, tmp[n], two_a[n];
     size_t i;
@@ -205,6 +217,7 @@ MUL_BY_3_MOD_IMPL(384)
 static void lshift_mod_n(limb_t ret[], const limb_t a[], size_t count,
                          const limb_t p[], size_t n)
 {
+    __builtin_assume(n != 0);
     llimb_t limbx;
     limb_t mask, carry, borrow, tmp[n];
     size_t i;
@@ -242,6 +255,7 @@ LSHIFT_MOD_IMPL(384)
 static void cneg_mod_n(limb_t ret[], const limb_t a[], bool_t flag,
                        const limb_t p[], size_t n)
 {
+    __builtin_assume(n != 0);
     llimb_t limbx;
     limb_t borrow, mask, tmp[n];
     size_t i;
@@ -269,6 +283,7 @@ CNEG_MOD_IMPL(384)
 
 static limb_t check_mod_n(const byte a[], const limb_t p[], size_t n)
 {
+    __builtin_assume(n != 0);
     llimb_t limbx;
     limb_t borrow, ai, acc;
     size_t i, j;
@@ -293,6 +308,7 @@ CHECK_MOD_IMPL(256)
 static limb_t add_n_check_mod_n(byte ret[], const byte a[], const byte b[],
                                             const limb_t p[], size_t n)
 {
+    __builtin_assume(n != 0);
     limb_t ret_[n], a_[n], b_[n], zero;
 
     limbs_from_le_bytes(a_, a, sizeof(a_));
@@ -316,6 +332,7 @@ ADD_N_CHECK_MOD_IMPL(256)
 static limb_t sub_n_check_mod_n(byte ret[], const byte a[], const byte b[],
                                             const limb_t p[], size_t n)
 {
+    __builtin_assume(n != 0);
     limb_t ret_[n], a_[n], b_[n], zero;
 
     limbs_from_le_bytes(a_, a, sizeof(a_));
@@ -339,6 +356,7 @@ SUB_N_CHECK_MOD_IMPL(256)
 static void from_mont_n(limb_t ret[], const limb_t a[],
                         const limb_t p[], limb_t n0, size_t n)
 {
+    __builtin_assume(n != 0 && n%2 == 0);
     llimb_t limbx;
     limb_t mask, borrow, mx, hi, tmp[n];
     size_t i, j;
@@ -380,6 +398,7 @@ FROM_MONT_IMPL(384)
 static void redc_mont_n(limb_t ret[], const limb_t a[],
                         const limb_t p[], limb_t n0, size_t n)
 {
+    __builtin_assume(n != 0 && n%2 == 0);
     llimb_t limbx;
     limb_t mask, carry, borrow, mx, hi, tmp[n];
     const limb_t *b = a;
@@ -427,6 +446,7 @@ REDC_MONT_IMPL(384, 768)
 static void rshift_mod_n(limb_t ret[], const limb_t a[], size_t count,
                          const limb_t p[], size_t n)
 {
+    __builtin_assume(n != 0 && n%2 == 0);
     llimb_t limbx;
     limb_t mask, carry, limb, next;
     size_t i;
@@ -467,6 +487,7 @@ DIV_BY_2_MOD_IMPL(384)
 
 static limb_t sgn0_pty_mod_n(const limb_t a[], const limb_t p[], size_t n)
 {
+    __builtin_assume(n != 0);
     llimb_t limbx;
     limb_t carry, borrow, ret, tmp[n];
     size_t i;
@@ -552,6 +573,7 @@ void mul_mont_384x(vec384x ret, const vec384x a, const vec384x b,
 static void mul_mont_nonred_n(limb_t ret[], const limb_t a[], const limb_t b[],
                               const limb_t p[], limb_t n0, size_t n)
 {
+    __builtin_assume(n != 0 && n%2 == 0);
     llimb_t limbx;
     limb_t mx, hi, tmp[n+1];
     size_t i, j;
@@ -592,6 +614,7 @@ static void mul_mont_nonred_n(limb_t ret[], const limb_t a[], const limb_t b[],
 void sqr_n_mul_mont_383(vec384 ret, const vec384 a, size_t count,
                         const vec384 p, limb_t n0, const vec384 b)
 {
+    __builtin_assume(count != 0);
     while(count--) {
         mul_mont_nonred_n(ret, a, a, p, n0, NLIMBS(384));
         a = ret;
@@ -704,6 +727,7 @@ static limb_t lshift_2(limb_t hi, limb_t lo, size_t l)
 static void ab_approximation_n(limb_t a_[2], const limb_t a[],
                                limb_t b_[2], const limb_t b[], size_t n)
 {
+    __builtin_assume(n != 0 && n%2 == 0);
     limb_t a_hi, a_lo, b_hi, b_lo, mask;
     size_t i;
 
@@ -729,6 +753,7 @@ typedef struct { limb_t f0, g0, f1, g1; } factors;
 static void inner_loop_n(factors *fg, const limb_t a_[2], const limb_t b_[2],
                          size_t n)
 {
+    __builtin_assume(n != 0);
     llimb_t limbx;
     limb_t f0 = 1, g0 = 0, f1 = 0, g1 = 1;
     limb_t a_lo, a_hi, b_lo, b_hi, t_lo, t_hi, odd, borrow, xorm;
@@ -784,6 +809,7 @@ static void inner_loop_n(factors *fg, const limb_t a_[2], const limb_t b_[2],
 
 static limb_t cneg_n(limb_t ret[], const limb_t a[], limb_t neg, size_t n)
 {
+    __builtin_assume(n != 0);
     llimb_t limbx = 0;
     limb_t carry;
     size_t i;
@@ -799,6 +825,7 @@ static limb_t cneg_n(limb_t ret[], const limb_t a[], limb_t neg, size_t n)
 
 static limb_t add_n(limb_t ret[], const limb_t a[], limb_t b[], size_t n)
 {
+    __builtin_assume(n != 0);
     llimb_t limbx;
     limb_t carry;
     size_t i;
@@ -814,6 +841,7 @@ static limb_t add_n(limb_t ret[], const limb_t a[], limb_t b[], size_t n)
 
 static limb_t umul_n(limb_t ret[], const limb_t a[], limb_t b, size_t n)
 {
+    __builtin_assume(n != 0);
     llimb_t limbx;
     limb_t hi;
     size_t i;
@@ -831,6 +859,7 @@ static limb_t smul_n_shift_n(limb_t ret[], const limb_t a[], limb_t *f_,
                                            const limb_t b[], limb_t *g_,
                                            size_t n)
 {
+    __builtin_assume(n != 0);
     limb_t a_[n+1], b_[n+1], f, g, neg, carry, hi;
     size_t i;
 
@@ -872,6 +901,7 @@ static limb_t smul_n_shift_n(limb_t ret[], const limb_t a[], limb_t *f_,
 static limb_t smul_2n(limb_t ret[], const limb_t u[], limb_t f,
                                     const limb_t v[], limb_t g, size_t n)
 {
+    __builtin_assume(n != 0);
     limb_t u_[n], v_[n], neg, hi;
 
     /* |u|*|f_| */
@@ -895,6 +925,7 @@ static limb_t smul_2n(limb_t ret[], const limb_t u[], limb_t f,
 static void ct_inverse_mod_n(limb_t ret[], const limb_t inp[],
                              const limb_t mod[], const limb_t modx[], size_t n)
 {
+    __builtin_assume(n != 0 && n%2 == 0);
     llimb_t limbx;
     limb_t a[n], b[n], u[2*n], v[2*n], t[2*n];
     limb_t a_[2], b_[2], sign, carry, top;
@@ -949,6 +980,7 @@ CT_INVERSE_MOD_IMPL(384)
 static limb_t legendre_loop_n(limb_t L, factors *fg, const limb_t a_[2],
                               const limb_t b_[2], size_t n)
 {
+    __builtin_assume(n != 0);
     llimb_t limbx;
     limb_t f0 = 1, g0 = 0, f1 = 0, g1 = 1;
     limb_t a_lo, a_hi, b_lo, b_hi, t_lo, t_hi, odd, borrow, xorm;
@@ -1010,6 +1042,7 @@ static limb_t legendre_loop_n(limb_t L, factors *fg, const limb_t a_[2],
 
 static bool_t ct_is_sqr_mod_n(const limb_t inp[], const limb_t mod[], size_t n)
 {
+    __builtin_assume(n != 0 && n%2 == 0);
     limb_t a[n], b[n], t[n];
     limb_t a_[2], b_[2], neg, L = 0;
     factors fg;
@@ -1103,6 +1136,7 @@ limb_t div_3_limbs(const limb_t div_top[2], limb_t d_lo, limb_t d_hi)
 static limb_t quot_rem_n(limb_t *div_rem, const limb_t *divisor,
                                           limb_t quotient, size_t n)
 {
+    __builtin_assume(n != 0 && n%2 == 0);
     llimb_t limbx;
     limb_t tmp[n+1], carry, mask, borrow;
     size_t i;
