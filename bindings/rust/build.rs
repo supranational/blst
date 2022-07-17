@@ -65,12 +65,25 @@ fn main() {
     // Set CC environment variable to choose alternative C compiler.
     // Optimization level depends on whether or not --release is passed
     // or implied.
+
     #[cfg(target_env = "msvc")]
     if env::var("CARGO_CFG_TARGET_POINTER_WIDTH").unwrap().eq("32")
         && !env::var("CC").is_ok()
-        && which::which("clang-cl").is_ok()
     {
-        env::set_var("CC", "clang-cl");
+        match std::process::Command::new("clang-cl")
+            .arg("--version")
+            .output()
+        {
+            Ok(out) => {
+                if String::from_utf8(out.stdout)
+                    .unwrap_or("unintelligible".to_string())
+                    .contains("Target: i686-")
+                {
+                    env::set_var("CC", "clang-cl");
+                }
+            }
+            Err(_) => { /* no clang-cl in sight, just ignore the error */ }
+        };
     }
 
     let mut cc = cc::Build::new();
