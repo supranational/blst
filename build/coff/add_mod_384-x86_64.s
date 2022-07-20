@@ -1439,6 +1439,35 @@ sgn0_pty_mod_384x:
 	.byte	0xf3,0xc3
 
 .LSEH_end_sgn0_pty_mod_384x:
+.globl	vec_select_32
+
+.def	vec_select_32;	.scl 2;	.type 32;	.endef
+.p2align	5
+vec_select_32:
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	movd	%r9d,%xmm5
+	pxor	%xmm4,%xmm4
+	pshufd	$0,%xmm5,%xmm5
+	movdqu	(%rdx),%xmm0
+	leaq	16(%rdx),%rdx
+	pcmpeqd	%xmm4,%xmm5
+	movdqu	(%r8),%xmm1
+	leaq	16(%r8),%r8
+	pcmpeqd	%xmm5,%xmm4
+	leaq	16(%rcx),%rcx
+	pand	%xmm4,%xmm0
+	movdqu	0+16-16(%rdx),%xmm2
+	pand	%xmm5,%xmm1
+	movdqu	0+16-16(%r8),%xmm3
+	por	%xmm1,%xmm0
+	movdqu	%xmm0,0-16(%rcx)
+	pand	%xmm4,%xmm2
+	pand	%xmm5,%xmm3
+	por	%xmm3,%xmm2
+	movdqu	%xmm2,16-16(%rcx)
+	.byte	0xf3,0xc3
+
 .globl	vec_select_48
 
 .def	vec_select_48;	.scl 2;	.type 32;	.endef
@@ -1852,6 +1881,69 @@ vec_prefetch:
 	cmpq	%rdx,%rcx
 	cmovaq	%rdx,%rcx
 	prefetchnta	(%rcx)
+	.byte	0xf3,0xc3
+
+.globl	vec_is_zero_16x
+
+.def	vec_is_zero_16x;	.scl 2;	.type 32;	.endef
+.p2align	5
+vec_is_zero_16x:
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	shrl	$4,%edx
+	movdqu	(%rcx),%xmm0
+	leaq	16(%rcx),%rcx
+
+.Loop_is_zero:
+	decl	%edx
+	jz	.Loop_is_zero_done
+	movdqu	(%rcx),%xmm1
+	leaq	16(%rcx),%rcx
+	por	%xmm1,%xmm0
+	jmp	.Loop_is_zero
+
+.Loop_is_zero_done:
+	pshufd	$0x4e,%xmm0,%xmm1
+	por	%xmm1,%xmm0
+.byte	102,72,15,126,192
+	incl	%edx
+	testq	%rax,%rax
+	cmovnzl	%edx,%eax
+	xorl	$1,%eax
+	.byte	0xf3,0xc3
+
+.globl	vec_is_equal_16x
+
+.def	vec_is_equal_16x;	.scl 2;	.type 32;	.endef
+.p2align	5
+vec_is_equal_16x:
+	.byte	0xf3,0x0f,0x1e,0xfa
+
+	shrl	$4,%r8d
+	movdqu	(%rcx),%xmm0
+	movdqu	(%rdx),%xmm1
+	subq	%rcx,%rdx
+	leaq	16(%rcx),%rcx
+	pxor	%xmm1,%xmm0
+
+.Loop_is_equal:
+	decl	%r8d
+	jz	.Loop_is_equal_done
+	movdqu	(%rcx),%xmm1
+	movdqu	(%rcx,%rdx,1),%xmm2
+	leaq	16(%rcx),%rcx
+	pxor	%xmm2,%xmm1
+	por	%xmm1,%xmm0
+	jmp	.Loop_is_equal
+
+.Loop_is_equal_done:
+	pshufd	$0x4e,%xmm0,%xmm1
+	por	%xmm1,%xmm0
+.byte	102,72,15,126,192
+	incl	%r8d
+	testq	%rax,%rax
+	cmovnzl	%r8d,%eax
+	xorl	$1,%eax
 	.byte	0xf3,0xc3
 
 .section	.pdata

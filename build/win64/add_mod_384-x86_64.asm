@@ -1466,6 +1466,34 @@ $L$SEH_epilogue_sgn0_pty_mod_384x::
 
 $L$SEH_end_sgn0_pty_mod_384x::
 sgn0_pty_mod_384x	ENDP
+PUBLIC	vec_select_32
+
+
+ALIGN	32
+vec_select_32	PROC PUBLIC
+	DB	243,15,30,250
+	movd	xmm5,r9d
+	pxor	xmm4,xmm4
+	pshufd	xmm5,xmm5,0
+	movdqu	xmm0,XMMWORD PTR[rdx]
+	lea	rdx,QWORD PTR[16+rdx]
+	pcmpeqd	xmm5,xmm4
+	movdqu	xmm1,XMMWORD PTR[r8]
+	lea	r8,QWORD PTR[16+r8]
+	pcmpeqd	xmm4,xmm5
+	lea	rcx,QWORD PTR[16+rcx]
+	pand	xmm0,xmm4
+	movdqu	xmm2,XMMWORD PTR[((0+16-16))+rdx]
+	pand	xmm1,xmm5
+	movdqu	xmm3,XMMWORD PTR[((0+16-16))+r8]
+	por	xmm0,xmm1
+	movdqu	XMMWORD PTR[(0-16)+rcx],xmm0
+	pand	xmm2,xmm4
+	pand	xmm3,xmm5
+	por	xmm2,xmm3
+	movdqu	XMMWORD PTR[(16-16)+rcx],xmm2
+	DB	0F3h,0C3h		;repret
+vec_select_32	ENDP
 PUBLIC	vec_select_48
 
 
@@ -1875,6 +1903,67 @@ vec_prefetch	PROC PUBLIC
 	prefetchnta	[rcx]
 	DB	0F3h,0C3h		;repret
 vec_prefetch	ENDP
+PUBLIC	vec_is_zero_16x
+
+
+ALIGN	32
+vec_is_zero_16x	PROC PUBLIC
+	DB	243,15,30,250
+	shr	edx,4
+	movdqu	xmm0,XMMWORD PTR[rcx]
+	lea	rcx,QWORD PTR[16+rcx]
+
+$L$oop_is_zero::
+	dec	edx
+	jz	$L$oop_is_zero_done
+	movdqu	xmm1,XMMWORD PTR[rcx]
+	lea	rcx,QWORD PTR[16+rcx]
+	por	xmm0,xmm1
+	jmp	$L$oop_is_zero
+
+$L$oop_is_zero_done::
+	pshufd	xmm1,xmm0,04eh
+	por	xmm0,xmm1
+DB	102,72,15,126,192
+	inc	edx
+	test	rax,rax
+	cmovnz	eax,edx
+	xor	eax,1
+	DB	0F3h,0C3h		;repret
+vec_is_zero_16x	ENDP
+PUBLIC	vec_is_equal_16x
+
+
+ALIGN	32
+vec_is_equal_16x	PROC PUBLIC
+	DB	243,15,30,250
+	shr	r8d,4
+	movdqu	xmm0,XMMWORD PTR[rcx]
+	movdqu	xmm1,XMMWORD PTR[rdx]
+	sub	rdx,rcx
+	lea	rcx,QWORD PTR[16+rcx]
+	pxor	xmm0,xmm1
+
+$L$oop_is_equal::
+	dec	r8d
+	jz	$L$oop_is_equal_done
+	movdqu	xmm1,XMMWORD PTR[rcx]
+	movdqu	xmm2,XMMWORD PTR[rdx*1+rcx]
+	lea	rcx,QWORD PTR[16+rcx]
+	pxor	xmm1,xmm2
+	por	xmm0,xmm1
+	jmp	$L$oop_is_equal
+
+$L$oop_is_equal_done::
+	pshufd	xmm1,xmm0,04eh
+	por	xmm0,xmm1
+DB	102,72,15,126,192
+	inc	r8d
+	test	rax,rax
+	cmovnz	eax,r8d
+	xor	eax,1
+	DB	0F3h,0C3h		;repret
+vec_is_equal_16x	ENDP
 .text$	ENDS
 .pdata	SEGMENT READONLY ALIGN(4)
 ALIGN	4
