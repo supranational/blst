@@ -262,6 +262,7 @@ static inline void vec_cswap(void *restrict a, void *restrict b, size_t num,
 }
 
 /* ret = bit ? a : b */
+void vec_select_32(void *ret, const void *a, const void *b, bool_t sel_a);
 void vec_select_48(void *ret, const void *a, const void *b, bool_t sel_a);
 void vec_select_96(void *ret, const void *a, const void *b, bool_t sel_a);
 void vec_select_144(void *ret, const void *a, const void *b, bool_t sel_a);
@@ -272,7 +273,8 @@ static inline void vec_select(void *ret, const void *a, const void *b,
 {
     launder(sel_a);
 #ifndef __BLST_NO_ASM__
-    if (num == 48)          vec_select_48(ret, a, b, sel_a);
+    if (num == 32)          vec_select_32(ret, a, b, sel_a);
+    else if (num == 48)     vec_select_48(ret, a, b, sel_a);
     else if (num == 96)     vec_select_96(ret, a, b, sel_a);
     else if (num == 144)    vec_select_144(ret, a, b, sel_a);
     else if (num == 192)    vec_select_192(ret, a, b, sel_a);
@@ -309,6 +311,12 @@ static inline bool_t vec_is_zero(const void *a, size_t num)
     limb_t acc;
     size_t i;
 
+#ifndef __BLST_NO_ASM__
+    bool_t vec_is_zero_16x(const void *a, size_t num);
+    if ((num & 15) == 0)
+        return vec_is_zero_16x(a, num);
+#endif
+
     num /= sizeof(limb_t);
 
     for (acc = 0, i = 0; i < num; i++)
@@ -323,6 +331,12 @@ static inline bool_t vec_is_equal(const void *a, const void *b, size_t num)
     const limb_t *bp = (const limb_t *)b;
     limb_t acc;
     size_t i;
+
+#ifndef __BLST_NO_ASM__
+    bool_t vec_is_equal_16x(const void *a, const void *b, size_t num);
+    if ((num & 15) == 0)
+        return vec_is_equal_16x(a, b, num);
+#endif
 
     num /= sizeof(limb_t);
 
