@@ -19,6 +19,8 @@ typedef unsigned long long llimb_t;
 #if !defined(__clang__)
 # if defined(__GNUC__) && __GNUC__>=5
 #  define __builtin_assume(condition) if (!(condition)) __builtin_unreachable()
+# elif defined(_MSC_VER)
+#  define __builtin_assume(condition) __assume(condition)
 # else
 #  define __builtin_assume(condition)
 # endif
@@ -73,6 +75,7 @@ static void mul_mont_n(limb_t ret[], const limb_t a[], const limb_t b[],
     }
 
     mask = carry - borrow;
+    launder(mask);
 
     for(i=0; i<n; i++)
         ret[i] = (ret[i] & ~mask) | (tmp[i] & mask);
@@ -119,6 +122,7 @@ static void add_mod_n(limb_t ret[], const limb_t a[], const limb_t b[],
     }
 
     mask = carry - borrow;
+    launder(mask);
 
     for(i=0; i<n; i++)
         ret[i] = (ret[i] & ~mask) | (tmp[i] & mask);
@@ -147,6 +151,7 @@ static void sub_mod_n(limb_t ret[], const limb_t a[], const limb_t b[],
     }
 
     mask = 0 - borrow;
+    launder(mask);
 
     for (carry=0, i=0; i<n; i++) {
         limbx = ret[i] + ((p[i] & mask) + (llimb_t)carry);
@@ -184,6 +189,7 @@ static void mul_by_3_mod_n(limb_t ret[], const limb_t a[], const limb_t p[],
     }
 
     mask = carry - borrow;
+    launder(mask);
 
     for(i=0; i<n; i++)
         two_a[i] = (two_a[i] & ~mask) | (tmp[i] & mask);
@@ -201,6 +207,7 @@ static void mul_by_3_mod_n(limb_t ret[], const limb_t a[], const limb_t p[],
     }
 
     mask = carry - borrow;
+    launder(mask);
 
     for(i=0; i<n; i++)
         ret[i] = (ret[i] & ~mask) | (tmp[i] & mask);
@@ -217,6 +224,7 @@ MUL_BY_3_MOD_IMPL(384)
 static void lshift_mod_n(limb_t ret[], const limb_t a[], size_t count,
                          const limb_t p[], size_t n)
 {
+    __builtin_assume(count != 0);
     __builtin_assume(n != 0);
     llimb_t limbx;
     limb_t mask, carry, borrow, tmp[n];
@@ -236,6 +244,7 @@ static void lshift_mod_n(limb_t ret[], const limb_t a[], size_t count,
         }
 
         mask = carry - borrow;
+        launder(mask);
 
         for(i=0; i<n; i++)
             ret[i] = (ret[i] & ~mask) | (tmp[i] & mask);
@@ -382,6 +391,7 @@ static void from_mont_n(limb_t ret[], const limb_t a[],
     }
 
     mask = 0 - borrow;
+    launder(mask);
 
     for(i=0; i<n; i++)
         ret[i] = (ret[i] & ~mask) | (tmp[i] & mask);
@@ -430,6 +440,7 @@ static void redc_mont_n(limb_t ret[], const limb_t a[],
     }
 
     mask = carry - borrow;
+    launder(mask);
 
     for(i=0; i<n; i++)
         ret[i] = (ret[i] & ~mask) | (tmp[i] & mask);
@@ -446,6 +457,7 @@ REDC_MONT_IMPL(384, 768)
 static void rshift_mod_n(limb_t ret[], const limb_t a[], size_t count,
                          const limb_t p[], size_t n)
 {
+    __builtin_assume(count != 0);
     __builtin_assume(n != 0 && n%2 == 0);
     llimb_t limbx;
     limb_t mask, carry, limb, next;
@@ -453,6 +465,7 @@ static void rshift_mod_n(limb_t ret[], const limb_t a[], size_t count,
 
     while (count--) {
         mask = 0 - (a[0] & 1);
+        launder(mask);
         for (carry=0, i=0; i<n; i++) {
             limbx = a[i] + ((p[i]&mask) + (llimb_t)carry);
             ret[i] = (limb_t)limbx;
@@ -644,6 +657,7 @@ void sqr_mont_382x(vec384x ret, const vec384x a,
         borrow = (limb_t)(limbx >> LIMB_T_BITS) & 1;
     }
     mask = 0 - borrow;
+    launder(mask);
 
     /* "mul_mont_n(ret[1], a[0], a[1], p, n0, NLIMBS(384));" */
     mul_mont_nonred_n(ret[1], a[0], a[1], p, n0, NLIMBS(384));
@@ -665,6 +679,7 @@ void sqr_mont_382x(vec384x ret, const vec384x a,
         borrow = (limb_t)(limbx >> LIMB_T_BITS) & 1;
     }
     mask = 0 - borrow;
+    launder(mask);
     for (carry=0, i=0; i<NLIMBS(384); i++) {
         limbx = ret[0][i] + ((p[i] & mask) + (llimb_t)carry);
         ret[0][i] = (limb_t)limbx;
@@ -672,7 +687,11 @@ void sqr_mont_382x(vec384x ret, const vec384x a,
     }
 }
 
-#define MSB(x) ((x) >> (LIMB_T_BITS-1))
+#if defined(__GNUC__) || defined(__clang__)
+# define MSB(x) ({ limb_t ret = (x) >> (LIMB_T_BITS-1); launder(ret); ret; })
+#else
+# define MSB(x) ((x) >> (LIMB_T_BITS-1))
+#endif
 
 static size_t num_bits(limb_t l)
 {
@@ -1157,6 +1176,7 @@ static limb_t quot_rem_n(limb_t *div_rem, const limb_t *divisor,
     }
 
     mask = 0 - borrow;
+    launder(mask);
 
     /* if quotient was off by one, add divisor to the remainder */
     for (carry=0, i=0; i<n; i++) {

@@ -213,11 +213,25 @@ typedef const void *uptr_t;
 # endif
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+# define launder(var) asm volatile("" : "+r"(var))
+#else
+# define launder(var)
+#endif
+
 static inline bool_t is_bit_set(const byte *v, size_t i)
-{   return (v[i/8] >> (i%8)) & 1;   }
+{
+    bool_t ret = (v[i/8] >> (i%8)) & 1;
+    launder(ret);
+    return ret;
+}
 
 static inline bool_t byte_is_zero(unsigned char c)
-{   return ((limb_t)(c) - 1) >> (LIMB_T_BITS - 1);   }
+{
+    limb_t ret = ((limb_t)(c) - 1) >> (LIMB_T_BITS - 1);
+    launder(ret);
+    return ret;
+}
 
 static inline bool_t bytes_are_zero(const unsigned char *a, size_t num)
 {
@@ -256,6 +270,7 @@ void vec_select_288(void *ret, const void *a, const void *b, bool_t sel_a);
 static inline void vec_select(void *ret, const void *a, const void *b,
                               size_t num, bool_t sel_a)
 {
+    launder(sel_a);
 #ifndef __BLST_NO_ASM__
     if (num == 48)          vec_select_48(ret, a, b, sel_a);
     else if (num == 96)     vec_select_96(ret, a, b, sel_a);
@@ -282,7 +297,11 @@ static inline void vec_select(void *ret, const void *a, const void *b,
 }
 
 static inline bool_t is_zero(limb_t l)
-{   return (~l & (l - 1)) >> (LIMB_T_BITS - 1);   }
+{
+    limb_t ret = (~l & (l - 1)) >> (LIMB_T_BITS - 1);
+    launder(ret);
+    return ret;
+}
 
 static inline bool_t vec_is_zero(const void *a, size_t num)
 {
@@ -342,7 +361,7 @@ static inline void vec_zero(void *ret, size_t num)
     for (i = 0; i < num; i++)
         rp[i] = 0;
 
-#if defined(__GNUC__) && !defined(__NVCC__)
+#if defined(__GNUC__) || defined(__clang__)
     asm volatile("" : : "r"(ret) : "memory");
 #endif
 }
