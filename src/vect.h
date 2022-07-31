@@ -283,7 +283,8 @@ static inline void vec_select(void *ret, const void *a, const void *b,
     if (0) ;
 #endif
     else {
-        limb_t bi, *rp = (limb_t *)ret;
+        limb_t bi;
+        volatile limb_t *rp = (limb_t *)ret;
         const limb_t *ap = (const limb_t *)a;
         const limb_t *bp = (const limb_t *)b;
         limb_t xorm, mask = (limb_t)0 - sel_a;
