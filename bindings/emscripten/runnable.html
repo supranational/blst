@@ -3,8 +3,15 @@
 <head><meta charset="UTF-8"><title>runnable.html</title></head>
 <body>
 <script type="text/javascript" src="blst.js"></script>
+<div id="output"></div>
 <script>
-document.write("testing...");
+function log(str) {
+  var out = document.getElementById("output");
+  out.appendChild(document.createTextNode(str));
+  out.appendChild(document.createElement("br"));
+}
+
+log("testing...");
 
 blst['onRuntimeInitialized'] = function() {
   var msg = "assertion";          // this what we're signing
@@ -38,7 +45,7 @@ blst['onRuntimeInitialized'] = function() {
   ctx.commit();
   if (!ctx.finalverify()) throw "disaster";
 
-  document.write("OK");
+  log("OK");
 }
 </script>
 </body>
