@@ -57,7 +57,7 @@ Unless deemed appropriate to implement, bindings for other languages will be pro
 - [Java](bindings/java)
 - [Node.js](bindings/node.js)
 - [Emscripten](bindings/emscripten)
-- [C#](bindings/c#)
+- [C#](bindings/c%23)
 
 ## API
 
