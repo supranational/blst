@@ -56,6 +56,8 @@ Unless deemed appropriate to implement, bindings for other languages will be pro
 - [Python](bindings/python)
 - [Java](bindings/java)
 - [Node.js](bindings/node.js)
+- [Emscripten](bindings/emscripten)
+- [C#](bindings/c#)
 
 ## API
 
