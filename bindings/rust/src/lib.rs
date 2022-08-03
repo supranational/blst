@@ -2,16 +2,17 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#![no_std]
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
+use alloc::sync::{mpsc::channel, Arc, Barrier};
 use core::any::Any;
 use core::mem::MaybeUninit;
+use core::num::Wrapping;
 use core::ptr;
 use core::sync::atomic::*;
-use std::num::Wrapping;
-use std::sync::{mpsc::channel, Arc, Barrier};
 use zeroize::Zeroize;
 
 #[cfg(not(feature = "no-threads"))]
