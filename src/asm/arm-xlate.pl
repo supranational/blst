@@ -313,6 +313,11 @@ sub expand_line {
 	$line =~ s/#:lo12:(\w+)/$1\@PAGEOFF/;
     }
 
+    if ($flavour =~ /64/) {
+	# "vX.Md[N]" -> "vX.d[N]
+	$line =~ s/\b(v[0-9]+)\.[1-9]+([bhsd]\[[0-9]+\])/$1.$2/;
+    }
+
     return $line;
 }
 
