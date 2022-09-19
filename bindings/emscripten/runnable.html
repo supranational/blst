@@ -4,14 +4,16 @@
 <body>
 <script type="text/javascript" src="blst.js"></script>
 <div id="output"></div>
-<script>
-function log(str) {
-  var out = document.getElementById("output");
-  out.appendChild(document.createTextNode(str));
-  out.appendChild(document.createElement("br"));
+<script type="text/javascript">
+var output = {
+  div: document.getElementById("output"),
+  log: function(str) {
+    this.div.appendChild(document.createTextNode(str));
+    this.div.appendChild(document.createElement("br"));
+  }
 }
 
-log("testing...");
+output.log("testing...");
 
 blst['onRuntimeInitialized'] = function() {
   var msg = "assertion";          // this what we're signing
@@ -45,7 +47,7 @@ blst['onRuntimeInitialized'] = function() {
   ctx.commit();
   if (!ctx.finalverify()) throw "disaster";
 
-  log("OK");
+  output.log("OK");
 }
 </script>
 </body>

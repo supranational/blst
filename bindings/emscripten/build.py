@@ -11,12 +11,10 @@ import subprocess
 
 emcc = shutil.which("emcc")
 if emcc is None:
-    if os.name != 'posix' or not sys.stdin.isatty() or not shutil.which("docker"):
-        print("FATAL: no 'emcc' on the program search path", file=sys.stderr)
-        sys.exit(2)
-
     git_root = os.path.join(os.path.dirname(sys.argv[0]), "..", "..")
-    if not os.path.isdir(os.path.join(git_root, ".git")):
+    if os.name != 'posix' or not sys.stdin.isatty() or \
+       not os.path.isdir(os.path.join(git_root, ".git")) or \
+       not shutil.which("docker"):
         print("FATAL: no 'emcc' on the program search path", file=sys.stderr)
         sys.exit(2)
 
@@ -1014,14 +1012,9 @@ Pairing.prototype['__destroy__'] = Pairing.prototype.__destroy__ = /** @this{Obj
 function()
 {   _Pairing__destroy__0(this.ptr); this.ptr = 0;  };;
 """
-common_cpp += """
+p1_cpp += """
 int EMSCRIPTEN_KEEPALIVE Pairing_aggregate_pk_in_g1_6(Pairing* self,
                                 const P1_Affine* pk, const P2_Affine* sig,
-                                const byte* msg, size_t msg_len,
-                                const byte* aug, size_t aug_len)
-{   return self->aggregate(pk, sig, msg, msg_len, aug, aug_len);   }
-int EMSCRIPTEN_KEEPALIVE Pairing_aggregate_pk_in_g2_6(Pairing* self,
-                                const P2_Affine* pk, const P1_Affine* sig,
                                 const byte* msg, size_t msg_len,
                                 const byte* aug, size_t aug_len)
 {   return self->aggregate(pk, sig, msg, msg_len, aug, aug_len);   }
@@ -1041,15 +1034,9 @@ function(pk, sig, msg, aug)
     return -1;
 };;
 """
-common_cpp += """
+p1_cpp += """
 int EMSCRIPTEN_KEEPALIVE Pairing_mul_n_aggregate_pk_in_g1_8(Pairing* self,
                                 const P1_Affine* pk, const P2_Affine* sig,
-                                const byte* scalar, size_t nbits,
-                                const byte* msg, size_t msg_len,
-                                const byte* aug, size_t aug_len)
-{   return self->mul_n_aggregate(pk, sig, scalar, nbits, msg, msg_len, aug, aug_len);   }
-int EMSCRIPTEN_KEEPALIVE Pairing_mul_n_aggregate_pk_in_g2_8(Pairing* self,
-                                const P2_Affine* pk, const P1_Affine* sig,
                                 const byte* scalar, size_t nbits,
                                 const byte* msg, size_t msg_len,
                                 const byte* aug, size_t aug_len)
