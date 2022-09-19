@@ -20,16 +20,19 @@ jobs:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: actions/cache@v2
+    - id: get-date
+      run: echo "::set-output name=date::$(date -u +%Y-%m)"
+      shell: bash
+
+    - uses: actions/cache@v3
       with:
         path: |
           ~/.cargo/registry
           **/Cargo.lock
           **/bindings/rust/target
-        key: ${{ runner.os }}-cargo-25
-        restore-keys: ${{ runner.os }}-cargo-24
+        key: ${{ runner.os }}-cargo-${{ steps.get-date.outputs.date }}
 
     - name: Environment
       shell: bash
@@ -78,9 +81,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: actions/cache@v2
+    - uses: actions/cache@v3
       with:
         path: ~/swig
         key: ${{ runner.os }}-swig-github
@@ -89,7 +92,7 @@ jobs:
       with:
         java-version: 11
 
-    - uses: actions/setup-node@v1
+    - uses: actions/setup-node@v3
       with:
         node-version: '12.x'
 
