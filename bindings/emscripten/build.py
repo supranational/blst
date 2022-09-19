@@ -991,7 +991,7 @@ function()
 # ###### Pairing
 common_cpp += """
 Pairing* EMSCRIPTEN_KEEPALIVE Pairing_2(bool hash_or_encode, const char* DST)
-{   return new Pairing(hash_or_encode, DST ? DST : "");   }
+{   return new Pairing(hash_or_encode, std::string{DST ? DST : ""});   }
 void EMSCRIPTEN_KEEPALIVE Pairing__destroy__0(Pairing* self)
 {   delete self;   }
 """
@@ -1168,6 +1168,7 @@ fd.close()
 subprocess.check_call([os.path.join(os.path.dirname(emcc), "tools", "webidl_binder"),
                        os.devnull, "null_bind"])
 subprocess.check_call([emcc, "-I..", "-fexceptions", "-include", "stddef.h",
+                       "-sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[$intArrayFromString]",
                        "null_bind.cpp", "--post-js", "null_bind.js",
                        "blst_bind.cpp", "--post-js", "blst_bind.js",
                        os.path.normpath("../../src/server.c"),
