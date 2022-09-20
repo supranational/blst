@@ -164,9 +164,7 @@ func SetMaxProcs(max int) {
 	maxProcs = max
 }
 
-//
 // Secret key
-//
 func (sk *SecretKey) Zeroize() {
 	var zero SecretKey
 	*sk = zero
@@ -279,9 +277,7 @@ func (master *SecretKey) DeriveChildEip2333(child_index uint32) *SecretKey {
 	return &sk
 }
 
-//
 // Pairing
-//
 func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
 	DST_len := C.size_t(len(DST))
 	ctx := make([]C.blst_pairing, int(C.go_pairing_sizeof(DST_len)))
@@ -1725,7 +1721,8 @@ func P1Generator() *P1 {
 }
 
 // 'acc += point * scalar', passing 'nil' for 'point' means "use the
-//                          group generator point"
+//
+//	group generator point"
 func (acc *P1) MultNAccumulate(pointIf interface{}, scalarIf interface{},
 	optional ...int) *P1 {
 	var x *Fp
@@ -1775,9 +1772,7 @@ func (p *P1) FromAffine(pa *P1Affine) {
 	C.blst_p1_from_affine(p, pa)
 }
 
-//
 // Hash
-//
 func HashToG1(msg []byte, dst []byte,
 	optional ...[]byte) *P1 { // aug
 	var q P1
@@ -2412,7 +2407,8 @@ func P2Generator() *P2 {
 }
 
 // 'acc += point * scalar', passing 'nil' for 'point' means "use the
-//                          group generator point"
+//
+//	group generator point"
 func (acc *P2) MultNAccumulate(pointIf interface{}, scalarIf interface{},
 	optional ...int) *P2 {
 	var x *Fp2
@@ -2462,9 +2458,7 @@ func (p *P2) FromAffine(pa *P2Affine) {
 	C.blst_p2_from_affine(p, pa)
 }
 
-//
 // Hash
-//
 func HashToG2(msg []byte, dst []byte,
 	optional ...[]byte) *P2 { // aug
 	var q P2
@@ -2921,11 +2915,9 @@ func bytesAllZero(s []byte) bool {
 	return true
 }
 
-//
 // These methods are inefficient because of cgo call overhead. For this
 // reason they should be used primarily for prototyping with a goal to
 // formulate interfaces that would process multiple scalars per cgo call.
-//
 func (a *Scalar) MulAssign(b *Scalar) (*Scalar, bool) {
 	return a, bool(C.blst_sk_mul_n_check(a, a, b))
 }

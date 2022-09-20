@@ -1,3 +1,3 @@
-module github.com/supranational/blst
+module github.com/patrick-ogrady/blst
 
 go 1.11
