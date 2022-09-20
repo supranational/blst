@@ -20,7 +20,7 @@ package blst
 // # include <unistd.h>
 // static void handler(int signum)
 // {   ssize_t n = write(2, "Caught SIGILL in blst_cgo_init, "
-//                          "consult <blst>/bindinds/go/README.md.\n", 70);
+//                          "consult <blst>/bindings/go/README.md.\n", 70);
 //     _exit(128+SIGILL);
 //     (void)n;
 // }
