@@ -1720,6 +1720,16 @@ func (p1 *P1) Add(pointIf interface{}) *P1 {
 	return ret.AddAssign(pointIf)
 }
 
+func (p1 *P1) NegateAssign() *P1 {
+	C.blst_p1_cneg(p1, true)
+	return p1
+}
+
+func (p1 *P1) Negate() *P1 {
+	ret := *p1
+	return ret.NegateAssign()
+}
+
 func P1Generator() *P1 {
 	return C.blst_p1_generator()
 }
@@ -2405,6 +2415,16 @@ func (p2 *P2) AddAssign(pointIf interface{}) *P2 {
 func (p2 *P2) Add(pointIf interface{}) *P2 {
 	ret := *p2
 	return ret.AddAssign(pointIf)
+}
+
+func (p2 *P2) NegateAssign() *P2 {
+	C.blst_p2_cneg(p2, true)
+	return p2
+}
+
+func (p2 *P2) Negate() *P2 {
+	ret := *p2
+	return ret.NegateAssign()
 }
 
 func P2Generator() *P2 {
