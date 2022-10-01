@@ -89,6 +89,26 @@ package blst
 //     blst_p2_add_or_double(acc, acc, m);
 // }
 //
+// static void go_p1_sub_assign(blst_p1 *a, const blst_fp *x, bool affine)
+// {   blst_p1 minus_b;
+//     if (affine)
+//         blst_p1_from_affine(&minus_b, (const blst_p1_affine*)x);
+//     else
+//         minus_b = *(const blst_p1*)x;
+//     blst_p1_cneg(&minus_b, 1);
+//     blst_p1_add_or_double(a, a, &minus_b);
+// }
+//
+// static void go_p2_sub_assign(blst_p2 *a, const blst_fp2 *x, bool affine)
+// {   blst_p2 minus_b;
+//     if (affine)
+//         blst_p2_from_affine(&minus_b, (const blst_p2_affine*)x);
+//     else
+//         minus_b = *(const blst_p2*)x;
+//     blst_p2_cneg(&minus_b, 1);
+//     blst_p2_add_or_double(a, a, &minus_b);
+// }
+//
 // static bool go_scalar_from_bendian(blst_scalar *ret, const byte *in)
 // {   blst_scalar_from_bendian(ret, in);
 //     return blst_sk_check(ret);
