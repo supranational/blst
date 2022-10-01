@@ -93,6 +93,26 @@ package blst
 //     blst_p2_add_or_double(acc, acc, m);
 // }
 //
+// static void go_p1_sub_assign(blst_p1 *a, const blst_fp *x, bool affine)
+// {   blst_p1 minus_b;
+//     if (affine)
+//         blst_p1_from_affine(&minus_b, (const blst_p1_affine*)x);
+//     else
+//         minus_b = *(const blst_p1*)x;
+//     blst_p1_cneg(&minus_b, 1);
+//     blst_p1_add_or_double(a, a, &minus_b);
+// }
+//
+// static void go_p2_sub_assign(blst_p2 *a, const blst_fp2 *x, bool affine)
+// {   blst_p2 minus_b;
+//     if (affine)
+//         blst_p2_from_affine(&minus_b, (const blst_p2_affine*)x);
+//     else
+//         minus_b = *(const blst_p2*)x;
+//     blst_p2_cneg(&minus_b, 1);
+//     blst_p2_add_or_double(a, a, &minus_b);
+// }
+//
 // static bool go_scalar_from_bendian(blst_scalar *ret, const byte *in)
 // {   blst_scalar_from_bendian(ret, in);
 //     return blst_sk_check(ret);
@@ -1720,6 +1740,28 @@ func (p1 *P1) Add(pointIf interface{}) *P1 {
 	return ret.AddAssign(pointIf)
 }
 
+func (p1 *P1) SubAssign(pointIf interface{}) *P1 {
+	var x *Fp
+	var affine C.bool
+	switch val := pointIf.(type) {
+	case *P1:
+		x = &val.x
+		affine = false
+	case *P1Affine:
+		x = &val.x
+		affine = true
+	default:
+		panic(fmt.Sprintf("unsupported type %T", val))
+	}
+	C.go_p1_sub_assign(p1, x, affine)
+	return p1
+}
+
+func (p1 *P1) Sub(pointIf interface{}) *P1 {
+	ret := *p1
+	return ret.SubAssign(pointIf)
+}
+
 func P1Generator() *P1 {
 	return C.blst_p1_generator()
 }
@@ -2405,6 +2447,28 @@ func (p2 *P2) AddAssign(pointIf interface{}) *P2 {
 func (p2 *P2) Add(pointIf interface{}) *P2 {
 	ret := *p2
 	return ret.AddAssign(pointIf)
+}
+
+func (p2 *P2) SubAssign(pointIf interface{}) *P2 {
+	var x *Fp2
+	var affine C.bool
+	switch val := pointIf.(type) {
+	case *P2:
+		x = &val.x
+		affine = false
+	case *P2Affine:
+		x = &val.x
+		affine = true
+	default:
+		panic(fmt.Sprintf("unsupported type %T", val))
+	}
+	C.go_p2_sub_assign(p2, x, affine)
+	return p2
+}
+
+func (p2 *P2) Sub(pointIf interface{}) *P2 {
+	ret := *p2
+	return ret.SubAssign(pointIf)
 }
 
 func P2Generator() *P2 {
