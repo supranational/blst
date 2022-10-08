@@ -83,7 +83,7 @@ fn main() {
                 }
             }
             Err(_) => { /* no clang-cl in sight, just ignore the error */ }
-        };
+        }
     }
 
     let mut cc = cc::Build::new();
@@ -124,6 +124,8 @@ fn main() {
             "Cannot compile with both `portable` and `force-adx` features"
         ),
     }
+    #[cfg(target_env = "msvc")]
+    cc.static_crt(true).flag("-Zl");
     cc.flag_if_supported("-mno-avx") // avoid costly transitions
         .flag_if_supported("-fno-builtin")
         .flag_if_supported("-Wno-unused-function")
