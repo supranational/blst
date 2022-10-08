@@ -740,9 +740,8 @@ if newer([here[-1], fname]):
     fd.close()
 
 try:  # mono-devel on Linux ["-language:5" corresponds to latest ECMA/ISO]
-    if newer([fname, "poc.cs", "poc.exe"]):
-        subprocess.check_call(["mcs", "-langversion:5", "-optimize+",
-                                      "poc.cs", fname, "-r:System.Numerics.dll"])
+    subprocess.check_call(["mcs", "-langversion:5", "-optimize+",
+                                  "poc.cs", fname, "-r:System.Numerics.dll"])
     if newer(["../blst.h"] + glob.glob("libblst.dll.*")):
         print("building libblst.dll...") or sys.stdout.flush()
         subprocess.check_call(["../../build.sh", "-dll"] + sys.argv[1:])
@@ -753,9 +752,8 @@ except OSError as e:
         raise e
 
 try:  # Visual Studio Developer Command Prompt
-    if newer([fname, "poc.cs", "poc.exe"]):
-        subprocess.check_call(["csc", "-langversion:5", "-optimize+",
-                                      "poc.cs", fname, "-r:System.Numerics.dll"])
+    subprocess.check_call(["csc", "-langversion:5", "-optimize+",
+                                  "poc.cs", fname, "-r:System.Numerics.dll"])
     if newer([os.path.normpath("../blst.h"), "blst.dll"]):
         print("building blst.dll...") or sys.stdout.flush()
         subprocess.check_call([os.path.normpath("../../build.bat"), "-shared"]
