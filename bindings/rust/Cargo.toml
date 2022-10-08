@@ -7,6 +7,8 @@ license = "Apache-2.0"
 description = "Bindings for blst BLS12-381 library"
 repository = "https://github.com/supranational/blst"
 readme = "README.md"
+categories = ["cryptography"]
+keywords = ["crypto", "bls", "signature", "asm", "wasm"]
 include = [
     "**/*.rs",
     "/Cargo.toml",
