@@ -8,18 +8,18 @@
 
 use core::any::Any;
 use core::mem::MaybeUninit;
+use core::num::Wrapping;
 use core::ptr;
 use core::sync::atomic::*;
-use std::num::Wrapping;
 use std::sync::{mpsc::channel, Arc, Barrier};
 use zeroize::Zeroize;
 
-#[cfg(not(feature = "no-threads"))]
 trait ThreadPoolExt {
     fn joined_execute<'any, F>(&self, job: F)
     where
         F: FnOnce() + Send + 'any;
 }
+
 #[cfg(not(feature = "no-threads"))]
 mod mt {
     use super::*;
@@ -57,6 +57,8 @@ mod mt {
 
 #[cfg(feature = "no-threads")]
 mod mt {
+    use super::*;
+
     pub struct EmptyPool {}
 
     pub fn da_pool() -> EmptyPool {
@@ -67,7 +69,10 @@ mod mt {
         pub fn max_count(&self) -> usize {
             1
         }
-        pub fn joined_execute<'scope, F>(&self, job: F)
+    }
+
+    impl ThreadPoolExt for EmptyPool {
+        fn joined_execute<'scope, F>(&self, job: F)
         where
             F: FnOnce() + Send + 'scope,
         {
