@@ -28,6 +28,8 @@ extern "C" {
 # include "bytes.h"
 #endif
 
+#undef launder // avoid conflict with C++ >=17
+
 #ifdef __GNUC__
 # pragma GCC diagnostic pop
 #endif
