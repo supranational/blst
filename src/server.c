@@ -22,3 +22,6 @@
 #include "vect.c"
 #include "exports.c"
 #include "rb_tree.c"
+#ifdef BLST_FR_PENTAROOT
+# include "pentaroot.c"
+#endif
