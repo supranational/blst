@@ -19,6 +19,7 @@ fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, _arch: &String) {
         for file in files {
             file_vec.push(file.unwrap());
         }
+        return;
     }
 
     file_vec.push(base_dir.join("assembly.S"));
