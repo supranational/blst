@@ -334,52 +334,44 @@ public:
     {   mul_mont_sparse_256(val, val, RR, MOD, M0); return *this;   }
     inline blst_256_t& to(const uint64_t a[2*n])
     {
-        mul_mont_sparse_256(val, RR, (const limb_t*)a, MOD, M0);
-
-        vec256 hi;
-
-        mul_mont_sparse_256(hi, RR, (const limb_t*)(a + n), MOD, M0);
-        mul_mont_sparse_256(hi, RR, hi, MOD, M0);
-
-        add_mod_256(val, val, hi, MOD);
+        mul_mont_sparse_256(val, RR, (const limb_t*)(a + n), MOD, M0);
+        vec256 lo{0};
+        add_mod_256(lo, lo, (const limb_t*)a, MOD);
+        add_mod_256(val, val, lo, MOD);
+        mul_mont_sparse_256(val, RR, val, MOD, M0);
 
         return *this;
     }
     blst_256_t& to(const unsigned char* bytes, size_t n, bool le = false)
     {
-        vec256 digit, radix;
-
         vec_zero(val, sizeof(val));
-        vec_copy(radix, RR, sizeof(radix));
+
+        vec256 digit, zero{0};
+        size_t rem = (n - 1) % 32 + 1;
+        n -= rem;
 
         if (le) {
-            while (n > 32) {
-                limbs_from_le_bytes(digit, bytes, 32);
-                mul_mont_sparse_256(digit, radix, digit, MOD, M0);
+            limbs_from_le_bytes(val, bytes += n, rem);
+            mul_mont_sparse_256(val, RR, val, MOD, M0);
+            while (n) {
+                limbs_from_le_bytes(digit, bytes -= 32, 32);
+                add_mod_256(digit, digit, zero, MOD);
                 add_mod_256(val, val, digit, MOD);
-                mul_mont_sparse_256(radix, radix, RR, MOD, M0);
+                mul_mont_sparse_256(val, RR, val, MOD, M0);
+                n -= 32;
+            }
+        } else {
+            limbs_from_be_bytes(val, bytes, rem);
+            mul_mont_sparse_256(val, RR, val, MOD, M0);
+            bytes += rem;
+            while (n) {
+                limbs_from_be_bytes(digit, bytes, 32);
+                add_mod_256(digit, digit, zero, MOD);
+                add_mod_256(val, val, digit, MOD);
+                mul_mont_sparse_256(val, RR, val, MOD, M0);
                 bytes += 32;
                 n -= 32;
             }
-
-            vec_zero(digit, sizeof(digit));
-            limbs_from_le_bytes(digit, bytes, n);
-            mul_mont_sparse_256(digit, radix, digit, MOD, M0);
-            add_mod_256(val, val, digit, MOD);
-        } else {
-            bytes += n;
-            while (n > 32) {
-                limbs_from_be_bytes(digit, bytes -= 32, 32);
-                mul_mont_sparse_256(digit, radix, digit, MOD, M0);
-                add_mod_256(val, val, digit, MOD);
-                mul_mont_sparse_256(radix, radix, RR, MOD, M0);
-                n -= 32;
-            }
-
-            vec_zero(digit, sizeof(digit));
-            limbs_from_be_bytes(digit, bytes -= n, n);
-            mul_mont_sparse_256(digit, radix, digit, MOD, M0);
-            add_mod_256(val, val, digit, MOD);
         }
 
         return *this;
