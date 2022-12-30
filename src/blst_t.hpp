@@ -513,11 +513,11 @@ public:
     }
 
     inline blst_256_t& operator>>=(unsigned r)
-    {   lshift_mod_256(val, val, r, MOD);           return *this;   }
+    {   rshift_mod_256(val, val, r, MOD);           return *this;   }
     friend inline blst_256_t operator>>(const blst_256_t& a, unsigned r)
     {
         blst_256_t ret;
-        lshift_mod_256(ret, a, r, MOD);
+        rshift_mod_256(ret, a, r, MOD);
         return ret;
     }
 
