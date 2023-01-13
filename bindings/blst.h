@@ -83,7 +83,7 @@ bool blst_scalar_from_be_bytes(blst_scalar *out, const byte *in, size_t len);
 
 #ifndef SWIG
 /*
- * BLS12-381-specifc Fr operations.
+ * BLS12-381-specific Fr operations.
  */
 void blst_fr_add(blst_fr *ret, const blst_fr *a, const blst_fr *b);
 void blst_fr_sub(blst_fr *ret, const blst_fr *a, const blst_fr *b);
@@ -106,7 +106,7 @@ void blst_fr_from_scalar(blst_fr *ret, const blst_scalar *a);
 void blst_scalar_from_fr(blst_scalar *ret, const blst_fr *a);
 
 /*
- * BLS12-381-specifc Fp operations.
+ * BLS12-381-specific Fp operations.
  */
 void blst_fp_add(blst_fp *ret, const blst_fp *a, const blst_fp *b);
 void blst_fp_sub(blst_fp *ret, const blst_fp *a, const blst_fp *b);
@@ -130,7 +130,7 @@ void blst_fp_from_lendian(blst_fp *ret, const byte a[48]);
 void blst_lendian_from_fp(byte ret[48], const blst_fp *a);
 
 /*
- * BLS12-381-specifc Fp2 operations.
+ * BLS12-381-specific Fp2 operations.
  */
 void blst_fp2_add(blst_fp2 *ret, const blst_fp2 *a, const blst_fp2 *b);
 void blst_fp2_sub(blst_fp2 *ret, const blst_fp2 *a, const blst_fp2 *b);
@@ -145,7 +145,7 @@ void blst_fp2_inverse(blst_fp2 *ret, const blst_fp2 *a);
 bool blst_fp2_sqrt(blst_fp2 *ret, const blst_fp2 *a);
 
 /*
- * BLS12-381-specifc Fp12 operations.
+ * BLS12-381-specific Fp12 operations.
  */
 void blst_fp12_sqr(blst_fp12 *ret, const blst_fp12 *a);
 void blst_fp12_cyclotomic_sqr(blst_fp12 *ret, const blst_fp12 *a);
@@ -163,7 +163,7 @@ const blst_fp12 *blst_fp12_one();
 #endif  // SWIG
 
 /*
- * BLS12-381-specifc point operations.
+ * BLS12-381-specific point operations.
  */
 typedef struct { blst_fp x, y, z; } blst_p1;
 typedef struct { blst_fp x, y; } blst_p1_affine;
