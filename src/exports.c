@@ -17,6 +17,7 @@
 
 #include "fields.h"
 #include "bytes.h"
+#include "sha256.h"
 
 /*
  * BLS12-381-specifc Fr shortcuts to assembly.
@@ -539,6 +540,18 @@ int blst_scalar_from_be_bytes(pow256 out, const unsigned char *bytes, size_t n)
 
     return (int)(ret^1);
 }
+
+/*
+ * SHA-256 functions.
+ */
+void blst_sha256_init(SHA256_CTX *ctx)
+{   sha256_init(ctx);   }
+
+void blst_sha256_update(SHA256_CTX *ctx, const void *inp, size_t len)
+{   sha256_update(ctx, inp, len);   }
+
+void blst_sha256_final(unsigned char md[32], SHA256_CTX *ctx)
+{   sha256_final(md, ctx);   }
 
 /*
  * Test facilitator

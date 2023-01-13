@@ -99,4 +99,19 @@ size_t blst_p1_affine_sizeof();
 size_t blst_p2_sizeof();
 size_t blst_p2_affine_sizeof();
 size_t blst_fp12_sizeof();
+
+typedef struct {
+    unsigned int h[8];
+    unsigned long long N;
+    unsigned char buf[64];
+    size_t off;
+} BLST_SHA256_CTX;
+
+/*
+ * SHA-256 functions.
+ */
+void blst_sha256_init(BLST_SHA256_CTX *ctx);
+void blst_sha256_update(BLST_SHA256_CTX *ctx, const void *inp, size_t len);
+void blst_sha256_final(unsigned char md[32], BLST_SHA256_CTX *ctx);
+
 #endif
