@@ -10,7 +10,7 @@
 #include "consts.h"
 
 /*
- * BLS12-381-specifc Fp shortcuts to assembly.
+ * BLS12-381-specific Fp shortcuts to assembly.
  */
 static inline void add_fp(vec384 ret, const vec384 a, const vec384 b)
 {   add_mod_384(ret, a, b, BLS12_381_P);   }
@@ -49,7 +49,7 @@ static inline void redc_fp(vec384 ret, const vec768 a)
 {   redc_mont_384(ret, a, BLS12_381_P, p0);   }
 
 /*
- * BLS12-381-specifc Fp2 shortcuts to assembly.
+ * BLS12-381-specific Fp2 shortcuts to assembly.
  */
 static inline void add_fp2(vec384x ret, const vec384x a, const vec384x b)
 {   add_mod_384x(ret, a, b, BLS12_381_P);   }
