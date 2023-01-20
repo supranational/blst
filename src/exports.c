@@ -542,16 +542,16 @@ int blst_scalar_from_be_bytes(pow256 out, const unsigned char *bytes, size_t n)
 }
 
 /*
- * SHA-256 functions.
+ * SHA-256 hash function.
  */
-void blst_sha256_init(SHA256_CTX *ctx)
-{   sha256_init(ctx);   }
+void blst_sha256(unsigned char md[32], const void *msg, size_t len)
+{
+    SHA256_CTX ctx;
 
-void blst_sha256_update(SHA256_CTX *ctx, const void *inp, size_t len)
-{   sha256_update(ctx, inp, len);   }
-
-void blst_sha256_final(unsigned char md[32], SHA256_CTX *ctx)
-{   sha256_final(md, ctx);   }
+    sha256_init(&ctx);
+    sha256_update(&ctx, msg, len);
+    sha256_final(md, &ctx);
+}
 
 /*
  * Test facilitator
