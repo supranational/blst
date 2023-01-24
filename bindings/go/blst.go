@@ -812,10 +812,7 @@ func (agg *P2Aggregate) Aggregate(elmts []*P2Affine,
 		return true
 	}
 	getter := func(i uint32, _ *P2Affine) *P2Affine { return elmts[i] }
-	if !agg.aggregate(getter, groupcheck, len(elmts)) {
-		return false
-	}
-	return true
+	return agg.aggregate(getter, groupcheck, len(elmts))
 }
 
 // Aggregate compressed elements
@@ -831,10 +828,7 @@ func (agg *P2Aggregate) AggregateCompressed(elmts [][]byte,
 		}
 		return p
 	}
-	if !agg.aggregate(getter, groupcheck, len(elmts)) {
-		return false
-	}
-	return true
+	return agg.aggregate(getter, groupcheck, len(elmts))
 }
 
 func (agg *P2Aggregate) AddAggregate(other *P2Aggregate) {
@@ -1395,10 +1389,7 @@ func (agg *P1Aggregate) Aggregate(elmts []*P1Affine,
 		return true
 	}
 	getter := func(i uint32, _ *P1Affine) *P1Affine { return elmts[i] }
-	if !agg.aggregate(getter, groupcheck, len(elmts)) {
-		return false
-	}
-	return true
+	return agg.aggregate(getter, groupcheck, len(elmts))
 }
 
 // Aggregate compressed elements
@@ -1414,10 +1405,7 @@ func (agg *P1Aggregate) AggregateCompressed(elmts [][]byte,
 		}
 		return p
 	}
-	if !agg.aggregate(getter, groupcheck, len(elmts)) {
-		return false
-	}
-	return true
+	return agg.aggregate(getter, groupcheck, len(elmts))
 }
 
 func (agg *P1Aggregate) AddAggregate(other *P1Aggregate) {
@@ -1681,7 +1669,7 @@ func (dummy *P1Affine) BatchUncompress(in [][]byte) []*P1Affine {
 			result = false
 		}
 	}
-	if atomic.LoadInt32(&valid) == 0 || result == false {
+	if atomic.LoadInt32(&valid) == 0 || !result {
 		return nil
 	}
 	return pointsPtrs
@@ -2390,7 +2378,7 @@ func (dummy *P2Affine) BatchUncompress(in [][]byte) []*P2Affine {
 			result = false
 		}
 	}
-	if atomic.LoadInt32(&valid) == 0 || result == false {
+	if atomic.LoadInt32(&valid) == 0 || !result {
 		return nil
 	}
 	return pointsPtrs
