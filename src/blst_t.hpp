@@ -80,6 +80,7 @@ private:
 public:
     static const size_t n = sizeof(vec384)/sizeof(limb_t);
     static const size_t nbits = vec_nbits(MOD, n);
+    static constexpr size_t bit_length() { return vec_nbits(MOD, n); }
     typedef byte pow_t[384/8];
 
     inline blst_384_t() {}
@@ -292,6 +293,7 @@ class blst_256_t {
 public:
     static const size_t n = sizeof(vec256)/sizeof(limb_t);
     static const size_t nbits = vec_nbits(MOD, n);
+    static constexpr size_t bit_length() { return vec_nbits(MOD, n); }
     typedef byte pow_t[256/8];
 
     inline blst_256_t() {}
