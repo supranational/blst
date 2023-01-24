@@ -1361,3 +1361,6 @@ extern "C" {
 extern "C" {
     pub fn blst_fp12_sizeof() -> usize;
 }
+extern "C" {
+    pub fn blst_sha256(out: *mut byte, msg: *const byte, msg_len: usize);
+}
