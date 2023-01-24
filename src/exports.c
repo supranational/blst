@@ -541,6 +541,20 @@ int blst_scalar_from_be_bytes(pow256 out, const unsigned char *bytes, size_t n)
 }
 
 /*
+ * Single-short SHA-256 hash function.
+ */
+#include "sha256.h"
+
+void blst_sha256(unsigned char md[32], const void *msg, size_t len)
+{
+    SHA256_CTX ctx;
+
+    sha256_init(&ctx);
+    sha256_update(&ctx, msg, len);
+    sha256_final(md, &ctx);
+}
+
+/*
  * Test facilitator.
  */
 void blst_scalar_from_hexascii(pow256 ret, const char *hex)
