@@ -46,9 +46,10 @@ static limb_t get_wval_limb(const byte *d, size_t off, size_t bits)
 static limb_t booth_encode(limb_t wval, size_t sz)
 {
     limb_t mask = 0 - (wval >> sz);     /* "sign" bit -> mask */
+    launder(mask);
 
     wval = (wval + 1) >> 1;
-    wval = (wval & ~mask) | ((0-wval) & mask);
+    wval = (wval ^ mask) - mask;
 
     /* &0x1f, but <=0x10, is index in table, rest is extended "sign" bit */
     return wval;
