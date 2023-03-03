@@ -2,4 +2,5 @@
 channel = "stable"
 targets = [
     "wasm32-wasi",
+    "wasm32-unknown-unknown",
 ]
