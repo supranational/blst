@@ -30,8 +30,6 @@ jobs:
       with:
         path: |
           ~/.cargo/registry
-          **/Cargo.lock
-          **/bindings/rust/target
         key: ${{ runner.os }}-cargo-${{ steps.get-date.outputs.date }}
 
     - name: Environment
@@ -57,14 +55,6 @@ jobs:
                 cargo test --release --target=wasm32-wasi
         fi
         [ `uname -s` = "Linux" ] && ./publish.sh --dry-run
-        cargo clean -p blst
-        cargo clean -p blst --release
-        rm -rf target/.rustc_info.json
-        rm -rf target/package
-        rm -rf target/{debug,release}/incremental
-        rm -rf target/*/{debug,release}/incremental
-        rm -rf ~/.cargo/registry/src
-        rm -rf ~/.cargo/registry/index/*/.cache
 
     - name: Go
       shell: bash
