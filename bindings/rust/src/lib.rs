@@ -35,7 +35,7 @@ mod mt {
     use std::sync::{Mutex, Once};
     use threadpool::ThreadPool;
 
-    pub fn da_pool() -> ThreadPool {
+    pub(super) fn da_pool() -> ThreadPool {
         static INIT: Once = Once::new();
         static mut POOL: *const Mutex<ThreadPool> =
             0 as *const Mutex<ThreadPool>;
@@ -59,6 +59,80 @@ mod mt {
             self.execute(unsafe {
                 transmute::<Thunk<'scope>, Thunk<'static>>(Box::new(job))
             })
+        }
+    }
+
+    fn num_bits(l: usize) -> usize {
+        8 * core::mem::size_of_val(&l) - l.leading_zeros() as usize
+    }
+
+    pub(super) fn breakdown(
+        nbits: usize,
+        window: usize,
+        ncpus: usize,
+    ) -> (usize, usize, usize) {
+        let mut nx: usize;
+        let mut wnd: usize;
+
+        if nbits > window * ncpus {
+            nx = 1;
+            wnd = num_bits(ncpus / 4);
+            if (window + wnd) > 18 {
+                wnd = window - wnd;
+            } else {
+                wnd = (nbits / window + ncpus - 1) / ncpus;
+                if (nbits / (window + 1) + ncpus - 1) / ncpus < wnd {
+                    wnd = window + 1;
+                } else {
+                    wnd = window;
+                }
+            }
+        } else {
+            nx = 2;
+            wnd = window - 2;
+            while (nbits / wnd + 1) * nx < ncpus {
+                nx += 1;
+                wnd = window - num_bits(3 * nx / 2);
+            }
+            nx -= 1;
+            wnd = window - num_bits(3 * nx / 2);
+        }
+        let ny = nbits / wnd + 1;
+        wnd = nbits / ny + 1;
+
+        (nx, ny, wnd)
+    }
+
+    pub(super) fn pippenger_window_size(npoints: usize) -> usize {
+        let wbits = num_bits(npoints);
+
+        if wbits > 13 {
+            return wbits - 4;
+        }
+        if wbits > 5 {
+            return wbits - 3;
+        }
+        2
+    }
+
+    pub(super) struct Tile {
+        pub(crate) x: usize,
+        pub(crate) dx: usize,
+        pub(crate) y: usize,
+        pub(crate) dy: usize,
+    }
+
+    // Minimalist core::cell::Cell stand-in, but with Sync marker, which
+    // makes it possible to pass it to multiple threads. It works, because
+    // *here* each Cell is written only once and by just one thread.
+    #[repr(transparent)]
+    pub(super) struct Cell<T: ?Sized> {
+        value: T,
+    }
+    unsafe impl<T: ?Sized + Sync> Sync for Cell<T> {}
+    impl<T> Cell<T> {
+        pub(super) fn as_ptr(&self) -> *mut T {
+            &self.value as *const T as *mut T
         }
     }
 }
@@ -1806,31 +1880,6 @@ pub mod min_sig {
     );
 }
 
-#[cfg(all(not(feature = "no-threads"), feature = "std"))]
-struct tile {
-    x: usize,
-    dx: usize,
-    y: usize,
-    dy: usize,
-}
-
-// Minimalist core::cell::Cell stand-in, but with Sync marker, which
-// makes it possible to pass it to multiple threads. It works, because
-// *here* each Cell is written only once and by just one thread.
-#[cfg(all(not(feature = "no-threads"), feature = "std"))]
-#[repr(transparent)]
-struct Cell<T: ?Sized> {
-    value: T,
-}
-#[cfg(all(not(feature = "no-threads"), feature = "std"))]
-unsafe impl<T: ?Sized + Sync> Sync for Cell<T> {}
-#[cfg(all(not(feature = "no-threads"), feature = "std"))]
-impl<T> Cell<T> {
-    pub fn as_ptr(&self) -> *mut T {
-        &self.value as *const T as *mut T
-    }
-}
-
 macro_rules! pippenger_mult_impl {
     (
         $points:ident,
@@ -1942,11 +1991,14 @@ macro_rules! pippenger_mult_impl {
                     }
                 }
 
-                let (nx, ny, window) =
-                    breakdown(nbits, pippenger_window_size(npoints), ncpus);
+                let (nx, ny, window) = mt::breakdown(
+                    nbits,
+                    mt::pippenger_window_size(npoints),
+                    ncpus,
+                );
 
                 // |grid[]| holds "coordinates" and place for result
-                let mut grid: Vec<(tile, Cell<$point>)> =
+                let mut grid: Vec<(mt::Tile, mt::Cell<$point>)> =
                     Vec::with_capacity(nx * ny);
                 unsafe { grid.set_len(grid.capacity()) };
                 let dx = npoints / nx;
@@ -2157,59 +2209,3 @@ pippenger_mult_impl!(
     blst_p2_generator,
     blst_p2_mult,
 );
-
-#[cfg(all(not(feature = "no-threads"), feature = "std"))]
-fn num_bits(l: usize) -> usize {
-    8 * core::mem::size_of_val(&l) - l.leading_zeros() as usize
-}
-
-#[cfg(all(not(feature = "no-threads"), feature = "std"))]
-fn breakdown(
-    nbits: usize,
-    window: usize,
-    ncpus: usize,
-) -> (usize, usize, usize) {
-    let mut nx: usize;
-    let mut wnd: usize;
-
-    if nbits > window * ncpus {
-        nx = 1;
-        wnd = num_bits(ncpus / 4);
-        if (window + wnd) > 18 {
-            wnd = window - wnd;
-        } else {
-            wnd = (nbits / window + ncpus - 1) / ncpus;
-            if (nbits / (window + 1) + ncpus - 1) / ncpus < wnd {
-                wnd = window + 1;
-            } else {
-                wnd = window;
-            }
-        }
-    } else {
-        nx = 2;
-        wnd = window - 2;
-        while (nbits / wnd + 1) * nx < ncpus {
-            nx += 1;
-            wnd = window - num_bits(3 * nx / 2);
-        }
-        nx -= 1;
-        wnd = window - num_bits(3 * nx / 2);
-    }
-    let ny = nbits / wnd + 1;
-    wnd = nbits / ny + 1;
-
-    (nx, ny, wnd)
-}
-
-#[cfg(all(not(feature = "no-threads"), feature = "std"))]
-fn pippenger_window_size(npoints: usize) -> usize {
-    let wbits = num_bits(npoints);
-
-    if wbits > 13 {
-        return wbits - 4;
-    }
-    if wbits > 5 {
-        return wbits - 3;
-    }
-    2
-}
