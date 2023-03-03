@@ -673,7 +673,7 @@ macro_rules! sig_variant_impl {
                 &self,
                 ser: S,
             ) -> Result<S::Ok, S::Error> {
-                serde_bytes::ByteBuf::from(self.to_bytes()).serialize(ser)
+                serde_bytes::ByteBuf::from(self.serialize()).serialize(ser)
             }
         }
 
@@ -796,11 +796,20 @@ macro_rules! sig_variant_impl {
 
         #[cfg(feature = "serde")]
         impl Serialize for PublicKey {
+            #[cfg(not(feature = "serde_compressed"))]
             fn serialize<S: Serializer>(
                 &self,
                 ser: S,
             ) -> Result<S::Ok, S::Error> {
-                serde_bytes::ByteBuf::from(self.to_bytes()).serialize(ser)
+                serde_bytes::ByteBuf::from(self.serialize()).serialize(ser)
+            }
+
+            #[cfg(feature = "serde_compressed")]
+            fn serialize<S: Serializer>(
+                &self,
+                ser: S,
+            ) -> Result<S::Ok, S::Error> {
+                serde_bytes::ByteBuf::from(self.compress()).serialize(ser)
             }
         }
 
@@ -1246,11 +1255,20 @@ macro_rules! sig_variant_impl {
 
         #[cfg(feature = "serde")]
         impl Serialize for Signature {
+            #[cfg(not(feature = "serde_compressed"))]
             fn serialize<S: Serializer>(
                 &self,
                 ser: S,
             ) -> Result<S::Ok, S::Error> {
-                serde_bytes::ByteBuf::from(self.to_bytes()).serialize(ser)
+                serde_bytes::ByteBuf::from(self.serialize()).serialize(ser)
+            }
+
+            #[cfg(feature = "serde_compressed")]
+            fn serialize<S: Serializer>(
+                &self,
+                ser: S,
+            ) -> Result<S::Ok, S::Error> {
+                serde_bytes::ByteBuf::from(self.compress()).serialize(ser)
             }
         }
 

@@ -38,6 +38,8 @@ force-adx = []
 no-threads = []
 # Support serialization and deserialization using serde
 serde = ["serde_actual", "serde_bytes"]
+# Use compressed point representations when serializing.
+serde_compressed = ["serde"]
 
 [build-dependencies]
 cc = "1.0"
