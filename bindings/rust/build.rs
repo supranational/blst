@@ -49,7 +49,7 @@ fn main() {
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
 
     let mut blst_base_dir = manifest_dir.join("blst");
-    if !blst_base_dir.exists() {
+    if !(blst_base_dir.is_dir() || blst_base_dir.is_symlink()) {
         // Reach out to ../.., which is the root of the blst repo.
         // Use an absolute path to avoid issues with relative paths
         // being treated as strings by `cc` and getting concatenated

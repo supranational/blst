@@ -10,10 +10,10 @@ readme = "README.md"
 categories = ["cryptography"]
 keywords = ["crypto", "bls", "signature", "asm", "wasm"]
 include = [
-    "**/*.rs",
-    "/Cargo.toml",
+    "/benches",
+    "/src",
+    "/build.rs",
     "/README.md",
-    "/rustfmt.toml",
     "/blst/src/*.c",
     "/blst/src/*.h*",
     "/blst/build/**",
