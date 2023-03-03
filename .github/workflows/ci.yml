@@ -51,7 +51,6 @@ jobs:
         cargo test --release
         cargo test --release --features=no-threads
         if [ `uname -s` = "Linux" ]; then
-            rustup target add wasm32-wasi
             curl https://wasmtime.dev/install.sh -sSf | bash
             env PATH=$PATH:~/.wasmtime/bin:`clang -print-search-dirs | awk -F= '/^programs:/{print$2}'` \
                 AR=llvm-ar CARGO_TARGET_WASM32_WASI_RUNNER=wasmtime \

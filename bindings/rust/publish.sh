@@ -3,4 +3,4 @@
 HERE=`dirname $0`
 cd "${HERE}"
 
-cargo +stable publish "$@"
+cargo publish "$@"
