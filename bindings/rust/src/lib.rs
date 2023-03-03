@@ -13,6 +13,9 @@ use core::sync::atomic::*;
 use std::sync::{mpsc::channel, Arc};
 use zeroize::Zeroize;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
 trait ThreadPoolExt {
     fn joined_execute<'any, F>(&self, job: F)
     where
@@ -724,6 +727,29 @@ macro_rules! sig_variant_impl {
             }
         }
 
+        #[cfg(feature = "serde-secret")]
+        impl Serialize for SecretKey {
+            fn serialize<S: Serializer>(
+                &self,
+                ser: S,
+            ) -> Result<S::Ok, S::Error> {
+                let bytes = zeroize::Zeroizing::new(self.serialize());
+                ser.serialize_bytes(bytes.as_ref())
+            }
+        }
+
+        #[cfg(feature = "serde-secret")]
+        impl<'de> Deserialize<'de> for SecretKey {
+            fn deserialize<D: Deserializer<'de>>(
+                deser: D,
+            ) -> Result<Self, D::Error> {
+                let bytes: &[u8] = Deserialize::deserialize(deser)?;
+                Self::deserialize(bytes).map_err(|e| {
+                    <D::Error as serde::de::Error>::custom(format!("{:?}", e))
+                })
+            }
+        }
+
         #[derive(Default, Debug, Clone, Copy)]
         pub struct PublicKey {
             point: $pk_aff,
@@ -823,6 +849,28 @@ macro_rules! sig_variant_impl {
         impl PartialEq for PublicKey {
             fn eq(&self, other: &Self) -> bool {
                 unsafe { $pk_eq(&self.point, &other.point) }
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl Serialize for PublicKey {
+            fn serialize<S: Serializer>(
+                &self,
+                ser: S,
+            ) -> Result<S::Ok, S::Error> {
+                ser.serialize_bytes(&self.serialize())
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl<'de> Deserialize<'de> for PublicKey {
+            fn deserialize<D: Deserializer<'de>>(
+                deser: D,
+            ) -> Result<Self, D::Error> {
+                let bytes: &[u8] = Deserialize::deserialize(deser)?;
+                Self::deserialize(&bytes).map_err(|e| {
+                    <D::Error as serde::de::Error>::custom(format!("{:?}", e))
+                })
             }
         }
 
@@ -1248,6 +1296,28 @@ macro_rules! sig_variant_impl {
         impl PartialEq for Signature {
             fn eq(&self, other: &Self) -> bool {
                 unsafe { $sig_eq(&self.point, &other.point) }
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl Serialize for Signature {
+            fn serialize<S: Serializer>(
+                &self,
+                ser: S,
+            ) -> Result<S::Ok, S::Error> {
+                ser.serialize_bytes(&self.serialize())
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl<'de> Deserialize<'de> for Signature {
+            fn deserialize<D: Deserializer<'de>>(
+                deser: D,
+            ) -> Result<Self, D::Error> {
+                let bytes: &[u8] = Deserialize::deserialize(deser)?;
+                Self::deserialize(&bytes).map_err(|e| {
+                    <D::Error as serde::de::Error>::custom(format!("{:?}", e))
+                })
             }
         }
 
@@ -1687,6 +1757,89 @@ macro_rules! sig_variant_impl {
                 assert_ne!(pk_deser.unwrap(), pk2);
                 assert_ne!(pk_uncomp2.unwrap(), pk);
                 assert_ne!(pk_deser2.unwrap(), pk);
+            }
+
+            #[cfg(feature = "serde")]
+            #[test]
+            fn test_serde() {
+                let seed = [0u8; 32];
+                let mut rng = ChaCha20Rng::from_seed(seed);
+
+                // generate a sk, pk, and sig, and make sure it signs
+                let sk = gen_random_key(&mut rng);
+                let pk = sk.sk_to_pk();
+                let sig = sk.sign(b"asdf", b"qwer", b"zxcv");
+                assert_eq!(
+                    sig.verify(true, b"asdf", b"qwer", b"zxcv", &pk, true),
+                    BLST_ERROR::BLST_SUCCESS
+                );
+
+                // roundtrip through serde
+                let pk_ser =
+                    rmp_serde::encode::to_vec_named(&pk).expect("ser pk");
+                let sig_ser =
+                    rmp_serde::encode::to_vec_named(&sig).expect("ser sig");
+                let pk_des: PublicKey =
+                    rmp_serde::decode::from_slice(&pk_ser).expect("des pk");
+                let sig_des: Signature =
+                    rmp_serde::decode::from_slice(&sig_ser).expect("des sig");
+
+                // check that we got back the right things
+                assert_eq!(pk, pk_des);
+                assert_eq!(sig, sig_des);
+                assert_eq!(
+                    sig.verify(true, b"asdf", b"qwer", b"zxcv", &pk_des, true),
+                    BLST_ERROR::BLST_SUCCESS
+                );
+                assert_eq!(
+                    sig_des.verify(true, b"asdf", b"qwer", b"zxcv", &pk, true),
+                    BLST_ERROR::BLST_SUCCESS
+                );
+                assert_eq!(sk.sign(b"asdf", b"qwer", b"zxcv"), sig_des);
+            }
+
+            #[cfg(feature = "serde-secret")]
+            #[test]
+            fn test_serde_secret() {
+                let seed = [0u8; 32];
+                let mut rng = ChaCha20Rng::from_seed(seed);
+
+                // generate a sk, pk, and sig, and make sure it signs
+                let sk = gen_random_key(&mut rng);
+                let pk = sk.sk_to_pk();
+                let sig = sk.sign(b"asdf", b"qwer", b"zxcv");
+                assert_eq!(
+                    sig.verify(true, b"asdf", b"qwer", b"zxcv", &pk, true),
+                    BLST_ERROR::BLST_SUCCESS
+                );
+
+                // roundtrip through serde
+                let sk_ser =
+                    rmp_serde::encode::to_vec_named(&sk).expect("ser sk");
+                let pk_ser =
+                    rmp_serde::encode::to_vec_named(&pk).expect("ser pk");
+                let sig_ser =
+                    rmp_serde::encode::to_vec_named(&sig).expect("ser sig");
+                let sk_des: SecretKey =
+                    rmp_serde::decode::from_slice(&sk_ser).expect("des sk");
+                let pk_des: PublicKey =
+                    rmp_serde::decode::from_slice(&pk_ser).expect("des pk");
+                let sig_des: Signature =
+                    rmp_serde::decode::from_slice(&sig_ser).expect("des sig");
+
+                // check that we got back the right things
+                assert_eq!(pk, pk_des);
+                assert_eq!(sig, sig_des);
+                assert_eq!(
+                    sig.verify(true, b"asdf", b"qwer", b"zxcv", &pk_des, true),
+                    BLST_ERROR::BLST_SUCCESS
+                );
+                assert_eq!(
+                    sig_des.verify(true, b"asdf", b"qwer", b"zxcv", &pk, true),
+                    BLST_ERROR::BLST_SUCCESS
+                );
+                // BLS signatures are deterministic, so this establishes that sk == sk_des
+                assert_eq!(sk_des.sign(b"asdf", b"qwer", b"zxcv"), sig);
             }
         }
     };
