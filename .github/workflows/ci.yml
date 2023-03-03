@@ -55,7 +55,10 @@ jobs:
                 cargo test --release --target=wasm32-wasi
         fi
         [ `uname -s` = "Linux" ] && ./publish.sh --dry-run
-        cargo build --target wasm32-unknown-unknown --no-default-features
+        # Apple's Clang doesn't support WASM, and we are lazy to install it
+        if [ "$RUNNER_OS" != "macOS" ]; then
+            cargo build --target wasm32-unknown-unknown --no-default-features
+        fi
 
     - name: Go
       shell: bash

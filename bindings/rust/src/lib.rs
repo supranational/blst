@@ -1,16 +1,24 @@
 // Copyright Supranational LLC
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
-
+#![cfg_attr(not(feature = "std"), no_std)]
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
+extern crate alloc;
+
+use alloc::boxed::Box;
+use alloc::vec;
+use alloc::vec::Vec;
 use core::any::Any;
 use core::mem::MaybeUninit;
+#[cfg(all(not(feature = "no-threads"), feature = "std"))]
 use core::num::Wrapping;
 use core::ptr;
+#[cfg(all(not(feature = "no-threads"), feature = "std"))]
 use core::sync::atomic::*;
+#[cfg(all(not(feature = "no-threads"), feature = "std"))]
 use std::sync::{mpsc::channel, Arc, Barrier};
 use zeroize::Zeroize;
 
@@ -20,7 +28,7 @@ trait ThreadPoolExt {
         F: FnOnce() + Send + 'any;
 }
 
-#[cfg(not(feature = "no-threads"))]
+#[cfg(all(not(feature = "no-threads"), feature = "std"))]
 mod mt {
     use super::*;
     use core::mem::transmute;
@@ -51,32 +59,6 @@ mod mt {
             self.execute(unsafe {
                 transmute::<Thunk<'scope>, Thunk<'static>>(Box::new(job))
             })
-        }
-    }
-}
-
-#[cfg(feature = "no-threads")]
-mod mt {
-    use super::*;
-
-    pub struct EmptyPool {}
-
-    pub fn da_pool() -> EmptyPool {
-        EmptyPool {}
-    }
-
-    impl EmptyPool {
-        pub fn max_count(&self) -> usize {
-            1
-        }
-    }
-
-    impl ThreadPoolExt for EmptyPool {
-        fn joined_execute<'scope, F>(&self, job: F)
-        where
-            F: FnOnce() + Send + 'scope,
-        {
-            job()
         }
     }
 }
@@ -409,14 +391,6 @@ pub fn uniq(msgs: &[&[u8]]) -> bool {
     }
 
     true
-}
-
-pub fn print_bytes(bytes: &[u8], name: &str) {
-    print!("{} ", name);
-    for b in bytes.iter() {
-        print!("{:02x}", b);
-    }
-    println!();
 }
 
 macro_rules! sig_variant_impl {
@@ -921,6 +895,7 @@ macro_rules! sig_variant_impl {
                 )
             }
 
+            #[cfg(all(not(feature = "no-threads"), feature = "std"))]
             pub fn aggregate_verify(
                 &self,
                 sig_groupcheck: bool,
@@ -1001,6 +976,59 @@ macro_rules! sig_variant_impl {
                 }
             }
 
+            #[cfg(any(feature = "no-threads", not(feature = "std")))]
+            pub fn aggregate_verify(
+                &self,
+                sig_groupcheck: bool,
+                msgs: &[&[u8]],
+                dst: &[u8],
+                pks: &[&PublicKey],
+                pks_validate: bool,
+            ) -> BLST_ERROR {
+                let n_elems = pks.len();
+                if n_elems == 0 || msgs.len() != n_elems {
+                    return BLST_ERROR::BLST_VERIFY_FAIL;
+                }
+
+                // TODO - check msg uniqueness?
+
+                let mut pairing = Pairing::new($hash_or_encode, dst);
+
+                for (pk, msg) in pks.iter().zip(msgs.iter()) {
+                    if pairing.aggregate(
+                        &pk.point,
+                        pks_validate,
+                        &unsafe { ptr::null::<$sig_aff>().as_ref() },
+                        false,
+                        &msg,
+                        &[],
+                    ) != BLST_ERROR::BLST_SUCCESS
+                    {
+                        return BLST_ERROR::BLST_VERIFY_FAIL;
+                    }
+                }
+
+                pairing.commit();
+
+                if sig_groupcheck {
+                    match self.validate(false) {
+                        Err(_err) => {
+                            return BLST_ERROR::BLST_VERIFY_FAIL;
+                        }
+                        _ => (),
+                    }
+                }
+
+                let mut gtsig = blst_fp12::default();
+                Pairing::aggregated(&mut gtsig, &self.point);
+
+                if pairing.finalverify(Some(&gtsig)) {
+                    BLST_ERROR::BLST_SUCCESS
+                } else {
+                    BLST_ERROR::BLST_VERIFY_FAIL
+                }
+            }
+
             // pks are assumed to be verified for proof of possession,
             // which implies that they are already group-checked
             pub fn fast_aggregate_verify(
@@ -1035,6 +1063,7 @@ macro_rules! sig_variant_impl {
             }
 
             // https://ethresear.ch/t/fast-verification-of-multiple-bls-signatures/5407
+            #[cfg(all(not(feature = "no-threads"), feature = "std"))]
             pub fn verify_multiple_aggregate_signatures(
                 msgs: &[&[u8]],
                 dst: &[u8],
@@ -1106,6 +1135,62 @@ macro_rules! sig_variant_impl {
                 }
 
                 if valid.load(Ordering::Relaxed) && acc.finalverify(None) {
+                    BLST_ERROR::BLST_SUCCESS
+                } else {
+                    BLST_ERROR::BLST_VERIFY_FAIL
+                }
+            }
+
+            #[cfg(any(feature = "no-threads", not(feature = "std")))]
+            pub fn verify_multiple_aggregate_signatures(
+                msgs: &[&[u8]],
+                dst: &[u8],
+                pks: &[&PublicKey],
+                pks_validate: bool,
+                sigs: &[&Signature],
+                sigs_groupcheck: bool,
+                rands: &[blst_scalar],
+                rand_bits: usize,
+            ) -> BLST_ERROR {
+                let n_elems = pks.len();
+                if n_elems == 0
+                    || msgs.len() != n_elems
+                    || sigs.len() != n_elems
+                    || rands.len() != n_elems
+                {
+                    return BLST_ERROR::BLST_VERIFY_FAIL;
+                }
+
+                // TODO - check msg uniqueness?
+
+                let mut pairing = Pairing::new($hash_or_encode, dst);
+
+                // TODO - engage multi-point mul-n-add for larger
+                // amount of inputs...
+                for (((pk, sig), msg), rand) in pks
+                    .iter()
+                    .zip(sigs.iter())
+                    .zip(msgs.iter())
+                    .zip(rands.iter())
+                {
+                    if pairing.mul_n_aggregate(
+                        &pk.point,
+                        pks_validate,
+                        &sig.point,
+                        sigs_groupcheck,
+                        &rand.b,
+                        rand_bits,
+                        msg,
+                        &[],
+                    ) != BLST_ERROR::BLST_SUCCESS
+                    {
+                        return BLST_ERROR::BLST_VERIFY_FAIL;
+                    }
+                }
+
+                pairing.commit();
+
+                if pairing.finalverify(None) {
                     BLST_ERROR::BLST_SUCCESS
                 } else {
                     BLST_ERROR::BLST_VERIFY_FAIL
@@ -1721,6 +1806,7 @@ pub mod min_sig {
     );
 }
 
+#[cfg(all(not(feature = "no-threads"), feature = "std"))]
 struct tile {
     x: usize,
     dx: usize,
@@ -1731,11 +1817,14 @@ struct tile {
 // Minimalist core::cell::Cell stand-in, but with Sync marker, which
 // makes it possible to pass it to multiple threads. It works, because
 // *here* each Cell is written only once and by just one thread.
+#[cfg(all(not(feature = "no-threads"), feature = "std"))]
 #[repr(transparent)]
 struct Cell<T: ?Sized> {
     value: T,
 }
+#[cfg(all(not(feature = "no-threads"), feature = "std"))]
 unsafe impl<T: ?Sized + Sync> Sync for Cell<T> {}
+#[cfg(all(not(feature = "no-threads"), feature = "std"))]
 impl<T> Cell<T> {
     pub fn as_ptr(&self) -> *mut T {
         &self.value as *const T as *mut T
@@ -1762,6 +1851,7 @@ macro_rules! pippenger_mult_impl {
         }
 
         impl $points {
+            #[cfg(all(not(feature = "no-threads"), feature = "std"))]
             pub fn from(points: &[$point]) -> Self {
                 let npoints = points.len();
                 let mut ret = Self {
@@ -1806,6 +1896,20 @@ macro_rules! pippenger_mult_impl {
                 ret
             }
 
+            #[cfg(any(feature = "no-threads", not(feature = "std")))]
+            pub fn from(points: &[$point]) -> Self {
+                let npoints = points.len();
+                let mut ret = Self {
+                    points: Vec::with_capacity(npoints),
+                };
+                unsafe { ret.points.set_len(npoints) };
+
+                let p: [*const $point; 2] = [&points[0], ptr::null()];
+                unsafe { $to_affines(&mut ret.points[0], &p[0], npoints) };
+                return ret;
+            }
+
+            #[cfg(all(not(feature = "no-threads"), feature = "std"))]
             pub fn mult(&self, scalars: &[u8], nbits: usize) -> $point {
                 let npoints = self.points.len();
                 let nbytes = (nbits + 7) / 8;
@@ -1952,6 +2056,36 @@ macro_rules! pippenger_mult_impl {
                 }
                 ret
             }
+
+            #[cfg(any(feature = "no-threads", not(feature = "std")))]
+            pub fn mult(&self, scalars: &[u8], nbits: usize) -> $point {
+                let npoints = self.points.len();
+                let nbytes = (nbits + 7) / 8;
+
+                if scalars.len() < nbytes * npoints {
+                    panic!("scalars length mismatch");
+                }
+
+                let p: [*const $point_affine; 2] =
+                    [&self.points[0], ptr::null()];
+                let s: [*const u8; 2] = [&scalars[0], ptr::null()];
+
+                unsafe {
+                    let mut scratch: Vec<u64> =
+                        Vec::with_capacity($scratch_sizeof(npoints) / 8);
+                    scratch.set_len(scratch.capacity());
+                    let mut ret = <$point>::default();
+                    $multi_scalar_mult(
+                        &mut ret,
+                        &p[0],
+                        npoints,
+                        &s[0],
+                        nbits,
+                        &mut scratch[0],
+                    );
+                    return ret;
+                }
+            }
         }
 
         #[cfg(test)]
@@ -2024,10 +2158,12 @@ pippenger_mult_impl!(
     blst_p2_mult,
 );
 
+#[cfg(all(not(feature = "no-threads"), feature = "std"))]
 fn num_bits(l: usize) -> usize {
     8 * core::mem::size_of_val(&l) - l.leading_zeros() as usize
 }
 
+#[cfg(all(not(feature = "no-threads"), feature = "std"))]
 fn breakdown(
     nbits: usize,
     window: usize,
@@ -2065,6 +2201,7 @@ fn breakdown(
     (nx, ny, wnd)
 }
 
+#[cfg(all(not(feature = "no-threads"), feature = "std"))]
 fn pippenger_window_size(npoints: usize) -> usize {
     let wbits = num_bits(npoints);
 

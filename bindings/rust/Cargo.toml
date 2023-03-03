@@ -26,7 +26,9 @@ links = "blst"
 [features]
 # By default, compile with ADX extension if the host supports it.
 # Binary can be executed on systems similar to the host.
-default = []
+default = ["std"]
+# When compiled without this feature library is `no_std` compatible
+std = []
 # Compile in portable mode, without ISA extensions.
 # Binary can be executed on all systems.
 portable = []
@@ -34,7 +36,7 @@ portable = []
 # Binary can be executed on Broadwell+ and Ryzen+ systems.
 force-adx = []
 # Suppress multi-threading.
-# Engaged on wasm32 target architecture automatically.
+# Engaged on wasm32 target architecture and when compiled without `std` feature automatically.
 no-threads = []
 
 [build-dependencies]
