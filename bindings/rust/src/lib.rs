@@ -15,7 +15,7 @@ use core::sync::atomic::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::sync::{mpsc::channel, Arc, Barrier};
 use zeroize::Zeroize;
-#[cfg(feature = "serde")]
+#[cfg(feature = "serde-secret")]
 use zeroize::Zeroizing;
 
 trait ThreadPoolExt {
@@ -669,7 +669,7 @@ macro_rules! sig_variant_impl {
             }
         }
 
-        #[cfg(feature = "serde")]
+        #[cfg(feature = "serde-secret")]
         impl Serialize for SecretKey {
             fn serialize<S: Serializer>(
                 &self,
@@ -680,7 +680,7 @@ macro_rules! sig_variant_impl {
             }
         }
 
-        #[cfg(feature = "serde")]
+        #[cfg(feature = "serde-secret")]
         impl<'de> Deserialize<'de> for SecretKey {
             fn deserialize<D: Deserializer<'de>>(
                 deser: D,
@@ -1704,6 +1704,45 @@ macro_rules! sig_variant_impl {
             #[cfg(feature = "serde")]
             #[test]
             fn test_serde() {
+                let seed = [0u8; 32];
+                let mut rng = ChaCha20Rng::from_seed(seed);
+
+                // generate a sk, pk, and sig, and make sure it signs
+                let sk = gen_random_key(&mut rng);
+                let pk = sk.sk_to_pk();
+                let sig = sk.sign(b"asdf", b"qwer", b"zxcv");
+                assert_eq!(
+                    sig.verify(true, b"asdf", b"qwer", b"zxcv", &pk, true),
+                    BLST_ERROR::BLST_SUCCESS
+                );
+
+                // roundtrip through serde
+                let pk_ser =
+                    rmp_serde::encode::to_vec_named(&pk).expect("ser pk");
+                let sig_ser =
+                    rmp_serde::encode::to_vec_named(&sig).expect("ser sig");
+                let pk_des: PublicKey =
+                    rmp_serde::decode::from_slice(&pk_ser).expect("des pk");
+                let sig_des: Signature =
+                    rmp_serde::decode::from_slice(&sig_ser).expect("des sig");
+
+                // check that we got back the right things
+                assert_eq!(pk, pk_des);
+                assert_eq!(sig, sig_des);
+                assert_eq!(
+                    sig.verify(true, b"asdf", b"qwer", b"zxcv", &pk_des, true),
+                    BLST_ERROR::BLST_SUCCESS
+                );
+                assert_eq!(
+                    sig_des.verify(true, b"asdf", b"qwer", b"zxcv", &pk, true),
+                    BLST_ERROR::BLST_SUCCESS
+                );
+                assert_eq!(sk.sign(b"asdf", b"qwer", b"zxcv"), sig_des);
+            }
+
+            #[cfg(feature = "serde-secret")]
+            #[test]
+            fn test_serde_secret() {
                 let seed = [0u8; 32];
                 let mut rng = ChaCha20Rng::from_seed(seed);
 
