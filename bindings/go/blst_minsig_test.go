@@ -13,7 +13,6 @@ package blst
 import (
     "crypto/rand"
     "fmt"
-    mrand "math/rand"
     "runtime"
     "testing"
 )
@@ -299,7 +298,10 @@ func TestSignMultipleVerifyAggregateMinSig(t *testing.T) {
 
         randFn := func(s *Scalar) {
             var rbytes [BLST_SCALAR_BYTES]byte
-            mrand.Read(rbytes[:])
+            _, err := rand.Read(rbytes[:])
+            if err != nil {
+                t.Errorf(err.Error())
+            }
             s.FromBEndian(rbytes[:])
         }
 
