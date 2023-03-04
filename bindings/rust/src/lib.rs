@@ -12,9 +12,11 @@ use core::num::Wrapping;
 use core::ptr;
 use core::sync::atomic::*;
 #[cfg(feature = "serde")]
-use serde_actual::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::sync::{mpsc::channel, Arc, Barrier};
 use zeroize::Zeroize;
+#[cfg(feature = "serde")]
+use zeroize::Zeroizing;
 
 trait ThreadPoolExt {
     fn joined_execute<'any, F>(&self, job: F)
@@ -673,7 +675,8 @@ macro_rules! sig_variant_impl {
                 &self,
                 ser: S,
             ) -> Result<S::Ok, S::Error> {
-                serde_bytes::ByteBuf::from(self.serialize()).serialize(ser)
+                let bytes = Zeroizing::new(self.serialize());
+                ser.serialize_bytes(bytes.as_ref())
             }
         }
 
@@ -682,12 +685,9 @@ macro_rules! sig_variant_impl {
             fn deserialize<D: Deserializer<'de>>(
                 deser: D,
             ) -> Result<Self, D::Error> {
-                let bs: serde_bytes::ByteBuf = Deserialize::deserialize(deser)?;
-                Self::deserialize(&bs).map_err(|e| {
-                    <D::Error as serde_actual::de::Error>::custom(format!(
-                        "{:?}",
-                        e
-                    ))
+                let bytes: &[u8] = Deserialize::deserialize(deser)?;
+                Self::deserialize(&bytes).map_err(|e| {
+                    <D::Error as serde::de::Error>::custom(format!("{:?}", e))
                 })
             }
         }
@@ -796,20 +796,11 @@ macro_rules! sig_variant_impl {
 
         #[cfg(feature = "serde")]
         impl Serialize for PublicKey {
-            #[cfg(not(feature = "serde_compressed"))]
             fn serialize<S: Serializer>(
                 &self,
                 ser: S,
             ) -> Result<S::Ok, S::Error> {
-                serde_bytes::ByteBuf::from(self.serialize()).serialize(ser)
-            }
-
-            #[cfg(feature = "serde_compressed")]
-            fn serialize<S: Serializer>(
-                &self,
-                ser: S,
-            ) -> Result<S::Ok, S::Error> {
-                serde_bytes::ByteBuf::from(self.compress()).serialize(ser)
+                ser.serialize_bytes(&self.serialize())
             }
         }
 
@@ -818,12 +809,9 @@ macro_rules! sig_variant_impl {
             fn deserialize<D: Deserializer<'de>>(
                 deser: D,
             ) -> Result<Self, D::Error> {
-                let bs: serde_bytes::ByteBuf = Deserialize::deserialize(deser)?;
-                Self::deserialize(&bs).map_err(|e| {
-                    <D::Error as serde_actual::de::Error>::custom(format!(
-                        "{:?}",
-                        e
-                    ))
+                let bytes: &[u8] = Deserialize::deserialize(deser)?;
+                Self::deserialize(&bytes).map_err(|e| {
+                    <D::Error as serde::de::Error>::custom(format!("{:?}", e))
                 })
             }
         }
@@ -1255,20 +1243,11 @@ macro_rules! sig_variant_impl {
 
         #[cfg(feature = "serde")]
         impl Serialize for Signature {
-            #[cfg(not(feature = "serde_compressed"))]
             fn serialize<S: Serializer>(
                 &self,
                 ser: S,
             ) -> Result<S::Ok, S::Error> {
-                serde_bytes::ByteBuf::from(self.serialize()).serialize(ser)
-            }
-
-            #[cfg(feature = "serde_compressed")]
-            fn serialize<S: Serializer>(
-                &self,
-                ser: S,
-            ) -> Result<S::Ok, S::Error> {
-                serde_bytes::ByteBuf::from(self.compress()).serialize(ser)
+                ser.serialize_bytes(&self.serialize())
             }
         }
 
@@ -1277,12 +1256,9 @@ macro_rules! sig_variant_impl {
             fn deserialize<D: Deserializer<'de>>(
                 deser: D,
             ) -> Result<Self, D::Error> {
-                let bs: serde_bytes::ByteBuf = Deserialize::deserialize(deser)?;
-                Self::deserialize(&bs).map_err(|e| {
-                    <D::Error as serde_actual::de::Error>::custom(format!(
-                        "{:?}",
-                        e
-                    ))
+                let bytes: &[u8] = Deserialize::deserialize(deser)?;
+                Self::deserialize(&bytes).map_err(|e| {
+                    <D::Error as serde::de::Error>::custom(format!("{:?}", e))
                 })
             }
         }
