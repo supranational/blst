@@ -51,6 +51,7 @@ jobs:
         cargo test --release
         cargo test --release --features=no-threads
         cargo test --release --features=serde
+        cargo test --release --features=serde-secret
         if [ `uname -s` = "Linux" ]; then
             rustup target add wasm32-wasi
             curl https://wasmtime.dev/install.sh -sSf | bash
