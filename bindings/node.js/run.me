@@ -35,7 +35,10 @@ fi
 if [ ! -f blst.node -o blst_wrap.cpp -nt blst.node \
                     -o ../libblst.a  -nt blst.node ]; then
     # figure out minimally required C++ standard and enforce it...
-    if [ `$NODE -e 'console.log(parseInt(process.versions["node"]))'` -gt 14 ]; then
+    nodever=`$NODE -e 'console.log(parseInt(process.versions["node"]))'`
+    if [ $nodever -gt 18 ]; then
+        min=17
+    elif [ $nodever -gt 14 ]; then
         min=14
     else
         min=11
