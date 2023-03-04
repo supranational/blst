@@ -686,7 +686,7 @@ macro_rules! sig_variant_impl {
                 deser: D,
             ) -> Result<Self, D::Error> {
                 let bytes: &[u8] = Deserialize::deserialize(deser)?;
-                Self::deserialize(&bytes).map_err(|e| {
+                Self::deserialize(bytes).map_err(|e| {
                     <D::Error as serde::de::Error>::custom(format!("{:?}", e))
                 })
             }
