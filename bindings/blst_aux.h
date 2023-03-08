@@ -99,4 +99,9 @@ size_t blst_p1_affine_sizeof();
 size_t blst_p2_sizeof();
 size_t blst_p2_affine_sizeof();
 size_t blst_fp12_sizeof();
+
+/*
+ * Single-shot SHA-256 hash function.
+ */
+void blst_sha256(byte out[32], const byte *msg, size_t msg_len);
 #endif

@@ -1,8 +1,8 @@
 #[cfg(test)]
 macro_rules! offsetof {
     ($type:ty, $field:tt) => {
-        unsafe {
-            let v = std::mem::MaybeUninit::<$type>::uninit().assume_init();
+        {
+            let v = <$type>::default();
             (&v.$field as *const _ as usize) - (&v as *const _ as usize)
         }
     };
@@ -1360,4 +1360,7 @@ extern "C" {
 }
 extern "C" {
     pub fn blst_fp12_sizeof() -> usize;
+}
+extern "C" {
+    pub fn blst_sha256(out: *mut byte, msg: *const byte, msg_len: usize);
 }

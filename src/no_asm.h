@@ -16,13 +16,13 @@ typedef unsigned long long llimb_t;
 # pragma GCC diagnostic ignored "-Wstatic-in-inline"
 #endif
 
-#if !defined(__clang__)
+#if !defined(__clang__) && !defined(__builtin_assume)
 # if defined(__GNUC__) && __GNUC__>=5
 #  define __builtin_assume(condition) if (!(condition)) __builtin_unreachable()
 # elif defined(_MSC_VER)
 #  define __builtin_assume(condition) __assume(condition)
 # else
-#  define __builtin_assume(condition)
+#  define __builtin_assume(condition) (void)(condition)
 # endif
 #endif
 

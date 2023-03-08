@@ -24,8 +24,8 @@ print << '___';
 #[cfg(test)]
 macro_rules! offsetof {
     ($type:ty, $field:tt) => {
-        unsafe {
-            let v = std::mem::MaybeUninit::<$type>::uninit().assume_init();
+        {
+            let v = <$type>::default();
             (&v.$field as *const _ as usize) - (&v as *const _ as usize)
         }
     };

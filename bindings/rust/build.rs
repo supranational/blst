@@ -5,24 +5,24 @@ extern crate cc;
 use std::env;
 use std::path::{Path, PathBuf};
 
-#[cfg(target_env = "msvc")]
-fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, arch: &String) {
-    let sfx = match arch.as_str() {
-        "x86_64" => "x86_64",
-        "aarch64" => "armv8",
-        _ => "unknown",
-    };
-    let files =
-        glob::glob(&format!("{}/win64/*-{}.asm", base_dir.display(), sfx))
-            .expect("unable to collect assembly files");
-    for file in files {
-        file_vec.push(file.unwrap());
+fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, _arch: &String) {
+    #[cfg(target_env = "msvc")]
+    if env::var("CARGO_CFG_TARGET_ENV").unwrap().eq("msvc") {
+        let sfx = match _arch.as_str() {
+            "x86_64" => "x86_64",
+            "aarch64" => "armv8",
+            _ => "unknown",
+        };
+        let files =
+            glob::glob(&format!("{}/win64/*-{}.asm", base_dir.display(), sfx))
+                .expect("unable to collect assembly files");
+        for file in files {
+            file_vec.push(file.unwrap());
+        }
+        return;
     }
-}
 
-#[cfg(not(target_env = "msvc"))]
-fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, _: &String) {
-    file_vec.push(base_dir.join("assembly.S"))
+    file_vec.push(base_dir.join("assembly.S"));
 }
 
 fn main() {
@@ -124,8 +124,9 @@ fn main() {
             "Cannot compile with both `portable` and `force-adx` features"
         ),
     }
-    #[cfg(target_env = "msvc")]
-    cc.static_crt(true).flag("-Zl");
+    if env::var("CARGO_CFG_TARGET_ENV").unwrap().eq("msvc") {
+        cc.flag("-Zl");
+    }
     cc.flag_if_supported("-mno-avx") // avoid costly transitions
         .flag_if_supported("-fno-builtin")
         .flag_if_supported("-Wno-unused-function")

@@ -1169,6 +1169,7 @@ subprocess.check_call([os.path.join(os.path.dirname(emcc), "tools", "webidl_bind
                        os.devnull, "null_bind"])
 subprocess.check_call([emcc, "-I..", "-fexceptions", "-include", "stddef.h",
                        "-sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[$intArrayFromString]",
+                       "-sEXPORTED_FUNCTIONS=[_malloc,_free]",
                        "null_bind.cpp", "--post-js", "null_bind.js",
                        "blst_bind.cpp", "--post-js", "blst_bind.js",
                        os.path.normpath("../../src/server.c"),

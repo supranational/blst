@@ -19,7 +19,7 @@
 #include "bytes.h"
 
 /*
- * BLS12-381-specifc Fr shortcuts to assembly.
+ * BLS12-381-specific Fr shortcuts to assembly.
  */
 void blst_fr_add(vec256 ret, const vec256 a, const vec256 b)
 {   add_mod_256(ret, a, b, BLS12_381_r);   }
@@ -150,7 +150,7 @@ void blst_sk_inverse(pow256 ret, const pow256 a)
 }
 
 /*
- * BLS12-381-specifc Fp shortcuts to assembly.
+ * BLS12-381-specific Fp shortcuts to assembly.
  */
 void blst_fp_add(vec384 ret, const vec384 a, const vec384 b)
 {   add_fp(ret, a, b);   }
@@ -284,7 +284,7 @@ void blst_lendian_from_fp(unsigned char ret[48], const vec384 a)
 }
 
 /*
- * BLS12-381-specifc Fp2 shortcuts to assembly.
+ * BLS12-381-specific Fp2 shortcuts to assembly.
  */
 void blst_fp2_add(vec384x ret, const vec384x a, const vec384x b)
 {   add_fp2(ret, a, b);   }
@@ -311,7 +311,7 @@ void blst_fp2_cneg(vec384x ret, const vec384x a, int flag)
 {   cneg_fp2(ret, a, is_zero(flag) ^ 1);   }
 
 /*
- * Scalar serialization/deseriazation
+ * Scalar serialization/deseriazation.
  */
 void blst_scalar_from_uint32(pow256 ret, const unsigned int a[8])
 {
@@ -541,7 +541,21 @@ int blst_scalar_from_be_bytes(pow256 out, const unsigned char *bytes, size_t n)
 }
 
 /*
- * Test facilitator
+ * Single-short SHA-256 hash function.
+ */
+#include "sha256.h"
+
+void blst_sha256(unsigned char md[32], const void *msg, size_t len)
+{
+    SHA256_CTX ctx;
+
+    sha256_init(&ctx);
+    sha256_update(&ctx, msg, len);
+    sha256_final(md, &ctx);
+}
+
+/*
+ * Test facilitator.
  */
 void blst_scalar_from_hexascii(pow256 ret, const char *hex)
 {   bytes_from_hexascii(ret, sizeof(pow256), hex);   }

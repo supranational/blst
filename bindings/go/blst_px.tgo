@@ -142,7 +142,7 @@ func (dummy *P1Affine) BatchUncompress(in [][]byte) []*P1Affine {
             result = false
         }
     }
-    if atomic.LoadInt32(&valid) == 0 || result == false {
+    if atomic.LoadInt32(&valid) == 0 || !result {
         return nil
     }
     return pointsPtrs

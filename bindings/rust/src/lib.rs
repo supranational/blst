@@ -175,7 +175,7 @@ impl blst_scalar {
     pub fn hash_to(msg: &[u8], dst: &[u8]) -> Option<Self> {
         unsafe {
             let mut out = <Self>::default();
-            let mut elem: [u8; 48] = MaybeUninit::uninit().assume_init();
+            let mut elem = [0u8; 48];
             blst_expand_message_xmd(
                 elem.as_mut_ptr(),
                 elem.len(),

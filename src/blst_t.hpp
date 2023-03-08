@@ -23,10 +23,9 @@
 extern "C" {
 #include "vect.h"
 }
+#include "bytes.h"
 
-#ifndef NDEBUG
-# include "bytes.h"
-#endif
+#undef launder // avoid conflict with C++ >=17
 
 #ifdef __GNUC__
 # pragma GCC diagnostic pop
@@ -79,17 +78,26 @@ private:
     inline const limb_t& operator[](size_t i) const { return val[i]; }
 
 public:
-    static const size_t nbits = vec_nbits(MOD, sizeof(vec384)/sizeof(limb_t));
+    static const size_t n = sizeof(vec384)/sizeof(limb_t);
+    static const size_t nbits = vec_nbits(MOD, n);
+    static constexpr size_t bit_length() { return vec_nbits(MOD, n); }
     typedef byte pow_t[384/8];
 
     inline blst_384_t() {}
     inline blst_384_t(const vec384 p, bool align = false)
     {
         if (align)
-            vec_left_align(val, p, sizeof(val)/sizeof(val[0]));
+            vec_left_align(val, p, n);
         else
             vec_copy(val, p, sizeof(val));
     }
+    inline blst_384_t(uint64_t a)
+    {
+        vec_zero(val, sizeof(val));
+        val[0] = a;
+        if (a) to();
+    }
+    inline blst_384_t(int a) : blst_384_t((uint64_t)a) {}
 
     inline void to_scalar(pow_t& scalar) const
     {
@@ -283,17 +291,26 @@ class blst_256_t {
     inline const limb_t& operator[](size_t i) const { return val[i]; }
 
 public:
-    static const size_t nbits = vec_nbits(MOD, sizeof(vec256)/sizeof(limb_t));
+    static const size_t n = sizeof(vec256)/sizeof(limb_t);
+    static const size_t nbits = vec_nbits(MOD, n);
+    static constexpr size_t bit_length() { return vec_nbits(MOD, n); }
     typedef byte pow_t[256/8];
 
     inline blst_256_t() {}
     inline blst_256_t(const vec256 p, bool align = false)
     {
         if (align)
-            vec_left_align(val, p, sizeof(val)/sizeof(val[0]));
+            vec_left_align(val, p, n);
         else
             vec_copy(val, p, sizeof(val));
     }
+    inline blst_256_t(uint64_t a)
+    {
+        vec_zero(val, sizeof(val));
+        val[0] = a;
+        if (a) to();
+    }
+    inline blst_256_t(int a) : blst_256_t((uint64_t)a) {}
 
     inline void to_scalar(pow_t& scalar) const
     {
@@ -317,6 +334,51 @@ public:
 
     inline blst_256_t& to()
     {   mul_mont_sparse_256(val, val, RR, MOD, M0); return *this;   }
+    inline blst_256_t& to(const uint64_t a[2*n])
+    {
+        mul_mont_sparse_256(val, RR, (const limb_t*)(a + n), MOD, M0);
+        vec256 lo{0};
+        add_mod_256(lo, lo, (const limb_t*)a, MOD);
+        add_mod_256(val, val, lo, MOD);
+        mul_mont_sparse_256(val, RR, val, MOD, M0);
+
+        return *this;
+    }
+    blst_256_t& to(const unsigned char* bytes, size_t n, bool le = false)
+    {
+        vec_zero(val, sizeof(val));
+
+        vec256 digit, zero{0};
+        size_t rem = (n - 1) % 32 + 1;
+        n -= rem;
+
+        if (le) {
+            limbs_from_le_bytes(val, bytes += n, rem);
+            mul_mont_sparse_256(val, RR, val, MOD, M0);
+            while (n) {
+                limbs_from_le_bytes(digit, bytes -= 32, 32);
+                add_mod_256(digit, digit, zero, MOD);
+                add_mod_256(val, val, digit, MOD);
+                mul_mont_sparse_256(val, RR, val, MOD, M0);
+                n -= 32;
+            }
+        } else {
+            limbs_from_be_bytes(val, bytes, rem);
+            mul_mont_sparse_256(val, RR, val, MOD, M0);
+            bytes += rem;
+            while (n) {
+                limbs_from_be_bytes(digit, bytes, 32);
+                add_mod_256(digit, digit, zero, MOD);
+                add_mod_256(val, val, digit, MOD);
+                mul_mont_sparse_256(val, RR, val, MOD, M0);
+                bytes += 32;
+                n -= 32;
+            }
+        }
+
+        return *this;
+    }
+
     inline blst_256_t& from()
     {   from_mont_256(val, val, MOD, M0); return *this;   }
 

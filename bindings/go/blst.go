@@ -184,9 +184,7 @@ func SetMaxProcs(max int) {
 	maxProcs = max
 }
 
-//
 // Secret key
-//
 func (sk *SecretKey) Zeroize() {
 	var zero SecretKey
 	*sk = zero
@@ -299,9 +297,7 @@ func (master *SecretKey) DeriveChildEip2333(child_index uint32) *SecretKey {
 	return &sk
 }
 
-//
 // Pairing
-//
 func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
 	DST_len := C.size_t(len(DST))
 	ctx := make([]C.blst_pairing, int(C.go_pairing_sizeof(DST_len)))
@@ -835,10 +831,7 @@ func (agg *P2Aggregate) Aggregate(elmts []*P2Affine,
 		return true
 	}
 	getter := func(i uint32, _ *P2Affine) *P2Affine { return elmts[i] }
-	if !agg.aggregate(getter, groupcheck, len(elmts)) {
-		return false
-	}
-	return true
+	return agg.aggregate(getter, groupcheck, len(elmts))
 }
 
 // Aggregate compressed elements
@@ -854,10 +847,7 @@ func (agg *P2Aggregate) AggregateCompressed(elmts [][]byte,
 		}
 		return p
 	}
-	if !agg.aggregate(getter, groupcheck, len(elmts)) {
-		return false
-	}
-	return true
+	return agg.aggregate(getter, groupcheck, len(elmts))
 }
 
 func (agg *P2Aggregate) AddAggregate(other *P2Aggregate) {
@@ -1441,10 +1431,7 @@ func (agg *P1Aggregate) Aggregate(elmts []*P1Affine,
 		return true
 	}
 	getter := func(i uint32, _ *P1Affine) *P1Affine { return elmts[i] }
-	if !agg.aggregate(getter, groupcheck, len(elmts)) {
-		return false
-	}
-	return true
+	return agg.aggregate(getter, groupcheck, len(elmts))
 }
 
 // Aggregate compressed elements
@@ -1460,10 +1447,7 @@ func (agg *P1Aggregate) AggregateCompressed(elmts [][]byte,
 		}
 		return p
 	}
-	if !agg.aggregate(getter, groupcheck, len(elmts)) {
-		return false
-	}
-	return true
+	return agg.aggregate(getter, groupcheck, len(elmts))
 }
 
 func (agg *P1Aggregate) AddAggregate(other *P1Aggregate) {
@@ -1727,7 +1711,7 @@ func (dummy *P1Affine) BatchUncompress(in [][]byte) []*P1Affine {
 			result = false
 		}
 	}
-	if atomic.LoadInt32(&valid) == 0 || result == false {
+	if atomic.LoadInt32(&valid) == 0 || !result {
 		return nil
 	}
 	return pointsPtrs
@@ -1813,7 +1797,8 @@ func P1Generator() *P1 {
 }
 
 // 'acc += point * scalar', passing 'nil' for 'point' means "use the
-//                          group generator point"
+//
+//	group generator point"
 func (acc *P1) MultNAccumulate(pointIf interface{}, scalarIf interface{},
 	optional ...int) *P1 {
 	var x *Fp
@@ -1863,9 +1848,7 @@ func (p *P1) FromAffine(pa *P1Affine) {
 	C.blst_p1_from_affine(p, pa)
 }
 
-//
 // Hash
-//
 func HashToG1(msg []byte, dst []byte,
 	optional ...[]byte) *P1 { // aug
 	var q P1
@@ -2436,7 +2419,7 @@ func (dummy *P2Affine) BatchUncompress(in [][]byte) []*P2Affine {
 			result = false
 		}
 	}
-	if atomic.LoadInt32(&valid) == 0 || result == false {
+	if atomic.LoadInt32(&valid) == 0 || !result {
 		return nil
 	}
 	return pointsPtrs
@@ -2522,7 +2505,8 @@ func P2Generator() *P2 {
 }
 
 // 'acc += point * scalar', passing 'nil' for 'point' means "use the
-//                          group generator point"
+//
+//	group generator point"
 func (acc *P2) MultNAccumulate(pointIf interface{}, scalarIf interface{},
 	optional ...int) *P2 {
 	var x *Fp2
@@ -2572,9 +2556,7 @@ func (p *P2) FromAffine(pa *P2Affine) {
 	C.blst_p2_from_affine(p, pa)
 }
 
-//
 // Hash
-//
 func HashToG2(msg []byte, dst []byte,
 	optional ...[]byte) *P2 { // aug
 	var q P2
@@ -3031,11 +3013,9 @@ func bytesAllZero(s []byte) bool {
 	return true
 }
 
-//
 // These methods are inefficient because of cgo call overhead. For this
 // reason they should be used primarily for prototyping with a goal to
 // formulate interfaces that would process multiple scalars per cgo call.
-//
 func (a *Scalar) MulAssign(b *Scalar) (*Scalar, bool) {
 	return a, bool(C.blst_sk_mul_n_check(a, a, b))
 }
