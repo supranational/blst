@@ -16,7 +16,8 @@ for (my $i = 0; $i <= $#file; $i++) {
         @file[$i-1] =~ s/\)/, Zeroize\)/;
         splice @file, $i, 0, "#[zeroize(drop)]\n"; $i++;
     } elsif (@file[$i] =~ m/assert_eq!\($/) {
-        @file[++$i] =~ s/unsafe\s*\{\s*&\(\*\(::std::ptr::null::<(\w+)>\(\)\)\)\.(\w+).*\}/offsetof!($1, $2)/;
+        @file[++$i] =~ s/unsafe\s*\{\s*&\(\*\(::std::ptr::null::<(\w+)>\(\)\)\)\.(\w+).*\}/offsetof!($1, $2)/ or
+        @file[$i] =~ s/::std::/::core::/g;
     }
 }
 
