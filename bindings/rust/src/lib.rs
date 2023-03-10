@@ -2,16 +2,23 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#![cfg_attr(not(feature = "std"), no_std)]
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
+extern crate alloc;
+
+use alloc::boxed::Box;
+use alloc::vec;
+use alloc::vec::Vec;
 use core::any::Any;
 use core::mem::MaybeUninit;
 use core::ptr;
-use core::sync::atomic::*;
-use std::sync::{mpsc::channel, Arc};
 use zeroize::Zeroize;
+
+#[cfg(feature = "std")]
+use std::sync::{atomic::*, mpsc::channel, Arc};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -22,7 +29,7 @@ trait ThreadPoolExt {
         F: FnOnce() + Send + 'any;
 }
 
-#[cfg(not(feature = "no-threads"))]
+#[cfg(all(not(feature = "no-threads"), feature = "std"))]
 mod mt {
     use super::*;
     use core::mem::transmute;
@@ -57,7 +64,7 @@ mod mt {
     }
 }
 
-#[cfg(feature = "no-threads")]
+#[cfg(all(feature = "no-threads", feature = "std"))]
 mod mt {
     use super::*;
 
@@ -148,6 +155,22 @@ impl blst_fp12 {
         }
     }
 
+    #[cfg(not(feature = "std"))]
+    pub fn miller_loop_n(q: &[blst_p2_affine], p: &[blst_p1_affine]) -> Self {
+        let n_elems = q.len();
+        if n_elems != p.len() || n_elems == 0 {
+            panic!("inputs' lengths mismatch");
+        }
+        let qs: [*const _; 2] = [&q[0], ptr::null()];
+        let ps: [*const _; 2] = [&p[0], ptr::null()];
+        let mut out = MaybeUninit::<blst_fp12>::uninit();
+        unsafe {
+            blst_miller_loop_n(out.as_mut_ptr(), &qs[0], &ps[0], n_elems);
+            out.assume_init()
+        }
+    }
+
+    #[cfg(feature = "std")]
     pub fn miller_loop_n(q: &[blst_p2_affine], p: &[blst_p1_affine]) -> Self {
         let n_elems = q.len();
         if n_elems != p.len() || n_elems == 0 {
@@ -473,6 +496,7 @@ pub fn uniq(msgs: &[&[u8]]) -> bool {
     true
 }
 
+#[cfg(feature = "std")]
 pub fn print_bytes(bytes: &[u8], name: &str) {
     print!("{} ", name);
     for b in bytes.iter() {
@@ -1009,6 +1033,44 @@ macro_rules! sig_variant_impl {
                 Ok(sig)
             }
 
+            #[cfg(not(feature = "std"))]
+            pub fn verify(
+                &self,
+                sig_groupcheck: bool,
+                msg: &[u8],
+                dst: &[u8],
+                aug: &[u8],
+                pk: &PublicKey,
+                pk_validate: bool,
+            ) -> BLST_ERROR {
+                if sig_groupcheck {
+                    match self.validate(false) {
+                        Err(err) => return err,
+                        _ => (),
+                    }
+                }
+                if pk_validate {
+                    match pk.validate() {
+                        Err(err) => return err,
+                        _ => (),
+                    }
+                }
+                unsafe {
+                    $verify(
+                        &pk.point,
+                        &self.point,
+                        $hash_or_encode,
+                        msg.as_ptr(),
+                        msg.len(),
+                        dst.as_ptr(),
+                        dst.len(),
+                        aug.as_ptr(),
+                        aug.len(),
+                    )
+                }
+            }
+
+            #[cfg(feature = "std")]
             pub fn verify(
                 &self,
                 sig_groupcheck: bool,
@@ -1028,6 +1090,7 @@ macro_rules! sig_variant_impl {
                 )
             }
 
+            #[cfg(feature = "std")]
             pub fn aggregate_verify(
                 &self,
                 sig_groupcheck: bool,
@@ -1110,6 +1173,7 @@ macro_rules! sig_variant_impl {
 
             // pks are assumed to be verified for proof of possession,
             // which implies that they are already group-checked
+            #[cfg(feature = "std")]
             pub fn fast_aggregate_verify(
                 &self,
                 sig_groupcheck: bool,
@@ -1131,6 +1195,7 @@ macro_rules! sig_variant_impl {
                 )
             }
 
+            #[cfg(feature = "std")]
             pub fn fast_aggregate_verify_pre_aggregated(
                 &self,
                 sig_groupcheck: bool,
@@ -1142,6 +1207,7 @@ macro_rules! sig_variant_impl {
             }
 
             // https://ethresear.ch/t/fast-verification-of-multiple-bls-signatures/5407
+            #[cfg(feature = "std")]
             pub fn verify_multiple_aggregate_signatures(
                 msgs: &[&[u8]],
                 dst: &[u8],
@@ -1467,7 +1533,7 @@ macro_rules! sig_variant_impl {
             }
 
             #[test]
-            fn test_sign() {
+            fn test_sign_n_verify() {
                 let ikm: [u8; 32] = [
                     0x93, 0xad, 0x7e, 0x65, 0xde, 0xad, 0x05, 0x2a, 0x08, 0x3a,
                     0x91, 0x0c, 0x8b, 0x72, 0x85, 0x91, 0x46, 0x4c, 0xca, 0x56,
@@ -1487,6 +1553,7 @@ macro_rules! sig_variant_impl {
             }
 
             #[test]
+            #[cfg(feature = "std")]
             fn test_aggregate() {
                 let num_msgs = 10;
                 let dst = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
@@ -1559,6 +1626,7 @@ macro_rules! sig_variant_impl {
             }
 
             #[test]
+            #[cfg(feature = "std")]
             fn test_multiple_agg_sigs() {
                 let dst = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
                 let num_pks_per_sig = 10;
@@ -1900,6 +1968,7 @@ pub mod min_sig {
     );
 }
 
+#[cfg(feature = "std")]
 include!("pippenger.rs");
 
 #[cfg(test)]
