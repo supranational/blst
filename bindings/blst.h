@@ -159,7 +159,7 @@ void blst_fp12_frobenius_map(blst_fp12 *ret, const blst_fp12 *a, size_t n);
 bool blst_fp12_is_equal(const blst_fp12 *a, const blst_fp12 *b);
 bool blst_fp12_is_one(const blst_fp12 *a);
 bool blst_fp12_in_group(const blst_fp12 *a);
-const blst_fp12 *blst_fp12_one();
+const blst_fp12 *blst_fp12_one(void);
 #endif  // SWIG
 
 /*
@@ -184,13 +184,13 @@ bool blst_p1_on_curve(const blst_p1 *p);
 bool blst_p1_in_g1(const blst_p1 *p);
 bool blst_p1_is_equal(const blst_p1 *a, const blst_p1 *b);
 bool blst_p1_is_inf(const blst_p1 *a);
-const blst_p1 *blst_p1_generator();
+const blst_p1 *blst_p1_generator(void);
 
 bool blst_p1_affine_on_curve(const blst_p1_affine *p);
 bool blst_p1_affine_in_g1(const blst_p1_affine *p);
 bool blst_p1_affine_is_equal(const blst_p1_affine *a, const blst_p1_affine *b);
 bool blst_p1_affine_is_inf(const blst_p1_affine *a);
-const blst_p1_affine *blst_p1_affine_generator();
+const blst_p1_affine *blst_p1_affine_generator(void);
 
 typedef struct { blst_fp2 x, y, z; } blst_p2;
 typedef struct { blst_fp2 x, y; } blst_p2_affine;
@@ -211,13 +211,13 @@ bool blst_p2_on_curve(const blst_p2 *p);
 bool blst_p2_in_g2(const blst_p2 *p);
 bool blst_p2_is_equal(const blst_p2 *a, const blst_p2 *b);
 bool blst_p2_is_inf(const blst_p2 *a);
-const blst_p2 *blst_p2_generator();
+const blst_p2 *blst_p2_generator(void);
 
 bool blst_p2_affine_on_curve(const blst_p2_affine *p);
 bool blst_p2_affine_in_g2(const blst_p2_affine *p);
 bool blst_p2_affine_is_equal(const blst_p2_affine *a, const blst_p2_affine *b);
 bool blst_p2_affine_is_inf(const blst_p2_affine *a);
-const blst_p2_affine *blst_p2_affine_generator();
+const blst_p2_affine *blst_p2_affine_generator(void);
 
 /*
  * Multi-scalar multiplications and other multi-point operations.
@@ -356,7 +356,7 @@ typedef struct {} blst_pairing;
 typedef struct blst_opaque blst_pairing;
 #endif
 
-size_t blst_pairing_sizeof();
+size_t blst_pairing_sizeof(void);
 void blst_pairing_init(blst_pairing *new_ctx, bool hash_or_encode,
                        const byte *DST DEFNULL, size_t DST_len DEFNULL);
 const byte *blst_pairing_get_dst(const blst_pairing *ctx);

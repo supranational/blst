@@ -94,11 +94,11 @@ void blst_scalar_from_hexascii(blst_scalar *out, const byte *hex);
 void blst_fr_from_hexascii(blst_fr *ret, const byte *hex);
 void blst_fp_from_hexascii(blst_fp *ret, const byte *hex);
 
-size_t blst_p1_sizeof();
-size_t blst_p1_affine_sizeof();
-size_t blst_p2_sizeof();
-size_t blst_p2_affine_sizeof();
-size_t blst_fp12_sizeof();
+size_t blst_p1_sizeof(void);
+size_t blst_p1_affine_sizeof(void);
+size_t blst_p2_sizeof(void);
+size_t blst_p2_affine_sizeof(void);
+size_t blst_fp12_sizeof(void);
 
 /*
  * Single-shot SHA-256 hash function.
