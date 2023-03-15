@@ -9,6 +9,7 @@
 #include <string>
 #include <cstring>
 #include <vector>
+#include <memory>
 
 #if __cplusplus >= 201703L
 # include <string_view>
@@ -416,19 +417,19 @@ public:
 
     P1 mult(const byte* const scalars[], size_t nbits) const
     {   P1 ret;
-        limb_t* scratch;
 
         if (wbits != 0) {
-            scratch = new limb_t[blst_p1s_mult_wbits_scratch_sizeof(npoints)/sizeof(limb_t)];
+            size_t sz = blst_p1s_mult_wbits_scratch_sizeof(npoints);
+            std::unique_ptr<limb_t> scratch{new limb_t[sz/sizeof(limb_t)]};
             blst_p1s_mult_wbits(ret, table[0], wbits, npoints,
-                                     scalars, nbits, scratch);
+                                     scalars, nbits, scratch.get());
         } else {
-            scratch = new limb_t[blst_p1s_mult_pippenger_scratch_sizeof(npoints)/sizeof(limb_t)];
+            size_t sz = blst_p1s_mult_pippenger_scratch_sizeof(npoints);
+            std::unique_ptr<limb_t> scratch{new limb_t[sz/sizeof(limb_t)]};
             const blst_p1_affine* const ptrs[2] = { table[0], nullptr };
             blst_p1s_mult_pippenger(ret, ptrs, npoints,
-                                         scalars, nbits, scratch);
+                                         scalars, nbits, scratch.get());
         }
-        delete[] scratch;
         return ret;
     }
 
@@ -451,12 +452,11 @@ public:
     static P1 mult_pippenger(const P1_Affine* const points[], size_t npoints,
                              const byte* const scalars[], size_t nbits)
     {   P1 ret;
-        limb_t* scratch;
-        scratch = new limb_t[blst_p1s_mult_pippenger_scratch_sizeof(npoints)/sizeof(limb_t)];
+        size_t sz = blst_p1s_mult_pippenger_scratch_sizeof(npoints);
+        std::unique_ptr<limb_t> scratch{new limb_t[sz/sizeof(limb_t)]};
         blst_p1s_mult_pippenger(ret,
                     reinterpret_cast<const blst_p1_affine *const*>(points),
-                    npoints, scalars, nbits, scratch);
-        delete[] scratch;
+                    npoints, scalars, nbits, scratch.get());
         return ret;
     }
 #ifndef SWIG
@@ -715,19 +715,19 @@ public:
 
     P2 mult(const byte* const scalars[], size_t nbits) const
     {   P2 ret;
-        limb_t* scratch;
 
         if (wbits != 0) {
-            scratch = new limb_t[blst_p2s_mult_wbits_scratch_sizeof(npoints)/sizeof(limb_t)];
+            size_t sz = blst_p2s_mult_wbits_scratch_sizeof(npoints);
+            std::unique_ptr<limb_t> scratch{new limb_t[sz/sizeof(limb_t)]};
             blst_p2s_mult_wbits(ret, table[0], wbits, npoints,
-                                     scalars, nbits, scratch);
+                                     scalars, nbits, scratch.get());
         } else {
-            scratch = new limb_t[blst_p2s_mult_pippenger_scratch_sizeof(npoints)/sizeof(limb_t)];
+            size_t sz = blst_p2s_mult_pippenger_scratch_sizeof(npoints);
+            std::unique_ptr<limb_t> scratch{new limb_t[sz/sizeof(limb_t)]};
             const blst_p2_affine* const ptrs[2] = { table[0], nullptr };
             blst_p2s_mult_pippenger(ret, ptrs, npoints,
-                                         scalars, nbits, scratch);
+                                         scalars, nbits, scratch.get());
         }
-        delete[] scratch;
         return ret;
     }
 
@@ -750,12 +750,11 @@ public:
     static P2 mult_pippenger(const P2_Affine* const points[], size_t npoints,
                              const byte* const scalars[], size_t nbits)
     {   P2 ret;
-        limb_t* scratch;
-        scratch = new limb_t[blst_p2s_mult_pippenger_scratch_sizeof(npoints)/sizeof(limb_t)];
+        size_t sz = blst_p2s_mult_pippenger_scratch_sizeof(npoints);
+        std::unique_ptr<limb_t> scratch{new limb_t[sz/sizeof(limb_t)]};
         blst_p2s_mult_pippenger(ret,
                     reinterpret_cast<const blst_p2_affine *const*>(points),
-                    npoints, scalars, nbits, scratch);
-        delete[] scratch;
+                    npoints, scalars, nbits, scratch.get());
         return ret;
     }
 #ifndef SWIG
