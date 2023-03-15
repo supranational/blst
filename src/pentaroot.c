@@ -6,10 +6,10 @@
 
 #include "fields.h"
 
-static inline void mul_fr(vec384 ret, const vec384 a, const vec384 b)
+static inline void mul_fr(vec256 ret, const vec256 a, const vec256 b)
 {   mul_mont_sparse_256(ret, a, b, BLS12_381_r, r0);   }
 
-static inline void sqr_fr(vec384 ret, const vec384 a)
+static inline void sqr_fr(vec256 ret, const vec256 a)
 {   sqr_mont_sparse_256(ret, a, BLS12_381_r, r0);   }
 
 #ifdef __OPTIMIZE_SIZE__
