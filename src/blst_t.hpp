@@ -202,10 +202,19 @@ public:
             sqr_mont_384(ret, a, MOD, M0);
             return ret;
         } else {
-            blst_384_t ret;
-            sqr_mont_384(ret, a, MOD, M0);
-            for (p -= 2; p--;)
-                mul_mont_384(ret, ret, a, MOD, M0);
+            blst_384_t ret = a, sqr = a;
+            if ((p&1) == 0) {
+                do {
+                    sqr_mont_384(sqr, sqr, MOD, M0);
+                    p >>= 1;
+                } while ((p&1) == 0);
+                ret = sqr;
+            }
+            for (p >>= 1; p; p >>= 1) {
+                sqr_mont_384(sqr, sqr, MOD, M0);
+                if (p&1)
+                    mul_mont_384(ret, ret, sqr, MOD, M0);
+            }
             return ret;
         }
     }
@@ -460,10 +469,19 @@ public:
             sqr_mont_sparse_256(ret, a, MOD, M0);
             return ret;
         } else {
-            blst_256_t ret;
-            sqr_mont_sparse_256(ret, a, MOD, M0);
-            for (p -= 2; p--;)
-                mul_mont_sparse_256(ret, ret, a, MOD, M0);
+            blst_256_t ret = a, sqr = a;
+            if ((p&1) == 0) {
+                do {
+                    sqr_mont_sparse_256(sqr, sqr, MOD, M0);
+                    p >>= 1;
+                } while ((p&1) == 0);
+                ret = sqr;
+            }
+            for (p >>= 1; p; p >>= 1) {
+                sqr_mont_sparse_256(sqr, sqr, MOD, M0);
+                if (p&1)
+                    mul_mont_sparse_256(ret, ret, sqr, MOD, M0);
+            }
             return ret;
         }
     }
