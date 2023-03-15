@@ -239,6 +239,13 @@ public:
     inline void zero()
     {   vec_zero(val, sizeof(val));   }
 
+    friend inline blst_384_t czero(const blst_384_t& a, int set_z)
+    {   blst_384_t ret;
+        const vec384 zero = { 0 };
+        vec_select(ret, zero, a, sizeof(ret), set_z);
+        return ret;
+    }
+
     blst_384_t reciprocal() const
     {
         static const blst_384_t MODx{MOD, true};
@@ -505,6 +512,13 @@ public:
 
     inline void zero()
     {   vec_zero(val, sizeof(val));   }
+
+    friend inline blst_256_t czero(const blst_256_t& a, int set_z)
+    {   blst_256_t ret;
+        const vec256 zero = { 0 };
+        vec_select(ret, zero, a, sizeof(ret), set_z);
+        return ret;
+    }
 
     blst_256_t reciprocal() const
     {
