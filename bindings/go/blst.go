@@ -648,6 +648,47 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, sigGroupcheck bool,
 	return PairingFinalVerify(pairings, &gtsig)
 }
 
+func CoreVerifyPkInG1(pk *P1Affine, sig *P2Affine, hash_or_encode bool,
+	msg Message, dst []byte, optional ...[]byte) int {
+
+	var aug []byte
+	var uaug *C.byte
+	if len(optional) > 0 {
+		aug = optional[0]
+		if len(aug) > 0 {
+			uaug = (*C.byte)(&aug[0])
+		}
+	}
+
+	if runtime.NumGoroutine() < maxProcs {
+		sigFn := func() *P2Affine {
+			return sig
+		}
+		pkFn := func(_ uint32, _ *P1Affine) (*P1Affine, []byte) {
+			return pk, aug
+		}
+		if !coreAggregateVerifyPkInG1(sigFn, true, pkFn, true, []Message{msg},
+			dst, hash_or_encode) {
+			return C.BLST_VERIFY_FAIL
+		}
+		return C.BLST_SUCCESS
+	}
+
+	var udst *C.byte
+	if len(dst) > 0 {
+		udst = (*C.byte)(&dst[0])
+	}
+	var umsg *C.byte
+	if len(msg) > 0 {
+		umsg = (*C.byte)(&msg[0])
+	}
+
+	return int(C.blst_core_verify_pk_in_g1(pk, sig, C.bool(hash_or_encode),
+		umsg, C.size_t(len(msg)),
+		udst, C.size_t(len(dst)),
+		uaug, C.size_t(len(aug))))
+}
+
 // pks are assumed to be verified for proof of possession,
 // which implies that they are already group-checked
 func (sig *P2Affine) FastAggregateVerify(sigGroupcheck bool,
@@ -1223,6 +1264,47 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, sigGroupcheck bool,
 	}
 
 	return PairingFinalVerify(pairings, &gtsig)
+}
+
+func CoreVerifyPkInG2(pk *P2Affine, sig *P1Affine, hash_or_encode bool,
+	msg Message, dst []byte, optional ...[]byte) int {
+
+	var aug []byte
+	var uaug *C.byte
+	if len(optional) > 0 {
+		aug = optional[0]
+		if len(aug) > 0 {
+			uaug = (*C.byte)(&aug[0])
+		}
+	}
+
+	if runtime.NumGoroutine() < maxProcs {
+		sigFn := func() *P1Affine {
+			return sig
+		}
+		pkFn := func(_ uint32, _ *P2Affine) (*P2Affine, []byte) {
+			return pk, aug
+		}
+		if !coreAggregateVerifyPkInG2(sigFn, true, pkFn, true, []Message{msg},
+			dst, hash_or_encode) {
+			return C.BLST_VERIFY_FAIL
+		}
+		return C.BLST_SUCCESS
+	}
+
+	var udst *C.byte
+	if len(dst) > 0 {
+		udst = (*C.byte)(&dst[0])
+	}
+	var umsg *C.byte
+	if len(msg) > 0 {
+		umsg = (*C.byte)(&msg[0])
+	}
+
+	return int(C.blst_core_verify_pk_in_g2(pk, sig, C.bool(hash_or_encode),
+		umsg, C.size_t(len(msg)),
+		udst, C.size_t(len(dst)),
+		uaug, C.size_t(len(aug))))
 }
 
 // pks are assumed to be verified for proof of possession,
