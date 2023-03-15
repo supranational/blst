@@ -1971,6 +1971,9 @@ pub mod min_sig {
 #[cfg(feature = "std")]
 include!("pippenger.rs");
 
+#[cfg(not(feature = "std"))]
+include!("pippenger-no_std.rs");
+
 #[cfg(test)]
 mod fp12_test {
     use super::*;
