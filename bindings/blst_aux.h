@@ -50,7 +50,11 @@ void blst_sk_to_pk2_in_g2(byte out[192], blst_p2_affine *out_pk,
 void blst_sign_pk2_in_g2(byte out[96], blst_p1_affine *out_sig,
                          const blst_p1 *hash, const blst_scalar *SK);
 
+#ifdef __BLST_RUST_BINDGEN__
 typedef struct {} blst_uniq;
+#else
+typedef struct blst_opaque blst_uniq;
+#endif
 
 size_t blst_uniq_sizeof(size_t n_nodes);
 void blst_uniq_init(blst_uniq *tree);
