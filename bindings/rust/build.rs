@@ -28,6 +28,7 @@ fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, _arch: &String) {
 fn main() {
     // account for cross-compilation [by examining environment variable]
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
 
     if target_arch.eq("wasm32") {
         println!("cargo:rustc-cfg=feature=\"no-threads\"");
@@ -131,7 +132,7 @@ fn main() {
         .flag_if_supported("-fno-builtin")
         .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-command-line-argument");
-    if target_arch.eq("wasm32") {
+    if target_arch.eq("wasm32") || target_os.eq("none") {
         cc.flag_if_supported("-ffreestanding");
     }
     if !cfg!(debug_assertions) {
