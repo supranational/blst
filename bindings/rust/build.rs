@@ -5,10 +5,10 @@ extern crate cc;
 use std::env;
 use std::path::{Path, PathBuf};
 
-fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, _arch: &String) {
+fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, _arch: &str) {
     #[cfg(target_env = "msvc")]
     if env::var("CARGO_CFG_TARGET_ENV").unwrap().eq("msvc") {
-        let sfx = match _arch.as_str() {
+        let sfx = match _arch {
             "x86_64" => "x86_64",
             "aarch64" => "armv8",
             _ => "unknown",
@@ -30,7 +30,7 @@ fn main() {
     let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
 
-    if target_os.ne("none") && !env::var("BLST_TEST_NO_STD").is_ok() {
+    if target_os.ne("none") && env::var("BLST_TEST_NO_STD").is_err() {
         println!("cargo:rustc-cfg=feature=\"std\"");
         if target_arch.eq("wasm32") {
             println!("cargo:rustc-cfg=feature=\"no-threads\"");
