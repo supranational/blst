@@ -4,7 +4,7 @@ cd `dirname $0`
 
 python3 build.py "$@"
 
-NODE=`which ${NODE:-node} 2>&1` || NODE=`which nodejs`
+NODE=`which ${NODE:-${EMSDK_NODE:-node}} 2>&1` || NODE=`which nodejs`
 env NODE_PATH=.: $NODE runnable.js
 
 if [ "$OLDPWD" = "$PWD" ]; then
