@@ -16,7 +16,42 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using size_t = System.UIntPtr;
 
+#if NET5_0_OR_GREATER
+using System.Runtime.Loader;
+using System.Reflection;
+using System.IO;
+#endif
+
 namespace supranational { public static class blst {
+
+#if NET5_0_OR_GREATER
+private static string dll;
+
+static blst()
+{
+    if (String.IsNullOrEmpty(dll)) {
+        var name = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "blst.dll"
+                 : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)     ? "libblst.dll.dylib"
+                 : "libblst.dll.so";
+
+        var dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        var arch = RuntimeInformation.ProcessArchitecture switch {
+            Architecture.X64   => "x64",
+            Architecture.Arm64 => "arm64",
+            _ => "unsupported"
+        };
+        dll = Path.Combine(dir, arch, name);
+
+        if (!File.Exists(dll))
+            dll = Path.Combine(Environment.CurrentDirectory, name);
+
+        if (File.Exists(dll)) {
+            AssemblyLoadContext.Default.ResolvingUnmanagedDll += (asm, needs) =>
+                (needs == "blst.dll" ? NativeLibrary.Load(dll) : IntPtr.Zero);
+        }
+    }
+}
+#endif
 
 public enum ERROR {
     SUCCESS = 0,

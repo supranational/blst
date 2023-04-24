@@ -169,6 +169,6 @@ jobs:
             bindings/c#/run.me;
             if which dotnet > /dev/null 2>&1; then
                 cd bindings/c#
-                env LD_LIBRARY_PATH=`pwd` dotnet run -c Release
+                dotnet run -c Release
             fi
         fi
