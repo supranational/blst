@@ -118,11 +118,36 @@ fn main() {
             }
         }
         (false, false) => {
-            #[cfg(target_arch = "x86_64")]
-            if target_arch.eq("x86_64") && std::is_x86_feature_detected!("adx")
-            {
-                println!("Enabling ADX because it was detected on the host");
-                cc.define("__ADX__", None);
+            if target_arch.eq("x86_64") {
+                // If target-cpu is specified on the rustc command line,
+                // then obey the resulting target-features.
+                if env::var("CARGO_ENCODED_RUSTFLAGS")
+                    .unwrap_or_default()
+                    .contains("target-cpu=")
+                {
+                    let feat_list = env::var("CARGO_CFG_TARGET_FEATURE")
+                        .unwrap_or_default();
+                    let features: Vec<_> = feat_list.split(',').collect();
+                    if !features.contains(&"ssse3") {
+                        println!(
+                            "Compiling in portable mode without ISA extensions"
+                        );
+                        cc.define("__BLST_PORTABLE__", None);
+                    } else if features.contains(&"adx") {
+                        println!(
+                            "Enabling ADX because it was set as target-feature"
+                        );
+                        cc.define("__ADX__", None);
+                    }
+                } else {
+                    #[cfg(target_arch = "x86_64")]
+                    if std::is_x86_feature_detected!("adx") {
+                        println!(
+                            "Enabling ADX because it was detected on the host"
+                        );
+                        cc.define("__ADX__", None);
+                    }
+                }
             }
         }
         (true, true) => panic!(
