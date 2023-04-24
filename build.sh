@@ -29,7 +29,7 @@ unset cflags shared dll
 
 case `uname -s` in
     Darwin)	flavour=macosx
-                if (sysctl machdep.cpu.features) 2>/dev/null | grep -q ADX; then
+                if [ "`sysctl -n hw.optional.adx 2>/dev/null`" = "1" ]; then
                     cflags="-D__ADX__"
                 fi
                 ;;
