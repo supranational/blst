@@ -5,15 +5,15 @@ on:
     branches:
       - '**'
     paths:
-      - 'src'
-      - 'bindings/c#'
+      - 'src/*'
+      - 'bindings/c#/*'
       - '.github/workflows/codeql-analysis.yml'
   pull_request:
     branches:
       - master
     paths:
-      - 'src'
-      - 'bindings/c#'
+      - 'src/*'
+      - 'bindings/c#/*'
   #schedule:
   #  - cron: '0 23+ * * 4'
 
