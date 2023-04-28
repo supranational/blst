@@ -77,11 +77,13 @@ private:
     inline limb_t& operator[](size_t i)             { return val[i]; }
     inline const limb_t& operator[](size_t i) const { return val[i]; }
 
-public:
     static const size_t n = sizeof(vec384)/sizeof(limb_t);
+public:
     static const size_t nbits = vec_nbits(MOD, n);
     static constexpr size_t bit_length() { return vec_nbits(MOD, n); }
+    static const uint32_t degree = 1;
     typedef byte pow_t[384/8];
+    typedef blst_384_t mem_t;
 
     inline blst_384_t() {}
     inline blst_384_t(const vec384 p, bool align = false)
@@ -119,6 +121,15 @@ public:
     static inline const blst_384_t& one()
     {   return *reinterpret_cast<const blst_384_t*>(ONE);   }
 
+    static inline blst_384_t one(bool or_zero)
+    {
+        blst_384_t ret;
+        limb_t mask = ~((limb_t)0 - or_zero);
+        for (size_t i = 0; i < n; i++)
+            ret[i] = ONE[i] & mask;
+        return ret;
+    }
+
     inline blst_384_t& to()
     {   mul_mont_384(val, RR, val, MOD, M0);        return *this;   }
     inline blst_384_t& from()
@@ -147,7 +158,7 @@ public:
 
     inline blst_384_t& operator>>=(unsigned r)
     {   rshift_mod_384(val, val, r, MOD);           return *this;   }
-    friend inline blst_384_t operator>>(blst_384_t a, unsigned r)
+    friend inline blst_384_t operator>>(const blst_384_t& a, unsigned r)
     {
         blst_384_t ret;
         rshift_mod_384(ret, a, r, MOD);
@@ -306,11 +317,13 @@ class blst_256_t {
     inline limb_t& operator[](size_t i)             { return val[i]; }
     inline const limb_t& operator[](size_t i) const { return val[i]; }
 
-public:
     static const size_t n = sizeof(vec256)/sizeof(limb_t);
+public:
     static const size_t nbits = vec_nbits(MOD, n);
     static constexpr size_t bit_length() { return vec_nbits(MOD, n); }
+    static const uint32_t degree = 1;
     typedef byte pow_t[256/8];
+    typedef blst_256_t mem_t;
 
     inline blst_256_t() {}
     inline blst_256_t(const vec256 p, bool align = false)
@@ -347,6 +360,15 @@ public:
 
     static inline const blst_256_t& one()
     {   return *reinterpret_cast<const blst_256_t*>(ONE);   }
+
+    static inline blst_256_t one(bool or_zero)
+    {
+        blst_256_t ret;
+        limb_t mask = ~((limb_t)0 - or_zero);
+        for (size_t i = 0; i < n; i++)
+            ret[i] = ONE[i] & mask;
+        return ret;
+    }
 
     inline blst_256_t& to()
     {   mul_mont_sparse_256(val, val, RR, MOD, M0); return *this;   }
