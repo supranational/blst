@@ -31,17 +31,15 @@ extern "C" {
 # pragma GCC diagnostic pop
 #endif
 
-static inline void vec_left_align(limb_t *out, const limb_t *inp, size_t n)
+static inline void vec_left_align(limb_t *out, const limb_t *inp, size_t N)
 {
     const unsigned int nbits = sizeof(inp[0])*8;
-    unsigned int align = 0;
-    limb_t top = inp[n-1];
+    const unsigned int align = (0 - N) % nbits;
+    size_t n = (N + nbits - 1) / nbits;
 
-    if (top) {
-        while ((top >> (nbits-1)) == 0)
-            top <<= 1, align++;
-    }
     if (align) {
+        limb_t top = inp[n-1] << align;
+
         while (--n) {
             limb_t next = inp[n-1];
             out[n] = top | next >> (nbits-align);
@@ -49,25 +47,13 @@ static inline void vec_left_align(limb_t *out, const limb_t *inp, size_t n)
         }
         out[0] = top;
     } else {
-        for (size_t i = 0; i < n-1; i++)
-             out[i] = inp[i];
-        out[n-1] = top;
+        for (size_t i = 0; i < n; i++)
+            out[i] = inp[i];
     }
 }
 
-constexpr static inline size_t vec_nbits(const limb_t *inp, size_t n)
-{
-    const unsigned int nbits = sizeof(inp[0])*8;
-    size_t align = 0;
-    limb_t top = inp[n-1];
-
-    while ((top >> (nbits-1)) == 0)
-        top <<= 1, align++;
-
-    return n*nbits - align;
-}
-
-template<const vec384 MOD, const limb_t M0, const vec384 RR, const vec384 ONE>
+template<const size_t N, const vec384 MOD, const limb_t M0,
+                         const vec384 RR, const vec384 ONE>
 class blst_384_t {
 private:
     vec384 val;
@@ -79,8 +65,8 @@ private:
 
     static const size_t n = sizeof(vec384)/sizeof(limb_t);
 public:
-    static const size_t nbits = vec_nbits(MOD, n);
-    static constexpr size_t bit_length() { return vec_nbits(MOD, n); }
+    static const size_t nbits = N;
+    static constexpr size_t bit_length() { return N; }
     static const uint32_t degree = 1;
     typedef byte pow_t[384/8];
     typedef blst_384_t mem_t;
@@ -89,7 +75,7 @@ public:
     inline blst_384_t(const vec384 p, bool align = false)
     {
         if (align)
-            vec_left_align(val, p, n);
+            vec_left_align(val, p, N);
         else
             vec_copy(val, p, sizeof(val));
     }
@@ -308,7 +294,8 @@ public:
 #endif
 };
 
-template<const vec256 MOD, const limb_t M0, const vec256 RR, const vec256 ONE>
+template<const size_t N, const vec256 MOD, const limb_t M0,
+                         const vec256 RR, const vec256 ONE>
 class blst_256_t {
     vec256 val;
 
@@ -319,8 +306,8 @@ class blst_256_t {
 
     static const size_t n = sizeof(vec256)/sizeof(limb_t);
 public:
-    static const size_t nbits = vec_nbits(MOD, n);
-    static constexpr size_t bit_length() { return vec_nbits(MOD, n); }
+    static const size_t nbits = N;
+    static constexpr size_t bit_length() { return N; }
     static const uint32_t degree = 1;
     typedef byte pow_t[256/8];
     typedef blst_256_t mem_t;
@@ -329,7 +316,7 @@ public:
     inline blst_256_t(const vec256 p, bool align = false)
     {
         if (align)
-            vec_left_align(val, p, n);
+            vec_left_align(val, p, N);
         else
             vec_copy(val, p, sizeof(val));
     }
