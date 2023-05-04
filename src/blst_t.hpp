@@ -230,6 +230,9 @@ public:
     friend inline blst_384_t sqr(const blst_384_t& a)
     {   return a^2;   }
 
+    inline bool is_one() const
+    {   return vec_is_equal(val, ONE, sizeof(val));   }
+
     inline bool is_zero() const
     {   return vec_is_zero(val, sizeof(val));   }
 
@@ -515,6 +518,9 @@ public:
     {   return *this^p;   }
     friend inline blst_256_t sqr(const blst_256_t& a)
     {   return a^2;   }
+
+    inline bool is_one() const
+    {   return vec_is_equal(val, ONE, sizeof(val));   }
 
     inline bool is_zero() const
     {   return vec_is_zero(val, sizeof(val));   }
