@@ -337,6 +337,9 @@ void blst_sign_pk_in_g2(blst_p1 *out_sig, const blst_p1 *hash,
 #ifndef SWIG
 void blst_miller_loop(blst_fp12 *ret, const blst_p2_affine *Q,
                                       const blst_p1_affine *P);
+void blst_miller_loop_n(blst_fp12 *ret, const blst_p2_affine *const Qs[],
+                                        const blst_p1_affine *const Ps[],
+                                        size_t n);
 void blst_final_exp(blst_fp12 *ret, const blst_fp12 *f);
 void blst_precompute_lines(blst_fp6 Qlines[68], const blst_p2_affine *Q);
 void blst_miller_loop_lines(blst_fp12 *ret, const blst_fp6 Qlines[68],
