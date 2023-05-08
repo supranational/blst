@@ -12,6 +12,10 @@
 
 void blst_fr_to(blst_fr *ret, const blst_fr *a);
 void blst_fr_from(blst_fr *ret, const blst_fr *a);
+#ifdef BLST_FR_PENTAROOT
+void blst_fr_pentaroot(blst_fr *ret, const blst_fr *a);
+void blst_fr_pentapow(blst_fr *ret, const blst_fr *a);
+#endif
 
 void blst_fp_to(blst_fp *ret, const blst_fp *a);
 void blst_fp_from(blst_fp *ret, const blst_fp *a);
