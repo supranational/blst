@@ -145,6 +145,66 @@ impl blst_fp12 {
         }
     }
 
+    pub fn miller_loop_n(q: &[blst_p2_affine], p: &[blst_p1_affine]) -> Self {
+        let n_elems = q.len();
+        if n_elems != p.len() || n_elems == 0 {
+            panic!("inputs' lengths mismatch");
+        }
+
+        let pool = mt::da_pool();
+
+        let mut n_workers = pool.max_count();
+        if n_workers == 1 {
+            let qs: [*const _; 2] = [&q[0], ptr::null()];
+            let ps: [*const _; 2] = [&p[0], ptr::null()];
+            let mut out = MaybeUninit::<blst_fp12>::uninit();
+            unsafe {
+                blst_miller_loop_n(out.as_mut_ptr(), &qs[0], &ps[0], n_elems);
+                return out.assume_init();
+            }
+        }
+
+        let (tx, rx) = channel();
+        let counter = Arc::new(AtomicUsize::new(0));
+
+        let stride = core::cmp::min((n_elems + n_workers - 1) / n_workers, 16);
+        n_workers = core::cmp::min((n_elems + stride - 1) / stride, n_workers);
+        for _ in 0..n_workers {
+            let tx = tx.clone();
+            let counter = counter.clone();
+
+            pool.joined_execute(move || {
+                let mut acc = blst_fp12::default();
+                let mut tmp = MaybeUninit::<blst_fp12>::uninit();
+                let mut qs: [*const _; 2] = [ptr::null(), ptr::null()];
+                let mut ps: [*const _; 2] = [ptr::null(), ptr::null()];
+
+                loop {
+                    let work = counter.fetch_add(stride, Ordering::Relaxed);
+                    if work >= n_elems {
+                        break;
+                    }
+                    let n = core::cmp::min(n_elems - work, stride);
+                    qs[0] = &q[work];
+                    ps[0] = &p[work];
+                    unsafe {
+                        blst_miller_loop_n(tmp.as_mut_ptr(), &qs[0], &ps[0], n);
+                        acc *= tmp.assume_init();
+                    }
+                }
+
+                tx.send(acc).expect("disaster");
+            });
+        }
+
+        let mut acc = rx.recv().unwrap();
+        for _ in 1..n_workers {
+            acc *= rx.recv().unwrap();
+        }
+
+        acc
+    }
+
     pub fn final_exp(&self) -> Self {
         let mut out = MaybeUninit::<blst_fp12>::uninit();
         unsafe {
@@ -1721,3 +1781,56 @@ pub mod min_sig {
 }
 
 include!("pippenger.rs");
+
+#[cfg(test)]
+mod fp12_test {
+    use super::*;
+    use rand::{RngCore, SeedableRng};
+    use rand_chacha::ChaCha20Rng;
+
+    #[test]
+    fn miller_loop_n() {
+        const npoints: usize = 97;
+        const nbits: usize = 64;
+        const nbytes: usize = (nbits + 7) / 8;
+
+        let mut scalars = Box::new([0u8; nbytes * npoints]);
+        ChaCha20Rng::from_entropy().fill_bytes(scalars.as_mut());
+
+        let mut p1s: Vec<blst_p1> = Vec::with_capacity(npoints);
+        let mut p2s: Vec<blst_p2> = Vec::with_capacity(npoints);
+
+        unsafe {
+            p1s.set_len(npoints);
+            p2s.set_len(npoints);
+
+            for i in 0..npoints {
+                blst_p1_mult(
+                    &mut p1s[i],
+                    blst_p1_generator(),
+                    &scalars[i * nbytes],
+                    32,
+                );
+                blst_p2_mult(
+                    &mut p2s[i],
+                    blst_p2_generator(),
+                    &scalars[i * nbytes + 4],
+                    32,
+                );
+            }
+        }
+
+        let ps = p1_affines::from(&p1s);
+        let qs = p2_affines::from(&p2s);
+
+        let mut naive = blst_fp12::default();
+        for i in 0..npoints {
+            naive *= blst_fp12::miller_loop(&qs[i], &ps[i]);
+        }
+
+        assert_eq!(
+            naive,
+            blst_fp12::miller_loop_n(qs.as_slice(), ps.as_slice())
+        );
+    }
+}
