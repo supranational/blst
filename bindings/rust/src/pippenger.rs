@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use core::num::Wrapping;
+use core::ops::{Index, IndexMut};
+use core::slice::SliceIndex;
 use std::sync::Barrier;
 
 struct tile {
@@ -45,7 +47,27 @@ macro_rules! pippenger_mult_impl {
             points: Vec<$point_affine>,
         }
 
+        impl<I: SliceIndex<[$point_affine]>> Index<I> for $points {
+            type Output = I::Output;
+
+            #[inline]
+            fn index(&self, i: I) -> &Self::Output {
+                &self.points[i]
+            }
+        }
+        impl<I: SliceIndex<[$point_affine]>> IndexMut<I> for $points {
+            #[inline]
+            fn index_mut(&mut self, i: I) -> &mut Self::Output {
+                &mut self.points[i]
+            }
+        }
+
         impl $points {
+            #[inline]
+            pub fn as_slice(&self) -> &[$point_affine] {
+                self.points.as_slice()
+            }
+
             pub fn from(points: &[$point]) -> Self {
                 let npoints = points.len();
                 let mut ret = Self {
