@@ -120,6 +120,25 @@ package blst
 //     blst_expand_message_xmd(elem, sizeof(elem), msg, msg_len, DST, DST_len);
 //     return blst_scalar_from_be_bytes(ret, elem, sizeof(elem));
 // }
+// static void go_miller_loop_n(blst_fp12 *dst, const blst_p2_affine Q[],
+//                                              const blst_p1_affine P[],
+//                                              size_t npoints, bool acc)
+// {   const blst_p2_affine *Qs[2] = { Q, NULL };
+//     const blst_p1_affine *Ps[2] = { P, NULL };
+//     if (acc) {
+//         blst_fp12 tmp;
+//         blst_miller_loop_n(&tmp, Qs, Ps, npoints);
+//         blst_fp12_mul(dst, dst, &tmp);
+//     } else {
+//         blst_miller_loop_n(dst, Qs, Ps, npoints);
+//     }
+// }
+// static void go_fp12slice_mul(blst_fp12 *dst, const blst_fp12 in[], size_t n)
+// {   size_t i;
+//     blst_fp12_mul(dst, &in[0], &in[1]);
+//     for (i = 2; i < n; i++)
+//         blst_fp12_mul(dst, dst, &in[i]);
+// }
 import "C"
 import "runtime"
 
@@ -344,6 +363,64 @@ func Fp12MillerLoop(q *P2Affine, p *P1Affine) *Fp12 {
     return &pt
 }
 
+func Fp12MillerLoopN(qs []P2Affine, ps []P1Affine) *Fp12 {
+    if len(qs) != len(ps) || len(qs) == 0 {
+        panic("inputs' lengths mismatch")
+    }
+
+    nElems := uint32(len(qs))
+    nThreads := uint32(maxProcs)
+
+    if nThreads == 1 || nElems == 1 {
+        var pt Fp12
+        C.go_miller_loop_n(&pt, &qs[0], &ps[0], C.size_t(nElems), false)
+        return &pt
+    }
+
+    stride := (nElems + nThreads - 1) / nThreads
+    if stride > 16 {
+        stride = 16
+    }
+
+    strides := (nElems + stride - 1) / stride
+    if nThreads > strides {
+        nThreads = strides
+    }
+
+    msgsCh := make(chan Fp12, nThreads)
+    curElem := uint32(0)
+
+    for tid := uint32(0); tid < nThreads; tid++ {
+        go func() {
+            acc := Fp12One()
+            first := true
+            for {
+                work := atomic.AddUint32(&curElem, stride) - stride
+                if work >= nElems {
+                    break
+                }
+                n := nElems - work
+                if n > stride {
+                    n = stride
+                }
+                C.go_miller_loop_n(&acc, &qs[work], &ps[work], C.size_t(n),
+                                   C.bool(!first))
+                first = false
+            }
+            msgsCh <- acc
+        }()
+    }
+
+    var ret = make([]Fp12, nThreads);
+    for i := range(ret) {
+        ret[i] = <- msgsCh
+    }
+
+    var pt Fp12
+    C.go_fp12slice_mul(&pt, &ret[0], C.size_t(nThreads))
+    return &pt
+}
+
 func (pt *Fp12) MulAssign(p *Fp12) {
     C.blst_fp12_mul(pt, pt, p)
 }
@@ -360,4 +437,8 @@ func (pt *Fp12) ToBendian() []byte {
     var out [BLST_FP_BYTES*12]byte
     C.blst_bendian_from_fp12((*C.byte)(&out[0]), pt)
     return out[:]
+}
+
+func (pt1 *Fp12) Equals(pt2 *Fp12) bool {
+    return *pt1 == *pt2
 }
