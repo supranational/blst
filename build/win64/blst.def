@@ -152,6 +152,7 @@ EXPORTS
 	blst_sk_to_pk_in_g2
 	blst_sign_pk_in_g2
 	blst_miller_loop
+	blst_miller_loop_n
 	blst_final_exp
 	blst_precompute_lines
 	blst_miller_loop_lines

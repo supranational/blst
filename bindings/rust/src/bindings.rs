@@ -956,6 +956,14 @@ extern "C" {
     );
 }
 extern "C" {
+    pub fn blst_miller_loop_n(
+        ret: *mut blst_fp12,
+        Qs: *const *const blst_p2_affine,
+        Ps: *const *const blst_p1_affine,
+        n: usize,
+    );
+}
+extern "C" {
     pub fn blst_final_exp(ret: *mut blst_fp12, f: *const blst_fp12);
 }
 extern "C" {
