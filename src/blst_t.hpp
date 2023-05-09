@@ -246,6 +246,13 @@ public:
         return ret;
     }
 
+    static inline blst_384_t csel(const blst_384_t& a, const blst_384_t& b,
+                                  int sel_a)
+    {   blst_384_t ret;
+        vec_select(ret, a, b, sizeof(ret), sel_a);
+        return ret;
+    }
+
     blst_384_t reciprocal() const
     {
         static const blst_384_t MODx{MOD, true};
@@ -532,6 +539,13 @@ public:
     {   blst_256_t ret;
         const vec256 zero = { 0 };
         vec_select(ret, zero, a, sizeof(ret), set_z);
+        return ret;
+    }
+
+    static inline blst_256_t csel(const blst_256_t& a, const blst_256_t& b,
+                                  int sel_a)
+    {   blst_256_t ret;
+        vec_select(ret, a, b, sizeof(ret), sel_a);
         return ret;
     }
 
