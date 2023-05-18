@@ -398,7 +398,7 @@ static inline void vec_zero(void *ret, size_t num)
 # pragma warning(disable: 4127 4189)
 #endif
 
-#if !defined(__wasm__)
+#if !defined(__wasm__) && __STDC_HOSTED__-0 != 0
 # include <stdlib.h>
 #endif
 
