@@ -1184,6 +1184,12 @@ extern "C" {
     pub static BLS12_381_NEG_G2: blst_p2_affine;
 }
 extern "C" {
+    pub fn blst_fr_ct_bfly(x0: *mut blst_fr, x1: *mut blst_fr, twiddle: *const blst_fr);
+}
+extern "C" {
+    pub fn blst_fr_gs_bfly(x0: *mut blst_fr, x1: *mut blst_fr, twiddle: *const blst_fr);
+}
+extern "C" {
     pub fn blst_fr_to(ret: *mut blst_fr, a: *const blst_fr);
 }
 extern "C" {

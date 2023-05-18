@@ -181,6 +181,8 @@ EXPORTS
 	BLS12_381_NEG_G1
 	BLS12_381_G2
 	BLS12_381_NEG_G2
+	blst_fr_ct_bfly
+	blst_fr_gs_bfly
 	blst_fr_to
 	blst_fr_from
 	blst_fp_to
