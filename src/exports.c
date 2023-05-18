@@ -120,27 +120,26 @@ int blst_sk_sub_n_check(pow256 ret, const pow256 a, const pow256 b)
 
 int blst_sk_mul_n_check(pow256 ret, const pow256 a, const pow256 b)
 {
-    vec256 a_fr, b_fr;
+    vec256 t[2];
     const union {
         long one;
         char little;
     } is_endian = { 1 };
+    int is_zero;
 
     if (((size_t)a|(size_t)b)%sizeof(limb_t) != 0 || !is_endian.little) {
-        limbs_from_le_bytes(a_fr, a, sizeof(a_fr));
-        limbs_from_le_bytes(b_fr, b, sizeof(a_fr));
-        a = (const byte *)a_fr;
-        b = (const byte *)b_fr;
+        limbs_from_le_bytes(t[0], a, sizeof(pow256));
+        limbs_from_le_bytes(t[1], b, sizeof(pow256));
+        a = (const byte *)t[0];
+        b = (const byte *)t[1];
     }
-    mul_mont_sparse_256(a_fr, (const limb_t *)a, BLS12_381_rRR,
-                                                 BLS12_381_r, r0);
-    mul_mont_sparse_256(b_fr, (const limb_t *)b, BLS12_381_rRR,
-                                                 BLS12_381_r, r0);
-    mul_mont_sparse_256(a_fr, a_fr, b_fr, BLS12_381_r, r0);
-    from_mont_256(a_fr, a_fr, BLS12_381_r, r0);
-    le_bytes_from_limbs(ret, a_fr, sizeof(a_fr));
+    mul_mont_sparse_256(t[0], BLS12_381_rRR, (const limb_t *)a, BLS12_381_r, r0);
+    mul_mont_sparse_256(t[0], t[0], (const limb_t *)b, BLS12_381_r, r0);
+    le_bytes_from_limbs(ret, t[0], sizeof(pow256));
+    is_zero = vec_is_zero(t[0], sizeof(vec256));
+    vec_zero(t, sizeof(t));
 
-    return (int)(vec_is_zero(a_fr, sizeof(a_fr)) ^ 1);
+    return is_zero ^ 1;
 }
 
 void blst_sk_inverse(pow256 ret, const pow256 a)
