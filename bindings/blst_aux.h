@@ -10,6 +10,8 @@
  * depending on their proven/unproven worthiness.
  */
 
+void blst_fr_ct_bfly(blst_fr *x0, blst_fr *x1, const blst_fr *twiddle);
+void blst_fr_gs_bfly(blst_fr *x0, blst_fr *x1, const blst_fr *twiddle);
 void blst_fr_to(blst_fr *ret, const blst_fr *a);
 void blst_fr_from(blst_fr *ret, const blst_fr *a);
 #ifdef BLST_FR_PENTAROOT
