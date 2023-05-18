@@ -67,7 +67,7 @@ private:
 public:
     static const size_t nbits = N;
     static constexpr size_t bit_length() { return N; }
-    static const uint32_t degree = 1;
+    static const unsigned int degree = 1;
     typedef byte pow_t[384/8];
     typedef blst_384_t mem_t;
 
@@ -318,7 +318,7 @@ class blst_256_t {
 public:
     static const size_t nbits = N;
     static constexpr size_t bit_length() { return N; }
-    static const uint32_t degree = 1;
+    static const unsigned int degree = 1;
     typedef byte pow_t[256/8];
     typedef blst_256_t mem_t;
 
