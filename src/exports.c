@@ -39,6 +39,24 @@ void blst_fr_rshift(vec256 ret, const vec256 a, size_t count)
 void blst_fr_mul(vec256 ret, const vec256 a, const vec256 b)
 {   mul_mont_sparse_256(ret, a, b, BLS12_381_r, r0);   }
 
+void blst_fr_ct_bfly(vec256 x0, vec256 x1, const vec256 twiddle)
+{
+    vec256 x2;
+
+    mul_mont_sparse_256(x2, x1, twiddle, BLS12_381_r, r0);
+    sub_mod_256(x1, x0, x2, BLS12_381_r);
+    add_mod_256(x0, x0, x2, BLS12_381_r);
+}
+
+void blst_fr_gs_bfly(vec256 x0, vec256 x1, const vec256 twiddle)
+{
+    vec256 x2;
+
+    sub_mod_256(x2, x0, x1, BLS12_381_r);
+    add_mod_256(x0, x0, x1, BLS12_381_r);
+    mul_mont_sparse_256(x1, x2, twiddle, BLS12_381_r, r0);
+}
+
 void blst_fr_sqr(vec256 ret, const vec256 a)
 {   sqr_mont_sparse_256(ret, a, BLS12_381_r, r0);   }
 
