@@ -47,7 +47,7 @@ jobs:
         rustc --version --verbose
         cd bindings/rust
         if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
-            cargo update
+            env CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse cargo update
         fi
         cargo test --release
         cargo test --release --features=no-threads

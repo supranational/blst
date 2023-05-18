@@ -44,7 +44,7 @@ jobs:
 
     - if: matrix.language == 'cpp'
       name: Custom build
-      run: ./build.sh -m32 -D__wasm__
+      run: ./build.sh -m32 -ffreestanding
 
     - if: matrix.language != 'cpp'
       name: Autobuild
