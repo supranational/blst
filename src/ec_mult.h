@@ -62,7 +62,7 @@ static limb_t booth_encode(limb_t wval, size_t sz)
  * pass order's bit-length, which is customarily publicly known, instead
  * of the factual scalars' bit-lengths. This is facilitated by point
  * addition subroutines implemented to handle points at infinity, which
- * are encoded as Z==0. [Doubling agorithms handle such points at
+ * are encoded as Z==0. [Doubling algorithms handle such points at
  * infinity "naturally," since resulting Z is product of original Z.]
  */
 #define POINT_MULT_SCALAR_WX_IMPL(ptype, SZ) \

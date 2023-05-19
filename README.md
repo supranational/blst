@@ -136,7 +136,7 @@ The most-significant three bits of a G1 or G2 encoding should be masked away bef
 * The third-most significant bit is set if (and only if) this point is in compressed form _and_ it is not the point at infinity _and_ its y-coordinate is the lexicographically largest of the two associated with the encoded x-coordinate.
 
 ## Build
-The build process is very simple and only requires a C complier. It's integrated into the Go and Rust ecosystems, so that respective users would go about as they would with any other external module. Otherwise, a binary library would have to be compiled.
+The build process is very simple and only requires a C compiler. It's integrated into the Go and Rust ecosystems, so that respective users would go about as they would with any other external module. Otherwise, a binary library would have to be compiled.
 
 ### C static library
 A static library called libblst.a can be built in the current working directory of the user's choice:

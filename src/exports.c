@@ -328,7 +328,7 @@ void blst_fp2_cneg(vec384x ret, const vec384x a, int flag)
 {   cneg_fp2(ret, a, is_zero(flag) ^ 1);   }
 
 /*
- * Scalar serialization/deseriazation.
+ * Scalar serialization/deserialization.
  */
 void blst_scalar_from_uint32(pow256 ret, const unsigned int a[8])
 {

@@ -61,7 +61,7 @@ typedef unsigned char byte;
 typedef byte pow256[256/8];
 
 /*
- * Internal Boolean type, Bolean by value, hence safe to cast to or
+ * Internal Boolean type, Boolean by value, hence safe to cast to or
  * reinterpret as 'bool'.
  */
 typedef limb_t bool_t;

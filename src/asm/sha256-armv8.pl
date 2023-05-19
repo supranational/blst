@@ -11,7 +11,7 @@
 #
 # sha256_block procedure for ARMv8.
 #
-# This module is stripped of scalar code paths, with raionale that all
+# This module is stripped of scalar code paths, with rationale that all
 # known processors are NEON-capable.
 #
 # See original module at CRYPTOGAMS for further details.

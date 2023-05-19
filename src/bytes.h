@@ -26,7 +26,7 @@ static inline void limbs_from_be_bytes(limb_t *restrict ret,
          * 'if (n % sizeof(limb_t) == 0)' is omitted because it's cheaper
          * to perform redundant stores than to pay penalty for
          * mispredicted branch. Besides, some compilers unroll the
-         * loop and remove redundant stores to 'restict'-ed storage...
+         * loop and remove redundant stores to 'restrict'-ed storage...
          */
         ret[n / sizeof(limb_t)] = limb;
     }
@@ -55,7 +55,7 @@ static inline void limbs_from_le_bytes(limb_t *restrict ret,
          * 'if (n % sizeof(limb_t) == 0)' is omitted because it's cheaper
          * to perform redundant stores than to pay penalty for
          * mispredicted branch. Besides, some compilers unroll the
-         * loop and remove redundant stores to 'restict'-ed storage...
+         * loop and remove redundant stores to 'restrict'-ed storage...
          */
         ret[n / sizeof(limb_t)] = limb;
     }
