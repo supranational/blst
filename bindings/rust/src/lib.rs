@@ -1292,7 +1292,7 @@ macro_rules! sig_variant_impl {
                 }
                 if sigs_groupcheck {
                     // We can't actually judge if input is individual or
-                    // aggregated signature, so we can't enforce infinitiy
+                    // aggregated signature, so we can't enforce infinity
                     // check.
                     sigs[0].validate(false)?;
                 }

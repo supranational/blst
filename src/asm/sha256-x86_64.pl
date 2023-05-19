@@ -12,14 +12,14 @@
 # sha256_block procedure for x86_64.
 #
 # This module is stripped of AVX and even scalar code paths, with
-# raionale that
+# rationale that
 #
 # a) AVX1 is [justifiably] faster than SSSE3 code path only on *one*
 #    processor, venerable Sandy Bridge;
 # b) AVX2 incurs costly power transitions, which would be justifiable
 #    if AVX2 code was executing most of the time, which is not the
 #    case in the context;
-# c) all comtemporary processors support SSSE3, so that nobody would
+# c) all contemporary processors support SSSE3, so that nobody would
 #    actually use scalar code path anyway;
 #
 # See original module at CRYPTOGAMS for further details.

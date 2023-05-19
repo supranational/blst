@@ -161,7 +161,7 @@ ct_inverse_mod_383:
 	adds	@acc[0], @acc[0], @acc[2]
 	adc	@acc[1], @acc[1], @acc[3]
 	stp	@acc[0], @acc[1], [$out_ptr,#8*6]
-	asr	@acc[2], @acc[1], #63		// sign extenstion
+	asr	@acc[2], @acc[1], #63		// sign extension
 	stp	@acc[2], @acc[2], [$out_ptr,#8*8]
 	stp	@acc[2], @acc[2], [$out_ptr,#8*10]
 
@@ -172,7 +172,7 @@ ct_inverse_mod_383:
 	adds	@acc[0], @acc[0], @acc[2]
 	adc	@acc[1], @acc[1], @acc[3]
 	stp	@acc[0], @acc[1], [$out_ptr,#8*12]
-	asr	@acc[2], @acc[1], #63		// sign extenstion
+	asr	@acc[2], @acc[1], #63		// sign extension
 	stp	@acc[2], @acc[2], [$out_ptr,#8*14]
 	stp	@acc[2], @acc[2], [$out_ptr,#8*16]
 ___

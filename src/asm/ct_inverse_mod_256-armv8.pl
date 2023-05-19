@@ -155,14 +155,14 @@ ct_inverse_mod_256:
 	madd	@acc[0], $f_, @acc[4], xzr	// |u|*|f0|
 	madd	@acc[0], $g_, @acc[5], @acc[0]	// |v|*|g0|
 	str	@acc[0], [$out_ptr,#8*4]
-	asr	@acc[1], @acc[0], #63		// sign extenstion
+	asr	@acc[1], @acc[0], #63		// sign extension
 	stp	@acc[1], @acc[1], [$out_ptr,#8*5]
 	stp	@acc[1], @acc[1], [$out_ptr,#8*7]
 
 	madd	@acc[0], $f0, @acc[4], xzr	// |u|*|f1|
 	madd	@acc[0], $g0, @acc[5], @acc[0]	// |v|*|g1|
 	str	@acc[0], [$out_ptr,#8*9]
-	asr	@acc[1], @acc[0], #63		// sign extenstion
+	asr	@acc[1], @acc[0], #63		// sign extension
 	stp	@acc[1], @acc[1], [$out_ptr,#8*10]
 	stp	@acc[1], @acc[1], [$out_ptr,#8*12]
 ___
