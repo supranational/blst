@@ -18,9 +18,9 @@
 # endif
 #elif defined(__aarch64__)
 # if defined(__ARM_FEATURE_CRYPTO) && !defined(__BLST_PORTABLE__)
-# define sha256_block_data_order blst_sha256_block_armv8
+#  define sha256_block_data_order blst_sha256_block_armv8
 # else
-# define sha256_block_data_order blst_sha256_block_data_order
+#  define sha256_block_data_order blst_sha256_block_data_order
 # endif
 #else
 # define sha256_block_data_order blst_sha256_block_data_order
