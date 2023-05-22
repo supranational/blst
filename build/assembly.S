@@ -36,6 +36,7 @@
 #  include "coff/div3w-x86_64.s"
 #  include "coff/ct_is_square_mod_384-x86_64.s"
 # elif defined(__APPLE__)
+#  include "mach-o/sha256-portable-x86_64.s"
 #  include "mach-o/sha256-x86_64.s"
 #  include "mach-o/ctx_inverse_mod_384-x86_64.s"
 #  include "mach-o/ctq_inverse_mod_384-x86_64.s"
