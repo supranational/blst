@@ -36,6 +36,8 @@ $0 =~ m/(.*[\/\\])[^\/\\]+$/; $dir=$1;
 ( $xlate="${dir}../../perlasm/x86_64-xlate.pl" and -f $xlate) or
 die "can't locate x86_64-xlate.pl";
 
+$pre = "mulx_mont_256";
+
 open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
     or die "can't call $xlate: $!";
 
@@ -84,7 +86,7 @@ mulx_mont_sparse_256:
 	lea	-128($n_ptr), $n_ptr	# control u-op density
 
 	mulx	@acc[4], %rax, @acc[1]	# a[0]*b[0]
-	call	__mulx_mont_sparse_256
+	call	${pre}__mulx_mont_sparse_256
 
 	mov	8(%rsp),%r15
 .cfi_restore	%r15
@@ -138,7 +140,7 @@ sqrx_mont_sparse_256:
 	lea	-128($n_ptr), $n_ptr	# control u-op density
 
 	mulx	%rdx, %rax, @acc[1]	# a[0]*a[0]
-	call	__mulx_mont_sparse_256
+	call	${pre}__mulx_mont_sparse_256
 
 	mov	8(%rsp),%r15
 .cfi_restore	%r15
@@ -162,9 +164,9 @@ ___
 {
 my @acc=@acc;
 $code.=<<___;
-.type	__mulx_mont_sparse_256,\@abi-omnipotent
+.type	${pre}__mulx_mont_sparse_256,\@abi-omnipotent
 .align	32
-__mulx_mont_sparse_256:
+${pre}__mulx_mont_sparse_256:
 	mulx	@acc[5], @acc[5], @acc[2]
 	mulx	$lo, $lo, @acc[3]
 	add	@acc[5], @acc[1]
@@ -275,7 +277,7 @@ $code.=<<___;
 	mov	@acc[4], 8*3($r_ptr)
 
 	ret
-.size	__mulx_mont_sparse_256,.-__mulx_mont_sparse_256
+.size	${pre}__mulx_mont_sparse_256,.-${pre}__mulx_mont_sparse_256
 ___
 } }
 { my ($n_ptr, $n0)=($b_ptr, $n_ptr);	# arguments are "shifted"
@@ -304,12 +306,12 @@ fromx_mont_256:
 .cfi_end_prologue
 
 	mov	$b_org, $n_ptr
-	call	__mulx_by_1_mont_256
+	call	${pre}__mulx_by_1_mont_256
 
 	#################################
 	# Branch-less conditional acc[0:3] - modulus
 
-	#mov	@acc[4], %rax		# __mulq_by_1_mont_256 does it
+	#mov	@acc[4], %rax		# ${pre}__mulq_by_1_mont_256 does it
 	mov	@acc[5], %rdx
 	mov	@acc[0], @acc[2]
 	mov	@acc[1], @acc[3]
@@ -370,7 +372,7 @@ redcx_mont_256:
 .cfi_end_prologue
 
 	mov	$b_org, $n_ptr
-	call	__mulx_by_1_mont_256
+	call	${pre}__mulx_by_1_mont_256
 
 	add	8*4($a_ptr), @acc[4]	# accumulate upper half
 	adc	8*5($a_ptr), @acc[5]
@@ -391,7 +393,7 @@ redcx_mont_256:
 	sbb	8*3($n_ptr), @acc[1]
 	sbb	\$0, $a_ptr
 
-	cmovnc	@acc[4], %rax 
+	cmovnc	@acc[4], %rax
 	cmovnc	@acc[5], %rdx
 	cmovnc	@acc[0], @acc[2]
 	mov	%rax,    8*0($r_ptr)
@@ -423,9 +425,9 @@ ___
 my @acc=@acc;
 
 $code.=<<___;
-.type	__mulx_by_1_mont_256,\@abi-omnipotent
+.type	${pre}__mulx_by_1_mont_256,\@abi-omnipotent
 .align	32
-__mulx_by_1_mont_256:
+${pre}__mulx_by_1_mont_256:
 	mov	8*0($a_ptr), %rax
 	mov	8*1($a_ptr), @acc[1]
 	mov	8*2($a_ptr), @acc[2]
@@ -478,7 +480,7 @@ ___
 }
 $code.=<<___;
 	ret
-.size	__mulx_by_1_mont_256,.-__mulx_by_1_mont_256
+.size	${pre}__mulx_by_1_mont_256,.-${pre}__mulx_by_1_mont_256
 ___
 } } }
 

@@ -2,7 +2,7 @@
 
 .p2align	6
 
-K256:
+__sha256_K256:
 .long	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5
 .long	0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5
 .long	0xd807aa98,0x12835b01,0x243185be,0x550c7dc3
@@ -53,7 +53,7 @@ blst_sha256_block_data_order_shaext:
 
 .LSEH_body_blst_sha256_block_data_order_shaext:
 
-	leaq	K256+128(%rip),%rcx
+	leaq	__sha256_K256+128(%rip),%rcx
 	movdqu	(%rdi),%xmm1
 	movdqu	16(%rdi),%xmm2
 	movdqa	256-128(%rcx),%xmm7
@@ -330,14 +330,14 @@ blst_sha256_block_data_order:
 	jmp	.Lloop_ssse3
 .p2align	4
 .Lloop_ssse3:
-	movdqa	K256+256(%rip),%xmm7
+	movdqa	__sha256_K256+256(%rip),%xmm7
 	movq	%rsi,8(%rbp)
 	movdqu	0(%rsi),%xmm0
 	movdqu	16(%rsi),%xmm1
 	movdqu	32(%rsi),%xmm2
 .byte	102,15,56,0,199
 	movdqu	48(%rsi),%xmm3
-	leaq	K256(%rip),%rsi
+	leaq	__sha256_K256(%rip),%rsi
 .byte	102,15,56,0,207
 	movdqa	0(%rsi),%xmm4
 	movdqa	16(%rsi),%xmm5
@@ -1413,70 +1413,6 @@ blst_sha256_block_data_order:
 	.byte	0xf3,0xc3
 
 .LSEH_end_blst_sha256_block_data_order:
-.globl	blst_sha256_emit
-
-.def	blst_sha256_emit;	.scl 2;	.type 32;	.endef
-.p2align	4
-blst_sha256_emit:
-	.byte	0xf3,0x0f,0x1e,0xfa
-
-	movq	0(%rdx),%r8
-	movq	8(%rdx),%r9
-	movq	16(%rdx),%r10
-	bswapq	%r8
-	movq	24(%rdx),%r11
-	bswapq	%r9
-	movl	%r8d,4(%rcx)
-	bswapq	%r10
-	movl	%r9d,12(%rcx)
-	bswapq	%r11
-	movl	%r10d,20(%rcx)
-	shrq	$32,%r8
-	movl	%r11d,28(%rcx)
-	shrq	$32,%r9
-	movl	%r8d,0(%rcx)
-	shrq	$32,%r10
-	movl	%r9d,8(%rcx)
-	shrq	$32,%r11
-	movl	%r10d,16(%rcx)
-	movl	%r11d,24(%rcx)
-	.byte	0xf3,0xc3
-
-
-.globl	blst_sha256_bcopy
-
-.def	blst_sha256_bcopy;	.scl 2;	.type 32;	.endef
-.p2align	4
-blst_sha256_bcopy:
-	.byte	0xf3,0x0f,0x1e,0xfa
-
-	subq	%rdx,%rcx
-.Loop_bcopy:
-	movzbl	(%rdx),%eax
-	leaq	1(%rdx),%rdx
-	movb	%al,-1(%rcx,%rdx,1)
-	decq	%r8
-	jnz	.Loop_bcopy
-	.byte	0xf3,0xc3
-
-
-.globl	blst_sha256_hcopy
-
-.def	blst_sha256_hcopy;	.scl 2;	.type 32;	.endef
-.p2align	4
-blst_sha256_hcopy:
-	.byte	0xf3,0x0f,0x1e,0xfa
-
-	movq	0(%rdx),%r8
-	movq	8(%rdx),%r9
-	movq	16(%rdx),%r10
-	movq	24(%rdx),%r11
-	movq	%r8,0(%rcx)
-	movq	%r9,8(%rcx)
-	movq	%r10,16(%rcx)
-	movq	%r11,24(%rcx)
-	.byte	0xf3,0xc3
-
 .section	.pdata
 .p2align	2
 .rva	.LSEH_begin_blst_sha256_block_data_order_shaext

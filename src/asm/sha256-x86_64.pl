@@ -40,7 +40,7 @@ open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
 
 $pre="blst_";
 $func="${pre}sha256_block_data_order";
-$TABLE="K256";
+$TABLE="__sha256_K256";
 $SZ=4;
 @ROT=($A,$B,$C,$D,$E,$F,$G,$H)=("%eax","%ebx","%ecx","%edx",
 				"%r8d","%r9d","%r10d","%r11d");
@@ -125,7 +125,7 @@ $code.=<<___ if ($win64);
 .cfi_end_prologue
 ___
 $code.=<<___;
-	lea		K256+0x80(%rip),$Tbl
+	lea		$TABLE+0x80(%rip),$Tbl
 	movdqu		($ctx),$ABEF		# DCBA
 	movdqu		16($ctx),$CDGH		# HGFE
 	movdqa		0x100-0x80($Tbl),$TMP	# byte swap mask
@@ -697,70 +697,6 @@ $code.=<<___;
 ___
 }
 }}}
-{
-my ($out,$inp,$len) = $win64 ? ("%rcx","%rdx","%r8") :  # Win64 order
-                               ("%rdi","%rsi","%rdx");  # Unix order
-$code.=<<___;
-.globl	${pre}sha256_emit
-.hidden	${pre}sha256_emit
-.type	${pre}sha256_emit,\@abi-omnipotent
-.align	16
-${pre}sha256_emit:
-	mov	0($inp), %r8
-	mov	8($inp), %r9
-	mov	16($inp), %r10
-	bswap	%r8
-	mov	24($inp), %r11
-	bswap	%r9
-	mov	%r8d, 4($out)
-	bswap	%r10
-	mov	%r9d, 12($out)
-	bswap	%r11
-	mov	%r10d, 20($out)
-	shr	\$32, %r8
-	mov	%r11d, 28($out)
-	shr	\$32, %r9
-	mov	%r8d, 0($out)
-	shr	\$32, %r10
-	mov	%r9d, 8($out)
-	shr	\$32, %r11
-	mov	%r10d, 16($out)
-	mov	%r11d, 24($out)
-	ret
-.size	${pre}sha256_emit,.-${pre}sha256_emit
-
-.globl	${pre}sha256_bcopy
-.hidden	${pre}sha256_bcopy
-.type	${pre}sha256_bcopy,\@abi-omnipotent
-.align	16
-${pre}sha256_bcopy:
-	sub	$inp, $out
-.Loop_bcopy:
-	movzb	($inp), %eax
-	lea	1($inp), $inp
-	mov	%al, -1($out,$inp)
-	dec	$len
-	jnz	.Loop_bcopy
-	ret
-.size	${pre}sha256_bcopy,.-${pre}sha256_bcopy
-
-.globl	${pre}sha256_hcopy
-.hidden	${pre}sha256_hcopy
-.type	${pre}sha256_hcopy,\@abi-omnipotent
-.align	16
-${pre}sha256_hcopy:
-	mov	0($inp), %r8
-	mov	8($inp), %r9
-	mov	16($inp), %r10
-	mov	24($inp), %r11
-	mov	%r8, 0($out)
-	mov	%r9, 8($out)
-	mov	%r10, 16($out)
-	mov	%r11, 24($out)
-	ret
-.size	${pre}sha256_hcopy,.-${pre}sha256_hcopy
-___
-}
 
 sub sha256op38 {
     my $instr = shift;

@@ -15,6 +15,8 @@ $0 =~ m/(.*[\/\\])[^\/\\]+$/; $dir=$1;
 ( $xlate="${dir}../../perlasm/x86_64-xlate.pl" and -f $xlate) or
 die "can't locate x86_64-xlate.pl";
 
+$pre = "mulq_mont_384";
+
 open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
     or die "can't call $xlate: $!";
 
@@ -37,9 +39,9 @@ $code.=<<___;
 # input boundary condition for Montgomery reduction, not n*n.
 # Just in case, this is duplicated, but only one module is
 # supposed to be linked...
-.type	__sub_mod_384x384,\@abi-omnipotent
+.type	${pre}__sub_mod_384x384,\@abi-omnipotent
 .align	32
-__sub_mod_384x384:
+${pre}__sub_mod_384x384:
 	mov	8*0($a_ptr), @acc[0]
 	mov	8*1($a_ptr), @acc[1]
 	mov	8*2($a_ptr), @acc[2]
@@ -100,11 +102,11 @@ __sub_mod_384x384:
 	mov	@acc[11], 8*11($r_ptr)
 
 	ret
-.size	__sub_mod_384x384,.-__sub_mod_384x384
+.size	${pre}__sub_mod_384x384,.-${pre}__sub_mod_384x384
 
-.type	__add_mod_384,\@abi-omnipotent
+.type	${pre}__add_mod_384,\@abi-omnipotent
 .align	32
-__add_mod_384:
+${pre}__add_mod_384:
 	mov	8*0($a_ptr), @acc[0]
 	mov	8*1($a_ptr), @acc[1]
 	mov	8*2($a_ptr), @acc[2]
@@ -148,11 +150,11 @@ __add_mod_384:
 	mov	@acc[5], 8*5($r_ptr)
 
 	ret
-.size	__add_mod_384,.-__add_mod_384
+.size	${pre}__add_mod_384,.-${pre}__add_mod_384
 
-.type	__sub_mod_384,\@abi-omnipotent
+.type	${pre}__sub_mod_384,\@abi-omnipotent
 .align	32
-__sub_mod_384:
+${pre}__sub_mod_384:
 	mov	8*0($a_ptr), @acc[0]
 	mov	8*1($a_ptr), @acc[1]
 	mov	8*2($a_ptr), @acc[2]
@@ -160,7 +162,7 @@ __sub_mod_384:
 	mov	8*4($a_ptr), @acc[4]
 	mov	8*5($a_ptr), @acc[5]
 
-__sub_mod_384_a_is_loaded:
+${pre}__sub_mod_384_a_is_loaded:
 	sub	8*0($b_org), @acc[0]
 	 mov	8*0($n_ptr), @acc[6]
 	sbb	8*1($b_org), @acc[1]
@@ -196,7 +198,7 @@ __sub_mod_384_a_is_loaded:
 	mov	@acc[5], 8*5($r_ptr)
 
 	ret
-.size	__sub_mod_384,.-__sub_mod_384
+.size	${pre}__sub_mod_384,.-${pre}__sub_mod_384
 ___
 }
 
@@ -241,44 +243,44 @@ mul_mont_384x:
 	#lea	0($b_btr), $b_ptr	# b->re
 	#lea	0($a_ptr), $a_ptr	# a->re
 	lea	40(%rsp), $r_ptr	# t0
-	call	__mulq_384
+	call	${pre}__mulq_384
 
 	################################# mul_384(t1, a->im, b->im);
 	lea	48($b_ptr), $b_ptr	# b->im
 	lea	48($a_ptr), $a_ptr	# a->im
 	lea	40+96(%rsp), $r_ptr	# t1
-	call	__mulq_384
+	call	${pre}__mulq_384
 
 	################################# mul_384(t2, a->re+a->im, b->re+b->im);
 	mov	8*1(%rsp), $n_ptr
 	lea	-48($a_ptr), $b_org
 	lea	40+192+48(%rsp), $r_ptr
-	call	__add_mod_384
+	call	${pre}__add_mod_384
 
 	mov	8*2(%rsp), $a_ptr
 	lea	48($a_ptr), $b_org
 	lea	-48($r_ptr), $r_ptr
-	call	__add_mod_384
+	call	${pre}__add_mod_384
 
 	lea	($r_ptr),$b_ptr
 	lea	48($r_ptr),$a_ptr
-	call	__mulq_384
+	call	${pre}__mulq_384
 
 	################################# t2=t2-t0-t1
 	lea	($r_ptr), $a_ptr	# t2
 	lea	40(%rsp), $b_org	# t0
 	mov	8*1(%rsp), $n_ptr
-	call	__sub_mod_384x384	# t2=t2-t0
+	call	${pre}__sub_mod_384x384	# t2=t2-t0
 
 	lea	($r_ptr), $a_ptr	# t2
 	lea	-96($r_ptr), $b_org	# t1
-	call	__sub_mod_384x384	# t2=t2-t1
+	call	${pre}__sub_mod_384x384	# t2=t2-t1
 
 	################################# t0=t0-t1
 	lea	40(%rsp), $a_ptr
 	lea	40+96(%rsp), $b_org
 	lea	40(%rsp), $r_ptr
-	call	__sub_mod_384x384	# t0-t1
+	call	${pre}__sub_mod_384x384	# t0-t1
 
 	mov	$n_ptr, $b_ptr		# n_ptr for redc_mont_384
 
@@ -286,15 +288,15 @@ mul_mont_384x:
 	lea	40(%rsp), $a_ptr	# t0
 	mov	8*0(%rsp), %rcx		# n0 for redc_mont_384
 	mov	8*4(%rsp), $r_ptr	# ret->re
-	call	__mulq_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	${pre}__mulq_by_1_mont_384
+	call	${pre}__redc_tail_mont_384
 
 	################################# redc_mont_384(ret->im, t2, mod, n0);
 	lea	40+192(%rsp), $a_ptr	# t2
 	mov	8*0(%rsp), %rcx		# n0 for redc_mont_384
 	lea	48($r_ptr), $r_ptr	# ret->im
-	call	__mulq_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	${pre}__mulq_by_1_mont_384
+	call	${pre}__redc_tail_mont_384
 
 	lea	$frame(%rsp), %r8	# size optimization
 	mov	8*0(%r8),%r15
@@ -345,19 +347,19 @@ sqr_mont_384x:
 
 	mov	$n_ptr, 8*0(%rsp)	# n0
 	mov	$b_org, $n_ptr		# n_ptr
-	mov	$r_ptr, 8*1(%rsp)	# to __mulq_mont_384
+	mov	$r_ptr, 8*1(%rsp)	# to ${pre}__mulq_mont_384
 	mov	$a_ptr, 8*2(%rsp)
 
 	################################# add_mod_384(t0, a->re, a->im);
 	lea	48($a_ptr), $b_org	# a->im
 	lea	32(%rsp), $r_ptr	# t0
-	call	__add_mod_384
+	call	${pre}__add_mod_384
 
 	################################# sub_mod_384(t1, a->re, a->im);
 	mov	8*2(%rsp), $a_ptr	# a->re
 	lea	48($a_ptr), $b_org	# a->im
 	lea	32+48(%rsp), $r_ptr	# t1
-	call	__sub_mod_384
+	call	${pre}__sub_mod_384
 
 	################################# mul_mont_384(ret->im, a->re, a->im, mod, n0);
 	mov	8*2(%rsp), $a_ptr	# a->re
@@ -369,10 +371,10 @@ sqr_mont_384x:
 	mov	8*2($a_ptr), @acc[4]
 	mov	8*3($a_ptr), @acc[5]
 
-	call	__mulq_mont_384
+	call	${pre}__mulq_mont_384
 ___
 {
-my @acc = map("%r$_",14,15,8..11,	# output from __mulq_mont_384
+my @acc = map("%r$_",14,15,8..11,	# output from ${pre}__mulq_mont_384
                      12,13,"ax","bx","bp","si");
 $code.=<<___;
 	add	@acc[0], @acc[0]	# add with itself
@@ -422,7 +424,7 @@ $code.=<<___;
 	mov	32+8*2(%rsp), @acc[4]
 	mov	32+8*3(%rsp), @acc[5]
 
-	call	__mulq_mont_384
+	call	${pre}__mulq_mont_384
 
 	lea	$frame(%rsp), %r8	# size optimization
 	mov	8*0(%r8),%r15
@@ -519,37 +521,37 @@ mul_382x:
 	################################# mul_384(ret->im, t0, t1);
 	lea	32+8*0(%rsp), $a_ptr	# t0
 	lea	32+8*6(%rsp), $b_ptr	# t1
-	call	__mulq_384
+	call	${pre}__mulq_384
 
 	################################# mul_384(ret->re, a->re, b->re);
 	mov	8*0(%rsp), $a_ptr
 	mov	8*1(%rsp), $b_ptr
 	lea	-96($r_ptr), $r_ptr	# ret->re
-	call	__mulq_384
+	call	${pre}__mulq_384
 
 	################################# mul_384(tx, a->im, b->im);
 	lea	48($a_ptr), $a_ptr
 	lea	48($b_ptr), $b_ptr
 	lea	32(%rsp), $r_ptr
-	call	__mulq_384
+	call	${pre}__mulq_384
 
 	################################# ret->im -= tx
 	mov	8*2(%rsp), $a_ptr	# restore ret->im
 	lea	32(%rsp), $b_org
 	mov	8*3(%rsp), $n_ptr
 	mov	$a_ptr, $r_ptr
-	call	__sub_mod_384x384
+	call	${pre}__sub_mod_384x384
 
 	################################# ret->im -= ret->re
 	lea	0($r_ptr), $a_ptr
 	lea	-96($r_ptr), $b_org
-	call	__sub_mod_384x384
+	call	${pre}__sub_mod_384x384
 
 	################################# ret->re -= tx
 	lea	-96($r_ptr), $a_ptr
 	lea	32(%rsp), $b_org
 	lea	-96($r_ptr), $r_ptr
-	call	__sub_mod_384x384
+	call	${pre}__sub_mod_384x384
 
 	lea	$frame(%rsp), %r8	# size optimization
 	mov	8*0(%r8),%r15
@@ -630,19 +632,19 @@ sqr_382x:
 	################################# t1 = a->re - a->im
 	lea	48($a_ptr), $b_org
 	lea	48($r_ptr), $r_ptr
-	call	__sub_mod_384_a_is_loaded
+	call	${pre}__sub_mod_384_a_is_loaded
 
 	################################# mul_384(ret->re, t0, t1);
 	lea	($r_ptr), $a_ptr
 	lea	-48($r_ptr), $b_ptr
 	lea	-48($r_ptr), $r_ptr
-	call	__mulq_384
+	call	${pre}__mulq_384
 
 	################################# mul_384(ret->im, a->re, a->im);
 	mov	(%rsp), $a_ptr
 	lea	48($a_ptr), $b_ptr
 	lea	96($r_ptr), $r_ptr
-	call	__mulq_384
+	call	${pre}__mulq_384
 
 	mov	8*0($r_ptr), @acc[0]	# double ret->im
 	mov	8*1($r_ptr), @acc[1]
@@ -721,7 +723,7 @@ mul_384:
 .cfi_end_prologue
 
 	mov	$b_org, $b_ptr
-	call	__mulq_384
+	call	${pre}__mulq_384
 
 	mov	0(%rsp),%r12
 .cfi_restore	%r12
@@ -736,9 +738,9 @@ mul_384:
 .cfi_endproc
 .size	mul_384,.-mul_384
 
-.type	__mulq_384,\@abi-omnipotent
+.type	${pre}__mulq_384,\@abi-omnipotent
 .align	32
-__mulq_384:
+${pre}__mulq_384:
 	mov	8*0($b_ptr), %rax
 
 	mov	%rax, $bi
@@ -838,7 +840,7 @@ $code.=<<___;
 	mov	@acc[5], 8*11($r_ptr)
 
 	ret
-.size	__mulq_384,.-__mulq_384
+.size	${pre}__mulq_384,.-${pre}__mulq_384
 ___
 }
 if (0) { ##############################################################
@@ -889,9 +891,9 @@ my @comba=map("%r$_",("cx",8,9));
 # [for reference +5% on Skylake, +11% on Ryzen]
 
 $code.=<<___;
-.type	__mulq_comba_384,\@abi-omnipotent
+.type	${pre}__mulq_comba_384,\@abi-omnipotent
 .align	32
-__mulq_comba_384:
+${pre}__mulq_comba_384:
 	mov	8*0($b_ptr), %rax
 	mov	8*0($a_ptr), @a[0]
 	mov	8*1($a_ptr), @a[1]
@@ -1160,7 +1162,7 @@ $code.=<<___;
 	mov	@comba[1], 8*11($r_ptr)
 
 	ret
-.size	__mulq_comba_384,.-__mulq_comba_384
+.size	${pre}__mulq_comba_384,.-${pre}__mulq_comba_384
 ___
 }
 { ########################################################## 384-bit sqr
@@ -1190,7 +1192,7 @@ sqr_384:
 .cfi_adjust_cfa_offset	8
 .cfi_end_prologue
 
-	call	__sqrq_384
+	call	${pre}__sqrq_384
 
 	mov	8(%rsp),%r15
 .cfi_restore	%r15
@@ -1211,9 +1213,9 @@ sqr_384:
 .cfi_endproc
 .size	sqr_384,.-sqr_384
 
-.type	__sqrq_384,\@abi-omnipotent
+.type	${pre}__sqrq_384,\@abi-omnipotent
 .align	32
-__sqrq_384:
+${pre}__sqrq_384:
 	mov	8*0($a_ptr), %rax
 	mov	8*1($a_ptr), @acc[7]
 	mov	8*2($a_ptr), @acc[8]
@@ -1405,7 +1407,7 @@ $code.=<<___;
 	mov	%rdx, 8*11($r_ptr)
 
 	ret
-.size	__sqrq_384,.-__sqrq_384
+.size	${pre}__sqrq_384,.-${pre}__sqrq_384
 
 .globl	sqr_mont_384
 .hidden	sqr_mont_384
@@ -1434,14 +1436,14 @@ sqr_mont_384:
 	mov	$r_ptr, 8*14(%rsp)
 
 	mov	%rsp, $r_ptr
-	call	__sqrq_384
+	call	${pre}__sqrq_384
 
 	lea	0(%rsp), $a_ptr
 	mov	8*12(%rsp), %rcx	# n0 for mul_by_1
 	mov	8*13(%rsp), $b_ptr	# n_ptr for mul_by_1
 	mov	8*14(%rsp), $r_ptr
-	call	__mulq_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	${pre}__mulq_by_1_mont_384
+	call	${pre}__redc_tail_mont_384
 
 	lea	8*15(%rsp), %r8		# size optimization
 	mov	8*15(%rsp), %r15
@@ -1494,8 +1496,8 @@ redc_mont_384:
 .cfi_end_prologue
 
 	mov	$b_org, $n_ptr
-	call	__mulq_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	${pre}__mulq_by_1_mont_384
+	call	${pre}__redc_tail_mont_384
 
 	mov	8(%rsp),%r15
 .cfi_restore	%r15
@@ -1542,12 +1544,12 @@ from_mont_384:
 .cfi_end_prologue
 
 	mov	$b_org, $n_ptr
-	call	__mulq_by_1_mont_384
+	call	${pre}__mulq_by_1_mont_384
 
 	#################################
 	# Branch-less conditional acc[0:6] - modulus
 
-	#mov	@acc[6], %rax		# __mulq_by_1_mont_384 does it
+	#mov	@acc[6], %rax		# ${pre}__mulq_by_1_mont_384 does it
 	mov	@acc[7], %rcx
 	mov	@acc[0], %rdx
 	mov	@acc[1], %rbp
@@ -1596,9 +1598,9 @@ ___
 { my @acc=@acc;				# will be rotated locally
 
 $code.=<<___;
-.type	__mulq_by_1_mont_384,\@abi-omnipotent
+.type	${pre}__mulq_by_1_mont_384,\@abi-omnipotent
 .align	32
-__mulq_by_1_mont_384:
+${pre}__mulq_by_1_mont_384:
 	mov	8*0($a_ptr), %rax
 	mov	8*1($a_ptr), @acc[1]
 	mov	8*2($a_ptr), @acc[2]
@@ -1669,11 +1671,11 @@ ___
 }
 $code.=<<___;
 	ret
-.size	__mulq_by_1_mont_384,.-__mulq_by_1_mont_384
+.size	${pre}__mulq_by_1_mont_384,.-${pre}__mulq_by_1_mont_384
 
-.type	__redc_tail_mont_384,\@abi-omnipotent
+.type	${pre}__redc_tail_mont_384,\@abi-omnipotent
 .align	32
-__redc_tail_mont_384:
+${pre}__redc_tail_mont_384:
 	add	8*6($a_ptr), @acc[0]	# accumulate upper half
 	mov	@acc[0], %rax
 	adc	8*7($a_ptr), @acc[1]
@@ -1714,7 +1716,7 @@ __redc_tail_mont_384:
 	mov	@acc[5], 8*5($r_ptr)
 
 	ret
-.size	__redc_tail_mont_384,.-__redc_tail_mont_384
+.size	${pre}__redc_tail_mont_384,.-${pre}__redc_tail_mont_384
 
 .globl	sgn0_pty_mont_384
 .hidden	sgn0_pty_mont_384
@@ -1741,7 +1743,7 @@ sgn0_pty_mont_384:
 	mov	$a_ptr, $n_ptr
 	lea	0($r_ptr), $a_ptr
 	mov	$b_org, $n0
-	call	__mulq_by_1_mont_384
+	call	${pre}__mulq_by_1_mont_384
 
 	xor	%rax, %rax
 	mov	@acc[0], @acc[7]
@@ -1810,7 +1812,7 @@ sgn0_pty_mont_384x:
 	mov	$a_ptr, $n_ptr
 	lea	48($r_ptr), $a_ptr	# sgn0(a->im)
 	mov	$b_org, $n0
-	call	__mulq_by_1_mont_384
+	call	${pre}__mulq_by_1_mont_384
 
 	mov	@acc[0], @acc[6]
 	or	@acc[1], @acc[0]
@@ -1844,7 +1846,7 @@ sgn0_pty_mont_384x:
 	and	\$2, $r_ptr
 	or	@acc[7], $r_ptr		# pack sign and parity
 
-	call	__mulq_by_1_mont_384
+	call	${pre}__mulq_by_1_mont_384
 
 	mov	@acc[0], @acc[6]
 	or	@acc[1], @acc[0]
@@ -1939,9 +1941,9 @@ mul_mont_384:
 	mov	8*3($a_ptr), @acc[5]
 	mov	$b_org, $b_ptr		# evacuate from %rdx
 	mov	$n0,    8*0(%rsp)
-	mov	$r_ptr, 8*1(%rsp)	# to __mulq_mont_384
+	mov	$r_ptr, 8*1(%rsp)	# to ${pre}__mulq_mont_384
 
-	call	__mulq_mont_384
+	call	${pre}__mulq_mont_384
 
 	mov	24(%rsp),%r15
 .cfi_restore	%r15
@@ -1965,9 +1967,9 @@ ___
 { my @acc=@acc;				# will be rotated locally
 
 $code.=<<___;
-.type	__mulq_mont_384,\@abi-omnipotent
+.type	${pre}__mulq_mont_384,\@abi-omnipotent
 .align	32
-__mulq_mont_384:
+${pre}__mulq_mont_384:
 	mov	%rax, $bi
 	mulq	@acc[6]			# a[0]*b[0]
 	mov	%rax, @acc[0]
@@ -2145,7 +2147,7 @@ $code.=<<___;
 	mov	@acc[5], 8*5($r_ptr)
 
 	ret
-.size	__mulq_mont_384,.-__mulq_mont_384
+.size	${pre}__mulq_mont_384,.-${pre}__mulq_mont_384
 ___
 } }
 $code.=<<___;
@@ -2172,7 +2174,7 @@ sqr_n_mul_mont_384:
 .cfi_end_prologue
 
 	mov	$n0,    8*0(%rsp)
-	mov	$r_ptr, 8*1(%rsp)	# to __mulq_mont_384
+	mov	$r_ptr, 8*1(%rsp)	# to ${pre}__mulq_mont_384
 	mov	$n_ptr, 8*2(%rsp)
 	lea	8*4(%rsp), $r_ptr
 	mov	%r9, 8*3(%rsp)		# 6th, multiplicand argument
@@ -2181,13 +2183,13 @@ sqr_n_mul_mont_384:
 .Loop_sqr_384:
 	movd	%edx, %xmm1		# loop counter
 
-	call	__sqrq_384
+	call	${pre}__sqrq_384
 
 	lea	0($r_ptr), $a_ptr
 	mov	8*0(%rsp), %rcx		# n0 for mul_by_1
 	mov	8*2(%rsp), $b_ptr	# n_ptr for mul_by_1
-	call	__mulq_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	${pre}__mulq_by_1_mont_384
+	call	${pre}__redc_tail_mont_384
 
 	movd	%xmm1, %edx
 	lea	0($r_ptr), $a_ptr
@@ -2206,7 +2208,7 @@ sqr_n_mul_mont_384:
 	mov	@acc[0], @acc[4]
 	mov	@acc[1], @acc[5]
 
-	call	__mulq_mont_384
+	call	${pre}__mulq_mont_384
 
 	lea	8*17(%rsp), %r8		# size optimization
 	mov	8*17(%rsp), %r15
@@ -2251,7 +2253,7 @@ sqr_n_mul_mont_383:
 .cfi_end_prologue
 
 	mov	$n0, 8*0(%rsp)
-	mov	$r_ptr, 8*1(%rsp)	# to __mulq_mont_384
+	mov	$r_ptr, 8*1(%rsp)	# to ${pre}__mulq_mont_384
 	mov	$n_ptr, 8*2(%rsp)
 	lea	8*4(%rsp), $r_ptr
 	mov	%r9, 8*3(%rsp)		# 6th, multiplicand argument
@@ -2260,12 +2262,12 @@ sqr_n_mul_mont_383:
 .Loop_sqr_383:
 	movd	%edx, %xmm1		# loop counter
 
-	call	__sqrq_384
+	call	${pre}__sqrq_384
 
 	lea	0($r_ptr), $a_ptr
 	mov	8*0(%rsp), %rcx		# n0 for mul_by_1
 	mov	8*2(%rsp), $b_ptr	# n_ptr for mul_by_1
-	call	__mulq_by_1_mont_384
+	call	${pre}__mulq_by_1_mont_384
 
 	movd	%xmm1, %edx		# loop counter
         add     8*6($a_ptr), @acc[6]	# just accumulate upper half
@@ -2298,7 +2300,7 @@ sqr_n_mul_mont_383:
 	mov	@acc[0], @acc[4]
 	mov	@acc[1], @acc[5]
 
-	call	__mulq_mont_384		# formally one can omit full reduction
+	call	${pre}__mulq_mont_384		# formally one can omit full reduction
 					# even after multiplication...
 	lea	8*17(%rsp), %r8		# size optimization
 	mov	8*17(%rsp), %r15
@@ -2324,9 +2326,9 @@ ___
   my $bi = "%rbp";
 
 $code.=<<___;
-.type	__mulq_mont_383_nonred,\@abi-omnipotent
+.type	${pre}__mulq_mont_383_nonred,\@abi-omnipotent
 .align	32
-__mulq_mont_383_nonred:
+${pre}__mulq_mont_383_nonred:
 	mov	%rax, $bi
 	mulq	@acc[6]			# a[0]*b[0]
 	mov	%rax, @acc[0]
@@ -2470,7 +2472,7 @@ ___
 }
 $code.=<<___;
 	ret
-.size	__mulq_mont_383_nonred,.-__mulq_mont_383_nonred
+.size	${pre}__mulq_mont_383_nonred,.-${pre}__mulq_mont_383_nonred
 ___
 }
 { my $frame = 4*8 +	# place for argument off-load +
@@ -2562,10 +2564,10 @@ sqr_mont_382x:
 	mov	8*3($a_ptr), @acc[5]
 
 	mov	8*3(%rsp), $r_ptr
-	call	__mulq_mont_383_nonred
+	call	${pre}__mulq_mont_383_nonred
 ___
 {
-my @acc = map("%r$_",14,15,8..11,	# output from __mulq_mont_384
+my @acc = map("%r$_",14,15,8..11,	# output from ${pre}__mulq_mont_384
                      12,13,"ax","bx","bp","si");
 $code.=<<___;
 	add	@acc[0], @acc[0]	# add with itself
@@ -2594,10 +2596,10 @@ $code.=<<___;
 	mov	32+8*2(%rsp), @acc[4]
 	mov	32+8*3(%rsp), @acc[5]
 
-	call	__mulq_mont_383_nonred
+	call	${pre}__mulq_mont_383_nonred
 ___
 {
-my @acc = map("%r$_",14,15,8..11,	# output from __mulq_mont_384
+my @acc = map("%r$_",14,15,8..11,	# output from ${pre}__mulq_mont_384
                      12,13,"ax","bx","bp","si");
 $code.=<<___;
 	mov	32+8*12(%rsp), @acc[11]	# account for sign from a->re - a->im

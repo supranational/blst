@@ -1,9 +1,9 @@
 .text	
 
-.globl	_blst_sha256_block_data_order
+.globl	_blst_sha256_block_data_order_portable
 
 .p2align	4
-_blst_sha256_block_data_order:
+_blst_sha256_block_data_order_portable:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -48,7 +48,7 @@ _blst_sha256_block_data_order:
 .p2align	4
 L$loop:
 	movl	%ebx,%edi
-	leaq	K256(%rip),%rbp
+	leaq	__sha256_portable_K256(%rip),%rbp
 	xorl	%ecx,%edi
 	movl	0(%rsi),%r12d
 	movl	%r8d,%r13d
@@ -1655,7 +1655,7 @@ L$rounds_16_xx:
 
 .p2align	6
 
-K256:
+__sha256_portable_K256:
 .long	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5
 .long	0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5
 .long	0xd807aa98,0x12835b01,0x243185be,0x550c7dc3

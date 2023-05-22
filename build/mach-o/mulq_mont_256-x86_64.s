@@ -43,7 +43,7 @@ _mul_mont_sparse_256:
 	movq	%rax,%r9
 	movq	%r15,%rax
 	movq	%rdx,%r10
-	call	__mulq_mont_sparse_256
+	call	mulq_mont_256__mulq_mont_sparse_256
 
 	movq	8(%rsp),%r15
 .cfi_restore	%r15
@@ -108,7 +108,7 @@ _sqr_mont_sparse_256:
 	movq	%rax,%r9
 	movq	%r15,%rax
 	movq	%rdx,%r10
-	call	__mulq_mont_sparse_256
+	call	mulq_mont_256__mulq_mont_sparse_256
 
 	movq	8(%rsp),%r15
 .cfi_restore	%r15
@@ -130,7 +130,7 @@ _sqr_mont_sparse_256:
 
 
 .p2align	5
-__mulq_mont_sparse_256:
+mulq_mont_256__mulq_mont_sparse_256:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -442,7 +442,7 @@ _from_mont_256:
 
 
 	movq	%rdx,%rbx
-	call	__mulq_by_1_mont_256
+	call	mulq_mont_256__mulq_by_1_mont_256
 
 
 
@@ -517,7 +517,7 @@ _redc_mont_256:
 
 
 	movq	%rdx,%rbx
-	call	__mulq_by_1_mont_256
+	call	mulq_mont_256__mulq_by_1_mont_256
 
 	addq	32(%rsi),%r13
 	adcq	40(%rsi),%r14
@@ -567,7 +567,7 @@ _redc_mont_256:
 
 
 .p2align	5
-__mulq_by_1_mont_256:
+mulq_mont_256__mulq_by_1_mont_256:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 

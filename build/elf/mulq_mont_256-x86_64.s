@@ -43,7 +43,7 @@ mul_mont_sparse_256:
 	movq	%rax,%r9
 	movq	%r15,%rax
 	movq	%rdx,%r10
-	call	__mulq_mont_sparse_256
+	call	mulq_mont_256__mulq_mont_sparse_256
 
 	movq	8(%rsp),%r15
 .cfi_restore	%r15
@@ -108,7 +108,7 @@ sqr_mont_sparse_256:
 	movq	%rax,%r9
 	movq	%r15,%rax
 	movq	%rdx,%r10
-	call	__mulq_mont_sparse_256
+	call	mulq_mont_256__mulq_mont_sparse_256
 
 	movq	8(%rsp),%r15
 .cfi_restore	%r15
@@ -128,9 +128,9 @@ sqr_mont_sparse_256:
 	.byte	0xf3,0xc3
 .cfi_endproc	
 .size	sqr_mont_sparse_256,.-sqr_mont_sparse_256
-.type	__mulq_mont_sparse_256,@function
+.type	mulq_mont_256__mulq_mont_sparse_256,@function
 .align	32
-__mulq_mont_sparse_256:
+mulq_mont_256__mulq_mont_sparse_256:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -409,7 +409,7 @@ __mulq_mont_sparse_256:
 
 	.byte	0xf3,0xc3
 .cfi_endproc	
-.size	__mulq_mont_sparse_256,.-__mulq_mont_sparse_256
+.size	mulq_mont_256__mulq_mont_sparse_256,.-mulq_mont_256__mulq_mont_sparse_256
 .globl	from_mont_256
 .hidden	from_mont_256
 .type	from_mont_256,@function
@@ -442,7 +442,7 @@ from_mont_256:
 
 
 	movq	%rdx,%rbx
-	call	__mulq_by_1_mont_256
+	call	mulq_mont_256__mulq_by_1_mont_256
 
 
 
@@ -517,7 +517,7 @@ redc_mont_256:
 
 
 	movq	%rdx,%rbx
-	call	__mulq_by_1_mont_256
+	call	mulq_mont_256__mulq_by_1_mont_256
 
 	addq	32(%rsi),%r13
 	adcq	40(%rsi),%r14
@@ -565,9 +565,9 @@ redc_mont_256:
 	.byte	0xf3,0xc3
 .cfi_endproc	
 .size	redc_mont_256,.-redc_mont_256
-.type	__mulq_by_1_mont_256,@function
+.type	mulq_mont_256__mulq_by_1_mont_256,@function
 .align	32
-__mulq_by_1_mont_256:
+mulq_mont_256__mulq_by_1_mont_256:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -703,7 +703,7 @@ __mulq_by_1_mont_256:
 	movq	%rdx,%r9
 	.byte	0xf3,0xc3
 .cfi_endproc
-.size	__mulq_by_1_mont_256,.-__mulq_by_1_mont_256
+.size	mulq_mont_256__mulq_by_1_mont_256,.-mulq_mont_256__mulq_by_1_mont_256
 
 .section	.note.GNU-stack,"",@progbits
 .section	.note.gnu.property,"a",@note

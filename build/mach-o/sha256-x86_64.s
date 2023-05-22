@@ -2,7 +2,7 @@
 
 .p2align	6
 
-K256:
+__sha256_K256:
 .long	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5
 .long	0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5
 .long	0xd807aa98,0x12835b01,0x243185be,0x550c7dc3
@@ -33,7 +33,7 @@ _blst_sha256_block_data_order_shaext:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-	leaq	K256+128(%rip),%rcx
+	leaq	__sha256_K256+128(%rip),%rcx
 	movdqu	(%rdi),%xmm1
 	movdqu	16(%rdi),%xmm2
 	movdqa	256-128(%rcx),%xmm7
@@ -290,14 +290,14 @@ _blst_sha256_block_data_order:
 	jmp	L$loop_ssse3
 .p2align	4
 L$loop_ssse3:
-	movdqa	K256+256(%rip),%xmm7
+	movdqa	__sha256_K256+256(%rip),%xmm7
 	movq	%rsi,8(%rbp)
 	movdqu	0(%rsi),%xmm0
 	movdqu	16(%rsi),%xmm1
 	movdqu	32(%rsi),%xmm2
 .byte	102,15,56,0,199
 	movdqu	48(%rsi),%xmm3
-	leaq	K256(%rip),%rsi
+	leaq	__sha256_K256(%rip),%rsi
 .byte	102,15,56,0,207
 	movdqa	0(%rsi),%xmm4
 	movdqa	16(%rsi),%xmm5
@@ -1365,74 +1365,4 @@ L$ssse3_00_47:
 	leaq	(%r11),%rsp
 	.byte	0xf3,0xc3
 .cfi_endproc	
-
-.globl	_blst_sha256_emit
-.private_extern	_blst_sha256_emit
-
-.p2align	4
-_blst_sha256_emit:
-.cfi_startproc
-	.byte	0xf3,0x0f,0x1e,0xfa
-
-	movq	0(%rsi),%r8
-	movq	8(%rsi),%r9
-	movq	16(%rsi),%r10
-	bswapq	%r8
-	movq	24(%rsi),%r11
-	bswapq	%r9
-	movl	%r8d,4(%rdi)
-	bswapq	%r10
-	movl	%r9d,12(%rdi)
-	bswapq	%r11
-	movl	%r10d,20(%rdi)
-	shrq	$32,%r8
-	movl	%r11d,28(%rdi)
-	shrq	$32,%r9
-	movl	%r8d,0(%rdi)
-	shrq	$32,%r10
-	movl	%r9d,8(%rdi)
-	shrq	$32,%r11
-	movl	%r10d,16(%rdi)
-	movl	%r11d,24(%rdi)
-	.byte	0xf3,0xc3
-.cfi_endproc
-
-
-.globl	_blst_sha256_bcopy
-.private_extern	_blst_sha256_bcopy
-
-.p2align	4
-_blst_sha256_bcopy:
-.cfi_startproc
-	.byte	0xf3,0x0f,0x1e,0xfa
-
-	subq	%rsi,%rdi
-L$oop_bcopy:
-	movzbl	(%rsi),%eax
-	leaq	1(%rsi),%rsi
-	movb	%al,-1(%rdi,%rsi,1)
-	decq	%rdx
-	jnz	L$oop_bcopy
-	.byte	0xf3,0xc3
-.cfi_endproc
-
-
-.globl	_blst_sha256_hcopy
-.private_extern	_blst_sha256_hcopy
-
-.p2align	4
-_blst_sha256_hcopy:
-.cfi_startproc
-	.byte	0xf3,0x0f,0x1e,0xfa
-
-	movq	0(%rsi),%r8
-	movq	8(%rsi),%r9
-	movq	16(%rsi),%r10
-	movq	24(%rsi),%r11
-	movq	%r8,0(%rdi)
-	movq	%r9,8(%rdi)
-	movq	%r10,16(%rdi)
-	movq	%r11,24(%rdi)
-	.byte	0xf3,0xc3
-.cfi_endproc
 

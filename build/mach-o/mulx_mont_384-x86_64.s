@@ -8,7 +8,7 @@
 
 
 .p2align	5
-__sub_mod_384x384:
+mulx_mont_384__sub_mod_384x384:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -77,7 +77,7 @@ __sub_mod_384x384:
 
 
 .p2align	5
-__add_mod_384:
+mulx_mont_384__add_mod_384:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -129,7 +129,7 @@ __add_mod_384:
 
 
 .p2align	5
-__sub_mod_384:
+mulx_mont_384__sub_mod_384:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -140,7 +140,7 @@ __sub_mod_384:
 	movq	32(%rsi),%r12
 	movq	40(%rsi),%r13
 
-__sub_mod_384_a_is_loaded:
+mulx_mont_384__sub_mod_384_a_is_loaded:
 	subq	0(%rdx),%r8
 	movq	0(%rcx),%r14
 	sbbq	8(%rdx),%r9
@@ -220,45 +220,45 @@ _mulx_mont_384x:
 
 
 	leaq	40(%rsp),%rdi
-	call	__mulx_384
+	call	mulx_mont_384__mulx_384
 
 
 	leaq	48(%rbx),%rbx
 	leaq	128+48(%rsi),%rsi
 	leaq	96(%rdi),%rdi
-	call	__mulx_384
+	call	mulx_mont_384__mulx_384
 
 
 	movq	8(%rsp),%rcx
 	leaq	(%rbx),%rsi
 	leaq	-48(%rbx),%rdx
 	leaq	40+192+48(%rsp),%rdi
-	call	__add_mod_384
+	call	mulx_mont_384__add_mod_384
 
 	movq	24(%rsp),%rsi
 	leaq	48(%rsi),%rdx
 	leaq	-48(%rdi),%rdi
-	call	__add_mod_384
+	call	mulx_mont_384__add_mod_384
 
 	leaq	(%rdi),%rbx
 	leaq	48(%rdi),%rsi
-	call	__mulx_384
+	call	mulx_mont_384__mulx_384
 
 
 	leaq	(%rdi),%rsi
 	leaq	40(%rsp),%rdx
 	movq	8(%rsp),%rcx
-	call	__sub_mod_384x384
+	call	mulx_mont_384__sub_mod_384x384
 
 	leaq	(%rdi),%rsi
 	leaq	-96(%rdi),%rdx
-	call	__sub_mod_384x384
+	call	mulx_mont_384__sub_mod_384x384
 
 
 	leaq	40(%rsp),%rsi
 	leaq	40+96(%rsp),%rdx
 	leaq	40(%rsp),%rdi
-	call	__sub_mod_384x384
+	call	mulx_mont_384__sub_mod_384x384
 
 	leaq	(%rcx),%rbx
 
@@ -266,15 +266,15 @@ _mulx_mont_384x:
 	leaq	40(%rsp),%rsi
 	movq	0(%rsp),%rcx
 	movq	32(%rsp),%rdi
-	call	__mulx_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	mulx_mont_384__mulx_by_1_mont_384
+	call	mulx_mont_384__redc_tail_mont_384
 
 
 	leaq	40+192(%rsp),%rsi
 	movq	0(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__mulx_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	mulx_mont_384__mulx_by_1_mont_384
+	call	mulx_mont_384__redc_tail_mont_384
 
 	leaq	328(%rsp),%r8
 	movq	0(%r8),%r15
@@ -335,13 +335,13 @@ _sqrx_mont_384x:
 
 	leaq	48(%rsi),%rdx
 	leaq	32(%rsp),%rdi
-	call	__add_mod_384
+	call	mulx_mont_384__add_mod_384
 
 
 	movq	24(%rsp),%rsi
 	leaq	48(%rsi),%rdx
 	leaq	32+48(%rsp),%rdi
-	call	__sub_mod_384
+	call	mulx_mont_384__sub_mod_384
 
 
 	movq	24(%rsp),%rsi
@@ -358,7 +358,7 @@ _sqrx_mont_384x:
 	leaq	-128(%rcx),%rcx
 
 	mulxq	%r14,%r8,%r9
-	call	__mulx_mont_384
+	call	mulx_mont_384__mulx_mont_384
 	addq	%rdx,%rdx
 	adcq	%r15,%r15
 	adcq	%rax,%rax
@@ -408,7 +408,7 @@ _sqrx_mont_384x:
 	leaq	-128(%rcx),%rcx
 
 	mulxq	%r14,%r8,%r9
-	call	__mulx_mont_384
+	call	mulx_mont_384__mulx_mont_384
 
 	leaq	136(%rsp),%r8
 	movq	0(%r8),%r15
@@ -514,37 +514,37 @@ _mulx_382x:
 
 	leaq	32+0(%rsp),%rsi
 	leaq	32+48(%rsp),%rbx
-	call	__mulx_384
+	call	mulx_mont_384__mulx_384
 
 
 	movq	0(%rsp),%rsi
 	movq	8(%rsp),%rbx
 	leaq	-96(%rdi),%rdi
-	call	__mulx_384
+	call	mulx_mont_384__mulx_384
 
 
 	leaq	48+128(%rsi),%rsi
 	leaq	48(%rbx),%rbx
 	leaq	32(%rsp),%rdi
-	call	__mulx_384
+	call	mulx_mont_384__mulx_384
 
 
 	movq	16(%rsp),%rsi
 	leaq	32(%rsp),%rdx
 	movq	24(%rsp),%rcx
 	movq	%rsi,%rdi
-	call	__sub_mod_384x384
+	call	mulx_mont_384__sub_mod_384x384
 
 
 	leaq	0(%rdi),%rsi
 	leaq	-96(%rdi),%rdx
-	call	__sub_mod_384x384
+	call	mulx_mont_384__sub_mod_384x384
 
 
 	leaq	-96(%rdi),%rsi
 	leaq	32(%rsp),%rdx
 	leaq	-96(%rdi),%rdi
-	call	__sub_mod_384x384
+	call	mulx_mont_384__sub_mod_384x384
 
 	leaq	136(%rsp),%r8
 	movq	0(%r8),%r15
@@ -629,19 +629,19 @@ _sqrx_382x:
 
 	leaq	48(%rsi),%rdx
 	leaq	48(%rdi),%rdi
-	call	__sub_mod_384_a_is_loaded
+	call	mulx_mont_384__sub_mod_384_a_is_loaded
 
 
 	leaq	(%rdi),%rsi
 	leaq	-48(%rdi),%rbx
 	leaq	-48(%rdi),%rdi
-	call	__mulx_384
+	call	mulx_mont_384__mulx_384
 
 
 	movq	(%rsp),%rsi
 	leaq	48(%rsi),%rbx
 	leaq	96(%rdi),%rdi
-	call	__mulx_384
+	call	mulx_mont_384__mulx_384
 
 	movq	0(%rdi),%r8
 	movq	8(%rdi),%r9
@@ -728,7 +728,7 @@ _mulx_384:
 
 
 	movq	%rdx,%rbx
-	call	__mulx_384
+	call	mulx_mont_384__mulx_384
 
 	movq	0(%rsp),%r15
 .cfi_restore	%r15
@@ -751,7 +751,7 @@ _mulx_384:
 
 
 .p2align	5
-__mulx_384:
+mulx_mont_384__mulx_384:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -955,7 +955,7 @@ _sqrx_384:
 .cfi_adjust_cfa_offset	8
 
 
-	call	__sqrx_384
+	call	mulx_mont_384__sqrx_384
 
 	movq	8(%rsp),%r15
 .cfi_restore	%r15
@@ -977,7 +977,7 @@ _sqrx_384:
 
 
 .p2align	5
-__sqrx_384:
+mulx_mont_384__sqrx_384:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1150,8 +1150,8 @@ _redcx_mont_384:
 
 
 	movq	%rdx,%rbx
-	call	__mulx_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	mulx_mont_384__mulx_by_1_mont_384
+	call	mulx_mont_384__redc_tail_mont_384
 
 	movq	8(%rsp),%r15
 .cfi_restore	%r15
@@ -1207,7 +1207,7 @@ _fromx_mont_384:
 
 
 	movq	%rdx,%rbx
-	call	__mulx_by_1_mont_384
+	call	mulx_mont_384__mulx_by_1_mont_384
 
 
 
@@ -1259,7 +1259,7 @@ _fromx_mont_384:
 
 
 .p2align	5
-__mulx_by_1_mont_384:
+mulx_mont_384__mulx_by_1_mont_384:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1450,7 +1450,7 @@ __mulx_by_1_mont_384:
 
 
 .p2align	5
-__redc_tail_mont_384:
+mulx_mont_384__redc_tail_mont_384:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1531,7 +1531,7 @@ _sgn0x_pty_mont_384:
 	movq	%rsi,%rbx
 	leaq	0(%rdi),%rsi
 	movq	%rdx,%rcx
-	call	__mulx_by_1_mont_384
+	call	mulx_mont_384__mulx_by_1_mont_384
 
 	xorq	%rax,%rax
 	movq	%r14,%r13
@@ -1609,7 +1609,7 @@ _sgn0x_pty_mont_384x:
 	movq	%rsi,%rbx
 	leaq	48(%rdi),%rsi
 	movq	%rdx,%rcx
-	call	__mulx_by_1_mont_384
+	call	mulx_mont_384__mulx_by_1_mont_384
 
 	movq	%r14,%r12
 	orq	%r15,%r14
@@ -1643,7 +1643,7 @@ _sgn0x_pty_mont_384x:
 	andq	$2,%rdi
 	orq	%r13,%rdi
 
-	call	__mulx_by_1_mont_384
+	call	mulx_mont_384__mulx_by_1_mont_384
 
 	movq	%r14,%r12
 	orq	%r15,%r14
@@ -1747,7 +1747,7 @@ _mulx_mont_384:
 	movq	%r8,(%rsp)
 
 	mulxq	%r14,%r8,%r9
-	call	__mulx_mont_384
+	call	mulx_mont_384__mulx_mont_384
 
 	movq	24(%rsp),%r15
 .cfi_restore	%r15
@@ -1769,7 +1769,7 @@ _mulx_mont_384:
 
 
 .p2align	5
-__mulx_mont_384:
+mulx_mont_384__mulx_mont_384:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -2215,7 +2215,7 @@ _sqrx_mont_384:
 	leaq	-128(%rsi),%rsi
 
 	mulxq	%rdx,%r8,%r9
-	call	__mulx_mont_384
+	call	mulx_mont_384__mulx_mont_384
 
 	movq	24(%rsp),%r15
 .cfi_restore	%r15
@@ -2287,7 +2287,7 @@ L$oop_sqrx_384:
 	leaq	-128(%rcx),%rcx
 
 	mulxq	%rdx,%r8,%r9
-	call	__mulx_mont_384
+	call	mulx_mont_384__mulx_mont_384
 
 	movd	%xmm1,%r10d
 	decl	%r10d
@@ -2300,7 +2300,7 @@ L$oop_sqrx_384:
 	leaq	-128(%rcx),%rcx
 
 	mulxq	%r14,%r8,%r9
-	call	__mulx_mont_384
+	call	mulx_mont_384__mulx_mont_384
 
 	movq	40(%rsp),%r15
 .cfi_restore	%r15
@@ -2372,7 +2372,7 @@ L$oop_sqrx_383:
 	leaq	-128(%rbx),%rsi
 
 	mulxq	%rdx,%r8,%r9
-	call	__mulx_mont_383_nonred
+	call	mulx_mont_384__mulx_mont_383_nonred
 
 	movd	%xmm1,%r10d
 	decl	%r10d
@@ -2384,7 +2384,7 @@ L$oop_sqrx_383:
 	movq	24(%rsp),%rbx
 
 	mulxq	%r14,%r8,%r9
-	call	__mulx_mont_384
+	call	mulx_mont_384__mulx_mont_384
 
 	movq	40(%rsp),%r15
 .cfi_restore	%r15
@@ -2406,7 +2406,7 @@ L$oop_sqrx_383:
 
 
 .p2align	5
-__mulx_mont_383_nonred:
+mulx_mont_384__mulx_mont_383_nonred:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -2862,7 +2862,7 @@ _sqrx_mont_382x:
 	leaq	-128(%rcx),%rcx
 
 	mulxq	%r14,%r8,%r9
-	call	__mulx_mont_383_nonred
+	call	mulx_mont_384__mulx_mont_383_nonred
 	addq	%rdx,%rdx
 	adcq	%r15,%r15
 	adcq	%rax,%rax
@@ -2891,7 +2891,7 @@ _sqrx_mont_382x:
 
 
 	mulxq	%r14,%r8,%r9
-	call	__mulx_mont_383_nonred
+	call	mulx_mont_384__mulx_mont_383_nonred
 	movq	32+96(%rsp),%r14
 	leaq	128(%rcx),%rcx
 	movq	32+0(%rsp),%r8

@@ -66,7 +66,7 @@ _ctx_inverse_mod_383:
 
 
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -74,7 +74,7 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 
 
 	movq	%rdx,96(%rdi)
@@ -82,7 +82,7 @@ _ctx_inverse_mod_383:
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 
 
 	movq	%rdx,96(%rdi)
@@ -90,7 +90,7 @@ _ctx_inverse_mod_383:
 
 	xorq	$256,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -98,14 +98,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 
 
 
@@ -146,7 +146,7 @@ _ctx_inverse_mod_383:
 	movq	%r9,136(%rdi)
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -154,14 +154,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -169,15 +169,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -185,14 +185,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -200,15 +200,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -216,14 +216,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -231,15 +231,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -247,14 +247,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -262,15 +262,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -278,14 +278,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -293,15 +293,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -309,14 +309,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -324,15 +324,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -340,14 +340,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -355,15 +355,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -371,14 +371,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -386,15 +386,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -402,14 +402,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -417,15 +417,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -433,14 +433,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -448,12 +448,12 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 	sarq	$63,%r13
 	movq	%r13,48(%rdi)
 	movq	%r13,56(%rdi)
@@ -463,7 +463,7 @@ _ctx_inverse_mod_383:
 	movq	%r13,88(%rdi)
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -471,14 +471,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -486,15 +486,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x63
+	call	ctx_inverse_mod_384__smulx_767x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -502,14 +502,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -517,15 +517,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x63
+	call	ctx_inverse_mod_384__smulx_767x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -533,14 +533,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -548,15 +548,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x63
+	call	ctx_inverse_mod_384__smulx_767x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -564,14 +564,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -579,15 +579,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x63
+	call	ctx_inverse_mod_384__smulx_767x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -595,14 +595,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -610,15 +610,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x63
+	call	ctx_inverse_mod_384__smulx_767x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -626,14 +626,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -641,15 +641,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x63
+	call	ctx_inverse_mod_384__smulx_767x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -657,14 +657,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_383_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_383_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -672,15 +672,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x63
+	call	ctx_inverse_mod_384__smulx_767x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -688,14 +688,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_191_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_191_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_191_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_191_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -703,15 +703,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x63
+	call	ctx_inverse_mod_384__smulx_767x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -719,14 +719,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_191_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_191_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_191_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_191_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -734,15 +734,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x63
+	call	ctx_inverse_mod_384__smulx_767x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -750,14 +750,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_191_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_191_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_191_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_191_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -765,15 +765,15 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x63
+	call	ctx_inverse_mod_384__smulx_767x63
 	xorq	$256+96,%rsi
 	movl	$31,%edi
-	call	__ab_approximation_31
+	call	ctx_inverse_mod_384__ab_approximation_31
 
 
 	movq	%r12,72(%rsp)
@@ -781,14 +781,14 @@ _ctx_inverse_mod_383:
 
 	movq	$256,%rdi
 	xorq	%rsi,%rdi
-	call	__smulx_191_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_191_n_shift_by_31
 	movq	%rdx,56(%rsp)
 	movq	%rcx,64(%rsp)
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_191_n_shift_by_31
+	call	ctx_inverse_mod_384__smulx_191_n_shift_by_31
 	movq	%rdx,72(%rsp)
 	movq	%rcx,80(%rsp)
 
@@ -796,12 +796,12 @@ _ctx_inverse_mod_383:
 	movq	64(%rsp),%rcx
 	leaq	96(%rsi),%rsi
 	leaq	48(%rdi),%rdi
-	call	__smulx_383x63
+	call	ctx_inverse_mod_384__smulx_383x63
 
 	movq	72(%rsp),%rdx
 	movq	80(%rsp),%rcx
 	leaq	48(%rdi),%rdi
-	call	__smulx_767x63
+	call	ctx_inverse_mod_384__smulx_767x63
 
 	xorq	$256+96,%rsi
 	movl	$53,%edi
@@ -810,7 +810,7 @@ _ctx_inverse_mod_383:
 
 	movq	48(%rsi),%r10
 
-	call	__inner_loop_62
+	call	ctx_inverse_mod_384__inner_loop_62
 
 
 
@@ -827,7 +827,7 @@ _ctx_inverse_mod_383:
 	movq	%r12,%rdx
 	movq	%r13,%rcx
 	movq	32(%rsp),%rdi
-	call	__smulx_767x63
+	call	ctx_inverse_mod_384__smulx_767x63
 
 	movq	40(%rsp),%rsi
 	movq	%rax,%rdx
@@ -880,7 +880,7 @@ _ctx_inverse_mod_383:
 
 
 .p2align	5
-__smulx_767x63:
+ctx_inverse_mod_384__smulx_767x63:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1047,7 +1047,7 @@ __smulx_767x63:
 
 
 .p2align	5
-__smulx_383x63:
+ctx_inverse_mod_384__smulx_383x63:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1157,7 +1157,7 @@ __smulx_383x63:
 
 
 .p2align	5
-__smulx_383_n_shift_by_31:
+ctx_inverse_mod_384__smulx_383_n_shift_by_31:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1305,7 +1305,7 @@ __smulx_383_n_shift_by_31:
 
 
 .p2align	5
-__smulx_191_n_shift_by_31:
+ctx_inverse_mod_384__smulx_191_n_shift_by_31:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1399,7 +1399,7 @@ __smulx_191_n_shift_by_31:
 
 
 .p2align	5
-__ab_approximation_31:
+ctx_inverse_mod_384__ab_approximation_31:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1465,14 +1465,14 @@ __ab_approximation_31:
 	orq	%r9,%r8
 	orq	%r11,%r10
 
-	jmp	__inner_loop_31
+	jmp	ctx_inverse_mod_384__inner_loop_31
 
 	.byte	0xf3,0xc3
 .cfi_endproc
 
 
 .p2align	5
-__inner_loop_31:
+ctx_inverse_mod_384__inner_loop_31:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1480,7 +1480,7 @@ __inner_loop_31:
 	movq	$0x800000007FFFFFFF,%r13
 	movq	$0x7FFFFFFF7FFFFFFF,%r15
 
-L$oop_31:
+.ctx_inverse_mod_384__Loop_31:
 	cmpq	%r10,%r8
 	movq	%r8,%rax
 	movq	%r10,%rbx
@@ -1505,7 +1505,7 @@ L$oop_31:
 	addq	%r13,%r13
 	subq	%r15,%r13
 	subl	$1,%edi
-	jnz	L$oop_31
+	jnz	.ctx_inverse_mod_384__Loop_31
 
 	shrq	$32,%r15
 	movl	%ecx,%edx
@@ -1523,7 +1523,7 @@ L$oop_31:
 
 
 .p2align	5
-__inner_loop_62:
+ctx_inverse_mod_384__inner_loop_62:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1532,7 +1532,7 @@ __inner_loop_62:
 	xorq	%r12,%r12
 	movq	$1,%r13
 
-L$oop_62:
+.ctx_inverse_mod_384__Loop_62:
 	xorq	%rax,%rax
 	testq	$1,%r8
 	movq	%r10,%rbx
@@ -1559,7 +1559,7 @@ L$oop_62:
 	subq	%rax,%rdx
 	subq	%rbx,%rcx
 	subl	$1,%edi
-	jnz	L$oop_62
+	jnz	.ctx_inverse_mod_384__Loop_62
 
 	.byte	0xf3,0xc3
 .cfi_endproc

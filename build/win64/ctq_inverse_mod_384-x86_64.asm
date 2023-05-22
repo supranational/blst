@@ -70,7 +70,7 @@ $L$SEH_body_ct_inverse_mod_383::
 
 
 	mov	edi,62
-	call	__ab_approximation_62
+	call	ctq_inverse_mod_384__ab_approximation_62
 
 
 	mov	QWORD PTR[72+rsp],r12
@@ -78,7 +78,7 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	mov	rdi,256
 	xor	rdi,rsi
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 
 
 	mov	QWORD PTR[96+rdi],rdx
@@ -86,7 +86,7 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 
 
 	mov	QWORD PTR[96+rdi],rdx
@@ -94,7 +94,7 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	xor	rsi,256
 	mov	edi,62
-	call	__ab_approximation_62
+	call	ctq_inverse_mod_384__ab_approximation_62
 
 
 	mov	QWORD PTR[72+rsp],r12
@@ -102,14 +102,14 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	mov	rdi,256
 	xor	rdi,rsi
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[56+rsp],rdx
 	mov	QWORD PTR[64+rsp],rcx
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 
 
 
@@ -150,7 +150,7 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	QWORD PTR[136+rdi],r9
 	xor	rsi,256+8*12
 	mov	edi,62
-	call	__ab_approximation_62
+	call	ctq_inverse_mod_384__ab_approximation_62
 
 
 	mov	QWORD PTR[72+rsp],r12
@@ -158,14 +158,14 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	mov	rdi,256
 	xor	rdi,rsi
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[56+rsp],rdx
 	mov	QWORD PTR[64+rsp],rcx
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[72+rsp],rdx
 	mov	QWORD PTR[80+rsp],rcx
 
@@ -173,15 +173,15 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	rcx,QWORD PTR[64+rsp]
 	lea	rsi,QWORD PTR[96+rsi]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 	xor	rsi,256+8*12
 	mov	edi,62
-	call	__ab_approximation_62
+	call	ctq_inverse_mod_384__ab_approximation_62
 
 
 	mov	QWORD PTR[72+rsp],r12
@@ -189,14 +189,14 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	mov	rdi,256
 	xor	rdi,rsi
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[56+rsp],rdx
 	mov	QWORD PTR[64+rsp],rcx
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[72+rsp],rdx
 	mov	QWORD PTR[80+rsp],rcx
 
@@ -204,15 +204,15 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	rcx,QWORD PTR[64+rsp]
 	lea	rsi,QWORD PTR[96+rsi]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 	xor	rsi,256+8*12
 	mov	edi,62
-	call	__ab_approximation_62
+	call	ctq_inverse_mod_384__ab_approximation_62
 
 
 	mov	QWORD PTR[72+rsp],r12
@@ -220,14 +220,14 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	mov	rdi,256
 	xor	rdi,rsi
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[56+rsp],rdx
 	mov	QWORD PTR[64+rsp],rcx
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[72+rsp],rdx
 	mov	QWORD PTR[80+rsp],rcx
 
@@ -235,15 +235,15 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	rcx,QWORD PTR[64+rsp]
 	lea	rsi,QWORD PTR[96+rsi]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 	xor	rsi,256+8*12
 	mov	edi,62
-	call	__ab_approximation_62
+	call	ctq_inverse_mod_384__ab_approximation_62
 
 
 	mov	QWORD PTR[72+rsp],r12
@@ -251,14 +251,14 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	mov	rdi,256
 	xor	rdi,rsi
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[56+rsp],rdx
 	mov	QWORD PTR[64+rsp],rcx
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[72+rsp],rdx
 	mov	QWORD PTR[80+rsp],rcx
 
@@ -266,12 +266,12 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	rcx,QWORD PTR[64+rsp]
 	lea	rsi,QWORD PTR[96+rsi]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 	sar	r13,63
 	mov	QWORD PTR[48+rdi],r13
 	mov	QWORD PTR[56+rdi],r13
@@ -281,7 +281,7 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	QWORD PTR[88+rdi],r13
 	xor	rsi,256+8*12
 	mov	edi,62
-	call	__ab_approximation_62
+	call	ctq_inverse_mod_384__ab_approximation_62
 
 
 	mov	QWORD PTR[72+rsp],r12
@@ -289,14 +289,14 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	mov	rdi,256
 	xor	rdi,rsi
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[56+rsp],rdx
 	mov	QWORD PTR[64+rsp],rcx
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[72+rsp],rdx
 	mov	QWORD PTR[80+rsp],rcx
 
@@ -304,15 +304,15 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	rcx,QWORD PTR[64+rsp]
 	lea	rsi,QWORD PTR[96+rsi]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_767x63
+	call	ctq_inverse_mod_384__smulq_767x63
 	xor	rsi,256+8*12
 	mov	edi,62
-	call	__ab_approximation_62
+	call	ctq_inverse_mod_384__ab_approximation_62
 
 
 	mov	QWORD PTR[72+rsp],r12
@@ -320,14 +320,14 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	mov	rdi,256
 	xor	rdi,rsi
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[56+rsp],rdx
 	mov	QWORD PTR[64+rsp],rcx
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[72+rsp],rdx
 	mov	QWORD PTR[80+rsp],rcx
 
@@ -335,15 +335,15 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	rcx,QWORD PTR[64+rsp]
 	lea	rsi,QWORD PTR[96+rsi]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_767x63
+	call	ctq_inverse_mod_384__smulq_767x63
 	xor	rsi,256+8*12
 	mov	edi,62
-	call	__ab_approximation_62
+	call	ctq_inverse_mod_384__ab_approximation_62
 
 
 	mov	QWORD PTR[72+rsp],r12
@@ -351,14 +351,14 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	mov	rdi,256
 	xor	rdi,rsi
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[56+rsp],rdx
 	mov	QWORD PTR[64+rsp],rcx
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[72+rsp],rdx
 	mov	QWORD PTR[80+rsp],rcx
 
@@ -366,15 +366,15 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	rcx,QWORD PTR[64+rsp]
 	lea	rsi,QWORD PTR[96+rsi]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_767x63
+	call	ctq_inverse_mod_384__smulq_767x63
 	xor	rsi,256+8*12
 	mov	edi,62
-	call	__ab_approximation_62
+	call	ctq_inverse_mod_384__ab_approximation_62
 
 
 	mov	QWORD PTR[72+rsp],r12
@@ -382,14 +382,14 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	mov	rdi,256
 	xor	rdi,rsi
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[56+rsp],rdx
 	mov	QWORD PTR[64+rsp],rcx
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[72+rsp],rdx
 	mov	QWORD PTR[80+rsp],rcx
 
@@ -397,15 +397,15 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	rcx,QWORD PTR[64+rsp]
 	lea	rsi,QWORD PTR[96+rsi]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_767x63
+	call	ctq_inverse_mod_384__smulq_767x63
 	xor	rsi,256+8*12
 	mov	edi,62
-	call	__ab_approximation_62
+	call	ctq_inverse_mod_384__ab_approximation_62
 
 
 	mov	QWORD PTR[72+rsp],r12
@@ -413,14 +413,14 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	mov	rdi,256
 	xor	rdi,rsi
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[56+rsp],rdx
 	mov	QWORD PTR[64+rsp],rcx
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383_n_shift_by_62
+	call	ctq_inverse_mod_384__smulq_383_n_shift_by_62
 	mov	QWORD PTR[72+rsp],rdx
 	mov	QWORD PTR[80+rsp],rcx
 
@@ -428,12 +428,12 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	rcx,QWORD PTR[64+rsp]
 	lea	rsi,QWORD PTR[96+rsi]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_767x63
+	call	ctq_inverse_mod_384__smulq_767x63
 
 	xor	rsi,256+8*12
 	mov	edi,62
@@ -442,7 +442,7 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	r9,QWORD PTR[8+rsi]
 	mov	r10,QWORD PTR[48+rsi]
 	mov	r11,QWORD PTR[56+rsi]
-	call	__inner_loop_62
+	call	ctq_inverse_mod_384__inner_loop_62
 
 
 	mov	QWORD PTR[72+rsp],r12
@@ -457,12 +457,12 @@ $L$SEH_body_ct_inverse_mod_383::
 
 	lea	rsi,QWORD PTR[96+rsi]
 	lea	rdi,QWORD PTR[96+rdi]
-	call	__smulq_383x63
+	call	ctq_inverse_mod_384__smulq_383x63
 
 	mov	rdx,QWORD PTR[72+rsp]
 	mov	rcx,QWORD PTR[80+rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__smulq_767x63
+	call	ctq_inverse_mod_384__smulq_767x63
 
 
 	xor	rsi,256+8*12
@@ -472,7 +472,7 @@ $L$SEH_body_ct_inverse_mod_383::
 	xor	r9,r9
 	mov	r10,QWORD PTR[48+rsi]
 	xor	r11,r11
-	call	__inner_loop_62
+	call	ctq_inverse_mod_384__inner_loop_62
 
 
 
@@ -489,7 +489,7 @@ $L$SEH_body_ct_inverse_mod_383::
 	mov	rdx,r12
 	mov	rcx,r13
 	mov	rdi,QWORD PTR[32+rsp]
-	call	__smulq_767x63
+	call	ctq_inverse_mod_384__smulq_767x63
 
 	mov	rsi,QWORD PTR[40+rsp]
 	mov	rdx,rax
@@ -546,7 +546,7 @@ $L$SEH_end_ct_inverse_mod_383::
 ct_inverse_mod_383	ENDP
 
 ALIGN	32
-__smulq_767x63	PROC PRIVATE
+ctq_inverse_mod_384__smulq_767x63	PROC PRIVATE
 	DB	243,15,30,250
 	mov	r8,QWORD PTR[rsi]
 	mov	r9,QWORD PTR[8+rsi]
@@ -753,10 +753,10 @@ __smulq_767x63	PROC PRIVATE
 	mov	QWORD PTR[88+rdx],rax
 
 	DB	0F3h,0C3h		;repret
-__smulq_767x63	ENDP
+ctq_inverse_mod_384__smulq_767x63	ENDP
 
 ALIGN	32
-__smulq_383x63	PROC PRIVATE
+ctq_inverse_mod_384__smulq_383x63	PROC PRIVATE
 	DB	243,15,30,250
 	mov	r8,QWORD PTR[rsi]
 	mov	r9,QWORD PTR[8+rsi]
@@ -894,10 +894,10 @@ __smulq_383x63	PROC PRIVATE
 	mov	QWORD PTR[40+rdi],r13
 
 	DB	0F3h,0C3h		;repret
-__smulq_383x63	ENDP
+ctq_inverse_mod_384__smulq_383x63	ENDP
 
 ALIGN	32
-__smulq_383_n_shift_by_62	PROC PRIVATE
+ctq_inverse_mod_384__smulq_383_n_shift_by_62	PROC PRIVATE
 	DB	243,15,30,250
 	mov	rbx,rdx
 	mov	r8,QWORD PTR[rsi]
@@ -1070,10 +1070,10 @@ __smulq_383_n_shift_by_62	PROC PRIVATE
 	add	rcx,rbp
 
 	DB	0F3h,0C3h		;repret
-__smulq_383_n_shift_by_62	ENDP
+ctq_inverse_mod_384__smulq_383_n_shift_by_62	ENDP
 
 ALIGN	32
-__ab_approximation_62	PROC PRIVATE
+ctq_inverse_mod_384__ab_approximation_62	PROC PRIVATE
 	DB	243,15,30,250
 	mov	r9,QWORD PTR[40+rsi]
 	mov	r11,QWORD PTR[88+rsi]
@@ -1122,14 +1122,14 @@ __ab_approximation_62	PROC PRIVATE
 	shld	r9,rbx,cl
 	shld	r11,rbp,cl
 
-	jmp	__inner_loop_62
+	jmp	ctq_inverse_mod_384__inner_loop_62
 
 	DB	0F3h,0C3h		;repret
-__ab_approximation_62	ENDP
+ctq_inverse_mod_384__ab_approximation_62	ENDP
 
 ALIGN	8
 	DD	0
-__inner_loop_62	PROC PRIVATE
+ctq_inverse_mod_384__inner_loop_62	PROC PRIVATE
 	DB	243,15,30,250
 	mov	rdx,1
 	xor	rcx,rcx
@@ -1137,7 +1137,7 @@ __inner_loop_62	PROC PRIVATE
 	mov	r13,1
 	mov	QWORD PTR[8+rsp],rsi
 
-$L$oop_62::
+.ctq_inverse_mod_384__Loop_62::
 	xor	rax,rax
 	xor	rbx,rbx
 	test	r8,1
@@ -1173,11 +1173,11 @@ $L$oop_62::
 	sub	rdx,rax
 	sub	rcx,rbx
 	sub	edi,1
-	jnz	$L$oop_62
+	jnz	.ctq_inverse_mod_384__Loop_62
 
 	mov	rsi,QWORD PTR[8+rsp]
 	DB	0F3h,0C3h		;repret
-__inner_loop_62	ENDP
+ctq_inverse_mod_384__inner_loop_62	ENDP
 .text$	ENDS
 .pdata	SEGMENT READONLY ALIGN(4)
 ALIGN	4

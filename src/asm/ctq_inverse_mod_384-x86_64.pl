@@ -20,7 +20,7 @@ def ct_inverse_mod_383(inp, mod):
     mask = (1 << w) - 1
 
     for i in range(0, 766 // k):
-        # __ab_approximation_62
+        # ${pre}__ab_approximation_62
         n = max(a.bit_length(), b.bit_length())
         if n < 128:
             a_, b_ = a, b
@@ -28,7 +28,7 @@ def ct_inverse_mod_383(inp, mod):
             a_ = (a & mask) | ((a >> (n-w)) << w)
             b_ = (b & mask) | ((b >> (n-w)) << w)
 
-        # __inner_loop_62
+        # ${pre}__inner_loop_62
         f0, g0, f1, g1 = 1, 0, 0, 1
         for j in range(0, k):
             if a_ & 1:
@@ -37,14 +37,14 @@ def ct_inverse_mod_383(inp, mod):
                 a_, f0, g0 = a_-b_, f0-f1, g0-g1
             a_, f1, g1 = a_ >> 1, f1 << 1, g1 << 1
 
-        # __smulq_383_n_shift_by_62
+        # ${pre}__smulq_383_n_shift_by_62
         a, b = (a*f0 + b*g0) >> k, (a*f1 + b*g1) >> k
         if a < 0:
             a, f0, g0 = -a, -f0, -g0
         if b < 0:
             b, f1, g1 = -b, -f1, -g1
 
-        # __smulq_767x63
+        # ${pre}__smulq_767x63
         u, v = u*f0 + v*g0, u*f1 + v*g1
 
     if 766 % k:
@@ -74,6 +74,8 @@ $0 =~ m/(.*[\/\\])[^\/\\]+$/; $dir=$1;
 ( $xlate="${dir}x86_64-xlate.pl" and -f $xlate ) or
 ( $xlate="${dir}../../perlasm/x86_64-xlate.pl" and -f $xlate) or
 die "can't locate x86_64-xlate.pl";
+
+$pre = "ctq_inverse_mod_384";
 
 open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
     or die "can't call $xlate: $!";
@@ -145,7 +147,7 @@ ct_inverse_mod_383:
 
 	################################# first iteration
 	mov	\$62, $cnt
-	call	__ab_approximation_62
+	call	${pre}__ab_approximation_62
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	mov	$f1, 8*9(%rsp)
@@ -153,7 +155,7 @@ ct_inverse_mod_383:
 
 	mov	\$256, $out_ptr
 	xor	$in_ptr, $out_ptr	# pointer to destination |a|b|u|v|
-	call	__smulq_383_n_shift_by_62
+	call	${pre}__smulq_383_n_shift_by_62
 	#mov	$f0, 8*7(%rsp)		# corrected |f0|
 	#mov	$g0, 8*8(%rsp)		# corrected |g0|
 	mov	$f0, 8*12($out_ptr)	# initialize |u| with |f0|
@@ -161,7 +163,7 @@ ct_inverse_mod_383:
 	mov	8*9(%rsp), $f0		# |f1|
 	mov	8*10(%rsp), $g0		# |g1|
 	lea	8*6($out_ptr), $out_ptr	# pointer to destination |b|
-	call	__smulq_383_n_shift_by_62
+	call	${pre}__smulq_383_n_shift_by_62
 	#mov	$f0, 8*9(%rsp)		# corrected |f1|
 	#mov	$g0, 8*10(%rsp)		# corrected |g1|
 	mov	$f0, 8*12($out_ptr)	# initialize |v| with |f1|
@@ -169,7 +171,7 @@ ct_inverse_mod_383:
 	################################# second iteration
 	xor	\$256, $in_ptr		# flip-flop pointer to source |a|b|u|v|
 	mov	\$62, $cnt
-	call	__ab_approximation_62
+	call	${pre}__ab_approximation_62
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	mov	$f1, 8*9(%rsp)
@@ -177,14 +179,14 @@ ct_inverse_mod_383:
 
 	mov	\$256, $out_ptr
 	xor	$in_ptr, $out_ptr	# pointer to destination |a|b|u|v|
-	call	__smulq_383_n_shift_by_62
+	call	${pre}__smulq_383_n_shift_by_62
 	mov	$f0, 8*7(%rsp)		# corrected |f0|
 	mov	$g0, 8*8(%rsp)		# corrected |g0|
 
 	mov	8*9(%rsp), $f0		# |f1|
 	mov	8*10(%rsp), $g0		# |g1|
 	lea	8*6($out_ptr), $out_ptr	# pointer to destination |b|
-	call	__smulq_383_n_shift_by_62
+	call	${pre}__smulq_383_n_shift_by_62
 	#mov	$f0, 8*9(%rsp)		# corrected |f1|
 	#mov	$g0, 8*10(%rsp)		# corrected |g1|
 
@@ -225,12 +227,12 @@ ct_inverse_mod_383:
 	mov	@acc[1], 8*17($out_ptr)
 ___
 for($i=2; $i<11; $i++) {
-my $smul_767x63  = $i>5 ? "__smulq_767x63"
-                        : "__smulq_383x63";
+my $smul_767x63  = $i>5 ? "${pre}__smulq_767x63"
+                        : "${pre}__smulq_383x63";
 $code.=<<___;
 	xor	\$256+8*12, $in_ptr	# flip-flop pointer to source |a|b|u|v|
 	mov	\$62, $cnt
-	call	__ab_approximation_62
+	call	${pre}__ab_approximation_62
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	mov	$f1, 8*9(%rsp)
@@ -238,14 +240,14 @@ $code.=<<___;
 
 	mov	\$256, $out_ptr
 	xor	$in_ptr, $out_ptr	# pointer to destination |a|b|u|v|
-	call	__smulq_383_n_shift_by_62
+	call	${pre}__smulq_383_n_shift_by_62
 	mov	$f0, 8*7(%rsp)		# corrected |f0|
 	mov	$g0, 8*8(%rsp)		# corrected |g0|
 
 	mov	8*9(%rsp), $f0		# |f1|
 	mov	8*10(%rsp), $g0		# |g1|
 	lea	8*6($out_ptr), $out_ptr	# pointer to destination |b|
-	call	__smulq_383_n_shift_by_62
+	call	${pre}__smulq_383_n_shift_by_62
 	mov	$f0, 8*9(%rsp)		# corrected |f1|
 	mov	$g0, 8*10(%rsp)		# corrected |g1|
 
@@ -253,7 +255,7 @@ $code.=<<___;
 	mov	8*8(%rsp), $g0		# |g0|
 	lea	8*12($in_ptr), $in_ptr	# pointer to source |u|v|
 	lea	8*6($out_ptr), $out_ptr	# pointer to destination |u|
-	call	__smulq_383x63
+	call	${pre}__smulq_383x63
 
 	mov	8*9(%rsp), $f0		# |f1|
 	mov	8*10(%rsp), $g0		# |g1|
@@ -274,12 +276,12 @@ $code.=<<___;
 	################################# iteration before last
 	xor	\$256+8*12, $in_ptr	# flip-flop pointer to source |a|b|u|v|
 	mov	\$62, $cnt
-	#call	__ab_approximation_62	# |a| and |b| are exact, just load
+	#call	${pre}__ab_approximation_62	# |a| and |b| are exact, just load
 	mov	8*0($in_ptr), @acc[0]	# |a_lo|
 	mov	8*1($in_ptr), @acc[1]	# |a_hi|
 	mov	8*6($in_ptr), @acc[2]	# |b_lo|
 	mov	8*7($in_ptr), @acc[3]	# |b_hi|
-	call	__inner_loop_62
+	call	${pre}__inner_loop_62
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	mov	$f1, 8*9(%rsp)
@@ -294,22 +296,22 @@ $code.=<<___;
 	#mov	8*8(%rsp), $g0		# |g0|
 	lea	8*12($in_ptr), $in_ptr	# pointer to source |u|v|
 	lea	8*12($out_ptr),$out_ptr	# pointer to destination |u|
-	call	__smulq_383x63
+	call	${pre}__smulq_383x63
 
 	mov	8*9(%rsp), $f0		# |f1|
 	mov	8*10(%rsp), $g0		# |g1|
 	lea	8*6($out_ptr),$out_ptr	# pointer to destination |v|
-	call	__smulq_767x63
+	call	${pre}__smulq_767x63
 
 	################################# last iteration
 	xor	\$256+8*12, $in_ptr	# flip-flop pointer to source |a|b|u|v|
 	mov	\$22, $cnt		# 766 % 62
-	#call	__ab_approximation_62	# |a| and |b| are exact, just load
+	#call	${pre}__ab_approximation_62	# |a| and |b| are exact, just load
 	mov	8*0($in_ptr), @acc[0]	# |a_lo|
 	xor	@acc[1],      @acc[1]	# |a_hi|
 	mov	8*6($in_ptr), @acc[2]	# |b_lo|
 	xor	@acc[3],   @acc[3]	# |b_hi|
-	call	__inner_loop_62
+	call	${pre}__inner_loop_62
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	#mov	$f1, 8*9(%rsp)
@@ -319,14 +321,14 @@ $code.=<<___;
 	#mov	8*8(%rsp), $g0		# |g0|
 	lea	8*12($in_ptr), $in_ptr	# pointer to source |u|v|
 	#lea	8*6($out_ptr), $out_ptr	# pointer to destination |u|
-	#call	__smulq_383x63
+	#call	${pre}__smulq_383x63
 
 	#mov	8*9(%rsp), $f0		# |f1|
 	#mov	8*10(%rsp), $g0		# |g1|
 	mov	$f1, $f0
 	mov	$g1, $g0
 	mov	8*4(%rsp), $out_ptr	# original out_ptr
-	call	__smulq_767x63
+	call	${pre}__smulq_767x63
 
 	mov	8*5(%rsp), $in_ptr	# original n_ptr
 	mov	%rax, %rdx		# top limb of the result
@@ -386,9 +388,9 @@ my @acc = map("%r$_",(8..15),"bx","bp","cx","di");
 my $fx = @acc[9];
 
 $code.=<<___;
-.type	__smulq_767x63,\@abi-omnipotent
+.type	${pre}__smulq_767x63,\@abi-omnipotent
 .align	32
-__smulq_767x63:
+${pre}__smulq_767x63:
 	mov	8*0($in_ptr), @acc[0]	# load |u|
 	mov	8*1($in_ptr), @acc[1]
 	mov	8*2($in_ptr), @acc[2]
@@ -547,13 +549,13 @@ $code.=<<___;
 	mov	%rax,     8*11(%rdx)
 
 	ret
-.size	__smulq_767x63,.-__smulq_767x63
+.size	${pre}__smulq_767x63,.-${pre}__smulq_767x63
 ___
 }
 $code.=<<___;
-.type	__smulq_383x63,\@abi-omnipotent
+.type	${pre}__smulq_383x63,\@abi-omnipotent
 .align	32
-__smulq_383x63:
+${pre}__smulq_383x63:
 ___
 for($j=0; $j<2; $j++) {
 $code.=<<___;
@@ -635,13 +637,13 @@ $code.=<<___;
 	mov	@acc[5], 8*5($out_ptr)
 
 	ret
-.size	__smulq_383x63,.-__smulq_383x63
+.size	${pre}__smulq_383x63,.-${pre}__smulq_383x63
 ___
 {
 $code.=<<___;
-.type	__smulq_383_n_shift_by_62,\@abi-omnipotent
+.type	${pre}__smulq_383_n_shift_by_62,\@abi-omnipotent
 .align	32
-__smulq_383_n_shift_by_62:
+${pre}__smulq_383_n_shift_by_62:
 	mov	$f0, @acc[8]
 ___
 my $f0 = @acc[8];
@@ -759,7 +761,7 @@ $code.=<<___;
 	add	$fx, $g0
 
 	ret
-.size	__smulq_383_n_shift_by_62,.-__smulq_383_n_shift_by_62
+.size	${pre}__smulq_383_n_shift_by_62,.-${pre}__smulq_383_n_shift_by_62
 ___
 } }
 
@@ -771,9 +773,9 @@ my @a = ($a_lo, $t1, $a_hi);
 my @b = ($b_lo, $t2, $b_hi);
 
 $code.=<<___;
-.type	__ab_approximation_62,\@abi-omnipotent
+.type	${pre}__ab_approximation_62,\@abi-omnipotent
 .align	32
-__ab_approximation_62:
+${pre}__ab_approximation_62:
 	mov	8*5($in_ptr), @a[2]	# load |a| in reverse order
 	mov	8*11($in_ptr), @b[2]	# load |b| in reverse order
 	mov	8*4($in_ptr), @a[1]
@@ -821,24 +823,24 @@ __ab_approximation_62:
 	shldq	%cl, @a[1], @a[2]	# align second limb to the left
 	shldq	%cl, @b[1], @b[2]
 
-	jmp	__inner_loop_62
+	jmp	${pre}__inner_loop_62
 
 	ret
-.size	__ab_approximation_62,.-__ab_approximation_62
+.size	${pre}__ab_approximation_62,.-${pre}__ab_approximation_62
 ___
 }
 $code.=<<___;
-.type	__inner_loop_62,\@abi-omnipotent
+.type	${pre}__inner_loop_62,\@abi-omnipotent
 .align	8
 .long	0
-__inner_loop_62:
+${pre}__inner_loop_62:
 	mov	\$1, $f0	# |f0|=1
 	xor	$g0, $g0	# |g0|=0
 	xor	$f1, $f1	# |f1|=0
 	mov	\$1, $g1	# |g1|=1
 	mov	$in_ptr, 8(%rsp)
 
-.Loop_62:
+.${pre}__Loop_62:
 	xor	$t0, $t0
 	xor	$t1, $t1
 	test	\$1, $a_lo	# if |a_| is odd, then we'll be subtracting |b_|
@@ -874,11 +876,11 @@ __inner_loop_62:
 	sub	$t0, $f0	# |f0|-=|f1| (or |f0-=0| if |a_| was even)
 	sub	$t1, $g0	# |g0|-=|g1| (or |g0-=0| ...)
 	sub	\$1, $cnt
-	jnz	.Loop_62
+	jnz	.${pre}__Loop_62
 
 	mov	8(%rsp), $in_ptr
 	ret
-.size	__inner_loop_62,.-__inner_loop_62
+.size	${pre}__inner_loop_62,.-${pre}__inner_loop_62
 ___
 }
 

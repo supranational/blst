@@ -15,7 +15,7 @@
       defined(__ARM_FEATURE_CRYPTO) && !defined(__BLST_PORTABLE__)
 # define sha256_block_data_order blst_sha256_block_armv8
 #else
-# define sha256_block_data_order blst_sha256_block_data_order
+# define sha256_block_data_order blst_sha256_block_data_order_portable
 #endif
 #define sha256_hcopy blst_sha256_hcopy
 #define sha256_bcopy blst_sha256_bcopy
