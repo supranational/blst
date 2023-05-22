@@ -23,7 +23,7 @@
 # define sha256_block_data_order blst_sha256_block_data_order
 # endif
 #else
-# define sha256_block_data_order blst_sha256_block_data_order_portable
+# define sha256_block_data_order blst_sha256_block_data_order
 #endif
 #define sha256_hcopy blst_sha256_hcopy
 #define sha256_bcopy blst_sha256_bcopy
