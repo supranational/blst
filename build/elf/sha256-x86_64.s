@@ -237,11 +237,11 @@ blst_sha256_block_data_order_shaext:
 	.byte	0xf3,0xc3
 .cfi_endproc	
 .size	blst_sha256_block_data_order_shaext,.-blst_sha256_block_data_order_shaext
-.globl	blst_sha256_block_data_order
-.hidden	blst_sha256_block_data_order
-.type	blst_sha256_block_data_order,@function
+.globl	blst_sha256_block_data_order_not_portable
+.hidden	blst_sha256_block_data_order_not_portable
+.type	blst_sha256_block_data_order_not_portable,@function
 .align	64
-blst_sha256_block_data_order:
+blst_sha256_block_data_order_not_portable:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1365,7 +1365,7 @@ blst_sha256_block_data_order:
 	leaq	(%r11),%rsp
 	.byte	0xf3,0xc3
 .cfi_endproc	
-.size	blst_sha256_block_data_order,.-blst_sha256_block_data_order
+.size	blst_sha256_block_data_order_not_portable,.-blst_sha256_block_data_order_not_portable
 
 .section	.note.GNU-stack,"",@progbits
 .section	.note.gnu.property,"a",@note

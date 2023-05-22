@@ -1,9 +1,9 @@
 .text	
 
-.globl	blst_sha256_block_data_order_portable
-.type	blst_sha256_block_data_order_portable,@function
+.globl	blst_sha256_block_data_order
+.type	blst_sha256_block_data_order,@function
 .align	16
-blst_sha256_block_data_order_portable:
+blst_sha256_block_data_order:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -1651,7 +1651,7 @@ blst_sha256_block_data_order_portable:
 	leaq	(%r11),%rsp
 	.byte	0xf3,0xc3
 .cfi_endproc	
-.size	blst_sha256_block_data_order_portable,.-blst_sha256_block_data_order_portable
+.size	blst_sha256_block_data_order,.-blst_sha256_block_data_order
 
 .align	64
 .type	__sha256_portable_K256,@object

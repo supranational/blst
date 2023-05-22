@@ -1,9 +1,9 @@
 .text	
 
-.globl	_blst_sha256_block_data_order_portable
+.globl	_blst_sha256_block_data_order
 
 .p2align	4
-_blst_sha256_block_data_order_portable:
+_blst_sha256_block_data_order:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 

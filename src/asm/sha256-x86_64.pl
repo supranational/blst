@@ -39,7 +39,7 @@ open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
     or die "can't call $xlate: $!";
 
 $pre="blst_";
-$func="${pre}sha256_block_data_order";
+$func="${pre}sha256_block_data_order_not_portable";
 $TABLE="__sha256_K256";
 $SZ=4;
 @ROT=($A,$B,$C,$D,$E,$F,$G,$H)=("%eax","%ebx","%ecx","%edx",

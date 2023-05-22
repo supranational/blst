@@ -1,14 +1,14 @@
 .text	
 
-.globl	blst_sha256_block_data_order_portable
-.def	blst_sha256_block_data_order_portable;	.scl 2;	.type 32;	.endef
+.globl	blst_sha256_block_data_order
+.def	blst_sha256_block_data_order;	.scl 2;	.type 32;	.endef
 .p2align	4
-blst_sha256_block_data_order_portable:
+blst_sha256_block_data_order:
 	.byte	0xf3,0x0f,0x1e,0xfa
 	movq	%rdi,8(%rsp)
 	movq	%rsi,16(%rsp)
 	movq	%rsp,%r11
-.LSEH_begin_blst_sha256_block_data_order_portable:
+.LSEH_begin_blst_sha256_block_data_order:
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
@@ -33,7 +33,7 @@ blst_sha256_block_data_order_portable:
 	movq	%rdi,64+0(%rsp)
 	movq	%rsi,64+8(%rsp)
 	movq	%rdx,64+16(%rsp)
-.LSEH_body_blst_sha256_block_data_order_portable:
+.LSEH_body_blst_sha256_block_data_order:
 
 
 	movl	0(%rdi),%eax
@@ -1648,14 +1648,14 @@ blst_sha256_block_data_order_portable:
 
 	movq	-8(%r11),%rbx
 
-.LSEH_epilogue_blst_sha256_block_data_order_portable:
+.LSEH_epilogue_blst_sha256_block_data_order:
 	mov	8(%r11),%rdi
 	mov	16(%r11),%rsi
 
 	leaq	(%r11),%rsp
 	.byte	0xf3,0xc3
 
-.LSEH_end_blst_sha256_block_data_order_portable:
+.LSEH_end_blst_sha256_block_data_order:
 
 .p2align	6
 
@@ -1744,27 +1744,27 @@ blst_sha256_hcopy:
 
 .section	.pdata
 .p2align	2
-.rva	.LSEH_begin_blst_sha256_block_data_order_portable
-.rva	.LSEH_body_blst_sha256_block_data_order_portable
-.rva	.LSEH_info_blst_sha256_block_data_order_portable_prologue
+.rva	.LSEH_begin_blst_sha256_block_data_order
+.rva	.LSEH_body_blst_sha256_block_data_order
+.rva	.LSEH_info_blst_sha256_block_data_order_prologue
 
-.rva	.LSEH_body_blst_sha256_block_data_order_portable
-.rva	.LSEH_epilogue_blst_sha256_block_data_order_portable
-.rva	.LSEH_info_blst_sha256_block_data_order_portable_body
+.rva	.LSEH_body_blst_sha256_block_data_order
+.rva	.LSEH_epilogue_blst_sha256_block_data_order
+.rva	.LSEH_info_blst_sha256_block_data_order_body
 
-.rva	.LSEH_epilogue_blst_sha256_block_data_order_portable
-.rva	.LSEH_end_blst_sha256_block_data_order_portable
-.rva	.LSEH_info_blst_sha256_block_data_order_portable_epilogue
+.rva	.LSEH_epilogue_blst_sha256_block_data_order
+.rva	.LSEH_end_blst_sha256_block_data_order
+.rva	.LSEH_info_blst_sha256_block_data_order_epilogue
 
 .section	.xdata
 .p2align	3
-.LSEH_info_blst_sha256_block_data_order_portable_prologue:
+.LSEH_info_blst_sha256_block_data_order_prologue:
 .byte	1,0,5,0x0b
 .byte	0,0x74,1,0
 .byte	0,0x64,2,0
 .byte	0,0x03
 .byte	0,0
-.LSEH_info_blst_sha256_block_data_order_portable_body:
+.LSEH_info_blst_sha256_block_data_order_body:
 .byte	1,0,18,0
 .byte	0x00,0xf4,0x0b,0x00
 .byte	0x00,0xe4,0x0c,0x00
@@ -1775,7 +1775,7 @@ blst_sha256_hcopy:
 .byte	0x00,0x74,0x12,0x00
 .byte	0x00,0x64,0x13,0x00
 .byte	0x00,0x01,0x11,0x00
-.LSEH_info_blst_sha256_block_data_order_portable_epilogue:
+.LSEH_info_blst_sha256_block_data_order_epilogue:
 .byte	1,0,5,11
 .byte	0x00,0x74,0x01,0x00
 .byte	0x00,0x64,0x02,0x00
