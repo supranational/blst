@@ -274,16 +274,16 @@ $L$SEH_epilogue_blst_sha256_block_data_order_shaext::
 
 $L$SEH_end_blst_sha256_block_data_order_shaext::
 blst_sha256_block_data_order_shaext	ENDP
-PUBLIC	blst_sha256_block_data_order_not_portable
+PUBLIC	blst_sha256_block_data_order
 
 
 ALIGN	64
-blst_sha256_block_data_order_not_portable	PROC PUBLIC
+blst_sha256_block_data_order	PROC PUBLIC
 	DB	243,15,30,250
 	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
-$L$SEH_begin_blst_sha256_block_data_order_not_portable::
+$L$SEH_begin_blst_sha256_block_data_order::
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
@@ -319,7 +319,7 @@ $L$SEH_begin_blst_sha256_block_data_order_not_portable::
 
 	mov	rbp,rsp
 
-$L$SEH_body_blst_sha256_block_data_order_not_portable::
+$L$SEH_body_blst_sha256_block_data_order::
 
 
 	lea	rsp,QWORD PTR[((-64))+rsp]
@@ -1412,15 +1412,15 @@ DB	102,15,58,15,249,4
 
 	mov	rbp,QWORD PTR[((-8))+r11]
 
-$L$SEH_epilogue_blst_sha256_block_data_order_not_portable::
+$L$SEH_epilogue_blst_sha256_block_data_order::
 	mov	rdi,QWORD PTR[8+r11]	;WIN64 epilogue
 	mov	rsi,QWORD PTR[16+r11]
 
 	lea	rsp,QWORD PTR[r11]
 	DB	0F3h,0C3h		;repret
 
-$L$SEH_end_blst_sha256_block_data_order_not_portable::
-blst_sha256_block_data_order_not_portable	ENDP
+$L$SEH_end_blst_sha256_block_data_order::
+blst_sha256_block_data_order	ENDP
 .text$	ENDS
 .pdata	SEGMENT READONLY ALIGN(4)
 ALIGN	4
@@ -1436,17 +1436,17 @@ ALIGN	4
 	DD	imagerel $L$SEH_end_blst_sha256_block_data_order_shaext
 	DD	imagerel $L$SEH_info_blst_sha256_block_data_order_shaext_epilogue
 
-	DD	imagerel $L$SEH_begin_blst_sha256_block_data_order_not_portable
-	DD	imagerel $L$SEH_body_blst_sha256_block_data_order_not_portable
-	DD	imagerel $L$SEH_info_blst_sha256_block_data_order_not_portable_prologue
+	DD	imagerel $L$SEH_begin_blst_sha256_block_data_order
+	DD	imagerel $L$SEH_body_blst_sha256_block_data_order
+	DD	imagerel $L$SEH_info_blst_sha256_block_data_order_prologue
 
-	DD	imagerel $L$SEH_body_blst_sha256_block_data_order_not_portable
-	DD	imagerel $L$SEH_epilogue_blst_sha256_block_data_order_not_portable
-	DD	imagerel $L$SEH_info_blst_sha256_block_data_order_not_portable_body
+	DD	imagerel $L$SEH_body_blst_sha256_block_data_order
+	DD	imagerel $L$SEH_epilogue_blst_sha256_block_data_order
+	DD	imagerel $L$SEH_info_blst_sha256_block_data_order_body
 
-	DD	imagerel $L$SEH_epilogue_blst_sha256_block_data_order_not_portable
-	DD	imagerel $L$SEH_end_blst_sha256_block_data_order_not_portable
-	DD	imagerel $L$SEH_info_blst_sha256_block_data_order_not_portable_epilogue
+	DD	imagerel $L$SEH_epilogue_blst_sha256_block_data_order
+	DD	imagerel $L$SEH_end_blst_sha256_block_data_order
+	DD	imagerel $L$SEH_info_blst_sha256_block_data_order_epilogue
 
 .pdata	ENDS
 .xdata	SEGMENT READONLY ALIGN(8)
@@ -1475,13 +1475,13 @@ DB	000h,064h,002h,000h
 DB	000h,003h
 DB	000h,000h
 
-$L$SEH_info_blst_sha256_block_data_order_not_portable_prologue::
+$L$SEH_info_blst_sha256_block_data_order_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
 DB	0,003h
 DB	0,0
-$L$SEH_info_blst_sha256_block_data_order_not_portable_body::
+$L$SEH_info_blst_sha256_block_data_order_body::
 DB	1,0,26,5
 DB	000h,068h,002h,000h
 DB	000h,078h,003h,000h
@@ -1497,7 +1497,7 @@ DB	000h,064h,015h,000h
 DB	000h,003h
 DB	000h,001h,012h,000h
 DB	000h,050h
-$L$SEH_info_blst_sha256_block_data_order_not_portable_epilogue::
+$L$SEH_info_blst_sha256_block_data_order_epilogue::
 DB	1,0,5,11
 DB	000h,074h,001h,000h
 DB	000h,064h,002h,000h

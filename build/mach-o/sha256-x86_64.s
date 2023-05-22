@@ -237,11 +237,11 @@ L$oop_shaext:
 	.byte	0xf3,0xc3
 .cfi_endproc	
 
-.globl	_blst_sha256_block_data_order_not_portable
-.private_extern	_blst_sha256_block_data_order_not_portable
+.globl	_blst_sha256_block_data_order
+.private_extern	_blst_sha256_block_data_order
 
 .p2align	6
-_blst_sha256_block_data_order_not_portable:
+_blst_sha256_block_data_order:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 

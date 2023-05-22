@@ -8,14 +8,20 @@
 
 #include "vect.h"
 
-#if (defined(__x86_64__) || defined(__x86_64) || defined(_M_X64)) && \
-     defined(__SHA__) /* -msha */ && !defined(__BLST_PORTABLE__)
-# define sha256_block_data_order blst_sha256_block_data_order_shaext
-#elif defined(__aarch64__) && \
-      defined(__ARM_FEATURE_CRYPTO) && !defined(__BLST_PORTABLE__)
+#if defined(__x86_64__) || defined(__x86_64) || defined(_M_X64)
+# if defined(__SHA__) /* -msha */ && !defined(__BLST_PORTABLE__)
+#  define sha256_block_data_order blst_sha256_block_data_order_shaext
+# elif defined(__BLST_PORTABLE__)
+#  define sha256_block_data_order blst_sha256_block_data_order_portable
+# else
+#  define sha256_block_data_order blst_sha256_block_data_order
+# endif
+#elif defined(__aarch64__)
+# if defined(__ARM_FEATURE_CRYPTO) && !defined(__BLST_PORTABLE__)
 # define sha256_block_data_order blst_sha256_block_armv8
-#else
+# else
 # define sha256_block_data_order blst_sha256_block_data_order
+# endif
 #endif
 #define sha256_hcopy blst_sha256_hcopy
 #define sha256_bcopy blst_sha256_bcopy
