@@ -1,4 +1,33 @@
 OPTION	DOTNAME
+.text$	SEGMENT ALIGN(256) 'CODE'
+
+ALIGN	64
+
+K256::
+	DD	0428a2f98h,071374491h,0b5c0fbcfh,0e9b5dba5h
+	DD	03956c25bh,059f111f1h,0923f82a4h,0ab1c5ed5h
+	DD	0d807aa98h,012835b01h,0243185beh,0550c7dc3h
+	DD	072be5d74h,080deb1feh,09bdc06a7h,0c19bf174h
+	DD	0e49b69c1h,0efbe4786h,00fc19dc6h,0240ca1cch
+	DD	02de92c6fh,04a7484aah,05cb0a9dch,076f988dah
+	DD	0983e5152h,0a831c66dh,0b00327c8h,0bf597fc7h
+	DD	0c6e00bf3h,0d5a79147h,006ca6351h,014292967h
+	DD	027b70a85h,02e1b2138h,04d2c6dfch,053380d13h
+	DD	0650a7354h,0766a0abbh,081c2c92eh,092722c85h
+	DD	0a2bfe8a1h,0a81a664bh,0c24b8b70h,0c76c51a3h
+	DD	0d192e819h,0d6990624h,0f40e3585h,0106aa070h
+	DD	019a4c116h,01e376c08h,02748774ch,034b0bcb5h
+	DD	0391c0cb3h,04ed8aa4ah,05b9cca4fh,0682e6ff3h
+	DD	0748f82eeh,078a5636fh,084c87814h,08cc70208h
+	DD	090befffah,0a4506cebh,0bef9a3f7h,0c67178f2h
+
+	DD	000010203h,004050607h,008090a0bh,00c0d0e0fh
+	DD	003020100h,00b0a0908h,0ffffffffh,0ffffffffh
+	DD	0ffffffffh,0ffffffffh,003020100h,00b0a0908h
+DB	83,72,65,50,53,54,32,98,108,111,99,107,32,116,114,97
+DB	110,115,102,111,114,109,32,102,111,114,32,120,56,54,95,54
+DB	52,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121
+DB	32,64,100,111,116,45,97,115,109,0
 PUBLIC	blst_sha256_block_data_order_shaext
 
 
@@ -1392,6 +1421,7 @@ $L$SEH_epilogue_blst_sha256_block_data_order::
 
 $L$SEH_end_blst_sha256_block_data_order::
 blst_sha256_block_data_order	ENDP
+.text$	ENDS
 .pdata	SEGMENT READONLY ALIGN(4)
 ALIGN	4
 	DD	imagerel $L$SEH_begin_blst_sha256_block_data_order_shaext
