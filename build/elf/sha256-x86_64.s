@@ -1,10 +1,8 @@
 .text	
 
 .align	64
-.globl	K256
-.hidden	K256
-.type	K256,@object
-K256:
+.type	__sha256_K256,@object
+__sha256_K256:
 .long	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5
 .long	0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5
 .long	0xd807aa98,0x12835b01,0x243185be,0x550c7dc3
@@ -35,7 +33,7 @@ blst_sha256_block_data_order_shaext:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-	leaq	K256+128(%rip),%rcx
+	leaq	__sha256_K256+128(%rip),%rcx
 	movdqu	(%rdi),%xmm1
 	movdqu	16(%rdi),%xmm2
 	movdqa	256-128(%rcx),%xmm7
@@ -292,14 +290,14 @@ blst_sha256_block_data_order:
 	jmp	.Lloop_ssse3
 .align	16
 .Lloop_ssse3:
-	movdqa	K256+256(%rip),%xmm7
+	movdqa	__sha256_K256+256(%rip),%xmm7
 	movq	%rsi,8(%rbp)
 	movdqu	0(%rsi),%xmm0
 	movdqu	16(%rsi),%xmm1
 	movdqu	32(%rsi),%xmm2
 .byte	102,15,56,0,199
 	movdqu	48(%rsi),%xmm3
-	leaq	K256(%rip),%rsi
+	leaq	__sha256_K256(%rip),%rsi
 .byte	102,15,56,0,207
 	movdqa	0(%rsi),%xmm4
 	movdqa	16(%rsi),%xmm5

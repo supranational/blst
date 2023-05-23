@@ -2,10 +2,8 @@ OPTION	DOTNAME
 .text$	SEGMENT ALIGN(256) 'CODE'
 
 ALIGN	64
-PUBLIC	K256
 
-
-K256::
+__sha256_K256::
 	DD	0428a2f98h,071374491h,0b5c0fbcfh,0e9b5dba5h
 	DD	03956c25bh,059f111f1h,0923f82a4h,0ab1c5ed5h
 	DD	0d807aa98h,012835b01h,0243185beh,0550c7dc3h
@@ -60,7 +58,7 @@ $L$SEH_begin_blst_sha256_block_data_order_shaext::
 
 $L$SEH_body_blst_sha256_block_data_order_shaext::
 
-	lea	rcx,QWORD PTR[((K256+128))]
+	lea	rcx,QWORD PTR[((__sha256_K256+128))]
 	movdqu	xmm1,XMMWORD PTR[rdi]
 	movdqu	xmm2,XMMWORD PTR[16+rdi]
 	movdqa	xmm7,XMMWORD PTR[((256-128))+rcx]
@@ -339,14 +337,14 @@ $L$SEH_body_blst_sha256_block_data_order::
 	jmp	$L$loop_ssse3
 ALIGN	16
 $L$loop_ssse3::
-	movdqa	xmm7,XMMWORD PTR[((K256+256))]
+	movdqa	xmm7,XMMWORD PTR[((__sha256_K256+256))]
 	mov	QWORD PTR[8+rbp],rsi
 	movdqu	xmm0,XMMWORD PTR[rsi]
 	movdqu	xmm1,XMMWORD PTR[16+rsi]
 	movdqu	xmm2,XMMWORD PTR[32+rsi]
 DB	102,15,56,0,199
 	movdqu	xmm3,XMMWORD PTR[48+rsi]
-	lea	rsi,QWORD PTR[K256]
+	lea	rsi,QWORD PTR[__sha256_K256]
 DB	102,15,56,0,207
 	movdqa	xmm4,XMMWORD PTR[rsi]
 	movdqa	xmm5,XMMWORD PTR[16+rsi]

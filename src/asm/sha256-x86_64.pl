@@ -40,7 +40,7 @@ open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
 
 $pre="blst_";
 $func="${pre}sha256_block_data_order";
-$TABLE="K256";
+$TABLE="__sha256_K256";
 $SZ=4;
 @ROT=($A,$B,$C,$D,$E,$F,$G,$H)=("%eax","%ebx","%ecx","%edx",
 				"%r8d","%r9d","%r10d","%r11d");
@@ -64,8 +64,6 @@ $code=<<___;
 .text
 
 .align	64
-.globl	$TABLE
-.hidden	$TABLE
 .type	$TABLE,\@object
 $TABLE:
 	.long	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5
