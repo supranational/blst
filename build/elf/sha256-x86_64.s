@@ -1,29 +1,3 @@
-.text	
-
-.align	64
-.type	__sha256_K256,@object
-__sha256_K256:
-.long	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5
-.long	0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5
-.long	0xd807aa98,0x12835b01,0x243185be,0x550c7dc3
-.long	0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174
-.long	0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc
-.long	0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da
-.long	0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7
-.long	0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967
-.long	0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13
-.long	0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85
-.long	0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3
-.long	0xd192e819,0xd6990624,0xf40e3585,0x106aa070
-.long	0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5
-.long	0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3
-.long	0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208
-.long	0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
-
-.long	0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f
-.long	0x03020100,0x0b0a0908,0xffffffff,0xffffffff
-.long	0xffffffff,0xffffffff,0x03020100,0x0b0a0908
-.byte	83,72,65,50,53,54,32,98,108,111,99,107,32,116,114,97,110,115,102,111,114,109,32,102,111,114,32,120,56,54,95,54,52,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32,64,100,111,116,45,97,115,109,0
 .globl	blst_sha256_block_data_order_shaext
 .hidden	blst_sha256_block_data_order_shaext
 .type	blst_sha256_block_data_order_shaext,@function
@@ -33,7 +7,7 @@ blst_sha256_block_data_order_shaext:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-	leaq	__sha256_K256+128(%rip),%rcx
+	leaq	K256+128(%rip),%rcx
 	movdqu	(%rdi),%xmm1
 	movdqu	16(%rdi),%xmm2
 	movdqa	256-128(%rcx),%xmm7
@@ -290,14 +264,14 @@ blst_sha256_block_data_order:
 	jmp	.Lloop_ssse3
 .align	16
 .Lloop_ssse3:
-	movdqa	__sha256_K256+256(%rip),%xmm7
+	movdqa	K256+256(%rip),%xmm7
 	movq	%rsi,8(%rbp)
 	movdqu	0(%rsi),%xmm0
 	movdqu	16(%rsi),%xmm1
 	movdqu	32(%rsi),%xmm2
 .byte	102,15,56,0,199
 	movdqu	48(%rsi),%xmm3
-	leaq	__sha256_K256(%rip),%rsi
+	leaq	K256(%rip),%rsi
 .byte	102,15,56,0,207
 	movdqa	0(%rsi),%xmm4
 	movdqa	16(%rsi),%xmm5

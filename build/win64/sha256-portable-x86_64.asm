@@ -51,7 +51,7 @@ $L$SEH_body_blst_sha256_block_data_order_portable::
 ALIGN	16
 $L$loop::
 	mov	edi,ebx
-	lea	rbp,QWORD PTR[__sha256_portable_K256]
+	lea	rbp,QWORD PTR[K256]
 	xor	edi,ecx
 	mov	r12d,DWORD PTR[rsi]
 	mov	r13d,r8d
@@ -1662,7 +1662,7 @@ blst_sha256_block_data_order_portable	ENDP
 
 ALIGN	64
 
-__sha256_portable_K256::
+K256::
 	DD	0428a2f98h,071374491h,0b5c0fbcfh,0e9b5dba5h
 	DD	03956c25bh,059f111f1h,0923f82a4h,0ab1c5ed5h
 	DD	0d807aa98h,012835b01h,0243185beh,0550c7dc3h

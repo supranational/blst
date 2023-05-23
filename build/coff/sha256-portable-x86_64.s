@@ -49,7 +49,7 @@ blst_sha256_block_data_order_portable:
 .p2align	4
 .Lloop:
 	movl	%ebx,%edi
-	leaq	__sha256_portable_K256(%rip),%rbp
+	leaq	K256(%rip),%rbp
 	xorl	%ecx,%edi
 	movl	0(%rsi),%r12d
 	movl	%r8d,%r13d
@@ -1659,7 +1659,7 @@ blst_sha256_block_data_order_portable:
 
 .p2align	6
 
-__sha256_portable_K256:
+K256:
 .long	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5
 .long	0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5
 .long	0xd807aa98,0x12835b01,0x243185be,0x550c7dc3

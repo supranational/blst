@@ -29,7 +29,7 @@ open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
 
 $pre="blst_";
 $func="${pre}sha256_block_data_order_portable";
-$TABLE="__sha256_portable_K256";
+$TABLE="K256";
 $SZ=4;
 @ROT=($A,$B,$C,$D,$E,$F,$G,$H)=("%eax","%ebx","%ecx","%edx",
 				"%r8d","%r9d","%r10d","%r11d");
