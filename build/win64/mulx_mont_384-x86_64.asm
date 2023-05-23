@@ -9,7 +9,7 @@ OPTION	DOTNAME
 
 
 ALIGN	32
-mulx_mont_384__sub_mod_384x384	PROC PRIVATE
+__mulx_mont_384__sub_mod_384x384	PROC PRIVATE
 	DB	243,15,30,250
 	mov	r8,QWORD PTR[rsi]
 	mov	r9,QWORD PTR[8+rsi]
@@ -71,11 +71,11 @@ mulx_mont_384__sub_mod_384x384	PROC PRIVATE
 	mov	QWORD PTR[88+rdi],rsi
 
 	DB	0F3h,0C3h		;repret
-mulx_mont_384__sub_mod_384x384	ENDP
+__mulx_mont_384__sub_mod_384x384	ENDP
 
 
 ALIGN	32
-mulx_mont_384__add_mod_384	PROC PRIVATE
+__mulx_mont_384__add_mod_384	PROC PRIVATE
 	DB	243,15,30,250
 	mov	r8,QWORD PTR[rsi]
 	mov	r9,QWORD PTR[8+rsi]
@@ -120,11 +120,11 @@ mulx_mont_384__add_mod_384	PROC PRIVATE
 	mov	QWORD PTR[40+rdi],r13
 
 	DB	0F3h,0C3h		;repret
-mulx_mont_384__add_mod_384	ENDP
+__mulx_mont_384__add_mod_384	ENDP
 
 
 ALIGN	32
-mulx_mont_384__sub_mod_384	PROC PRIVATE
+__mulx_mont_384__sub_mod_384	PROC PRIVATE
 	DB	243,15,30,250
 	mov	r8,QWORD PTR[rsi]
 	mov	r9,QWORD PTR[8+rsi]
@@ -133,7 +133,7 @@ mulx_mont_384__sub_mod_384	PROC PRIVATE
 	mov	r12,QWORD PTR[32+rsi]
 	mov	r13,QWORD PTR[40+rsi]
 
-mulx_mont_384__sub_mod_384_a_is_loaded::
+__mulx_mont_384__sub_mod_384_a_is_loaded::
 	sub	r8,QWORD PTR[rdx]
 	mov	r14,QWORD PTR[rcx]
 	sbb	r9,QWORD PTR[8+rdx]
@@ -169,7 +169,7 @@ mulx_mont_384__sub_mod_384_a_is_loaded::
 	mov	QWORD PTR[40+rdi],r13
 
 	DB	0F3h,0C3h		;repret
-mulx_mont_384__sub_mod_384	ENDP
+__mulx_mont_384__sub_mod_384	ENDP
 PUBLIC	mulx_mont_384x
 
 
@@ -216,45 +216,45 @@ $L$SEH_body_mulx_mont_384x::
 
 
 	lea	rdi,QWORD PTR[40+rsp]
-	call	mulx_mont_384__mulx_384
+	call	__mulx_mont_384__mulx_384
 
 
 	lea	rbx,QWORD PTR[48+rbx]
 	lea	rsi,QWORD PTR[((128+48))+rsi]
 	lea	rdi,QWORD PTR[96+rdi]
-	call	mulx_mont_384__mulx_384
+	call	__mulx_mont_384__mulx_384
 
 
 	mov	rcx,QWORD PTR[8+rsp]
 	lea	rsi,QWORD PTR[rbx]
 	lea	rdx,QWORD PTR[((-48))+rbx]
 	lea	rdi,QWORD PTR[((40+192+48))+rsp]
-	call	mulx_mont_384__add_mod_384
+	call	__mulx_mont_384__add_mod_384
 
 	mov	rsi,QWORD PTR[24+rsp]
 	lea	rdx,QWORD PTR[48+rsi]
 	lea	rdi,QWORD PTR[((-48))+rdi]
-	call	mulx_mont_384__add_mod_384
+	call	__mulx_mont_384__add_mod_384
 
 	lea	rbx,QWORD PTR[rdi]
 	lea	rsi,QWORD PTR[48+rdi]
-	call	mulx_mont_384__mulx_384
+	call	__mulx_mont_384__mulx_384
 
 
 	lea	rsi,QWORD PTR[rdi]
 	lea	rdx,QWORD PTR[40+rsp]
 	mov	rcx,QWORD PTR[8+rsp]
-	call	mulx_mont_384__sub_mod_384x384
+	call	__mulx_mont_384__sub_mod_384x384
 
 	lea	rsi,QWORD PTR[rdi]
 	lea	rdx,QWORD PTR[((-96))+rdi]
-	call	mulx_mont_384__sub_mod_384x384
+	call	__mulx_mont_384__sub_mod_384x384
 
 
 	lea	rsi,QWORD PTR[40+rsp]
 	lea	rdx,QWORD PTR[((40+96))+rsp]
 	lea	rdi,QWORD PTR[40+rsp]
-	call	mulx_mont_384__sub_mod_384x384
+	call	__mulx_mont_384__sub_mod_384x384
 
 	lea	rbx,QWORD PTR[rcx]
 
@@ -262,15 +262,15 @@ $L$SEH_body_mulx_mont_384x::
 	lea	rsi,QWORD PTR[40+rsp]
 	mov	rcx,QWORD PTR[rsp]
 	mov	rdi,QWORD PTR[32+rsp]
-	call	mulx_mont_384__mulx_by_1_mont_384
-	call	mulx_mont_384__redc_tail_mont_384
+	call	__mulx_mont_384__mulx_by_1_mont_384
+	call	__mulx_mont_384__redc_tail_mont_384
 
 
 	lea	rsi,QWORD PTR[((40+192))+rsp]
 	mov	rcx,QWORD PTR[rsp]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	mulx_mont_384__mulx_by_1_mont_384
-	call	mulx_mont_384__redc_tail_mont_384
+	call	__mulx_mont_384__mulx_by_1_mont_384
+	call	__mulx_mont_384__redc_tail_mont_384
 
 	lea	r8,QWORD PTR[328+rsp]
 	mov	r15,QWORD PTR[r8]
@@ -338,13 +338,13 @@ $L$SEH_body_sqrx_mont_384x::
 
 	lea	rdx,QWORD PTR[48+rsi]
 	lea	rdi,QWORD PTR[32+rsp]
-	call	mulx_mont_384__add_mod_384
+	call	__mulx_mont_384__add_mod_384
 
 
 	mov	rsi,QWORD PTR[24+rsp]
 	lea	rdx,QWORD PTR[48+rsi]
 	lea	rdi,QWORD PTR[((32+48))+rsp]
-	call	mulx_mont_384__sub_mod_384
+	call	__mulx_mont_384__sub_mod_384
 
 
 	mov	rsi,QWORD PTR[24+rsp]
@@ -361,7 +361,7 @@ $L$SEH_body_sqrx_mont_384x::
 	lea	rcx,QWORD PTR[((-128))+rcx]
 
 	mulx	r9,r8,r14
-	call	mulx_mont_384__mulx_mont_384
+	call	__mulx_mont_384__mulx_mont_384
 	add	rdx,rdx
 	adc	r15,r15
 	adc	rax,rax
@@ -411,7 +411,7 @@ $L$SEH_body_sqrx_mont_384x::
 	lea	rcx,QWORD PTR[((-128))+rcx]
 
 	mulx	r9,r8,r14
-	call	mulx_mont_384__mulx_mont_384
+	call	__mulx_mont_384__mulx_mont_384
 
 	lea	r8,QWORD PTR[136+rsp]
 	mov	r15,QWORD PTR[r8]
@@ -524,37 +524,37 @@ $L$SEH_body_mulx_382x::
 
 	lea	rsi,QWORD PTR[((32+0))+rsp]
 	lea	rbx,QWORD PTR[((32+48))+rsp]
-	call	mulx_mont_384__mulx_384
+	call	__mulx_mont_384__mulx_384
 
 
 	mov	rsi,QWORD PTR[rsp]
 	mov	rbx,QWORD PTR[8+rsp]
 	lea	rdi,QWORD PTR[((-96))+rdi]
-	call	mulx_mont_384__mulx_384
+	call	__mulx_mont_384__mulx_384
 
 
 	lea	rsi,QWORD PTR[((48+128))+rsi]
 	lea	rbx,QWORD PTR[48+rbx]
 	lea	rdi,QWORD PTR[32+rsp]
-	call	mulx_mont_384__mulx_384
+	call	__mulx_mont_384__mulx_384
 
 
 	mov	rsi,QWORD PTR[16+rsp]
 	lea	rdx,QWORD PTR[32+rsp]
 	mov	rcx,QWORD PTR[24+rsp]
 	mov	rdi,rsi
-	call	mulx_mont_384__sub_mod_384x384
+	call	__mulx_mont_384__sub_mod_384x384
 
 
 	lea	rsi,QWORD PTR[rdi]
 	lea	rdx,QWORD PTR[((-96))+rdi]
-	call	mulx_mont_384__sub_mod_384x384
+	call	__mulx_mont_384__sub_mod_384x384
 
 
 	lea	rsi,QWORD PTR[((-96))+rdi]
 	lea	rdx,QWORD PTR[32+rsp]
 	lea	rdi,QWORD PTR[((-96))+rdi]
-	call	mulx_mont_384__sub_mod_384x384
+	call	__mulx_mont_384__sub_mod_384x384
 
 	lea	r8,QWORD PTR[136+rsp]
 	mov	r15,QWORD PTR[r8]
@@ -645,19 +645,19 @@ $L$SEH_body_sqrx_382x::
 
 	lea	rdx,QWORD PTR[48+rsi]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	mulx_mont_384__sub_mod_384_a_is_loaded
+	call	__mulx_mont_384__sub_mod_384_a_is_loaded
 
 
 	lea	rsi,QWORD PTR[rdi]
 	lea	rbx,QWORD PTR[((-48))+rdi]
 	lea	rdi,QWORD PTR[((-48))+rdi]
-	call	mulx_mont_384__mulx_384
+	call	__mulx_mont_384__mulx_384
 
 
 	mov	rsi,QWORD PTR[rsp]
 	lea	rbx,QWORD PTR[48+rsi]
 	lea	rdi,QWORD PTR[96+rdi]
-	call	mulx_mont_384__mulx_384
+	call	__mulx_mont_384__mulx_384
 
 	mov	r8,QWORD PTR[rdi]
 	mov	r9,QWORD PTR[8+rdi]
@@ -750,7 +750,7 @@ $L$SEH_body_mulx_384::
 
 
 	mov	rbx,rdx
-	call	mulx_mont_384__mulx_384
+	call	__mulx_mont_384__mulx_384
 
 	mov	r15,QWORD PTR[rsp]
 
@@ -777,7 +777,7 @@ mulx_384	ENDP
 
 
 ALIGN	32
-mulx_mont_384__mulx_384	PROC PRIVATE
+__mulx_mont_384__mulx_384	PROC PRIVATE
 	DB	243,15,30,250
 	mov	rdx,QWORD PTR[rbx]
 	mov	r14,QWORD PTR[rsi]
@@ -946,7 +946,7 @@ mulx_mont_384__mulx_384	PROC PRIVATE
 	mov	QWORD PTR[88+rdi],r13
 
 	DB	0F3h,0C3h		;repret
-mulx_mont_384__mulx_384	ENDP
+__mulx_mont_384__mulx_384	ENDP
 PUBLIC	sqrx_384
 
 
@@ -979,7 +979,7 @@ $L$SEH_begin_sqrx_384::
 $L$SEH_body_sqrx_384::
 
 
-	call	mulx_mont_384__sqrx_384
+	call	__mulx_mont_384__sqrx_384
 
 	mov	r15,QWORD PTR[8+rsp]
 
@@ -1005,7 +1005,7 @@ $L$SEH_end_sqrx_384::
 sqrx_384	ENDP
 
 ALIGN	32
-mulx_mont_384__sqrx_384	PROC PRIVATE
+__mulx_mont_384__sqrx_384	PROC PRIVATE
 	DB	243,15,30,250
 	mov	rdx,QWORD PTR[rsi]
 	mov	r14,QWORD PTR[8+rsi]
@@ -1139,7 +1139,7 @@ mulx_mont_384__sqrx_384	PROC PRIVATE
 	mov	QWORD PTR[88+rdi],rbp
 
 	DB	0F3h,0C3h		;repret
-mulx_mont_384__sqrx_384	ENDP
+__mulx_mont_384__sqrx_384	ENDP
 
 
 
@@ -1178,8 +1178,8 @@ $L$SEH_body_redcx_mont_384::
 
 
 	mov	rbx,rdx
-	call	mulx_mont_384__mulx_by_1_mont_384
-	call	mulx_mont_384__redc_tail_mont_384
+	call	__mulx_mont_384__mulx_by_1_mont_384
+	call	__mulx_mont_384__redc_tail_mont_384
 
 	mov	r15,QWORD PTR[8+rsp]
 
@@ -1242,7 +1242,7 @@ $L$SEH_body_fromx_mont_384::
 
 
 	mov	rbx,rdx
-	call	mulx_mont_384__mulx_by_1_mont_384
+	call	__mulx_mont_384__mulx_by_1_mont_384
 
 
 
@@ -1298,7 +1298,7 @@ $L$SEH_end_fromx_mont_384::
 fromx_mont_384	ENDP
 
 ALIGN	32
-mulx_mont_384__mulx_by_1_mont_384	PROC PRIVATE
+__mulx_mont_384__mulx_by_1_mont_384	PROC PRIVATE
 	DB	243,15,30,250
 	mov	r8,QWORD PTR[rsi]
 	mov	rdx,rcx
@@ -1482,11 +1482,11 @@ mulx_mont_384__mulx_by_1_mont_384	PROC PRIVATE
 	adox	rbp,r11
 	adcx	r11,rbp
 	DB	0F3h,0C3h		;repret
-mulx_mont_384__mulx_by_1_mont_384	ENDP
+__mulx_mont_384__mulx_by_1_mont_384	ENDP
 
 
 ALIGN	32
-mulx_mont_384__redc_tail_mont_384	PROC PRIVATE
+__mulx_mont_384__redc_tail_mont_384	PROC PRIVATE
 	DB	243,15,30,250
 	add	r14,QWORD PTR[48+rsi]
 	mov	rax,r14
@@ -1528,7 +1528,7 @@ mulx_mont_384__redc_tail_mont_384	PROC PRIVATE
 	mov	QWORD PTR[40+rdi],r11
 
 	DB	0F3h,0C3h		;repret
-mulx_mont_384__redc_tail_mont_384	ENDP
+__mulx_mont_384__redc_tail_mont_384	ENDP
 
 PUBLIC	sgn0x_pty_mont_384
 
@@ -1566,7 +1566,7 @@ $L$SEH_body_sgn0x_pty_mont_384::
 	mov	rbx,rsi
 	lea	rsi,QWORD PTR[rdi]
 	mov	rcx,rdx
-	call	mulx_mont_384__mulx_by_1_mont_384
+	call	__mulx_mont_384__mulx_by_1_mont_384
 
 	xor	rax,rax
 	mov	r13,r14
@@ -1650,7 +1650,7 @@ $L$SEH_body_sgn0x_pty_mont_384x::
 	mov	rbx,rsi
 	lea	rsi,QWORD PTR[48+rdi]
 	mov	rcx,rdx
-	call	mulx_mont_384__mulx_by_1_mont_384
+	call	__mulx_mont_384__mulx_by_1_mont_384
 
 	mov	r12,r14
 	or	r14,r15
@@ -1684,7 +1684,7 @@ $L$SEH_body_sgn0x_pty_mont_384x::
 	and	rdi,2
 	or	rdi,r13
 
-	call	mulx_mont_384__mulx_by_1_mont_384
+	call	__mulx_mont_384__mulx_by_1_mont_384
 
 	mov	r12,r14
 	or	r14,r15
@@ -1796,7 +1796,7 @@ $L$SEH_body_mulx_mont_384::
 	mov	QWORD PTR[rsp],r8
 
 	mulx	r9,r8,r14
-	call	mulx_mont_384__mulx_mont_384
+	call	__mulx_mont_384__mulx_mont_384
 
 	mov	r15,QWORD PTR[24+rsp]
 
@@ -1822,7 +1822,7 @@ $L$SEH_end_mulx_mont_384::
 mulx_mont_384	ENDP
 
 ALIGN	32
-mulx_mont_384__mulx_mont_384	PROC PRIVATE
+__mulx_mont_384__mulx_mont_384	PROC PRIVATE
 	DB	243,15,30,250
 
 	mulx	r10,r14,r15
@@ -2219,7 +2219,7 @@ mulx_mont_384__mulx_mont_384	PROC PRIVATE
 
 	DB	0F3h,0C3h		;repret
 
-mulx_mont_384__mulx_mont_384	ENDP
+__mulx_mont_384__mulx_mont_384	ENDP
 PUBLIC	sqrx_mont_384
 
 
@@ -2269,7 +2269,7 @@ $L$SEH_body_sqrx_mont_384::
 	lea	rsi,QWORD PTR[((-128))+rsi]
 
 	mulx	r9,r8,rdx
-	call	mulx_mont_384__mulx_mont_384
+	call	__mulx_mont_384__mulx_mont_384
 
 	mov	r15,QWORD PTR[24+rsp]
 
@@ -2350,7 +2350,7 @@ $L$oop_sqrx_384::
 	lea	rcx,QWORD PTR[((-128))+rcx]
 
 	mulx	r9,r8,rdx
-	call	mulx_mont_384__mulx_mont_384
+	call	__mulx_mont_384__mulx_mont_384
 
 	movd	r10d,xmm1
 	dec	r10d
@@ -2363,7 +2363,7 @@ DB	102,72,15,126,210
 	lea	rcx,QWORD PTR[((-128))+rcx]
 
 	mulx	r9,r8,r14
-	call	mulx_mont_384__mulx_mont_384
+	call	__mulx_mont_384__mulx_mont_384
 
 	mov	r15,QWORD PTR[40+rsp]
 
@@ -2444,7 +2444,7 @@ $L$oop_sqrx_383::
 	lea	rsi,QWORD PTR[((-128))+rbx]
 
 	mulx	r9,r8,rdx
-	call	mulx_mont_384__mulx_mont_383_nonred
+	call	__mulx_mont_384__mulx_mont_383_nonred
 
 	movd	r10d,xmm1
 	dec	r10d
@@ -2456,7 +2456,7 @@ DB	102,72,15,126,210
 	mov	rbx,QWORD PTR[24+rsp]
 
 	mulx	r9,r8,r14
-	call	mulx_mont_384__mulx_mont_384
+	call	__mulx_mont_384__mulx_mont_384
 
 	mov	r15,QWORD PTR[40+rsp]
 
@@ -2482,7 +2482,7 @@ $L$SEH_end_sqrx_n_mul_mont_383::
 sqrx_n_mul_mont_383	ENDP
 
 ALIGN	32
-mulx_mont_384__mulx_mont_383_nonred	PROC PRIVATE
+__mulx_mont_384__mulx_mont_383_nonred	PROC PRIVATE
 	DB	243,15,30,250
 
 	mulx	r10,r14,r15
@@ -2840,7 +2840,7 @@ mulx_mont_384__mulx_mont_383_nonred	PROC PRIVATE
 
 	DB	0F3h,0C3h		;repret
 
-mulx_mont_384__mulx_mont_383_nonred	ENDP
+__mulx_mont_384__mulx_mont_383_nonred	ENDP
 PUBLIC	sqrx_mont_382x
 
 
@@ -2939,7 +2939,7 @@ $L$SEH_body_sqrx_mont_382x::
 	lea	rcx,QWORD PTR[((-128))+rcx]
 
 	mulx	r9,r8,r14
-	call	mulx_mont_384__mulx_mont_383_nonred
+	call	__mulx_mont_384__mulx_mont_383_nonred
 	add	rdx,rdx
 	adc	r15,r15
 	adc	rax,rax
@@ -2968,7 +2968,7 @@ $L$SEH_body_sqrx_mont_382x::
 
 
 	mulx	r9,r8,r14
-	call	mulx_mont_384__mulx_mont_383_nonred
+	call	__mulx_mont_384__mulx_mont_383_nonred
 	mov	r14,QWORD PTR[((32+96))+rsp]
 	lea	rcx,QWORD PTR[128+rcx]
 	mov	r8,QWORD PTR[((32+0))+rsp]

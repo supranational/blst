@@ -19,7 +19,7 @@ def ct_inverse_mod_383(inp, mod):
     mask = (1 << k) - 1
 
     for i in range(0, 766 // k):
-        # ${pre}__ab_approximation_31
+        # __${pre}__ab_approximation_31
         n = max(a.bit_length(), b.bit_length())
         if n < 64:
             a_, b_ = a, b
@@ -27,7 +27,7 @@ def ct_inverse_mod_383(inp, mod):
             a_ = (a & mask) | ((a >> (n-k-2)) << k)
             b_ = (b & mask) | ((b >> (n-k-2)) << k)
 
-        # ${pre}__inner_loop_31
+        # __${pre}__inner_loop_31
         f0, g0, f1, g1 = 1, 0, 0, 1
         for j in range(0, k):
             if a_ & 1:
@@ -36,14 +36,14 @@ def ct_inverse_mod_383(inp, mod):
                 a_, f0, g0 = a_-b_, f0-f1, g0-g1
             a_, f1, g1 = a_ >> 1, f1 << 1, g1 << 1
 
-        # ${pre}__smulx_383_n_shift_by_31
+        # __${pre}__smulx_383_n_shift_by_31
         a, b = (a*f0 + b*g0) >> k, (a*f1 + b*g1) >> k
         if a < 0:
             a, f0, g0 = -a, -f0, -g0
         if b < 0:
             b, f1, g1 = -b, -f1, -g1
 
-        # ${pre}__smulx_767x63
+        # __${pre}__smulx_767x63
         u, v = u*f0 + v*g0, u*f1 + v*g1
 
     if 766 % k:
@@ -146,7 +146,7 @@ ctx_inverse_mod_383:
 
 	################################# first iteration
 	mov	\$31, $cnt
-	call	${pre}__ab_approximation_31
+	call	__${pre}__ab_approximation_31
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	mov	$f1, 8*9(%rsp)
@@ -154,7 +154,7 @@ ctx_inverse_mod_383:
 
 	mov	\$256, $out_ptr
 	xor	$in_ptr, $out_ptr	# pointer to destination |a|b|u|v|
-	call	${pre}__smulx_383_n_shift_by_31
+	call	__${pre}__smulx_383_n_shift_by_31
 	#mov	$f0, 8*7(%rsp)		# corrected |f0|
 	#mov	$g0, 8*8(%rsp)		# corrected |g0|
 	mov	$f0, 8*12($out_ptr)	# initialize |u| with |f0|
@@ -162,7 +162,7 @@ ctx_inverse_mod_383:
 	mov	8*9(%rsp), $f0		# |f1|
 	mov	8*10(%rsp), $g0		# |g1|
 	lea	8*6($out_ptr), $out_ptr	# pointer to destination |b|
-	call	${pre}__smulx_383_n_shift_by_31
+	call	__${pre}__smulx_383_n_shift_by_31
 	#mov	$f0, 8*9(%rsp)		# corrected |f1|
 	#mov	$g0, 8*10(%rsp)		# corrected |g1|
 	mov	$f0, 8*12($out_ptr)	# initialize |v| with |f1|
@@ -170,7 +170,7 @@ ctx_inverse_mod_383:
 	################################# second iteration
 	xor	\$256, $in_ptr		# flip-flop pointer to source |a|b|u|v|
 	mov	\$31, $cnt
-	call	${pre}__ab_approximation_31
+	call	__${pre}__ab_approximation_31
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	mov	$f1, 8*9(%rsp)
@@ -178,14 +178,14 @@ ctx_inverse_mod_383:
 
 	mov	\$256, $out_ptr
 	xor	$in_ptr, $out_ptr	# pointer to destination |a|b|u|v|
-	call	${pre}__smulx_383_n_shift_by_31
+	call	__${pre}__smulx_383_n_shift_by_31
 	mov	$f0, 8*7(%rsp)		# corrected |f0|
 	mov	$g0, 8*8(%rsp)		# corrected |g0|
 
 	mov	8*9(%rsp), $f0		# |f1|
 	mov	8*10(%rsp), $g0		# |g1|
 	lea	8*6($out_ptr), $out_ptr	# pointer to destination |b|
-	call	${pre}__smulx_383_n_shift_by_31
+	call	__${pre}__smulx_383_n_shift_by_31
 	#mov	$f0, 8*9(%rsp)		# corrected |f1|
 	#mov	$g0, 8*10(%rsp)		# corrected |g1|
 
@@ -226,14 +226,14 @@ ctx_inverse_mod_383:
 	mov	@acc[1], 8*17($out_ptr)
 ___
 for($i=2; $i<23; $i++) {
-my $smul_n_shift = $i<19 ? "${pre}__smulx_383_n_shift_by_31"
-                         : "${pre}__smulx_191_n_shift_by_31";
-my $smul_767x63  = $i>11 ? "${pre}__smulx_767x63"
-                         : "${pre}__smulx_383x63";
+my $smul_n_shift = $i<19 ? "__${pre}__smulx_383_n_shift_by_31"
+                         : "__${pre}__smulx_191_n_shift_by_31";
+my $smul_767x63  = $i>11 ? "__${pre}__smulx_767x63"
+                         : "__${pre}__smulx_383x63";
 $code.=<<___;
 	xor	\$256+8*12, $in_ptr	# flip-flop pointer to source |a|b|u|v|
 	mov	\$31, $cnt
-	call	${pre}__ab_approximation_31
+	call	__${pre}__ab_approximation_31
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	mov	$f1, 8*9(%rsp)
@@ -256,7 +256,7 @@ $code.=<<___;
 	mov	8*8(%rsp), $g0		# |g0|
 	lea	8*12($in_ptr), $in_ptr	# pointer to source |u|v|
 	lea	8*6($out_ptr), $out_ptr	# pointer to destination |u|
-	call	${pre}__smulx_383x63
+	call	__${pre}__smulx_383x63
 
 	mov	8*9(%rsp), $f0		# |f1|
 	mov	8*10(%rsp), $g0		# |g1|
@@ -277,12 +277,12 @@ $code.=<<___;
 	################################# two[!] last iterations in one go
 	xor	\$256+8*12, $in_ptr	# flip-flop pointer to source |a|b|u|v|
 	mov	\$53, $cnt		# 31 + 766 % 31
-	#call	${pre}__ab_approximation_31	# |a| and |b| are exact, just load
+	#call	__${pre}__ab_approximation_31	# |a| and |b| are exact, just load
 	mov	8*0($in_ptr), @acc[0]	# |a_lo|
 	#xor	@acc[1],      @acc[1]	# |a_hi|
 	mov	8*6($in_ptr), @acc[2]	# |b_lo|
 	#xor	@acc[3],      @acc[3]	# |b_hi|
-	call	${pre}__inner_loop_62
+	call	__${pre}__inner_loop_62
 	#mov	$f0, 8*7(%rsp)
 	#mov	$g0, 8*8(%rsp)
 	#mov	$f1, 8*9(%rsp)
@@ -292,14 +292,14 @@ $code.=<<___;
 	#mov	8*8(%rsp), $g0		# |g0|
 	lea	8*12($in_ptr), $in_ptr	# pointer to source |u|v|
 	#lea	8*6($out_ptr), $out_ptr	# pointer to destination |u|
-	#call	${pre}__smulx_383x63
+	#call	__${pre}__smulx_383x63
 
 	#mov	8*9(%rsp), $f0		# |f1|
 	#mov	8*10(%rsp), $g0		# |g1|
 	mov	$f1, $f0
 	mov	$g1, $g0
 	mov	8*4(%rsp), $out_ptr	# original out_ptr
-	call	${pre}__smulx_767x63
+	call	__${pre}__smulx_767x63
 
 	mov	8*5(%rsp), $in_ptr	# original n_ptr
 	mov	%rax, %rdx		# top limb of the result
@@ -358,9 +358,9 @@ ___
 # The latter should not be taken literally, as they are always chosen so
 # that "bad things" don't happen. For example, there comes a point when
 # |v| grows beyond 383 bits, while |u| remains 383 bits wide. Yet, we
-# always call ${pre}__smul_383x63 to perform |u|*|f0|+|v|*|g0| step. This is
+# always call __${pre}__smul_383x63 to perform |u|*|f0|+|v|*|g0| step. This is
 # because past that point |f0| is always 1 and |g0| is always 0. And,
-# since |u| never grows beyond 383 bits, ${pre}__smul_767x63 doesn't have to
+# since |u| never grows beyond 383 bits, __${pre}__smul_767x63 doesn't have to
 # perform full-width |u|*|f1| multiplication, half-width one with sign
 # extension is sufficient...
 {
@@ -369,9 +369,9 @@ my @acc = map("%r$_",(8..15),"bx","bp","cx","di");
 my $fx = @acc[9];
 
 $code.=<<___;
-.type	${pre}__smulx_767x63,\@abi-omnipotent
+.type	__${pre}__smulx_767x63,\@abi-omnipotent
 .align	32
-${pre}__smulx_767x63:
+__${pre}__smulx_767x63:
 	mov	8*0($in_ptr), @acc[0]	# load |u|
 	mov	8*1($in_ptr), @acc[1]
 	mov	8*2($in_ptr), @acc[2]
@@ -529,13 +529,13 @@ $code.=<<___;
 	mov	%rax,     8*11(%rdx)
 
 	ret
-.size	${pre}__smulx_767x63,.-${pre}__smulx_767x63
+.size	__${pre}__smulx_767x63,.-__${pre}__smulx_767x63
 ___
 }
 $code.=<<___;
-.type	${pre}__smulx_383x63,\@abi-omnipotent
+.type	__${pre}__smulx_383x63,\@abi-omnipotent
 .align	32
-${pre}__smulx_383x63:
+__${pre}__smulx_383x63:
 ___
 for($j=0; $j<2; $j++) {
 my $k = 8*6*$j;
@@ -611,7 +611,7 @@ $code.=<<___;
 	mov	@acc[5], 8*5($out_ptr)
 
 	ret
-.size	${pre}__smulx_383x63,.-${pre}__smulx_383x63
+.size	__${pre}__smulx_383x63,.-__${pre}__smulx_383x63
 ___
 ########################################################################
 # Signed abs(|a|*|f?|+|b|*|g?|)>>k subroutines. "NNN" in the middle of
@@ -622,9 +622,9 @@ ___
 # never wider than inputs...
 {
 $code.=<<___;
-.type	${pre}__smulx_383_n_shift_by_31,\@abi-omnipotent
+.type	__${pre}__smulx_383_n_shift_by_31,\@abi-omnipotent
 .align	32
-${pre}__smulx_383_n_shift_by_31:
+__${pre}__smulx_383_n_shift_by_31:
 	mov	$f0, @acc[8]
 	xor	@acc[6], @acc[6]
 ___
@@ -739,13 +739,13 @@ $code.=<<___;
 	add	$fx, $g0
 
 	ret
-.size	${pre}__smulx_383_n_shift_by_31,.-${pre}__smulx_383_n_shift_by_31
+.size	__${pre}__smulx_383_n_shift_by_31,.-__${pre}__smulx_383_n_shift_by_31
 ___
 } {
 $code.=<<___;
-.type	${pre}__smulx_191_n_shift_by_31,\@abi-omnipotent
+.type	__${pre}__smulx_191_n_shift_by_31,\@abi-omnipotent
 .align	32
-${pre}__smulx_191_n_shift_by_31:
+__${pre}__smulx_191_n_shift_by_31:
 	mov	$f0, @acc[8]
 ___
 my $f0 = @acc[8];
@@ -818,7 +818,7 @@ $code.=<<___;
 	add	$fx, $g0
 
 	ret
-.size	${pre}__smulx_191_n_shift_by_31,.-${pre}__smulx_191_n_shift_by_31
+.size	__${pre}__smulx_191_n_shift_by_31,.-__${pre}__smulx_191_n_shift_by_31
 ___
 } }
 
@@ -832,9 +832,9 @@ my @a = ($a_lo, $t1, $a_hi);
 my @b = ($b_lo, $t2, $b_hi);
 
 $code.=<<___;
-.type	${pre}__ab_approximation_31,\@abi-omnipotent
+.type	__${pre}__ab_approximation_31,\@abi-omnipotent
 .align	32
-${pre}__ab_approximation_31:
+__${pre}__ab_approximation_31:
 	mov	8*5($in_ptr), @a[2]	# load |a| in reverse order
 	mov	8*11($in_ptr), @b[2]	# load |b| in reverse order
 	mov	8*4($in_ptr), @a[1]
@@ -897,21 +897,21 @@ ${pre}__ab_approximation_31:
 	or	@a[2], @a[0]
 	or	@b[2], @b[0]
 
-	jmp	${pre}__inner_loop_31
+	jmp	__${pre}__inner_loop_31
 
 	ret
-.size	${pre}__ab_approximation_31,.-${pre}__ab_approximation_31
+.size	__${pre}__ab_approximation_31,.-__${pre}__ab_approximation_31
 ___
 }
 $code.=<<___;
-.type	${pre}__inner_loop_31,\@abi-omnipotent
+.type	__${pre}__inner_loop_31,\@abi-omnipotent
 .align	32
-${pre}__inner_loop_31:		################# by Thomas Pornin
+__${pre}__inner_loop_31:		################# by Thomas Pornin
 	mov	\$0x7FFFFFFF80000000, $fg0	# |f0|=1, |g0|=0
 	mov	\$0x800000007FFFFFFF, $fg1	# |f1|=0, |g1|=1
 	mov	\$0x7FFFFFFF7FFFFFFF, $bias
 
-.${pre}__Loop_31:
+.__${pre}__Loop_31:
 	cmp	$b_, $a_		# if |a_|<|b_|, swap the variables
 	mov	$a_, $t0
 	mov	$b_, $t1
@@ -936,7 +936,7 @@ ${pre}__inner_loop_31:		################# by Thomas Pornin
 	add	$fg1, $fg1		# |f1|<<=1, |g1|<<=1
 	sub	$bias, $fg1
 	sub	\$1, $cnt
-	jnz	.${pre}__Loop_31
+	jnz	.__${pre}__Loop_31
 
 	shr	\$32, $bias
 	mov	%ecx, %edx		# $fg0, $f0
@@ -949,17 +949,17 @@ ${pre}__inner_loop_31:		################# by Thomas Pornin
 	sub	$bias, $g1
 
 	ret
-.size	${pre}__inner_loop_31,.-${pre}__inner_loop_31
+.size	__${pre}__inner_loop_31,.-__${pre}__inner_loop_31
 
-.type	${pre}__inner_loop_62,\@abi-omnipotent
+.type	__${pre}__inner_loop_62,\@abi-omnipotent
 .align	32
-${pre}__inner_loop_62:
+__${pre}__inner_loop_62:
 	mov	\$1, $f0	# |f0|=1
 	xor	$g0, $g0	# |g0|=0
 	xor	$f1, $f1	# |f1|=0
 	mov	\$1, $g1	# |g1|=1
 
-.${pre}__Loop_62:
+.__${pre}__Loop_62:
 	xor	$t0, $t0
 	test	\$1, $a_lo	# if |a_| is odd, then we'll be subtracting |b_|
 	mov	$b_lo, $t1
@@ -986,10 +986,10 @@ ${pre}__inner_loop_62:
 	sub	$t0, $f0	# |f0|-=|f1| (or |f0-=0| if |a_| was even)
 	sub	$t1, $g0	# |g0|-=|g1| (or |g0-=0| ...)
 	sub	\$1, $cnt
-	jnz	.${pre}__Loop_62
+	jnz	.__${pre}__Loop_62
 
 	ret
-.size	${pre}__inner_loop_62,.-${pre}__inner_loop_62
+.size	__${pre}__inner_loop_62,.-__${pre}__inner_loop_62
 ___
 }
 

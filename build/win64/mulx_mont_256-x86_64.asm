@@ -46,7 +46,7 @@ $L$SEH_body_mulx_mont_sparse_256::
 	lea	rcx,QWORD PTR[((-128))+rcx]
 
 	mulx	r11,rax,r14
-	call	mulx_mont_256__mulx_mont_sparse_256
+	call	__mulx_mont_256__mulx_mont_sparse_256
 
 	mov	r15,QWORD PTR[8+rsp]
 
@@ -116,7 +116,7 @@ $L$SEH_body_sqrx_mont_sparse_256::
 	lea	rcx,QWORD PTR[((-128))+rcx]
 
 	mulx	r11,rax,rdx
-	call	mulx_mont_256__mulx_mont_sparse_256
+	call	__mulx_mont_256__mulx_mont_sparse_256
 
 	mov	r15,QWORD PTR[8+rsp]
 
@@ -142,7 +142,7 @@ $L$SEH_end_sqrx_mont_sparse_256::
 sqrx_mont_sparse_256	ENDP
 
 ALIGN	32
-mulx_mont_256__mulx_mont_sparse_256	PROC PRIVATE
+__mulx_mont_256__mulx_mont_sparse_256	PROC PRIVATE
 	DB	243,15,30,250
 	mulx	r12,r15,r15
 	mulx	r13,rbp,rbp
@@ -335,7 +335,7 @@ mulx_mont_256__mulx_mont_sparse_256	PROC PRIVATE
 	mov	QWORD PTR[24+rdi],r11
 
 	DB	0F3h,0C3h		;repret
-mulx_mont_256__mulx_mont_sparse_256	ENDP
+__mulx_mont_256__mulx_mont_sparse_256	ENDP
 PUBLIC	fromx_mont_256
 
 
@@ -371,7 +371,7 @@ $L$SEH_body_fromx_mont_256::
 
 
 	mov	rbx,rdx
-	call	mulx_mont_256__mulx_by_1_mont_256
+	call	__mulx_mont_256__mulx_by_1_mont_256
 
 
 
@@ -453,7 +453,7 @@ $L$SEH_body_redcx_mont_256::
 
 
 	mov	rbx,rdx
-	call	mulx_mont_256__mulx_by_1_mont_256
+	call	__mulx_mont_256__mulx_by_1_mont_256
 
 	add	r14,QWORD PTR[32+rsi]
 	adc	r15,QWORD PTR[40+rsi]
@@ -507,7 +507,7 @@ $L$SEH_end_redcx_mont_256::
 redcx_mont_256	ENDP
 
 ALIGN	32
-mulx_mont_256__mulx_by_1_mont_256	PROC PRIVATE
+__mulx_mont_256__mulx_by_1_mont_256	PROC PRIVATE
 	DB	243,15,30,250
 	mov	rax,QWORD PTR[rsi]
 	mov	r11,QWORD PTR[8+rsi]
@@ -640,7 +640,7 @@ mulx_mont_256__mulx_by_1_mont_256	PROC PRIVATE
 	adc	rdx,0
 	mov	r11,rdx
 	DB	0F3h,0C3h		;repret
-mulx_mont_256__mulx_by_1_mont_256	ENDP
+__mulx_mont_256__mulx_by_1_mont_256	ENDP
 .text$	ENDS
 .pdata	SEGMENT READONLY ALIGN(4)
 ALIGN	4

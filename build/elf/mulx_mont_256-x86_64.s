@@ -41,7 +41,7 @@ mulx_mont_sparse_256:
 	leaq	-128(%rcx),%rcx
 
 	mulxq	%r14,%rax,%r11
-	call	mulx_mont_256__mulx_mont_sparse_256
+	call	__mulx_mont_256__mulx_mont_sparse_256
 
 	movq	8(%rsp),%r15
 .cfi_restore	%r15
@@ -104,7 +104,7 @@ sqrx_mont_sparse_256:
 	leaq	-128(%rcx),%rcx
 
 	mulxq	%rdx,%rax,%r11
-	call	mulx_mont_256__mulx_mont_sparse_256
+	call	__mulx_mont_256__mulx_mont_sparse_256
 
 	movq	8(%rsp),%r15
 .cfi_restore	%r15
@@ -124,9 +124,9 @@ sqrx_mont_sparse_256:
 	.byte	0xf3,0xc3
 .cfi_endproc	
 .size	sqrx_mont_sparse_256,.-sqrx_mont_sparse_256
-.type	mulx_mont_256__mulx_mont_sparse_256,@function
+.type	__mulx_mont_256__mulx_mont_sparse_256,@function
 .align	32
-mulx_mont_256__mulx_mont_sparse_256:
+__mulx_mont_256__mulx_mont_sparse_256:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -322,7 +322,7 @@ mulx_mont_256__mulx_mont_sparse_256:
 
 	.byte	0xf3,0xc3
 .cfi_endproc
-.size	mulx_mont_256__mulx_mont_sparse_256,.-mulx_mont_256__mulx_mont_sparse_256
+.size	__mulx_mont_256__mulx_mont_sparse_256,.-__mulx_mont_256__mulx_mont_sparse_256
 .globl	fromx_mont_256
 .hidden	fromx_mont_256
 .type	fromx_mont_256,@function
@@ -355,7 +355,7 @@ fromx_mont_256:
 
 
 	movq	%rdx,%rbx
-	call	mulx_mont_256__mulx_by_1_mont_256
+	call	__mulx_mont_256__mulx_by_1_mont_256
 
 
 
@@ -430,7 +430,7 @@ redcx_mont_256:
 
 
 	movq	%rdx,%rbx
-	call	mulx_mont_256__mulx_by_1_mont_256
+	call	__mulx_mont_256__mulx_by_1_mont_256
 
 	addq	32(%rsi),%r14
 	adcq	40(%rsi),%r15
@@ -478,9 +478,9 @@ redcx_mont_256:
 	.byte	0xf3,0xc3
 .cfi_endproc	
 .size	redcx_mont_256,.-redcx_mont_256
-.type	mulx_mont_256__mulx_by_1_mont_256,@function
+.type	__mulx_mont_256__mulx_by_1_mont_256,@function
 .align	32
-mulx_mont_256__mulx_by_1_mont_256:
+__mulx_mont_256__mulx_by_1_mont_256:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -616,7 +616,7 @@ mulx_mont_256__mulx_by_1_mont_256:
 	movq	%rdx,%r11
 	.byte	0xf3,0xc3
 .cfi_endproc
-.size	mulx_mont_256__mulx_by_1_mont_256,.-mulx_mont_256__mulx_by_1_mont_256
+.size	__mulx_mont_256__mulx_by_1_mont_256,.-__mulx_mont_256__mulx_by_1_mont_256
 
 .section	.note.GNU-stack,"",@progbits
 .section	.note.gnu.property,"a",@note

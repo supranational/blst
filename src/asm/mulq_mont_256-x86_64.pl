@@ -70,7 +70,7 @@ mul_mont_sparse_256:
 	mov	%rax, @acc[0]
 	mov	@acc[6], %rax
 	mov	%rdx, @acc[1]
-	call	${pre}__mulq_mont_sparse_256
+	call	__${pre}__mulq_mont_sparse_256
 
 	mov	8(%rsp),%r15
 .cfi_restore	%r15
@@ -126,7 +126,7 @@ sqr_mont_sparse_256:
 	mov	%rax, @acc[0]
 	mov	@acc[6], %rax
 	mov	%rdx, @acc[1]
-	call	${pre}__mulq_mont_sparse_256
+	call	__${pre}__mulq_mont_sparse_256
 
 	mov	8(%rsp),%r15
 .cfi_restore	%r15
@@ -150,9 +150,9 @@ ___
 {
 my @acc=@acc;
 $code.=<<___;
-.type	${pre}__mulq_mont_sparse_256,\@abi-omnipotent
+.type	__${pre}__mulq_mont_sparse_256,\@abi-omnipotent
 .align	32
-${pre}__mulq_mont_sparse_256:
+__${pre}__mulq_mont_sparse_256:
 	mulq	@acc[5]			# a[1]*b[0]
 	add	%rax, @acc[1]
 	mov	@acc[6], %rax
@@ -304,7 +304,7 @@ $code.=<<___;
 
 	ret
 .cfi_endproc
-.size	${pre}__mulq_mont_sparse_256,.-${pre}__mulq_mont_sparse_256
+.size	__${pre}__mulq_mont_sparse_256,.-__${pre}__mulq_mont_sparse_256
 ___
 } }
 { my ($n_ptr, $n0)=($b_ptr, $n_ptr);	# arguments are "shifted"
@@ -333,12 +333,12 @@ from_mont_256:
 .cfi_end_prologue
 
 	mov	$b_org, $n_ptr
-	call	${pre}__mulq_by_1_mont_256
+	call	__${pre}__mulq_by_1_mont_256
 
 	#################################
 	# Branch-less conditional acc[0:3] - modulus
 
-	#mov	@acc[4], %rax		# ${pre}__mulq_by_1_mont_256 does it
+	#mov	@acc[4], %rax		# __${pre}__mulq_by_1_mont_256 does it
 	mov	@acc[5], @acc[1]
 	mov	@acc[6], @acc[2]
 	mov	@acc[0], @acc[3]
@@ -399,7 +399,7 @@ redc_mont_256:
 .cfi_end_prologue
 
 	mov	$b_org, $n_ptr
-	call	${pre}__mulq_by_1_mont_256
+	call	__${pre}__mulq_by_1_mont_256
 
 	add	8*4($a_ptr), @acc[4]	# accumulate upper half
 	adc	8*5($a_ptr), @acc[5]
@@ -452,9 +452,9 @@ ___
 my @acc=@acc;
 
 $code.=<<___;
-.type	${pre}__mulq_by_1_mont_256,\@abi-omnipotent
+.type	__${pre}__mulq_by_1_mont_256,\@abi-omnipotent
 .align	32
-${pre}__mulq_by_1_mont_256:
+__${pre}__mulq_by_1_mont_256:
 	mov	8*0($a_ptr), %rax
 	mov	8*1($a_ptr), @acc[1]
 	mov	8*2($a_ptr), @acc[2]
@@ -507,7 +507,7 @@ ___
 }
 $code.=<<___;
 	ret
-.size	${pre}__mulq_by_1_mont_256,.-${pre}__mulq_by_1_mont_256
+.size	__${pre}__mulq_by_1_mont_256,.-__${pre}__mulq_by_1_mont_256
 ___
 } } }
 

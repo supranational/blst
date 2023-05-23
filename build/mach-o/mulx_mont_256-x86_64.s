@@ -41,7 +41,7 @@ _mulx_mont_sparse_256:
 	leaq	-128(%rcx),%rcx
 
 	mulxq	%r14,%rax,%r11
-	call	mulx_mont_256__mulx_mont_sparse_256
+	call	__mulx_mont_256__mulx_mont_sparse_256
 
 	movq	8(%rsp),%r15
 .cfi_restore	%r15
@@ -104,7 +104,7 @@ _sqrx_mont_sparse_256:
 	leaq	-128(%rcx),%rcx
 
 	mulxq	%rdx,%rax,%r11
-	call	mulx_mont_256__mulx_mont_sparse_256
+	call	__mulx_mont_256__mulx_mont_sparse_256
 
 	movq	8(%rsp),%r15
 .cfi_restore	%r15
@@ -126,7 +126,7 @@ _sqrx_mont_sparse_256:
 
 
 .p2align	5
-mulx_mont_256__mulx_mont_sparse_256:
+__mulx_mont_256__mulx_mont_sparse_256:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 
@@ -355,7 +355,7 @@ _fromx_mont_256:
 
 
 	movq	%rdx,%rbx
-	call	mulx_mont_256__mulx_by_1_mont_256
+	call	__mulx_mont_256__mulx_by_1_mont_256
 
 
 
@@ -430,7 +430,7 @@ _redcx_mont_256:
 
 
 	movq	%rdx,%rbx
-	call	mulx_mont_256__mulx_by_1_mont_256
+	call	__mulx_mont_256__mulx_by_1_mont_256
 
 	addq	32(%rsi),%r14
 	adcq	40(%rsi),%r15
@@ -480,7 +480,7 @@ _redcx_mont_256:
 
 
 .p2align	5
-mulx_mont_256__mulx_by_1_mont_256:
+__mulx_mont_256__mulx_by_1_mont_256:
 .cfi_startproc
 	.byte	0xf3,0x0f,0x1e,0xfa
 

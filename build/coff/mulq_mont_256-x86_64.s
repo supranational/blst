@@ -46,7 +46,7 @@ mul_mont_sparse_256:
 	movq	%rax,%r9
 	movq	%r15,%rax
 	movq	%rdx,%r10
-	call	mulq_mont_256__mulq_mont_sparse_256
+	call	__mulq_mont_256__mulq_mont_sparse_256
 
 	movq	8(%rsp),%r15
 
@@ -116,7 +116,7 @@ sqr_mont_sparse_256:
 	movq	%rax,%r9
 	movq	%r15,%rax
 	movq	%rdx,%r10
-	call	mulq_mont_256__mulq_mont_sparse_256
+	call	__mulq_mont_256__mulq_mont_sparse_256
 
 	movq	8(%rsp),%r15
 
@@ -139,9 +139,9 @@ sqr_mont_sparse_256:
 	.byte	0xf3,0xc3
 
 .LSEH_end_sqr_mont_sparse_256:
-.def	mulq_mont_256__mulq_mont_sparse_256;	.scl 3;	.type 32;	.endef
+.def	__mulq_mont_256__mulq_mont_sparse_256;	.scl 3;	.type 32;	.endef
 .p2align	5
-mulq_mont_256__mulq_mont_sparse_256:
+__mulq_mont_256__mulq_mont_sparse_256:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 	mulq	%r14
@@ -454,7 +454,7 @@ from_mont_256:
 
 
 	movq	%rdx,%rbx
-	call	mulq_mont_256__mulq_by_1_mont_256
+	call	__mulq_mont_256__mulq_by_1_mont_256
 
 
 
@@ -534,7 +534,7 @@ redc_mont_256:
 
 
 	movq	%rdx,%rbx
-	call	mulq_mont_256__mulq_by_1_mont_256
+	call	__mulq_mont_256__mulq_by_1_mont_256
 
 	addq	32(%rsi),%r13
 	adcq	40(%rsi),%r14
@@ -585,9 +585,9 @@ redc_mont_256:
 	.byte	0xf3,0xc3
 
 .LSEH_end_redc_mont_256:
-.def	mulq_mont_256__mulq_by_1_mont_256;	.scl 3;	.type 32;	.endef
+.def	__mulq_mont_256__mulq_by_1_mont_256;	.scl 3;	.type 32;	.endef
 .p2align	5
-mulq_mont_256__mulq_by_1_mont_256:
+__mulq_mont_256__mulq_by_1_mont_256:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 	movq	0(%rsi),%rax
