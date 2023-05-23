@@ -242,6 +242,7 @@ $code.=<<___;
 	ret
 .cfi_endproc
 .size	$func,.-$func
+___
 
 {
 my ($out,$inp,$len) = $win64 ? ("%rcx","%rdx","%r8") :  # Win64 order
