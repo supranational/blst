@@ -18,6 +18,24 @@ die "can't locate x86_64-xlate.pl";
 open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
     or die "can't call $xlate: $!";
 
+$code.=<<___ if ($flavour =~ /masm/);
+.globl	mul_mont_384x\$1
+.globl	sqr_mont_384x\$1
+.globl	mul_382x\$1
+.globl	sqr_382x\$1
+.globl	mul_384\$1
+.globl	sqr_384\$1
+.globl	redc_mont_384\$1
+.globl	from_mont_384\$1
+.globl	sgn0_pty_mont_384\$1
+.globl	sgn0_pty_mont_384x\$1
+.globl	mul_mont_384\$1
+.globl	sqr_mont_384\$1
+.globl	sqr_n_mul_mont_384\$1
+.globl	sqr_n_mul_mont_383\$1
+.globl	sqr_mont_382x\$1
+___
+
 # common argument layout
 ($r_ptr,$a_ptr,$b_org,$n_ptr,$n0) = ("%rdi","%rsi","%rdx","%rcx","%r8");
 $b_ptr = "%rbx";
@@ -216,6 +234,7 @@ $code.=<<___;
 .align	32
 mulx_mont_384x:
 .cfi_startproc
+mul_mont_384x\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -330,6 +349,7 @@ $code.=<<___;
 .align	32
 sqrx_mont_384x:
 .cfi_startproc
+sqr_mont_384x\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -464,6 +484,7 @@ $code.=<<___;
 .align	32
 mulx_382x:
 .cfi_startproc
+mul_382x\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -595,6 +616,7 @@ $code.=<<___;
 .align	32
 sqrx_382x:
 .cfi_startproc
+sqr_382x\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -727,6 +749,7 @@ $code.=<<___;
 .align	32
 mulx_384:
 .cfi_startproc
+mul_384\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -847,6 +870,7 @@ $code.=<<___;
 .align	32
 sqrx_384:
 .cfi_startproc
+sqr_384\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -1202,6 +1226,7 @@ $code.=<<___;
 .align	32
 redcx_mont_384:
 .cfi_startproc
+redc_mont_384\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -1250,6 +1275,7 @@ redcx_mont_384:
 .align	32
 fromx_mont_384:
 .cfi_startproc
+from_mont_384\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -1421,6 +1447,7 @@ __redx_tail_mont_384:
 .align	32
 sgn0x_pty_mont_384:
 .cfi_startproc
+sgn0_pty_mont_384\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -1490,6 +1517,7 @@ sgn0x_pty_mont_384:
 .align	32
 sgn0x_pty_mont_384x:
 .cfi_startproc
+sgn0_pty_mont_384x\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -1616,6 +1644,7 @@ $code.=<<___;
 .align	32
 mulx_mont_384:
 .cfi_startproc
+mul_mont_384\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -1835,6 +1864,7 @@ $code.=<<___;
 .align	32
 sqrx_mont_384:
 .cfi_startproc
+sqr_mont_384\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -1893,6 +1923,7 @@ sqrx_mont_384:
 .align	32
 sqrx_n_mul_mont_384:
 .cfi_startproc
+sqr_n_mul_mont_384\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -1969,6 +2000,7 @@ sqrx_n_mul_mont_384:
 .align	32
 sqrx_n_mul_mont_383:
 .cfi_startproc
+sqr_n_mul_mont_383\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
@@ -2185,6 +2217,7 @@ $code.=<<___;
 .align	32
 sqrx_mont_382x:
 .cfi_startproc
+sqr_mont_382x\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
