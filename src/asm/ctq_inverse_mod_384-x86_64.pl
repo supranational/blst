@@ -78,6 +78,10 @@ die "can't locate x86_64-xlate.pl";
 open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
     or die "can't call $xlate: $!";
 
+$code.=<<___ if ($flavour =~ /masm/);
+.extern	ct_inverse_mod_383\$1
+___
+
 my ($out_ptr, $in_ptr, $n_ptr, $nx_ptr) = ("%rdi", "%rsi", "%rdx", "%rcx");
 my @acc=(map("%r$_",(8..15)), "%rbx", "%rbp", $in_ptr, $out_ptr);
 my ($f0, $g0, $f1, $g1) = ("%rdx","%rcx","%r12","%r13");
@@ -86,6 +90,7 @@ my $cnt = "%edi";
 $frame = 8*11+2*512;
 
 $code.=<<___;
+.comm	__blst_platform_cap,4
 .text
 
 .globl	ct_inverse_mod_383
@@ -93,6 +98,10 @@ $code.=<<___;
 .align	32
 ct_inverse_mod_383:
 .cfi_startproc
+#ifdef __BLST_PORTABLE__
+	testl	\$1, __blst_platform_cap(%rip)
+	jnz	ct_inverse_mod_383\$1
+#endif
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx

@@ -77,6 +77,10 @@ die "can't locate x86_64-xlate.pl";
 open STDOUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
     or die "can't call $xlate: $!";
 
+$code.=<<___ if ($flavour =~ /masm/);
+.globl	ct_inverse_mod_383\$1
+___
+
 my ($out_ptr, $in_ptr, $n_ptr, $nx_ptr) = ("%rdi", "%rsi", "%rdx", "%rcx");
 my @acc=(map("%r$_",(8..15)), "%rbx", "%rbp", $in_ptr, $out_ptr);
 my ($f0, $g0, $f1, $g1) = ("%rdx","%rcx","%r12","%r13");
@@ -92,6 +96,7 @@ $code.=<<___;
 .align	32
 ctx_inverse_mod_383:
 .cfi_startproc
+ct_inverse_mod_383\$1:
 	push	%rbp
 .cfi_push	%rbp
 	push	%rbx
