@@ -1,3 +1,4 @@
+.comm	__blst_platform_cap,4
 .text	
 
 .p2align	6
@@ -43,6 +44,7 @@ blst_sha256_block_data_order_shaext:
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
+.Lblst_sha256_block_data_order$2:
 	subq	$0x50,%rsp
 
 	movaps	%xmm6,-80(%rbp)
@@ -289,6 +291,8 @@ blst_sha256_block_data_order:
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
+	testl	$2,__blst_platform_cap(%rip)
+	jnz	.Lblst_sha256_block_data_order$2
 	pushq	%rbx
 
 	pushq	%r12

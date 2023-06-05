@@ -1,4 +1,5 @@
 OPTION	DOTNAME
+PUBLIC	ct_inverse_mod_383$1
 .text$	SEGMENT ALIGN(256) 'CODE'
 
 PUBLIC	ctx_inverse_mod_383
@@ -12,12 +13,13 @@ ctx_inverse_mod_383	PROC PUBLIC
 $L$SEH_begin_ctx_inverse_mod_383::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
+ct_inverse_mod_383$1::
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -813,7 +815,7 @@ $L$SEH_body_ctx_inverse_mod_383::
 
 	mov	r10,QWORD PTR[48+rsi]
 
-	call	__inner_loop_62
+	call	__tail_loop_53
 
 
 
@@ -1518,7 +1520,7 @@ __inner_loop_31	ENDP
 
 
 ALIGN	32
-__inner_loop_62	PROC PRIVATE
+__tail_loop_53	PROC PRIVATE
 	DB	243,15,30,250
 
 	mov	rdx,1
@@ -1526,7 +1528,7 @@ __inner_loop_62	PROC PRIVATE
 	xor	r12,r12
 	mov	r13,1
 
-$L$oop_62::
+$L$oop_53::
 	xor	rax,rax
 	test	r8,1
 	mov	rbx,r10
@@ -1553,10 +1555,10 @@ $L$oop_62::
 	sub	rdx,rax
 	sub	rcx,rbx
 	sub	edi,1
-	jnz	$L$oop_62
+	jnz	$L$oop_53
 
 	DB	0F3h,0C3h		;repret
-__inner_loop_62	ENDP
+__tail_loop_53	ENDP
 .text$	ENDS
 .pdata	SEGMENT READONLY ALIGN(4)
 ALIGN	4

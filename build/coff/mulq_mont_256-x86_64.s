@@ -1,3 +1,4 @@
+.comm	__blst_platform_cap,4
 .text	
 
 .globl	mul_mont_sparse_256
@@ -12,13 +13,17 @@ mul_mont_sparse_256:
 .LSEH_begin_mul_mont_sparse_256:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
-	movq	48(%rsp),%r8
+	movq	40(%rsp),%r8
+#ifdef __BLST_PORTABLE__
+	testl	$1,__blst_platform_cap(%rip)
+	jnz	mul_mont_sparse_256$1
+#endif
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -82,12 +87,16 @@ sqr_mont_sparse_256:
 .LSEH_begin_sqr_mont_sparse_256:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+#ifdef __BLST_PORTABLE__
+	testl	$1,__blst_platform_cap(%rip)
+	jnz	sqr_mont_sparse_256$1
+#endif
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -432,12 +441,16 @@ from_mont_256:
 .LSEH_begin_from_mont_256:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+#ifdef __BLST_PORTABLE__
+	testl	$1,__blst_platform_cap(%rip)
+	jnz	from_mont_256$1
+#endif
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -512,12 +525,16 @@ redc_mont_256:
 .LSEH_begin_redc_mont_256:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+#ifdef __BLST_PORTABLE__
+	testl	$1,__blst_platform_cap(%rip)
+	jnz	redc_mont_256$1
+#endif
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12

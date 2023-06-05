@@ -1,3 +1,4 @@
+.comm	__blst_platform_cap,4
 .text	
 
 .globl	ct_inverse_mod_383
@@ -11,12 +12,16 @@ ct_inverse_mod_383:
 .LSEH_begin_ct_inverse_mod_383:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+#ifdef __BLST_PORTABLE__
+	testl	$1,__blst_platform_cap(%rip)
+	jnz	ct_inverse_mod_383$1
+#endif
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12

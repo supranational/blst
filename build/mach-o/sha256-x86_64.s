@@ -1,3 +1,4 @@
+.comm	___blst_platform_cap,4
 .text	
 
 .p2align	6
@@ -38,6 +39,7 @@ _blst_sha256_block_data_order_shaext:
 .cfi_offset	%rbp,-16
 	movq	%rsp,%rbp
 .cfi_def_cfa_register	%rbp
+L$blst_sha256_block_data_order$2:
 
 	leaq	K256+128(%rip),%rcx
 	movdqu	(%rdi),%xmm1
@@ -262,6 +264,8 @@ _blst_sha256_block_data_order:
 .cfi_offset	%rbp,-16
 	movq	%rsp,%rbp
 .cfi_def_cfa_register	%rbp
+	testl	$2,___blst_platform_cap(%rip)
+	jnz	L$blst_sha256_block_data_order$2
 	pushq	%rbx
 .cfi_offset	%rbx,-24
 	pushq	%r12

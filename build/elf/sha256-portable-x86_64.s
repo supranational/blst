@@ -1,3 +1,4 @@
+.comm	__blst_platform_cap,4
 .text	
 
 .globl	blst_sha256_block_data_order
@@ -13,6 +14,10 @@ blst_sha256_block_data_order:
 .cfi_offset	%rbp,-16
 	movq	%rsp,%rbp
 .cfi_def_cfa_register	%rbp
+#ifdef __BLST_PORTABLE__
+	testl	$2,__blst_platform_cap(%rip)
+	jnz	.Lblst_sha256_block_data_order$2
+#endif
 	pushq	%rbx
 .cfi_offset	%rbx,-24
 	pushq	%r12
@@ -1650,6 +1655,7 @@ blst_sha256_block_data_order:
 .cfi_endproc	
 .size	blst_sha256_block_data_order,.-blst_sha256_block_data_order
 
+#ifndef __BLST_PORTABLE__
 .align	64
 .type	K256,@object
 K256:
@@ -1741,6 +1747,7 @@ blst_sha256_hcopy:
 	.byte	0xf3,0xc3
 .cfi_endproc
 .size	blst_sha256_hcopy,.-blst_sha256_hcopy
+#endif
 
 .section	.note.GNU-stack,"",@progbits
 .section	.note.gnu.property,"a",@note

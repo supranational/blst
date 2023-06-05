@@ -1,4 +1,8 @@
 OPTION	DOTNAME
+PUBLIC	mul_mont_sparse_256$1
+PUBLIC	sqr_mont_sparse_256$1
+PUBLIC	from_mont_256$1
+PUBLIC	redc_mont_256$1
 .text$	SEGMENT ALIGN(256) 'CODE'
 
 PUBLIC	mulx_mont_sparse_256
@@ -13,13 +17,14 @@ mulx_mont_sparse_256	PROC PUBLIC
 $L$SEH_begin_mulx_mont_sparse_256::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
-	mov	r8,QWORD PTR[48+rsp]
+	mov	r8,QWORD PTR[40+rsp]
+mul_mont_sparse_256$1::
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -82,12 +87,13 @@ sqrx_mont_sparse_256	PROC PUBLIC
 $L$SEH_begin_sqrx_mont_sparse_256::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
+sqr_mont_sparse_256$1::
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -347,12 +353,13 @@ fromx_mont_256	PROC PUBLIC
 $L$SEH_begin_fromx_mont_256::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
+from_mont_256$1::
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -428,12 +435,13 @@ redcx_mont_256	PROC PUBLIC
 $L$SEH_begin_redcx_mont_256::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
+redc_mont_256$1::
+	push	rbp
+
 	push	rbx
 
 	push	r12
