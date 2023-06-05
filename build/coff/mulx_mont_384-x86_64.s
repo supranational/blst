@@ -6,9 +6,9 @@
 
 
 
-.def	__sub_mod_384x384;	.scl 3;	.type 32;	.endef
+.def	__subx_mod_384x384;	.scl 3;	.type 32;	.endef
 .p2align	5
-__sub_mod_384x384:
+__subx_mod_384x384:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 	movq	0(%rsi),%r8
@@ -73,9 +73,9 @@ __sub_mod_384x384:
 	.byte	0xf3,0xc3
 
 
-.def	__add_mod_384;	.scl 3;	.type 32;	.endef
+.def	__addx_mod_384;	.scl 3;	.type 32;	.endef
 .p2align	5
-__add_mod_384:
+__addx_mod_384:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 	movq	0(%rsi),%r8
@@ -123,9 +123,9 @@ __add_mod_384:
 	.byte	0xf3,0xc3
 
 
-.def	__sub_mod_384;	.scl 3;	.type 32;	.endef
+.def	__subx_mod_384;	.scl 3;	.type 32;	.endef
 .p2align	5
-__sub_mod_384:
+__subx_mod_384:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 	movq	0(%rsi),%r8
@@ -135,7 +135,7 @@ __sub_mod_384:
 	movq	32(%rsi),%r12
 	movq	40(%rsi),%r13
 
-__sub_mod_384_a_is_loaded:
+__subx_mod_384_a_is_loaded:
 	subq	0(%rdx),%r8
 	movq	0(%rcx),%r14
 	sbbq	8(%rdx),%r9
@@ -184,13 +184,14 @@ mulx_mont_384x:
 .LSEH_begin_mulx_mont_384x:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
-	movq	48(%rsp),%r8
+	movq	40(%rsp),%r8
+mul_mont_384x$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -230,12 +231,12 @@ mulx_mont_384x:
 	leaq	(%rbx),%rsi
 	leaq	-48(%rbx),%rdx
 	leaq	40+192+48(%rsp),%rdi
-	call	__add_mod_384
+	call	__addx_mod_384
 
 	movq	24(%rsp),%rsi
 	leaq	48(%rsi),%rdx
 	leaq	-48(%rdi),%rdi
-	call	__add_mod_384
+	call	__addx_mod_384
 
 	leaq	(%rdi),%rbx
 	leaq	48(%rdi),%rsi
@@ -245,17 +246,17 @@ mulx_mont_384x:
 	leaq	(%rdi),%rsi
 	leaq	40(%rsp),%rdx
 	movq	8(%rsp),%rcx
-	call	__sub_mod_384x384
+	call	__subx_mod_384x384
 
 	leaq	(%rdi),%rsi
 	leaq	-96(%rdi),%rdx
-	call	__sub_mod_384x384
+	call	__subx_mod_384x384
 
 
 	leaq	40(%rsp),%rsi
 	leaq	40+96(%rsp),%rdx
 	leaq	40(%rsp),%rdi
-	call	__sub_mod_384x384
+	call	__subx_mod_384x384
 
 	leaq	(%rcx),%rbx
 
@@ -264,14 +265,14 @@ mulx_mont_384x:
 	movq	0(%rsp),%rcx
 	movq	32(%rsp),%rdi
 	call	__mulx_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	__redx_tail_mont_384
 
 
 	leaq	40+192(%rsp),%rsi
 	movq	0(%rsp),%rcx
 	leaq	48(%rdi),%rdi
 	call	__mulx_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	__redx_tail_mont_384
 
 	leaq	328(%rsp),%r8
 	movq	0(%r8),%r15
@@ -307,12 +308,13 @@ sqrx_mont_384x:
 .LSEH_begin_sqrx_mont_384x:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+sqr_mont_384x$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -337,13 +339,13 @@ sqrx_mont_384x:
 
 	leaq	48(%rsi),%rdx
 	leaq	32(%rsp),%rdi
-	call	__add_mod_384
+	call	__addx_mod_384
 
 
 	movq	24(%rsp),%rsi
 	leaq	48(%rsi),%rdx
 	leaq	32+48(%rsp),%rdi
-	call	__sub_mod_384
+	call	__subx_mod_384
 
 
 	movq	24(%rsp),%rsi
@@ -447,12 +449,13 @@ mulx_382x:
 .LSEH_begin_mulx_382x:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+mul_382x$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -540,18 +543,18 @@ mulx_382x:
 	leaq	32(%rsp),%rdx
 	movq	24(%rsp),%rcx
 	movq	%rsi,%rdi
-	call	__sub_mod_384x384
+	call	__subx_mod_384x384
 
 
 	leaq	0(%rdi),%rsi
 	leaq	-96(%rdi),%rdx
-	call	__sub_mod_384x384
+	call	__subx_mod_384x384
 
 
 	leaq	-96(%rdi),%rsi
 	leaq	32(%rsp),%rdx
 	leaq	-96(%rdi),%rdi
-	call	__sub_mod_384x384
+	call	__subx_mod_384x384
 
 	leaq	136(%rsp),%r8
 	movq	0(%r8),%r15
@@ -587,11 +590,12 @@ sqrx_382x:
 .LSEH_begin_sqrx_382x:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
+sqr_382x$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -640,7 +644,7 @@ sqrx_382x:
 
 	leaq	48(%rsi),%rdx
 	leaq	48(%rdi),%rdi
-	call	__sub_mod_384_a_is_loaded
+	call	__subx_mod_384_a_is_loaded
 
 
 	leaq	(%rdi),%rsi
@@ -724,11 +728,12 @@ mulx_384:
 .LSEH_begin_mulx_384:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
+mul_384$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -952,10 +957,11 @@ sqrx_384:
 .LSEH_begin_sqrx_384:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
+sqr_384$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -1147,12 +1153,13 @@ redcx_mont_384:
 .LSEH_begin_redcx_mont_384:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+redc_mont_384$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -1170,7 +1177,7 @@ redcx_mont_384:
 
 	movq	%rdx,%rbx
 	call	__mulx_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	__redx_tail_mont_384
 
 	movq	8(%rsp),%r15
 
@@ -1209,12 +1216,13 @@ fromx_mont_384:
 .LSEH_begin_fromx_mont_384:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+from_mont_384$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -1473,9 +1481,9 @@ __mulx_by_1_mont_384:
 	.byte	0xf3,0xc3
 
 
-.def	__redc_tail_mont_384;	.scl 3;	.type 32;	.endef
+.def	__redx_tail_mont_384;	.scl 3;	.type 32;	.endef
 .p2align	5
-__redc_tail_mont_384:
+__redx_tail_mont_384:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 	addq	48(%rsi),%r14
@@ -1532,11 +1540,12 @@ sgn0x_pty_mont_384:
 .LSEH_begin_sgn0x_pty_mont_384:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
+sgn0_pty_mont_384$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -1614,11 +1623,12 @@ sgn0x_pty_mont_384x:
 .LSEH_begin_sgn0x_pty_mont_384x:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
+sgn0_pty_mont_384x$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -1745,13 +1755,14 @@ mulx_mont_384:
 .LSEH_begin_mulx_mont_384:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
-	movq	48(%rsp),%r8
+	movq	40(%rsp),%r8
+mul_mont_384$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -2217,12 +2228,13 @@ sqrx_mont_384:
 .LSEH_begin_sqrx_mont_384:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+sqr_mont_384$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -2289,14 +2301,15 @@ sqrx_n_mul_mont_384:
 .LSEH_begin_sqrx_n_mul_mont_384:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
-	movq	48(%rsp),%r8
-	movq	56(%rsp),%r9
+	movq	40(%rsp),%r8
+	movq	48(%rsp),%r9
+sqr_n_mul_mont_384$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -2381,14 +2394,15 @@ sqrx_n_mul_mont_383:
 .LSEH_begin_sqrx_n_mul_mont_383:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
-	movq	48(%rsp),%r8
-	movq	56(%rsp),%r9
+	movq	40(%rsp),%r8
+	movq	48(%rsp),%r9
+sqr_n_mul_mont_383$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -2833,12 +2847,13 @@ sqrx_mont_382x:
 .LSEH_begin_sqrx_mont_382x:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+sqr_mont_382x$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12

@@ -11,12 +11,13 @@ ctx_inverse_mod_383:
 .LSEH_begin_ctx_inverse_mod_383:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+ct_inverse_mod_383$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -812,7 +813,7 @@ ctx_inverse_mod_383:
 
 	movq	48(%rsi),%r10
 
-	call	__inner_loop_62
+	call	__tail_loop_53
 
 
 
@@ -1514,9 +1515,9 @@ __inner_loop_31:
 	.byte	0xf3,0xc3
 
 
-.def	__inner_loop_62;	.scl 3;	.type 32;	.endef
+.def	__tail_loop_53;	.scl 3;	.type 32;	.endef
 .p2align	5
-__inner_loop_62:
+__tail_loop_53:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 	movq	$1,%rdx
@@ -1524,7 +1525,7 @@ __inner_loop_62:
 	xorq	%r12,%r12
 	movq	$1,%r13
 
-.Loop_62:
+.Loop_53:
 	xorq	%rax,%rax
 	testq	$1,%r8
 	movq	%r10,%rbx
@@ -1551,7 +1552,7 @@ __inner_loop_62:
 	subq	%rax,%rdx
 	subq	%rbx,%rcx
 	subl	$1,%edi
-	jnz	.Loop_62
+	jnz	.Loop_53
 
 	.byte	0xf3,0xc3
 

@@ -1,3 +1,4 @@
+.comm	__blst_platform_cap,4
 .text	
 
 .globl	blst_sha256_block_data_order
@@ -18,6 +19,10 @@ blst_sha256_block_data_order:
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
+#ifdef __BLST_PORTABLE__
+	testl	$2,__blst_platform_cap(%rip)
+	jnz	.Lblst_sha256_block_data_order$2
+#endif
 	pushq	%rbx
 
 	pushq	%r12
@@ -1654,6 +1659,7 @@ blst_sha256_block_data_order:
 
 .LSEH_end_blst_sha256_block_data_order:
 
+#ifndef __BLST_PORTABLE__
 .p2align	6
 
 K256:
@@ -1739,6 +1745,7 @@ blst_sha256_hcopy:
 	movq	%r11,24(%rcx)
 	.byte	0xf3,0xc3
 
+#endif
 .section	.pdata
 .p2align	2
 .rva	.LSEH_begin_blst_sha256_block_data_order

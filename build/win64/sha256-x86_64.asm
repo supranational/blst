@@ -1,4 +1,7 @@
 OPTION	DOTNAME
+_DATA	SEGMENT
+COMM	__blst_platform_cap:DWORD:1
+_DATA	ENDS
 .text$	SEGMENT ALIGN(256) 'CODE'
 
 ALIGN	64
@@ -47,6 +50,7 @@ $L$SEH_begin_blst_sha256_block_data_order_shaext::
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
+$L$blst_sha256_block_data_order$2::
 	sub	rsp,050h
 
 	movaps	XMMWORD PTR[(-80)+rbp],xmm6
@@ -294,6 +298,8 @@ $L$SEH_begin_blst_sha256_block_data_order::
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
+	test	DWORD PTR[__blst_platform_cap],2
+	jnz	$L$blst_sha256_block_data_order$2
 	push	rbx
 
 	push	r12

@@ -1,4 +1,22 @@
 OPTION	DOTNAME
+EXTERN	mul_mont_384x$1:NEAR
+EXTERN	sqr_mont_384x$1:NEAR
+EXTERN	mul_382x$1:NEAR
+EXTERN	sqr_382x$1:NEAR
+EXTERN	mul_384$1:NEAR
+EXTERN	sqr_384$1:NEAR
+EXTERN	redc_mont_384$1:NEAR
+EXTERN	from_mont_384$1:NEAR
+EXTERN	sgn0_pty_mont_384$1:NEAR
+EXTERN	sgn0_pty_mont_384x$1:NEAR
+EXTERN	mul_mont_384$1:NEAR
+EXTERN	sqr_mont_384$1:NEAR
+EXTERN	sqr_n_mul_mont_384$1:NEAR
+EXTERN	sqr_n_mul_mont_383$1:NEAR
+EXTERN	sqr_mont_382x$1:NEAR
+_DATA	SEGMENT
+COMM	__blst_platform_cap:DWORD:1
+_DATA	ENDS
 .text$	SEGMENT ALIGN(256) 'CODE'
 
 
@@ -9,7 +27,7 @@ OPTION	DOTNAME
 
 
 ALIGN	32
-__sub_mod_384x384	PROC PRIVATE
+__subq_mod_384x384	PROC PRIVATE
 	DB	243,15,30,250
 
 	mov	r8,QWORD PTR[rsi]
@@ -72,11 +90,11 @@ __sub_mod_384x384	PROC PRIVATE
 	mov	QWORD PTR[88+rdi],rsi
 
 	DB	0F3h,0C3h		;repret
-__sub_mod_384x384	ENDP
+__subq_mod_384x384	ENDP
 
 
 ALIGN	32
-__add_mod_384	PROC PRIVATE
+__addq_mod_384	PROC PRIVATE
 	DB	243,15,30,250
 
 	mov	r8,QWORD PTR[rsi]
@@ -122,11 +140,11 @@ __add_mod_384	PROC PRIVATE
 	mov	QWORD PTR[40+rdi],r13
 
 	DB	0F3h,0C3h		;repret
-__add_mod_384	ENDP
+__addq_mod_384	ENDP
 
 
 ALIGN	32
-__sub_mod_384	PROC PRIVATE
+__subq_mod_384	PROC PRIVATE
 	DB	243,15,30,250
 
 	mov	r8,QWORD PTR[rsi]
@@ -136,7 +154,7 @@ __sub_mod_384	PROC PRIVATE
 	mov	r12,QWORD PTR[32+rsi]
 	mov	r13,QWORD PTR[40+rsi]
 
-__sub_mod_384_a_is_loaded::
+__subq_mod_384_a_is_loaded::
 	sub	r8,QWORD PTR[rdx]
 	mov	r14,QWORD PTR[rcx]
 	sbb	r9,QWORD PTR[8+rdx]
@@ -172,7 +190,7 @@ __sub_mod_384_a_is_loaded::
 	mov	QWORD PTR[40+rdi],r13
 
 	DB	0F3h,0C3h		;repret
-__sub_mod_384	ENDP
+__subq_mod_384	ENDP
 PUBLIC	mul_mont_384x
 
 
@@ -185,13 +203,17 @@ mul_mont_384x	PROC PUBLIC
 $L$SEH_begin_mul_mont_384x::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
-	mov	r8,QWORD PTR[48+rsp]
+	mov	r8,QWORD PTR[40+rsp]
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	mul_mont_384x$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -230,12 +252,12 @@ $L$SEH_body_mul_mont_384x::
 	mov	rcx,QWORD PTR[8+rsp]
 	lea	rdx,QWORD PTR[((-48))+rsi]
 	lea	rdi,QWORD PTR[((40+192+48))+rsp]
-	call	__add_mod_384
+	call	__addq_mod_384
 
 	mov	rsi,QWORD PTR[16+rsp]
 	lea	rdx,QWORD PTR[48+rsi]
 	lea	rdi,QWORD PTR[((-48))+rdi]
-	call	__add_mod_384
+	call	__addq_mod_384
 
 	lea	rbx,QWORD PTR[rdi]
 	lea	rsi,QWORD PTR[48+rdi]
@@ -245,17 +267,17 @@ $L$SEH_body_mul_mont_384x::
 	lea	rsi,QWORD PTR[rdi]
 	lea	rdx,QWORD PTR[40+rsp]
 	mov	rcx,QWORD PTR[8+rsp]
-	call	__sub_mod_384x384
+	call	__subq_mod_384x384
 
 	lea	rsi,QWORD PTR[rdi]
 	lea	rdx,QWORD PTR[((-96))+rdi]
-	call	__sub_mod_384x384
+	call	__subq_mod_384x384
 
 
 	lea	rsi,QWORD PTR[40+rsp]
 	lea	rdx,QWORD PTR[((40+96))+rsp]
 	lea	rdi,QWORD PTR[40+rsp]
-	call	__sub_mod_384x384
+	call	__subq_mod_384x384
 
 	mov	rbx,rcx
 
@@ -264,14 +286,14 @@ $L$SEH_body_mul_mont_384x::
 	mov	rcx,QWORD PTR[rsp]
 	mov	rdi,QWORD PTR[32+rsp]
 	call	__mulq_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	__redq_tail_mont_384
 
 
 	lea	rsi,QWORD PTR[((40+192))+rsp]
 	mov	rcx,QWORD PTR[rsp]
 	lea	rdi,QWORD PTR[48+rdi]
 	call	__mulq_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	__redq_tail_mont_384
 
 	lea	r8,QWORD PTR[328+rsp]
 	mov	r15,QWORD PTR[r8]
@@ -308,12 +330,16 @@ sqr_mont_384x	PROC PUBLIC
 $L$SEH_begin_sqr_mont_384x::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	sqr_mont_384x$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -337,13 +363,13 @@ $L$SEH_body_sqr_mont_384x::
 
 	lea	rdx,QWORD PTR[48+rsi]
 	lea	rdi,QWORD PTR[32+rsp]
-	call	__add_mod_384
+	call	__addq_mod_384
 
 
 	mov	rsi,QWORD PTR[16+rsp]
 	lea	rdx,QWORD PTR[48+rsi]
 	lea	rdi,QWORD PTR[((32+48))+rsp]
-	call	__sub_mod_384
+	call	__subq_mod_384
 
 
 	mov	rsi,QWORD PTR[16+rsp]
@@ -438,12 +464,16 @@ mul_382x	PROC PUBLIC
 $L$SEH_begin_mul_382x::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	mul_382x$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -531,18 +561,18 @@ $L$SEH_body_mul_382x::
 	lea	rdx,QWORD PTR[32+rsp]
 	mov	rcx,QWORD PTR[24+rsp]
 	mov	rdi,rsi
-	call	__sub_mod_384x384
+	call	__subq_mod_384x384
 
 
 	lea	rsi,QWORD PTR[rdi]
 	lea	rdx,QWORD PTR[((-96))+rdi]
-	call	__sub_mod_384x384
+	call	__subq_mod_384x384
 
 
 	lea	rsi,QWORD PTR[((-96))+rdi]
 	lea	rdx,QWORD PTR[32+rsp]
 	lea	rdi,QWORD PTR[((-96))+rdi]
-	call	__sub_mod_384x384
+	call	__subq_mod_384x384
 
 	lea	r8,QWORD PTR[136+rsp]
 	mov	r15,QWORD PTR[r8]
@@ -579,11 +609,15 @@ sqr_382x	PROC PUBLIC
 $L$SEH_begin_sqr_382x::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	sqr_382x$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -632,7 +666,7 @@ $L$SEH_body_sqr_382x::
 
 	lea	rdx,QWORD PTR[48+rsi]
 	lea	rdi,QWORD PTR[48+rdi]
-	call	__sub_mod_384_a_is_loaded
+	call	__subq_mod_384_a_is_loaded
 
 
 	lea	rsi,QWORD PTR[rdi]
@@ -717,11 +751,15 @@ mul_384	PROC PUBLIC
 $L$SEH_begin_mul_384::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	mul_384$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -1047,10 +1085,14 @@ sqr_384	PROC PUBLIC
 $L$SEH_begin_sqr_384::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	sqr_384$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -1295,12 +1337,16 @@ sqr_mont_384	PROC PUBLIC
 $L$SEH_begin_sqr_mont_384::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	sqr_mont_384$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -1328,7 +1374,7 @@ $L$SEH_body_sqr_mont_384::
 	mov	rbx,QWORD PTR[104+rsp]
 	mov	rdi,QWORD PTR[112+rsp]
 	call	__mulq_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	__redq_tail_mont_384
 
 	lea	r8,QWORD PTR[120+rsp]
 	mov	r15,QWORD PTR[120+rsp]
@@ -1368,12 +1414,16 @@ redc_mont_384	PROC PUBLIC
 $L$SEH_begin_redc_mont_384::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	redc_mont_384$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -1391,7 +1441,7 @@ $L$SEH_body_redc_mont_384::
 
 	mov	rbx,rdx
 	call	__mulq_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	__redq_tail_mont_384
 
 	mov	r15,QWORD PTR[8+rsp]
 
@@ -1431,12 +1481,16 @@ from_mont_384	PROC PUBLIC
 $L$SEH_begin_from_mont_384::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	from_mont_384$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -1807,7 +1861,7 @@ __mulq_by_1_mont_384	ENDP
 
 
 ALIGN	32
-__redc_tail_mont_384	PROC PRIVATE
+__redq_tail_mont_384	PROC PRIVATE
 	DB	243,15,30,250
 
 	add	r14,QWORD PTR[48+rsi]
@@ -1850,7 +1904,7 @@ __redc_tail_mont_384	PROC PRIVATE
 	mov	QWORD PTR[40+rdi],r11
 
 	DB	0F3h,0C3h		;repret
-__redc_tail_mont_384	ENDP
+__redq_tail_mont_384	ENDP
 
 PUBLIC	sgn0_pty_mont_384
 
@@ -1864,11 +1918,15 @@ sgn0_pty_mont_384	PROC PUBLIC
 $L$SEH_begin_sgn0_pty_mont_384::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	sgn0_pty_mont_384$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -1947,11 +2005,15 @@ sgn0_pty_mont_384x	PROC PUBLIC
 $L$SEH_begin_sgn0_pty_mont_384x::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	sgn0_pty_mont_384x$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -2079,13 +2141,17 @@ mul_mont_384	PROC PUBLIC
 $L$SEH_begin_mul_mont_384::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
-	mov	r8,QWORD PTR[48+rsp]
+	mov	r8,QWORD PTR[40+rsp]
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	mul_mont_384$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -2748,14 +2814,18 @@ sqr_n_mul_mont_384	PROC PUBLIC
 $L$SEH_begin_sqr_n_mul_mont_384::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
-	mov	r8,QWORD PTR[48+rsp]
-	mov	r9,QWORD PTR[56+rsp]
+	mov	r8,QWORD PTR[40+rsp]
+	mov	r9,QWORD PTR[48+rsp]
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	sqr_n_mul_mont_384$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -2787,7 +2857,7 @@ $L$oop_sqr_384::
 	mov	rcx,QWORD PTR[rsp]
 	mov	rbx,QWORD PTR[16+rsp]
 	call	__mulq_by_1_mont_384
-	call	__redc_tail_mont_384
+	call	__redq_tail_mont_384
 
 	movd	edx,xmm1
 	lea	rsi,QWORD PTR[rdi]
@@ -2844,14 +2914,18 @@ sqr_n_mul_mont_383	PROC PUBLIC
 $L$SEH_begin_sqr_n_mul_mont_383::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
-	mov	r8,QWORD PTR[48+rsp]
-	mov	r9,QWORD PTR[56+rsp]
+	mov	r8,QWORD PTR[40+rsp]
+	mov	r9,QWORD PTR[48+rsp]
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	sqr_n_mul_mont_383$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12
@@ -3511,12 +3585,16 @@ sqr_mont_382x	PROC PUBLIC
 $L$SEH_begin_sqr_mont_382x::
 
 
-	push	rbp
-
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
 	mov	rcx,r9
+ifdef __BLST_PORTABLE__
+	test	DWORD PTR[__blst_platform_cap],1
+	jnz	sqr_mont_382x$1
+endif
+	push	rbp
+
 	push	rbx
 
 	push	r12

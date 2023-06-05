@@ -12,13 +12,14 @@ mulx_mont_sparse_256:
 .LSEH_begin_mulx_mont_sparse_256:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
-	movq	48(%rsp),%r8
+	movq	40(%rsp),%r8
+mul_mont_sparse_256$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -80,12 +81,13 @@ sqrx_mont_sparse_256:
 .LSEH_begin_sqrx_mont_sparse_256:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+sqr_mont_sparse_256$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -344,12 +346,13 @@ fromx_mont_256:
 .LSEH_begin_fromx_mont_256:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+from_mont_256$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12
@@ -424,12 +427,13 @@ redcx_mont_256:
 .LSEH_begin_redcx_mont_256:
 
 
-	pushq	%rbp
-
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
 	movq	%r9,%rcx
+redc_mont_256$1:
+	pushq	%rbp
+
 	pushq	%rbx
 
 	pushq	%r12

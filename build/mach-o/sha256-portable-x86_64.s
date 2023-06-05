@@ -1,3 +1,4 @@
+.comm	___blst_platform_cap,4
 .text	
 
 .globl	_blst_sha256_block_data_order
@@ -13,6 +14,10 @@ _blst_sha256_block_data_order:
 .cfi_offset	%rbp,-16
 	movq	%rsp,%rbp
 .cfi_def_cfa_register	%rbp
+#ifdef __BLST_PORTABLE__
+	testl	$2,___blst_platform_cap(%rip)
+	jnz	L$blst_sha256_block_data_order$2
+#endif
 	pushq	%rbx
 .cfi_offset	%rbx,-24
 	pushq	%r12
@@ -1650,6 +1655,7 @@ L$rounds_16_xx:
 .cfi_endproc	
 
 
+#ifndef __BLST_PORTABLE__
 .p2align	6
 
 K256:
@@ -1741,3 +1747,4 @@ _blst_sha256_hcopy:
 	.byte	0xf3,0xc3
 .cfi_endproc
 
+#endif
