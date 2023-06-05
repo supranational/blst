@@ -23,7 +23,7 @@ TOP=`dirname $0`
 
 # if -Werror stands in the way, bypass with -Wno-error on command line,
 # or suppress specific one with -Wno-<problematic-warning>
-CFLAGS=${CFLAGS:--O2 -fno-builtin -fPIC -Wall -Wextra -Werror}
+CFLAGS=${CFLAGS:--O2 -std=c99 -fno-builtin -fPIC -Wall -Wextra -Werror}
 PERL=${PERL:-perl}
 unset cflags shared dll
 
