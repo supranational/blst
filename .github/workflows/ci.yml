@@ -50,6 +50,7 @@ jobs:
             env CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse cargo update
         fi
         cargo test --release
+        cargo test --release --features=portable
         cargo test --release --features=no-threads
         if [ `uname -s` = "Linux" ]; then
             rustup target add wasm32-wasi
