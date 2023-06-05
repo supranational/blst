@@ -139,10 +139,12 @@ $code=<<___;
 .align	16
 $func:
 .cfi_startproc
-	push	%rbx
-.cfi_push	%rbx
 	push	%rbp
 .cfi_push	%rbp
+	mov	%rsp,%rbp
+.cfi_def_cfa_register	%rbp
+	push	%rbx
+.cfi_push	%rbx
 	push	%r12
 .cfi_push	%r12
 	push	%r13
@@ -153,12 +155,13 @@ $func:
 .cfi_push	%r15
 	shl	\$4,%rdx		# num*16
 	sub	\$$framesz,%rsp
-.cfi_adjust_cfa_offset	$framesz
+.cfi_alloca	$framesz
+.cfi_def_cfa	%rsp
+.cfi_end_prologue
 	lea	($inp,%rdx,$SZ),%rdx	# inp+num*16*$SZ
 	mov	$ctx,$_ctx		# save ctx, 1st arg
 	mov	$inp,$_inp		# save inp, 2nd arh
 	mov	%rdx,$_end		# save end pointer, "3rd" arg
-.cfi_end_prologue
 
 	mov	$SZ*0($ctx),$A
 	mov	$SZ*1($ctx),$B
@@ -226,17 +229,11 @@ $code.=<<___;
 	lea	$framesz+6*8(%rsp),%r11
 .cfi_def_cfa	%r11,8
 	mov	$framesz(%rsp),%r15
-.cfi_restore	%r15
 	mov	-40(%r11),%r14
-.cfi_restore	%r14
 	mov	-32(%r11),%r13
-.cfi_restore	%r13
 	mov	-24(%r11),%r12
-.cfi_restore	%r12
-	mov	-16(%r11),%rbp
-.cfi_restore	%rbp
-	mov	-8(%r11),%rbx
-.cfi_restore	%rbx
+	mov	-16(%r11),%rbx
+	mov	-8(%r11),%rbp
 .cfi_epilogue
 	lea	(%r11),%rsp
 	ret
