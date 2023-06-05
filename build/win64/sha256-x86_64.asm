@@ -38,12 +38,11 @@ blst_sha256_block_data_order_shaext	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_blst_sha256_block_data_order_shaext::
+
+
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
-
-
-
 	sub	rsp,058h
 
 	movaps	XMMWORD PTR[(-88)+r11],xmm6
@@ -284,14 +283,13 @@ blst_sha256_block_data_order	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_blst_sha256_block_data_order::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
 	push	rbx
 
 	push	r12
@@ -1427,6 +1425,7 @@ PUBLIC	blst_sha256_emit
 ALIGN	16
 blst_sha256_emit	PROC PUBLIC
 	DB	243,15,30,250
+
 	mov	r8,QWORD PTR[rdx]
 	mov	r9,QWORD PTR[8+rdx]
 	mov	r10,QWORD PTR[16+rdx]
@@ -1456,6 +1455,7 @@ PUBLIC	blst_sha256_bcopy
 ALIGN	16
 blst_sha256_bcopy	PROC PUBLIC
 	DB	243,15,30,250
+
 	sub	rcx,rdx
 $L$oop_bcopy::
 	movzx	eax,BYTE PTR[rdx]
@@ -1472,6 +1472,7 @@ PUBLIC	blst_sha256_hcopy
 ALIGN	16
 blst_sha256_hcopy	PROC PUBLIC
 	DB	243,15,30,250
+
 	mov	r8,QWORD PTR[rdx]
 	mov	r9,QWORD PTR[8+rdx]
 	mov	r10,QWORD PTR[16+rdx]
@@ -1516,8 +1517,9 @@ $L$SEH_info_blst_sha256_block_data_order_shaext_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_blst_sha256_block_data_order_shaext_body::
 DB	1,0,15,0
 DB	000h,068h,000h,000h
@@ -1533,15 +1535,17 @@ $L$SEH_info_blst_sha256_block_data_order_shaext_epilogue::
 DB	1,0,5,11
 DB	000h,074h,001h,000h
 DB	000h,064h,002h,000h
-DB	000h,003h
-DB	000h,000h
+DB	000h,0b3h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 
 $L$SEH_info_blst_sha256_block_data_order_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_blst_sha256_block_data_order_body::
 DB	1,0,26,5
 DB	000h,068h,002h,000h
@@ -1555,15 +1559,18 @@ DB	000h,0c4h,010h,000h
 DB	000h,034h,011h,000h
 DB	000h,074h,014h,000h
 DB	000h,064h,015h,000h
-DB	000h,003h
+DB	000h,053h
 DB	000h,001h,012h,000h
 DB	000h,050h
+DB	000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_blst_sha256_block_data_order_epilogue::
 DB	1,0,5,11
 DB	000h,074h,001h,000h
 DB	000h,064h,002h,000h
-DB	000h,003h
-DB	000h,000h
+DB	000h,0b3h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 
 
 .xdata	ENDS

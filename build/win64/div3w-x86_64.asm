@@ -11,11 +11,10 @@ div_3_limbs	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	rax,rsp
 $L$SEH_begin_div_3_limbs::
+
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
-
-
 	mov	r8,QWORD PTR[rdi]
 	mov	r9,QWORD PTR[8+rdi]
 	xor	rax,rax
@@ -62,11 +61,10 @@ quot_rem_128	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	rax,rsp
 $L$SEH_begin_quot_rem_128::
+
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
-
-
 	mov	rax,rdx
 	mov	rcx,rdx
 
@@ -121,11 +119,10 @@ quot_rem_64	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	rax,rsp
 $L$SEH_begin_quot_rem_64::
+
 	mov	rdi,rcx
 	mov	rsi,rdx
 	mov	rdx,r8
-
-
 	mov	rax,rdx
 	imul	rdx,QWORD PTR[rsi]
 
@@ -141,12 +138,6 @@ $L$SEH_begin_quot_rem_64::
 	DB	0F3h,0C3h		;repret
 $L$SEH_end_quot_rem_64::
 quot_rem_64	ENDP
-.text$	ENDS
-.pdata	SEGMENT READONLY ALIGN(4)
-ALIGN	4
-.pdata	ENDS
-.xdata	SEGMENT READONLY ALIGN(8)
-ALIGN	8
 
-.xdata	ENDS
+.text$	ENDS
 END

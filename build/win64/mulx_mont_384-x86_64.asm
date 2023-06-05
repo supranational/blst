@@ -11,6 +11,7 @@ OPTION	DOTNAME
 ALIGN	32
 __sub_mod_384x384	PROC PRIVATE
 	DB	243,15,30,250
+
 	mov	r8,QWORD PTR[rsi]
 	mov	r9,QWORD PTR[8+rsi]
 	mov	r10,QWORD PTR[16+rsi]
@@ -77,6 +78,7 @@ __sub_mod_384x384	ENDP
 ALIGN	32
 __add_mod_384	PROC PRIVATE
 	DB	243,15,30,250
+
 	mov	r8,QWORD PTR[rsi]
 	mov	r9,QWORD PTR[8+rsi]
 	mov	r10,QWORD PTR[16+rsi]
@@ -126,6 +128,7 @@ __add_mod_384	ENDP
 ALIGN	32
 __sub_mod_384	PROC PRIVATE
 	DB	243,15,30,250
+
 	mov	r8,QWORD PTR[rsi]
 	mov	r9,QWORD PTR[8+rsi]
 	mov	r10,QWORD PTR[16+rsi]
@@ -180,16 +183,15 @@ mulx_mont_384x	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_mulx_mont_384x::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-	mov	rcx,r9
-	mov	r8,QWORD PTR[40+rsp]
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
+	mov	r8,QWORD PTR[48+rsp]
 	push	rbx
 
 	push	r12
@@ -305,15 +307,14 @@ sqrx_mont_384x	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_sqrx_mont_384x::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-	mov	rcx,r9
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
 	push	rbx
 
 	push	r12
@@ -447,15 +448,14 @@ mulx_382x	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_mulx_382x::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-	mov	rcx,r9
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
 	push	rbx
 
 	push	r12
@@ -589,14 +589,13 @@ sqrx_382x	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_sqrx_382x::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
 	push	rbx
 
 	push	r12
@@ -728,14 +727,13 @@ mulx_384	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_mulx_384::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
 	push	rbx
 
 	push	r12
@@ -779,6 +777,7 @@ mulx_384	ENDP
 ALIGN	32
 __mulx_384	PROC PRIVATE
 	DB	243,15,30,250
+
 	mov	rdx,QWORD PTR[rbx]
 	mov	r14,QWORD PTR[rsi]
 	mov	r15,QWORD PTR[8+rsi]
@@ -957,13 +956,12 @@ sqrx_384	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_sqrx_384::
-	mov	rdi,rcx
-	mov	rsi,rdx
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
 	push	rbx
 
 	push	r12
@@ -1007,6 +1005,7 @@ sqrx_384	ENDP
 ALIGN	32
 __sqrx_384	PROC PRIVATE
 	DB	243,15,30,250
+
 	mov	rdx,QWORD PTR[rsi]
 	mov	r14,QWORD PTR[8+rsi]
 	mov	r15,QWORD PTR[16+rsi]
@@ -1153,15 +1152,14 @@ redcx_mont_384	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_redcx_mont_384::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-	mov	rcx,r9
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
 	push	rbx
 
 	push	r12
@@ -1217,15 +1215,14 @@ fromx_mont_384	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_fromx_mont_384::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-	mov	rcx,r9
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
 	push	rbx
 
 	push	r12
@@ -1300,6 +1297,7 @@ fromx_mont_384	ENDP
 ALIGN	32
 __mulx_by_1_mont_384	PROC PRIVATE
 	DB	243,15,30,250
+
 	mov	r8,QWORD PTR[rsi]
 	mov	rdx,rcx
 	mov	r9,QWORD PTR[8+rsi]
@@ -1488,6 +1486,7 @@ __mulx_by_1_mont_384	ENDP
 ALIGN	32
 __redc_tail_mont_384	PROC PRIVATE
 	DB	243,15,30,250
+
 	add	r14,QWORD PTR[48+rsi]
 	mov	rax,r14
 	adc	r15,QWORD PTR[56+rsi]
@@ -1540,14 +1539,13 @@ sgn0x_pty_mont_384	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_sgn0x_pty_mont_384::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
 	push	rbx
 
 	push	r12
@@ -1624,14 +1622,13 @@ sgn0x_pty_mont_384x	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_sgn0x_pty_mont_384x::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
 	push	rbx
 
 	push	r12
@@ -1757,16 +1754,15 @@ mulx_mont_384	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_mulx_mont_384::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-	mov	rcx,r9
-	mov	r8,QWORD PTR[40+rsp]
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
+	mov	r8,QWORD PTR[48+rsp]
 	push	rbx
 
 	push	r12
@@ -1824,6 +1820,7 @@ mulx_mont_384	ENDP
 ALIGN	32
 __mulx_mont_384	PROC PRIVATE
 	DB	243,15,30,250
+
 
 	mulx	r10,r14,r15
 	mulx	r11,r15,rax
@@ -2230,15 +2227,14 @@ sqrx_mont_384	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_sqrx_mont_384::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-	mov	rcx,r9
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
 	push	rbx
 
 	push	r12
@@ -2304,17 +2300,16 @@ sqrx_n_mul_mont_384	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_sqrx_n_mul_mont_384::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-	mov	rcx,r9
-	mov	r8,QWORD PTR[40+rsp]
-	mov	r9,QWORD PTR[48+rsp]
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
+	mov	r8,QWORD PTR[48+rsp]
+	mov	r9,QWORD PTR[56+rsp]
 	push	rbx
 
 	push	r12
@@ -2398,17 +2393,16 @@ sqrx_n_mul_mont_383	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_sqrx_n_mul_mont_383::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-	mov	rcx,r9
-	mov	r8,QWORD PTR[40+rsp]
-	mov	r9,QWORD PTR[48+rsp]
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
+	mov	r8,QWORD PTR[48+rsp]
+	mov	r9,QWORD PTR[56+rsp]
 	push	rbx
 
 	push	r12
@@ -2484,6 +2478,7 @@ sqrx_n_mul_mont_383	ENDP
 ALIGN	32
 __mulx_mont_383_nonred	PROC PRIVATE
 	DB	243,15,30,250
+
 
 	mulx	r10,r14,r15
 	mulx	r11,r15,rax
@@ -2851,15 +2846,14 @@ sqrx_mont_382x	PROC PUBLIC
 	mov	QWORD PTR[16+rsp],rsi
 	mov	r11,rsp
 $L$SEH_begin_sqrx_mont_382x::
-	mov	rdi,rcx
-	mov	rsi,rdx
-	mov	rdx,r8
-	mov	rcx,r9
-
 
 
 	push	rbp
 
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
 	push	rbx
 
 	push	r12
@@ -3229,8 +3223,9 @@ $L$SEH_info_mulx_mont_384x_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_mulx_mont_384x_body::
 DB	1,0,18,0
 DB	000h,0f4h,029h,000h
@@ -3242,6 +3237,8 @@ DB	000h,054h,02eh,000h
 DB	000h,074h,030h,000h
 DB	000h,064h,031h,000h
 DB	000h,001h,02fh,000h
+DB	000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_mulx_mont_384x_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3252,8 +3249,9 @@ $L$SEH_info_sqrx_mont_384x_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_sqrx_mont_384x_body::
 DB	1,0,18,0
 DB	000h,0f4h,011h,000h
@@ -3265,6 +3263,8 @@ DB	000h,054h,016h,000h
 DB	000h,074h,018h,000h
 DB	000h,064h,019h,000h
 DB	000h,001h,017h,000h
+DB	000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_sqrx_mont_384x_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3275,8 +3275,9 @@ $L$SEH_info_mulx_382x_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_mulx_382x_body::
 DB	1,0,18,0
 DB	000h,0f4h,011h,000h
@@ -3288,6 +3289,8 @@ DB	000h,054h,016h,000h
 DB	000h,074h,018h,000h
 DB	000h,064h,019h,000h
 DB	000h,001h,017h,000h
+DB	000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_mulx_382x_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3298,8 +3301,9 @@ $L$SEH_info_sqrx_382x_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_sqrx_382x_body::
 DB	1,0,17,0
 DB	000h,0f4h,001h,000h
@@ -3311,7 +3315,8 @@ DB	000h,054h,006h,000h
 DB	000h,074h,008h,000h
 DB	000h,064h,009h,000h
 DB	000h,062h
-DB	000h,000h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_sqrx_382x_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3322,8 +3327,9 @@ $L$SEH_info_mulx_384_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_mulx_384_body::
 DB	1,0,17,0
 DB	000h,0f4h,000h,000h
@@ -3335,7 +3341,8 @@ DB	000h,054h,005h,000h
 DB	000h,074h,007h,000h
 DB	000h,064h,008h,000h
 DB	000h,052h
-DB	000h,000h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_mulx_384_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3346,8 +3353,9 @@ $L$SEH_info_sqrx_384_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_sqrx_384_body::
 DB	1,0,17,0
 DB	000h,0f4h,001h,000h
@@ -3359,7 +3367,8 @@ DB	000h,054h,006h,000h
 DB	000h,074h,008h,000h
 DB	000h,064h,009h,000h
 DB	000h,062h
-DB	000h,000h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_sqrx_384_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3370,8 +3379,9 @@ $L$SEH_info_redcx_mont_384_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_redcx_mont_384_body::
 DB	1,0,17,0
 DB	000h,0f4h,001h,000h
@@ -3383,7 +3393,8 @@ DB	000h,054h,006h,000h
 DB	000h,074h,008h,000h
 DB	000h,064h,009h,000h
 DB	000h,062h
-DB	000h,000h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_redcx_mont_384_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3394,8 +3405,9 @@ $L$SEH_info_fromx_mont_384_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_fromx_mont_384_body::
 DB	1,0,17,0
 DB	000h,0f4h,001h,000h
@@ -3407,7 +3419,8 @@ DB	000h,054h,006h,000h
 DB	000h,074h,008h,000h
 DB	000h,064h,009h,000h
 DB	000h,062h
-DB	000h,000h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_fromx_mont_384_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3418,8 +3431,9 @@ $L$SEH_info_sgn0x_pty_mont_384_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_sgn0x_pty_mont_384_body::
 DB	1,0,17,0
 DB	000h,0f4h,001h,000h
@@ -3431,7 +3445,8 @@ DB	000h,054h,006h,000h
 DB	000h,074h,008h,000h
 DB	000h,064h,009h,000h
 DB	000h,062h
-DB	000h,000h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_sgn0x_pty_mont_384_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3442,8 +3457,9 @@ $L$SEH_info_sgn0x_pty_mont_384x_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_sgn0x_pty_mont_384x_body::
 DB	1,0,17,0
 DB	000h,0f4h,001h,000h
@@ -3455,7 +3471,8 @@ DB	000h,054h,006h,000h
 DB	000h,074h,008h,000h
 DB	000h,064h,009h,000h
 DB	000h,062h
-DB	000h,000h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_sgn0x_pty_mont_384x_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3466,8 +3483,9 @@ $L$SEH_info_mulx_mont_384_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_mulx_mont_384_body::
 DB	1,0,17,0
 DB	000h,0f4h,003h,000h
@@ -3479,7 +3497,8 @@ DB	000h,054h,008h,000h
 DB	000h,074h,00ah,000h
 DB	000h,064h,00bh,000h
 DB	000h,082h
-DB	000h,000h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_mulx_mont_384_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3490,8 +3509,9 @@ $L$SEH_info_sqrx_mont_384_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_sqrx_mont_384_body::
 DB	1,0,17,0
 DB	000h,0f4h,003h,000h
@@ -3503,7 +3523,8 @@ DB	000h,054h,008h,000h
 DB	000h,074h,00ah,000h
 DB	000h,064h,00bh,000h
 DB	000h,082h
-DB	000h,000h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_sqrx_mont_384_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3514,8 +3535,9 @@ $L$SEH_info_sqrx_n_mul_mont_384_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_sqrx_n_mul_mont_384_body::
 DB	1,0,17,0
 DB	000h,0f4h,005h,000h
@@ -3527,7 +3549,8 @@ DB	000h,054h,00ah,000h
 DB	000h,074h,00ch,000h
 DB	000h,064h,00dh,000h
 DB	000h,0a2h
-DB	000h,000h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_sqrx_n_mul_mont_384_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3538,8 +3561,9 @@ $L$SEH_info_sqrx_n_mul_mont_383_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_sqrx_n_mul_mont_383_body::
 DB	1,0,17,0
 DB	000h,0f4h,005h,000h
@@ -3551,7 +3575,8 @@ DB	000h,054h,00ah,000h
 DB	000h,074h,00ch,000h
 DB	000h,064h,00dh,000h
 DB	000h,0a2h
-DB	000h,000h
+DB	000h,000h,000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_sqrx_n_mul_mont_383_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h
@@ -3562,8 +3587,9 @@ $L$SEH_info_sqrx_mont_382x_prologue::
 DB	1,0,5,00bh
 DB	0,074h,1,0
 DB	0,064h,2,0
-DB	0,003h
+DB	0,0b3h
 DB	0,0
+	DD	0,0
 $L$SEH_info_sqrx_mont_382x_body::
 DB	1,0,18,0
 DB	000h,0f4h,011h,000h
@@ -3575,6 +3601,8 @@ DB	000h,054h,016h,000h
 DB	000h,074h,018h,000h
 DB	000h,064h,019h,000h
 DB	000h,001h,017h,000h
+DB	000h,000h,000h,000h
+DB	000h,000h,000h,000h
 $L$SEH_info_sqrx_mont_382x_epilogue::
 DB	1,0,4,0
 DB	000h,074h,001h,000h

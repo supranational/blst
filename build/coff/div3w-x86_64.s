@@ -10,10 +10,10 @@ div_3_limbs:
 	movq	%rsi,16(%rsp)
 	movq	%rsp,%rax
 .LSEH_begin_div_3_limbs:
+
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
-
 	movq	(%rdi),%r8
 	movq	8(%rdi),%r9
 	xorq	%rax,%rax
@@ -59,10 +59,10 @@ quot_rem_128:
 	movq	%rsi,16(%rsp)
 	movq	%rsp,%rax
 .LSEH_begin_quot_rem_128:
+
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
-
 	movq	%rdx,%rax
 	movq	%rdx,%rcx
 
@@ -116,10 +116,10 @@ quot_rem_64:
 	movq	%rsi,16(%rsp)
 	movq	%rsp,%rax
 .LSEH_begin_quot_rem_64:
+
 	movq	%rcx,%rdi
 	movq	%rdx,%rsi
 	movq	%r8,%rdx
-
 	movq	%rdx,%rax
 	imulq	0(%rsi),%rdx
 
@@ -134,7 +134,3 @@ quot_rem_64:
 	movq	16(%rsp),%rsi
 	.byte	0xf3,0xc3
 .LSEH_end_quot_rem_64:
-.section	.pdata
-.p2align	2
-.section	.xdata
-.p2align	3
