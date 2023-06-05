@@ -125,7 +125,7 @@ int blst_sk_mul_n_check(pow256 ret, const pow256 a, const pow256 b)
         long one;
         char little;
     } is_endian = { 1 };
-    int is_zero;
+    bool_t is_zero;
 
     if (((size_t)a|(size_t)b)%sizeof(limb_t) != 0 || !is_endian.little) {
         limbs_from_le_bytes(t[0], a, sizeof(pow256));
@@ -139,7 +139,7 @@ int blst_sk_mul_n_check(pow256 ret, const pow256 a, const pow256 b)
     is_zero = vec_is_zero(t[0], sizeof(vec256));
     vec_zero(t, sizeof(t));
 
-    return is_zero ^ 1;
+    return (int)(is_zero^1);
 }
 
 void blst_sk_inverse(pow256 ret, const pow256 a)
