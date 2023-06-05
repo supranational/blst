@@ -25,3 +25,4 @@
 #ifdef BLST_FR_PENTAROOT
 # include "pentaroot.c"
 #endif
+#include "cpuid.c"
