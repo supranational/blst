@@ -61,6 +61,7 @@ $_end="16*$SZ+2*8(%rsp)";
 $framesz="16*$SZ+3*8";
 
 $code=<<___;
+.comm	__blst_platform_cap,4
 .text
 
 .align	64
@@ -112,6 +113,7 @@ ${pre}sha256_block_data_order_shaext:
 .cfi_push	%rbp
 	mov	%rsp,%rbp
 .cfi_def_cfa_register	%rbp
+.L${func}\$2:
 ___
 $code.=<<___ if ($win64);
 	sub	\$0x50,%rsp
@@ -342,6 +344,8 @@ ${func}:
 .cfi_push	%rbp
 	mov	%rsp,%rbp
 .cfi_def_cfa_register	%rbp
+	testl	\$2,__blst_platform_cap(%rip)
+	jnz	.L${func}\$2
 	push	%rbx
 .cfi_push	%rbx
 	push	%r12
