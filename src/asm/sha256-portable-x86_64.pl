@@ -132,6 +132,7 @@ ___
 }
 
 $code=<<___;
+.comm	__blst_platform_cap,4
 .text
 
 .globl	$func
@@ -143,6 +144,10 @@ $func:
 .cfi_push	%rbp
 	mov	%rsp,%rbp
 .cfi_def_cfa_register	%rbp
+#ifdef __BLST_PORTABLE__
+	testl	\$2,__blst_platform_cap(%rip)
+	jnz	.L${func}\$2
+#endif
 	push	%rbx
 .cfi_push	%rbx
 	push	%r12
@@ -240,6 +245,7 @@ $code.=<<___;
 .cfi_endproc
 .size	$func,.-$func
 
+#ifndef __BLST_PORTABLE__
 .align	64
 .type	$TABLE,\@object
 $TABLE:
@@ -324,6 +330,7 @@ ${pre}sha256_hcopy:
 	mov	%r11, 24($out)
 	ret
 .size	${pre}sha256_hcopy,.-${pre}sha256_hcopy
+#endif
 ___
 }
 
