@@ -15,24 +15,11 @@ for (my $i = 0; $i <= $#file; $i++) {
         @file[$i-1] =~ s/,\s*Copy//;
         @file[$i-1] =~ s/\)/, Zeroize\)/;
         splice @file, $i, 0, "#[zeroize(drop)]\n"; $i++;
-    } elsif (@file[$i] =~ m/assert_eq!\($/) {
-        @file[++$i] =~ s/unsafe\s*\{\s*&\(\*\(::std::ptr::null::<(\w+)>\(\)\)\)\.(\w+).*\}/offsetof!($1, $2)/ or
+    } else {
         @file[$i] =~ s/::std::/::core::/g;
     }
 }
 
-print << '___';
-#[cfg(test)]
-macro_rules! offsetof {
-    ($type:ty, $field:tt) => {
-        {
-            let v = <$type>::default();
-            (&v.$field as *const _ as usize) - (&v as *const _ as usize)
-        }
-    };
-}
-___
-# print the file
 print @file;
 
 close STDOUT;
