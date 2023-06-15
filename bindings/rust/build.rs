@@ -26,6 +26,12 @@ fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, _arch: &str) {
 }
 
 fn main() {
+    if let Some(_) = env::var_os("CARGO_FEATURE_SERDE_SECRET") {
+        println!(
+            "cargo:warning=blst: non-production feature serde-secret enabled"
+        );
+    }
+
     // account for cross-compilation [by examining environment variables]
     let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();

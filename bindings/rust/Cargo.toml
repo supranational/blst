@@ -36,7 +36,7 @@ force-adx = []
 # Suppress multi-threading.
 # Engaged on wasm32 target architecture automatically.
 no-threads = []
-# Add support for serializing secrets
+# Add support for serializing SecretKey, not suitable for production.
 serde-secret = ["serde"]
 
 [build-dependencies]
