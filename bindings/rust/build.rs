@@ -26,7 +26,7 @@ fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, _arch: &str) {
 }
 
 fn main() {
-    if let Some(_) = env::var_os("CARGO_FEATURE_SERDE_SECRET") {
+    if env::var("CARGO_FEATURE_SERDE_SECRET").is_ok() {
         println!(
             "cargo:warning=blst: non-production feature serde-secret enabled"
         );
@@ -35,8 +35,12 @@ fn main() {
     // account for cross-compilation [by examining environment variables]
     let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let target_no_std = target_os.eq("none")
+        || target_os.eq("unknown")
+        || target_os.eq("uefi")
+        || env::var("BLST_TEST_NO_STD").is_ok();
 
-    if target_os.ne("none") && env::var("BLST_TEST_NO_STD").is_err() {
+    if !target_no_std {
         println!("cargo:rustc-cfg=feature=\"std\"");
         if target_arch.eq("wasm32") {
             println!("cargo:rustc-cfg=feature=\"no-threads\"");
@@ -167,8 +171,11 @@ fn main() {
         .flag_if_supported("-fno-builtin")
         .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-command-line-argument");
-    if target_arch.eq("wasm32") {
-        cc.flag_if_supported("-ffreestanding");
+    if target_arch.eq("wasm32") || target_no_std {
+        if env::var("CARGO_CFG_TARGET_ENV").unwrap().ne("msvc") {
+            cc.flag("-ffreestanding");
+        }
+        cc.define("SCRATCH_LIMIT", "(45 * 1024)");
     }
     if !cfg!(debug_assertions) {
         cc.opt_level(2);
