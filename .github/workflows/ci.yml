@@ -60,6 +60,16 @@ jobs:
         echo '--- test serde-secret'
         echo
         cargo test --release --features=serde-secret
+        echo '--- test no_std'
+        echo
+        echo 'set -e'                                       > ulimit-s
+        echo 'export RUST_MIN_STACK=$(($1 * 1024)); shift'  >> ulimit-s
+        echo 'exec "$@"'                                    >> ulimit-s
+        triple=`rustc -vV | awk '/host:/ {print $2}' | tr 'a-z-' 'A-Z_'`
+        stack_size=`[ $OSTYPE = "msys" ] && echo 65 || echo 56`
+        env BLST_TEST_NO_STD= \
+            CARGO_TARGET_${triple}_RUNNER="bash ulimit-s $stack_size" \
+            cargo test --release
         if [ `uname -s` = "Linux" ]; then
             echo '--- test wasm32-wasi'
             echo
