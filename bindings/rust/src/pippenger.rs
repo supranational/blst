@@ -42,6 +42,7 @@ macro_rules! pippenger_mult_impl {
         $test_mod:ident,
         $generator:ident,
         $mult:ident,
+        $add:ident,
     ) => {
         pub struct $points {
             points: Vec<$point_affine>,
@@ -258,6 +259,63 @@ macro_rules! pippenger_mult_impl {
                 }
                 ret
             }
+
+            pub fn add(&self) -> $point {
+                let npoints = self.points.len();
+
+                let pool = mt::da_pool();
+                let ncpus = pool.max_count();
+                if ncpus < 2 || npoints < 384 {
+                    let p: [*const _; 2] = [&self.points[0], ptr::null()];
+                    let mut ret = <$point>::default();
+                    unsafe { $add(&mut ret, &p[0], npoints) };
+                    return ret;
+                }
+
+                let (tx, rx) = channel();
+                let counter = Arc::new(AtomicUsize::new(0));
+                let nchunks = (npoints + 255) / 256;
+                let chunk = npoints / nchunks + 1;
+
+                let n_workers = core::cmp::min(ncpus, nchunks);
+                for _ in 0..n_workers {
+                    let tx = tx.clone();
+                    let counter = counter.clone();
+
+                    pool.joined_execute(move || {
+                        let mut acc = <$point>::default();
+                        let mut chunk = chunk;
+                        let mut p: [*const _; 2] = [ptr::null(), ptr::null()];
+
+                        loop {
+                            let work =
+                                counter.fetch_add(chunk, Ordering::Relaxed);
+                            if work >= npoints {
+                                break;
+                            }
+                            p[0] = &self.points[work];
+                            if work + chunk > npoints {
+                                chunk = npoints - work;
+                            }
+                            unsafe {
+                                let mut t = MaybeUninit::<$point>::uninit();
+                                $add(t.as_mut_ptr(), &p[0], chunk);
+                                $add_or_double(&mut acc, &acc, t.as_ptr());
+                            };
+                        }
+                        tx.send(acc).expect("disaster");
+                    });
+                }
+
+                let mut ret = rx.recv().unwrap();
+                for _ in 1..n_workers {
+                    unsafe {
+                        $add_or_double(&mut ret, &ret, &rx.recv().unwrap())
+                    };
+                }
+
+                ret
+            }
         }
 
         #[cfg(test)]
@@ -272,8 +330,8 @@ macro_rules! pippenger_mult_impl {
                 const nbits: usize = 160;
                 const nbytes: usize = (nbits + 7) / 8;
 
-                let mut scalars = [0u8; nbytes * npoints];
-                ChaCha20Rng::from_seed([0u8; 32]).fill_bytes(&mut scalars);
+                let mut scalars = Box::new([0u8; nbytes * npoints]);
+                ChaCha20Rng::from_seed([0u8; 32]).fill_bytes(scalars.as_mut());
 
                 let mut points: Vec<$point> = Vec::with_capacity(npoints);
                 unsafe { points.set_len(points.capacity()) };
@@ -294,7 +352,36 @@ macro_rules! pippenger_mult_impl {
                 }
 
                 let points = $points::from(&points);
-                assert_eq!(naive, points.mult(&scalars, nbits));
+                assert_eq!(naive, points.mult(scalars.as_ref(), nbits));
+            }
+
+            #[test]
+            fn test_add() {
+                const npoints: usize = 2000;
+                const nbits: usize = 32;
+                const nbytes: usize = (nbits + 7) / 8;
+
+                let mut scalars = Box::new([0u8; nbytes * npoints]);
+                ChaCha20Rng::from_seed([0u8; 32]).fill_bytes(scalars.as_mut());
+
+                let mut points: Vec<$point> = Vec::with_capacity(npoints);
+                unsafe { points.set_len(points.capacity()) };
+
+                let mut naive = <$point>::default();
+                for i in 0..npoints {
+                    unsafe {
+                        $mult(
+                            &mut points[i],
+                            $generator(),
+                            &scalars[i * nbytes],
+                            32,
+                        );
+                        $add_or_double(&mut naive, &naive, &points[i]);
+                    }
+                }
+
+                let points = $points::from(&points);
+                assert_eq!(naive, points.add());
             }
         }
     };
@@ -313,6 +400,7 @@ pippenger_mult_impl!(
     p1_multi_scalar,
     blst_p1_generator,
     blst_p1_mult,
+    blst_p1s_add,
 );
 
 pippenger_mult_impl!(
@@ -328,6 +416,7 @@ pippenger_mult_impl!(
     p2_multi_scalar,
     blst_p2_generator,
     blst_p2_mult,
+    blst_p2s_add,
 );
 
 fn num_bits(l: usize) -> usize {
