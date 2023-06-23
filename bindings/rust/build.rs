@@ -81,6 +81,16 @@ fn main() {
     // Optimization level depends on whether or not --release is passed
     // or implied.
 
+    if target_os.eq("uefi") && !env::var("CC").is_ok() {
+        match std::process::Command::new("clang")
+            .arg("--version")
+            .output()
+        {
+            Ok(_) => env::set_var("CC", "clang"),
+            Err(_) => { /* no clang in sight, just ignore the error */ }
+        }
+    }
+
     #[cfg(target_env = "msvc")]
     if env::var("CARGO_CFG_TARGET_POINTER_WIDTH").unwrap().eq("32")
         && !env::var("CC").is_ok()
