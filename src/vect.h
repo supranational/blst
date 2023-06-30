@@ -147,7 +147,6 @@ bool_t ct_is_square_mod_384(const vec384 inp, const vec384 mod);
 # define mul_mont_384x mulx_mont_384x
 # define sqr_mont_384x sqrx_mont_384x
 # define sqr_mont_382x sqrx_mont_382x
-# define sqr_n_mul_mont_384x sqrx_n_mul_mont_384x
 # define mul_382x mulx_382x
 # define sqr_382x sqrx_382x
 #endif
@@ -156,8 +155,6 @@ void mul_mont_384x(vec384x ret, const vec384x a, const vec384x b,
                    const vec384 p, limb_t n0);
 void sqr_mont_384x(vec384x ret, const vec384x a, const vec384 p, limb_t n0);
 void sqr_mont_382x(vec384x ret, const vec384x a, const vec384 p, limb_t n0);
-void sqr_n_mul_mont_384x(vec384x ret, const vec384x a, size_t count,
-                         const vec384 p, limb_t n0, const vec384x b);
 void mul_382x(vec768 ret[2], const vec384x a, const vec384x b, const vec384 p);
 void sqr_382x(vec768 ret[2], const vec384x a, const vec384 p);
 
