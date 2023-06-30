@@ -246,8 +246,11 @@ static inline void vec_cswap(void *restrict a, void *restrict b, size_t num,
 {
     limb_t ai, *ap = (limb_t *)a;
     limb_t bi, *bp = (limb_t *)b;
-    limb_t xorm, mask = (limb_t)0 - cbit;
+    limb_t xorm, mask;
     size_t i;
+
+    launder(cbit);
+    mask = (limb_t)0 - cbit;
 
     num /= sizeof(limb_t);
 
