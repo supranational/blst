@@ -497,62 +497,55 @@ void blst_uint64_from_fr(unsigned long long ret[4], const vec256 a)
 
 int blst_scalar_from_le_bytes(pow256 out, const unsigned char *bytes, size_t n)
 {
-    struct { vec256 out, digit, radix; } t;
+    size_t rem = (n - 1) % 32 + 1;
+    struct { vec256 out, digit; } t;
     limb_t ret;
 
     vec_zero(t.out, sizeof(t.out));
-    vec_copy(t.radix, BLS12_381_rRR, sizeof(t.radix));
 
-    while (n > 32) {
-        limbs_from_le_bytes(t.digit, bytes, 32);
-        from_mont_256(t.digit, t.digit, BLS12_381_r, r0);
-        mul_mont_sparse_256(t.digit, t.digit, t.radix, BLS12_381_r, r0);
+    n -= rem;
+    limbs_from_le_bytes(t.out, bytes += n, rem);
+    mul_mont_sparse_256(t.out, BLS12_381_rRR, t.out, BLS12_381_r, r0);
+
+    while (n) {
+        limbs_from_le_bytes(t.digit, bytes -= 32, 32);
         add_mod_256(t.out, t.out, t.digit, BLS12_381_r);
-        mul_mont_sparse_256(t.radix, t.radix, BLS12_381_rRR, BLS12_381_r, r0);
-        bytes += 32;
+        mul_mont_sparse_256(t.out, BLS12_381_rRR, t.out, BLS12_381_r, r0);
         n -= 32;
     }
 
-    vec_zero(t.digit, sizeof(t.digit));
-    limbs_from_le_bytes(t.digit, bytes, n);
-    from_mont_256(t.digit, t.digit, BLS12_381_r, r0);
-    mul_mont_sparse_256(t.digit, t.digit, t.radix, BLS12_381_r, r0);
-    add_mod_256(t.out, t.out, t.digit, BLS12_381_r);
+    from_mont_256(t.out, t.out, BLS12_381_r, r0);
 
     ret = vec_is_zero(t.out, sizeof(t.out));
     le_bytes_from_limbs(out, t.out, 32);
-    vec_zero(t.out, 2*sizeof(t.out));
+    vec_zero(&t, sizeof(t));
 
     return (int)(ret^1);
 }
 
 int blst_scalar_from_be_bytes(pow256 out, const unsigned char *bytes, size_t n)
 {
-    struct { vec256 out, digit, radix; } t;
+    size_t rem = (n - 1) % 32 + 1;
+    struct { vec256 out, digit; } t;
     limb_t ret;
 
     vec_zero(t.out, sizeof(t.out));
-    vec_copy(t.radix, BLS12_381_rRR, sizeof(t.radix));
 
-    bytes += n;
-    while (n > 32) {
-        limbs_from_be_bytes(t.digit, bytes -= 32, 32);
-        from_mont_256(t.digit, t.digit, BLS12_381_r, r0);
-        mul_mont_sparse_256(t.digit, t.digit, t.radix, BLS12_381_r, r0);
+    limbs_from_be_bytes(t.out, bytes, rem);
+    mul_mont_sparse_256(t.out, BLS12_381_rRR, t.out, BLS12_381_r, r0);
+
+    while (n -= rem) {
+        limbs_from_be_bytes(t.digit, bytes += rem, 32);
         add_mod_256(t.out, t.out, t.digit, BLS12_381_r);
-        mul_mont_sparse_256(t.radix, t.radix, BLS12_381_rRR, BLS12_381_r, r0);
-        n -= 32;
+        mul_mont_sparse_256(t.out, BLS12_381_rRR, t.out, BLS12_381_r, r0);
+        rem = 32;
     }
 
-    vec_zero(t.digit, sizeof(t.digit));
-    limbs_from_be_bytes(t.digit, bytes -= n, n);
-    from_mont_256(t.digit, t.digit, BLS12_381_r, r0);
-    mul_mont_sparse_256(t.digit, t.digit, t.radix, BLS12_381_r, r0);
-    add_mod_256(t.out, t.out, t.digit, BLS12_381_r);
+    from_mont_256(t.out, t.out, BLS12_381_r, r0);
 
     ret = vec_is_zero(t.out, sizeof(t.out));
     le_bytes_from_limbs(out, t.out, 32);
-    vec_zero(t.out, 2*sizeof(t.out));
+    vec_zero(&t, sizeof(t));
 
     return (int)(ret^1);
 }
