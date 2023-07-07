@@ -4,7 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "cpuid.h"
+
 int __blst_platform_cap = 0;
+
+int __blst_platform_cap_initialized = 0;
+
+#define __blst_cpuid_run_once()          \
+    if (__blst_platform_cap_initialized) \
+        return 0;                        \
+    __blst_platform_cap_initialized = 1;
 
 #if defined(__x86_64__) || defined(__x86_64) || defined(_M_X64)
 
@@ -30,6 +39,8 @@ __attribute__((constructor))
 # endif
 int __blst_cpuid(void)
 {
+    __blst_cpuid_run_once();
+
     int info[4], cap = 0;
 
     __cpuidex(info, 0, 0);
@@ -59,6 +70,8 @@ extern unsigned long getauxval(unsigned long type) __attribute__ ((weak));
 __attribute__((constructor))
 int __blst_cpuid(void)
 {
+    __blst_cpuid_run_once();
+
     int cap = 0;
 
     if (getauxval) {
@@ -74,6 +87,8 @@ int __blst_cpuid(void)
 __attribute__((constructor))
 int __blst_cpuid()
 {
+    __blst_cpuid_run_once();
+
     __blst_platform_cap = 1; /* SHA256 */
     return 0;
 }
