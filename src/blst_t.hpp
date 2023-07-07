@@ -372,9 +372,7 @@ public:
     inline blst_256_t& to(const uint64_t a[2*n])
     {
         mul_mont_sparse_256(val, RR, (const limb_t*)(a + n), MOD, M0);
-        vec256 lo{0};
-        add_mod_256(lo, lo, (const limb_t*)a, MOD);
-        add_mod_256(val, val, lo, MOD);
+        add_mod_256(val, val, (const limb_t*)a, MOD);
         mul_mont_sparse_256(val, RR, val, MOD, M0);
 
         return *this;
@@ -383,7 +381,7 @@ public:
     {
         vec_zero(val, sizeof(val));
 
-        vec256 digit, zero{0};
+        vec256 digit;
         size_t rem = (n - 1) % 32 + 1;
         n -= rem;
 
@@ -392,7 +390,6 @@ public:
             mul_mont_sparse_256(val, RR, val, MOD, M0);
             while (n) {
                 limbs_from_le_bytes(digit, bytes -= 32, 32);
-                add_mod_256(digit, digit, zero, MOD);
                 add_mod_256(val, val, digit, MOD);
                 mul_mont_sparse_256(val, RR, val, MOD, M0);
                 n -= 32;
@@ -403,7 +400,6 @@ public:
             bytes += rem;
             while (n) {
                 limbs_from_be_bytes(digit, bytes, 32);
-                add_mod_256(digit, digit, zero, MOD);
                 add_mod_256(val, val, digit, MOD);
                 mul_mont_sparse_256(val, RR, val, MOD, M0);
                 bytes += 32;
@@ -416,6 +412,33 @@ public:
 
     inline blst_256_t& from()
     {   from_mont_256(val, val, MOD, M0); return *this;   }
+    inline blst_256_t& from(const uint64_t a[2*n])
+    {
+        redc_mont_256(val, (const limb_t*)a, MOD, M0);
+        mul_mont_sparse_256(val, RR, val, MOD, M0);
+
+        return *this;
+    }
+    inline blst_256_t& from(const unsigned char *bytes, size_t n, bool le = false)
+    {
+        if (n > 64)
+            return to(bytes, n, le).from();
+
+        if (n > 32) {
+            vec512 temp{0};
+            if (le) limbs_from_le_bytes(temp, bytes, n);
+            else    limbs_from_be_bytes(temp, bytes, n);
+            redc_mont_256(val, temp, MOD, M0);
+            mul_mont_sparse_256(val, RR, val, MOD, M0);
+        } else {
+            vec_zero(val, sizeof(val));
+            if (le) limbs_from_le_bytes(val, bytes, n);
+            else    limbs_from_be_bytes(val, bytes, n);
+            mul_mont_sparse_256(val, ONE, val, MOD, M0);
+        }
+
+        return *this;
+    }
 
     inline void store(limb_t *p) const
     {   vec_copy(p, val, sizeof(val));   }
