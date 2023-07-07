@@ -66,11 +66,105 @@ typedef byte pow256[256/8];
  */
 typedef limb_t bool_t;
 
+#if defined(__BLST_DYNAMIC__)
+# if defined(__BLST_PORTABLE__)
+#  error "__BLST_DYNAMIC__ and __BLST_PORTABLE__ cannot be specified at the same time"
+# endif
+# if defined(__BLST_NO_ASM__)
+#  error "__BLST_DYNAMIC__ and __BLST_NO_ASM__ cannot be specified at the same time"
+# endif
+# if !defined(__ADX__)
+#  error "__BLST_DYNAMIC__ requires __ADX__"
+# endif
+#endif
+
+#if defined(__BLST_DYNAMIC__)
+# include "ifunc.h"
+# define declare_optimizable_func(dyn_fn, portable_fn, optimized_fn, return_type, ...) \
+    ifunc(dyn_fn, portable_fn, optimized_fn, return_type, __VA_ARGS__);
+#elif defined(__ADX__) && !defined(__BLST_NO_ASM__) && !defined(__BLST_PORTABLE__)
+# define declare_optimizable_func(dyn_fn, portable_fn, optimized_fn, return_type, ...) \
+    return_type optimized_fn(__VA_ARGS__);
+#elif !defined(__BLST_NO_ASM__)
+# define declare_optimizable_func(dyn_fn, portable_fn, optimized_fn, return_type, ...) \
+    return_type portable_fn(__VA_ARGS__);
+#else
+# define declare_optimizable_func(dyn_fn, portable_fn, optimized_fn, return_type, ...) \
+    return_type portable_fn(__VA_ARGS__);
+#endif
+
 /*
  * Assembly subroutines...
  */
-#if defined(__ADX__) /* e.g. -march=broadwell */ && !defined(__BLST_PORTABLE__)\
-                                                 && !defined(__BLST_NO_ASM__)
+declare_optimizable_func(dyn_mul_mont_sparse_256, mul_mont_sparse_256, mulx_mont_sparse_256,
+        void, vec256 ret, const vec256 a, const vec256 b, const vec256 p, limb_t n0);
+declare_optimizable_func(dyn_sqr_mont_sparse_256, sqr_mont_sparse_256, sqrx_mont_sparse_256,
+        void, vec256 ret, const vec256 a, const vec256 p, limb_t n0);
+declare_optimizable_func(dyn_from_mont_256, from_mont_256, fromx_mont_256,
+        void, vec256 ret, const vec256 a, const vec256 p, limb_t n0);
+declare_optimizable_func(dyn_redc_mont_256, redc_mont_256, redcx_mont_256,
+        void, vec256 ret, const vec512 a, const vec256 p, limb_t n0);
+
+declare_optimizable_func(dyn_mul_mont_384, mul_mont_384, mulx_mont_384,
+        void, vec384 ret, const vec384 a, const vec384 b, const vec384 p, limb_t n0);
+declare_optimizable_func(dyn_sqr_mont_384, sqr_mont_384, sqrx_mont_384,
+        void, vec384 ret, const vec384 a, const vec384 p, limb_t n0);
+declare_optimizable_func(dyn_sqr_n_mul_mont_384, sqr_n_mul_mont_384, sqrx_n_mul_mont_384,
+        void, vec384 ret, const vec384 a, size_t count, const vec384 p, limb_t n0, const vec384 b);
+declare_optimizable_func(dyn_sqr_n_mul_mont_383, sqr_n_mul_mont_383, sqrx_n_mul_mont_383,
+        void, vec384 ret, const vec384 a, size_t count, const vec384 p, limb_t n0, const vec384 b);
+
+declare_optimizable_func(dyn_mul_384, mul_384, mulx_384,
+        void, vec768 ret, const vec384 a, const vec384 b);
+declare_optimizable_func(dyn_sqr_384, sqr_384, sqrx_384,
+        void, vec768 ret, const vec384 a);
+declare_optimizable_func(dyn_redc_mont_384, redc_mont_384, redcx_mont_384,
+        void, vec384 ret, const vec768 a, const vec384 p, limb_t n0);
+declare_optimizable_func(dyn_from_mont_384, from_mont_384, fromx_mont_384,
+        void, vec384 ret, const vec384 a, const vec384 p, limb_t n0);
+declare_optimizable_func(dyn_sgn0_pty_mont_384, sgn0_pty_mont_384, sgn0x_pty_mont_384,
+        limb_t, const vec384 a, const vec384 p, limb_t n0);
+declare_optimizable_func(dyn_sgn0_pty_mont_384x, sgn0_pty_mont_384x, sgn0x_pty_mont_384x,
+        limb_t, const vec384x a, const vec384 p, limb_t n0);
+
+declare_optimizable_func(dyn_ct_inverse_mod_383, ct_inverse_mod_383, ctx_inverse_mod_383,
+        void, vec768 ret, const vec384 inp, const vec384 mod, const vec384 modx);
+
+declare_optimizable_func(dyn_mul_mont_384x, mul_mont_384x, mulx_mont_384x,
+        void, vec384x ret, const vec384x a, const vec384x b, const vec384 p, limb_t n0);
+declare_optimizable_func(dyn_sqr_mont_384x, sqr_mont_384x, sqrx_mont_384x,
+        void, vec384x ret, const vec384x a, const vec384 p, limb_t n0);
+declare_optimizable_func(dyn_sqr_mont_382x, sqr_mont_382x, sqrx_mont_382x,
+        void, vec384x ret, const vec384x a, const vec384 p, limb_t n0);
+declare_optimizable_func(dyn_mul_382x, mul_382x, mulx_382x,
+        void, vec768 ret[2], const vec384x a, const vec384x b, const vec384 p);
+declare_optimizable_func(dyn_sqr_382x, sqr_382x, sqrx_382x,
+        void, vec768 ret[2], const vec384x a, const vec384 p);
+
+#if defined(__BLST_DYNAMIC__)
+/* Use indirect functions */
+# define mul_mont_sparse_256 dyn_mul_mont_sparse_256
+# define sqr_mont_sparse_256 dyn_sqr_mont_sparse_256
+# define from_mont_256 dyn_from_mont_256
+# define redc_mont_256 dyn_redc_mont_256
+# define mul_mont_384 dyn_mul_mont_384
+# define sqr_mont_384 dyn_sqr_mont_384
+# define sqr_n_mul_mont_384 dyn_sqr_n_mul_mont_384
+# define sqr_n_mul_mont_383 dyn_sqr_n_mul_mont_383
+# define mul_384 dyn_mul_384
+# define sqr_384 dyn_sqr_384
+# define redc_mont_384 dyn_redc_mont_384
+# define from_mont_384 dyn_from_mont_384
+# define sgn0_pty_mont_384 dyn_sgn0_pty_mont_384
+# define sgn0_pty_mont_384x dyn_sgn0_pty_mont_384x
+# define ct_inverse_mod_383 dyn_ct_inverse_mod_383
+# define mul_mont_384x dyn_mul_mont_384x
+# define sqr_mont_384x dyn_sqr_mont_384x
+# define sqr_mont_382x dyn_sqr_mont_382x
+# define mul_382x dyn_mul_382x
+# define sqr_382x dyn_sqr_382x
+#elif defined(__ADX__) && !defined(__BLST_NO_ASM__) && !defined(__BLST_PORTABLE__)
+/* Use optimized functions */
 # define mul_mont_sparse_256 mulx_mont_sparse_256
 # define sqr_mont_sparse_256 sqrx_mont_sparse_256
 # define from_mont_256 fromx_mont_256
@@ -86,15 +180,14 @@ typedef limb_t bool_t;
 # define sgn0_pty_mont_384 sgn0x_pty_mont_384
 # define sgn0_pty_mont_384x sgn0x_pty_mont_384x
 # define ct_inverse_mod_383 ctx_inverse_mod_383
-#elif defined(__BLST_NO_ASM__)
-# define ct_inverse_mod_383 ct_inverse_mod_384
+# define mul_mont_384x mulx_mont_384x
+# define sqr_mont_384x sqrx_mont_384x
+# define sqr_mont_382x sqrx_mont_382x
+# define mul_382x mulx_382x
+# define sqr_382x sqrx_382x
+#else
+/* Use portable functions */
 #endif
-
-void mul_mont_sparse_256(vec256 ret, const vec256 a, const vec256 b,
-                         const vec256 p, limb_t n0);
-void sqr_mont_sparse_256(vec256 ret, const vec256 a, const vec256 p, limb_t n0);
-void redc_mont_256(vec256 ret, const vec512 a, const vec256 p, limb_t n0);
-void from_mont_256(vec256 ret, const vec256 a, const vec256 p, limb_t n0);
 
 void add_mod_256(vec256 ret, const vec256 a, const vec256 b, const vec256 p);
 void sub_mod_256(vec256 ret, const vec256 a, const vec256 b, const vec256 p);
@@ -112,20 +205,6 @@ limb_t sub_n_check_mod_256(pow256 ret, const pow256 a, const pow256 b,
 
 void vec_prefetch(const void *ptr, size_t len);
 
-void mul_mont_384(vec384 ret, const vec384 a, const vec384 b,
-                  const vec384 p, limb_t n0);
-void sqr_mont_384(vec384 ret, const vec384 a, const vec384 p, limb_t n0);
-void sqr_n_mul_mont_384(vec384 ret, const vec384 a, size_t count,
-                        const vec384 p, limb_t n0, const vec384 b);
-void sqr_n_mul_mont_383(vec384 ret, const vec384 a, size_t count,
-                        const vec384 p, limb_t n0, const vec384 b);
-
-void mul_384(vec768 ret, const vec384 a, const vec384 b);
-void sqr_384(vec768 ret, const vec384 a);
-void redc_mont_384(vec384 ret, const vec768 a, const vec384 p, limb_t n0);
-void from_mont_384(vec384 ret, const vec384 a, const vec384 p, limb_t n0);
-limb_t sgn0_pty_mont_384(const vec384 a, const vec384 p, limb_t n0);
-limb_t sgn0_pty_mont_384x(const vec384x a, const vec384 p, limb_t n0);
 limb_t sgn0_pty_mod_384(const vec384 a, const vec384 p);
 limb_t sgn0_pty_mod_384x(const vec384x a, const vec384 p);
 
@@ -137,26 +216,9 @@ void cneg_mod_384(vec384 ret, const vec384 a, bool_t flag, const vec384 p);
 void lshift_mod_384(vec384 ret, const vec384 a, size_t count, const vec384 p);
 void rshift_mod_384(vec384 ret, const vec384 a, size_t count, const vec384 p);
 void div_by_2_mod_384(vec384 ret, const vec384 a, const vec384 p);
-void ct_inverse_mod_383(vec768 ret, const vec384 inp, const vec384 mod,
-                                                      const vec384 modx);
 void ct_inverse_mod_256(vec512 ret, const vec256 inp, const vec256 mod,
                                                       const vec256 modx);
 bool_t ct_is_square_mod_384(const vec384 inp, const vec384 mod);
-
-#if defined(__ADX__) /* e.g. -march=broadwell */ && !defined(__BLST_PORTABLE__)
-# define mul_mont_384x mulx_mont_384x
-# define sqr_mont_384x sqrx_mont_384x
-# define sqr_mont_382x sqrx_mont_382x
-# define mul_382x mulx_382x
-# define sqr_382x sqrx_382x
-#endif
-
-void mul_mont_384x(vec384x ret, const vec384x a, const vec384x b,
-                   const vec384 p, limb_t n0);
-void sqr_mont_384x(vec384x ret, const vec384x a, const vec384 p, limb_t n0);
-void sqr_mont_382x(vec384x ret, const vec384x a, const vec384 p, limb_t n0);
-void mul_382x(vec768 ret[2], const vec384x a, const vec384x b, const vec384 p);
-void sqr_382x(vec768 ret[2], const vec384x a, const vec384 p);
 
 void add_mod_384x(vec384x ret, const vec384x a, const vec384x b,
                   const vec384 p);
