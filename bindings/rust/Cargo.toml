@@ -33,6 +33,9 @@ portable = []
 # Enable ADX even if the host CPU doesn't support it.
 # Binary can be executed on Broadwell+ and Ryzen+ systems.
 force-adx = []
+# Compile with dynamic dispatch, detecting CPU features at runtime.
+# Binary can be executed on all systems.
+dynamic = []
 # Suppress multi-threading.
 # Engaged on wasm32 target architecture automatically.
 no-threads = []

@@ -124,12 +124,12 @@ fn main() {
     } else {
         cc.define("__BLST_NO_ASM__", None);
     }
-    match (cfg!(feature = "portable"), cfg!(feature = "force-adx")) {
-        (true, false) => {
+    match (cfg!(feature = "portable"), cfg!(feature = "force-adx"), cfg!(feature = "dynamic")) {
+        (true, false, false) => {
             println!("Compiling in portable mode without ISA extensions");
             cc.define("__BLST_PORTABLE__", None);
         }
-        (false, true) => {
+        (false, true, false) => {
             if target_arch.eq("x86_64") {
                 println!("Enabling ADX support via `force-adx` feature");
                 cc.define("__ADX__", None);
@@ -137,7 +137,16 @@ fn main() {
                 println!("`force-adx` is ignored for non-x86_64 targets");
             }
         }
-        (false, false) => {
+        (false, false, true) => {
+            if target_arch.eq("x86_64") {
+                println!("Enabling dynamic dispatch support via `dynamic` feature");
+                cc.define("__ADX__", None);
+                cc.define("__BLST_DYNAMIC__", None);
+            } else {
+                println!("`dynamic` is ignored for non-x86_64 targets");
+            }
+        }
+        (false, false, false) => {
             if target_arch.eq("x86_64") {
                 // If target-cpu is specified on the rustc command line,
                 // then obey the resulting target-features.
@@ -170,8 +179,17 @@ fn main() {
                 }
             }
         }
-        (true, true) => panic!(
-            "Cannot compile with both `portable` and `force-adx` features"
+        (true, true, false) => panic!(
+            "Cannot compile with both `portable` and `force-adx`"
+        ),
+        (true, false, true) => panic!(
+            "Cannot compile with both `portable` and `dynamic`"
+        ),
+        (false, true, true) => panic!(
+            "Cannot compile with both `force-adx` and `dynamic`"
+        ),
+        (true, true, true) => panic!(
+            "Cannot compile with `portable`, `force-adx` and `dynamic`"
         ),
     }
     if env::var("CARGO_CFG_TARGET_ENV").unwrap().eq("msvc") {

@@ -5,19 +5,19 @@
 #   define blst_sha256_block_data_order blst_sha256_block_ssse3
 #  endif
 #  include "elf/sha256-x86_64.s"
-#  if defined(__ADX__) || defined(__BLST_PORTABLE__)
+#  if defined(__ADX__) || defined(__BLST_PORTABLE__) || defined(__BLST_DYNAMIC__)
 #   include "elf/ctx_inverse_mod_384-x86_64.s"
 #  endif
-#  if !defined(__ADX__) || defined(__BLST_PORTABLE__)
+#  if !defined(__ADX__) || defined(__BLST_PORTABLE__) || defined(__BLST_DYNAMIC__)
 #   include "elf/ctq_inverse_mod_384-x86_64.s"
 #  endif
 #  include "elf/add_mod_384-x86_64.s"
 #  include "elf/add_mod_384x384-x86_64.s"
-#  if defined(__ADX__) || defined(__BLST_PORTABLE__)
+#  if defined(__ADX__) || defined(__BLST_PORTABLE__) || defined(__BLST_DYNAMIC__)
 #   include "elf/mulx_mont_384-x86_64.s"
 #   include "elf/mulx_mont_256-x86_64.s"
 #  endif
-#  if !defined(__ADX__) || defined(__BLST_PORTABLE__)
+#  if !defined(__ADX__) || defined(__BLST_PORTABLE__) || defined(__BLST_DYNAMIC__)
 #   include "elf/mulq_mont_384-x86_64.s"
 #   include "elf/mulq_mont_256-x86_64.s"
 #  endif
@@ -27,19 +27,19 @@
 #  include "elf/ct_is_square_mod_384-x86_64.s"
 # elif defined(_WIN64) || defined(__CYGWIN__)
 #  include "coff/sha256-x86_64.s"
-#  if defined(__ADX__) || defined(__BLST_PORTABLE__)
+#  if defined(__ADX__) || defined(__BLST_PORTABLE__) || defined(__BLST_DYNAMIC__)
 #   include "coff/ctx_inverse_mod_384-x86_64.s"
 #  endif
-#  if !defined(__ADX__) || defined(__BLST_PORTABLE__)
+#  if !defined(__ADX__) || defined(__BLST_PORTABLE__) || defined(__BLST_DYNAMIC__)
 #   include "coff/ctq_inverse_mod_384-x86_64.s"
 #  endif
 #  include "coff/add_mod_384-x86_64.s"
 #  include "coff/add_mod_384x384-x86_64.s"
-#  if defined(__ADX__) || defined(__BLST_PORTABLE__)
+#  if defined(__ADX__) || defined(__BLST_PORTABLE__) || defined(__BLST_DYNAMIC__)
 #   include "coff/mulx_mont_384-x86_64.s"
 #   include "coff/mulx_mont_256-x86_64.s"
 #  endif
-#  if !defined(__ADX__) || defined(__BLST_PORTABLE__)
+#  if !defined(__ADX__) || defined(__BLST_PORTABLE__) || defined(__BLST_DYNAMIC__)
 #   include "coff/mulq_mont_384-x86_64.s"
 #   include "coff/mulq_mont_256-x86_64.s"
 #  endif
@@ -49,19 +49,19 @@
 #  include "coff/ct_is_square_mod_384-x86_64.s"
 # elif defined(__APPLE__)
 #  include "mach-o/sha256-x86_64.s"
-#  if defined(__ADX__) || defined(__BLST_PORTABLE__)
+#  if defined(__ADX__) || defined(__BLST_PORTABLE__) || defined(__BLST_DYNAMIC__)
 #   include "mach-o/ctx_inverse_mod_384-x86_64.s"
 #  endif
-#  if !defined(__ADX__) || defined(__BLST_PORTABLE__)
+#  if !defined(__ADX__) || defined(__BLST_PORTABLE__) || defined(__BLST_DYNAMIC__)
 #   include "mach-o/ctq_inverse_mod_384-x86_64.s"
 #  endif
 #  include "mach-o/add_mod_384-x86_64.s"
 #  include "mach-o/add_mod_384x384-x86_64.s"
-#  if defined(__ADX__) || defined(__BLST_PORTABLE__)
+#  if defined(__ADX__) || defined(__BLST_PORTABLE__) || defined(__BLST_DYNAMIC__)
 #   include "mach-o/mulx_mont_384-x86_64.s"
 #   include "mach-o/mulx_mont_256-x86_64.s"
 #  endif
-#  if !defined(__ADX__) || defined(__BLST_PORTABLE__)
+#  if !defined(__ADX__) || defined(__BLST_PORTABLE__) || defined(__BLST_DYNAMIC__)
 #   include "mach-o/mulq_mont_384-x86_64.s"
 #   include "mach-o/mulq_mont_256-x86_64.s"
 #  endif
