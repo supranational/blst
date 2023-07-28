@@ -41,9 +41,14 @@ macro_rules! pippenger_test_mod {
                         $mult(&mut t, &points[i], &scalars[i * nbytes], nbits);
                         $add_or_double(&mut naive, &naive, &t);
                     }
+                    if i < 27 {
+                        let points = $points::from(&points[0..i + 1]);
+                        assert_eq!(naive, points.mult(scalars.as_ref(), nbits));
+                    }
                 }
 
                 let points = $points::from(&points);
+
                 assert_eq!(naive, points.mult(scalars.as_ref(), nbits));
             }
 
