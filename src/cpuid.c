@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#if (defined(__GNUC__) || defined(__clang__) || defined(__SUNPRO_C)) && !defined(_WIN32)
+__attribute__((visibility("hidden")))
+#endif
 int __blst_platform_cap = 0;
 
 #if defined(__x86_64__) || defined(__x86_64) || defined(_M_X64)
@@ -28,7 +31,7 @@ static void __cpuidex(int info[4], int func, int sub)
 # if defined(__GNUC__) || defined(__clang__)
 __attribute__((constructor))
 # endif
-int __blst_cpuid(void)
+static int __blst_cpuid(void)
 {
     int info[4], cap = 0;
 
@@ -57,7 +60,7 @@ __declspec(allocate(".CRT$XCU")) static int (*p)(void) = __blst_cpuid;
 extern unsigned long getauxval(unsigned long type) __attribute__ ((weak));
 
 __attribute__((constructor))
-int __blst_cpuid(void)
+static int __blst_cpuid(void)
 {
     int cap = 0;
 
@@ -72,7 +75,7 @@ int __blst_cpuid(void)
 }
 # elif defined(__APPLE__) && (defined(__GNUC__) || defined(__clang__))
 __attribute__((constructor))
-int __blst_cpuid()
+static int __blst_cpuid()
 {
     __blst_platform_cap = 1; /* SHA256 */
     return 0;
