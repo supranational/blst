@@ -100,13 +100,12 @@ if [ $shared ]; then
     case $flavour in
         macosx) (set -x; ${CC} -dynamiclib -o libblst$dll.dylib \
                                -all_load libblst.a ${CFLAGS}); exit 0;;
-        mingw*) sharedlib=blst.dll
+        mingw*) sharedlib="blst.dll ${TOP}/build/win64/blst.def"
                 CFLAGS="${CFLAGS} --entry=DllMain ${TOP}/build/win64/dll.c"
                 CFLAGS="${CFLAGS} -nostdlib -lgcc";;
         *)      sharedlib=libblst$dll.so;;
     esac
-    echo "{ global: blst_*; BLS12_381_*; local: *; };" > ${TMPDIR}/ld.blst.$$
     (set -x; ${CC} -shared -o $sharedlib \
                    -Wl,--whole-archive,libblst.a,--no-whole-archive ${CFLAGS} \
-                   -Wl,-Bsymbolic,--version-script=${TMPDIR}/ld.blst.$$)
+                   -Wl,-Bsymbolic)
 fi
