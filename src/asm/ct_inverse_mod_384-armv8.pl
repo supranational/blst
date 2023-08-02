@@ -91,6 +91,7 @@ $code.=<<___;
 .text
 
 .globl	ct_inverse_mod_383
+.hidden	ct_inverse_mod_383
 .type	ct_inverse_mod_383, %function
 .align	5
 ct_inverse_mod_383:

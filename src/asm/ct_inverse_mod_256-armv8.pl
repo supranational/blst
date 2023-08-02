@@ -96,6 +96,7 @@ $code.=<<___;
 .text
 
 .globl	ct_inverse_mod_256
+.hidden	ct_inverse_mod_256
 .type	ct_inverse_mod_256, %function
 .align	5
 ct_inverse_mod_256:

@@ -94,6 +94,7 @@ $code.=<<___;
 .text
 
 .globl	ct_inverse_mod_383
+.hidden	ct_inverse_mod_383
 .type	ct_inverse_mod_383,\@function,4,"unwind"
 .align	32
 ct_inverse_mod_383:
