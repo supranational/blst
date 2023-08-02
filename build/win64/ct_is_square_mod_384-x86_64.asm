@@ -3,6 +3,7 @@ OPTION	DOTNAME
 
 PUBLIC	ct_is_square_mod_384
 
+
 ALIGN	32
 ct_is_square_mod_384	PROC PUBLIC
 	DB	243,15,30,250

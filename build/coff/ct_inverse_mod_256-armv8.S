@@ -1,6 +1,7 @@
 .text
 
 .globl	ct_inverse_mod_256
+
 .def	ct_inverse_mod_256;
 .type	32;
 .endef

@@ -1,6 +1,7 @@
 .text	
 
 .globl	_ctx_inverse_mod_383
+.private_extern	_ctx_inverse_mod_383
 
 .p2align	5
 _ctx_inverse_mod_383:

@@ -2,6 +2,7 @@
 .text	
 
 .globl	_ct_inverse_mod_383
+.private_extern	_ct_inverse_mod_383
 
 .p2align	5
 _ct_inverse_mod_383:

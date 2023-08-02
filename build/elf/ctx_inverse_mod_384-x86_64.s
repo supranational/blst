@@ -1,6 +1,7 @@
 .text	
 
 .globl	ctx_inverse_mod_383
+.hidden	ctx_inverse_mod_383
 .type	ctx_inverse_mod_383,@function
 .align	32
 ctx_inverse_mod_383:

@@ -1,6 +1,7 @@
 .text	
 
 .globl	ct_is_square_mod_384
+
 .def	ct_is_square_mod_384;	.scl 2;	.type 32;	.endef
 .p2align	5
 ct_is_square_mod_384:

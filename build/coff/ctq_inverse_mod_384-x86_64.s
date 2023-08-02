@@ -2,6 +2,7 @@
 .text	
 
 .globl	ct_inverse_mod_383
+
 .def	ct_inverse_mod_383;	.scl 2;	.type 32;	.endef
 .p2align	5
 ct_inverse_mod_383:

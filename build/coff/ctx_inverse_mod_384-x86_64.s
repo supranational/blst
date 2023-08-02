@@ -1,6 +1,7 @@
 .text	
 
 .globl	ctx_inverse_mod_383
+
 .def	ctx_inverse_mod_383;	.scl 2;	.type 32;	.endef
 .p2align	5
 ctx_inverse_mod_383:
