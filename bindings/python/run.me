@@ -25,7 +25,7 @@ def newer(*files):
 
 if newer("../blst.h", "../libblst.a"):
     print("building libblst.a...") or sys.stdout.flush()
-    subprocess.check_call(["../build.sh"] + sys.argv[1:], cwd="..")
+    subprocess.check_call(["../build.sh", "-fvisibility=hidden"] + sys.argv[1:], cwd="..")
 
 if newer("../blst.swg", "../blst.h", "../blst.hpp", "blst_wrap.cpp"):
     print("swig-ing...") or sys.stdout.flush()
@@ -39,7 +39,7 @@ if newer("blst_wrap.cpp", "../libblst.a", "_blst.so"):
         cmd = ["c++", "-bundle", "-undefined", "dynamic_lookup"]
     else:
         cmd = ["c++", "-shared", "-Wl,-Bsymbolic"]
-    cmd.extend(["-o", "_blst.so", "-fPIC",
+    cmd.extend(["-o", "_blst.so", "-fPIC", "-fvisibility=hidden",
                 "-I"+sysconfig.get_config_var('INCLUDEPY'), "-I..",
                 "-O", "-Wall", "blst_wrap.cpp", "../libblst.a"])
     try:
