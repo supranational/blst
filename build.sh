@@ -80,10 +80,12 @@ fi
 AR=${AR:-${CROSS_COMPILE}ar}
 
 if (${CC} ${CFLAGS} -dM -E -x c /dev/null) 2>/dev/null | grep -q x86_64; then
-    cflags="$cflags -mno-avx" # avoid costly transitions
     if (grep -q -e '^flags.*\badx\b' /proc/cpuinfo) 2>/dev/null; then
         cflags="-D__ADX__ $cflags"
     fi
+fi
+if (${CC} ${CFLAGS} -dM -E -x c /dev/null) 2>/dev/null | grep -q __AVX__; then
+    cflags="$cflags -mno-avx" # avoid costly transitions
 fi
 
 CFLAGS="$CFLAGS $cflags"
