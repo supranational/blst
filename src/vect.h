@@ -211,7 +211,7 @@ typedef const void *uptr_t;
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
-# define launder(var) asm volatile("" : "+r"(var))
+# define launder(var) __asm__ __volatile__("" : "+r"(var))
 #else
 # define launder(var)
 #endif
@@ -377,7 +377,7 @@ static inline void vec_zero(void *ret, size_t num)
         rp[i] = 0;
 
 #if defined(__GNUC__) || defined(__clang__)
-    asm volatile("" : : "r"(ret) : "memory");
+    __asm__ __volatile__("" : : "r"(ret) : "memory");
 #endif
 }
 
