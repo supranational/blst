@@ -472,8 +472,10 @@ func (pk *P1Affine) KeyValidate() bool {
 // always cryptographically safe, but application might want
 // to guard against obviously bogus individual[!] signatures.
 func (sig *P2Affine) SigValidate(sigInfcheck bool) bool {
-	return (sigInfcheck && !bool(C.blst_p2_affine_is_inf(sig))) ||
-		bool(C.blst_p2_affine_in_g2(sig))
+	if sigInfcheck && bool(C.blst_p2_affine_is_inf(sig)) {
+		return false
+	}
+	return bool(C.blst_p2_affine_in_g2(sig))
 }
 
 //
@@ -1090,8 +1092,10 @@ func (pk *P2Affine) KeyValidate() bool {
 // always cryptographically safe, but application might want
 // to guard against obviously bogus individual[!] signatures.
 func (sig *P1Affine) SigValidate(sigInfcheck bool) bool {
-	return (sigInfcheck && !bool(C.blst_p1_affine_is_inf(sig))) ||
-		bool(C.blst_p1_affine_in_g1(sig))
+	if sigInfcheck && bool(C.blst_p1_affine_is_inf(sig)) {
+		return false
+	}
+	return bool(C.blst_p1_affine_in_g1(sig))
 }
 
 //
