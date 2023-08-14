@@ -19,6 +19,7 @@ blst (pronounced 'blast') is a BLS12-381 signature library focused on performanc
     + [Serialization Format](#serialization-format)
   * [Build](#build)
     + [C static library](#c-static-library)
+  * [Install](#install)
   * [Language-specific notes](#language-specific-notes)
     + [Go](#go)
     + [Rust](#rust)
@@ -150,6 +151,32 @@ Windows (Visual C)
 ```
 
 If final application crashes with an "illegal instruction" exception [after copying to another system], pass <nobr>`-D__BLST_PORTABLE__`</nobr> on `build.sh` command line. If you don't use build.sh, complement the `CFLAGS` environment variable with the said command line option. If you compile a Go application, you will need to modify the `CGO_CFLAGS` variable instead. And if you compile a Rust application, you can pass <nobr>`--features portable`</nobr> to `cargo build`. Alternatively, if you compile on an older Intel system, but will execute application on a newer one, consider instead passing <nobr>`--features force-adx`</nobr> for better performance.
+
+## Install
+
+The following installation instructions are relevant only to Linux and Mac OS.
+
+### Simple
+
+The simplest solution to install BLST files in such a way they can be found by downstream consumers depending on the C library and headers is to:
+
+* Copy `bindings/*.h` and `bindings/*.hpp` files to `/usr/local/include`
+* Copy `libblst.a` (and possibly `libblst.so` or `libblst.dylib`) to `/usr/local/lib`
+
+Then one can use traditional `-L/usr/local/include -lblst` to link to the library, and `-I/usr/local/include` to find the header files.
+
+## Less Simple
+
+Most Linux-native packages, and a good deal of those ported to Mac OS X, use [pkg-config](https://people.freedesktop.org/~dbn/pkg-config-guide.html) to simplify the process of managing native headers and libraries required for compilation. The [libblst.pc](./libblst.pc) file contains a minimal configuration file that will allow build systems using `pkg-config` to depend on BLST in a simpler way.
+
+Here is a script fragment that details the various steps needed to install libblst in a pkg-config compatible way:
+
+```
+sudo cp libblst.pc /usr/local/lib/pkgconfig/
+sudo cp bindings/blst_aux.h bindings/blst.h bindings/blst.hpp  /usr/local/include/
+sudo cp libblst.a /usr/local/lib
+sudo chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}}
+```
 
 ## Language-specific notes
 
