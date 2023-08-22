@@ -34,15 +34,17 @@ fn main() {
 
     // account for cross-compilation [by examining environment variables]
     let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
+    let target_env = env::var("CARGO_CFG_TARGET_ENV").unwrap();
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+
     let target_no_std = target_os.eq("none")
-        || target_os.eq("unknown")
+        || (target_os.eq("unknown") && target_arch.eq("wasm32"))
         || target_os.eq("uefi")
         || env::var("BLST_TEST_NO_STD").is_ok();
 
     if !target_no_std {
         println!("cargo:rustc-cfg=feature=\"std\"");
-        if target_arch.eq("wasm32") {
+        if target_arch.eq("wasm32") || target_os.eq("unknown") {
             println!("cargo:rustc-cfg=feature=\"no-threads\"");
         }
     }
@@ -87,6 +89,26 @@ fn main() {
             .output()
         {
             Ok(_) => env::set_var("CC", "clang"),
+            Err(_) => { /* no clang in sight, just ignore the error */ }
+        }
+    }
+
+    if target_env.eq("sgx") && !env::var("CC").is_ok() {
+        match std::process::Command::new("clang")
+            .arg("--version")
+            .output()
+        {
+            Ok(out) => {
+                let version = String::from_utf8(out.stdout)
+                    .unwrap_or("unintelligible".to_string());
+                if let Some(x) = version.find("clang version ") {
+                    let x = x + 14;
+                    let y = version[x..].find(".").unwrap_or(0);
+                    if version[x..x + y].parse::<i32>().unwrap_or(0) >= 11 {
+                        env::set_var("CC", "clang");
+                    }
+                }
+            }
             Err(_) => { /* no clang in sight, just ignore the error */ }
         }
     }
@@ -159,6 +181,9 @@ fn main() {
                         );
                         cc.define("__ADX__", None);
                     }
+                } else if target_env.eq("sgx") {
+                    println!("Enabling ADX for Intel SGX target");
+                    cc.define("__ADX__", None);
                 } else {
                     #[cfg(target_arch = "x86_64")]
                     if std::is_x86_feature_detected!("adx") {
@@ -174,7 +199,7 @@ fn main() {
             "Cannot compile with both `portable` and `force-adx` features"
         ),
     }
-    if env::var("CARGO_CFG_TARGET_ENV").unwrap().eq("msvc") {
+    if target_env.eq("msvc") {
         cc.flag("-Zl");
     }
     cc.flag_if_supported("-mno-avx") // avoid costly transitions
@@ -182,10 +207,14 @@ fn main() {
         .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-command-line-argument");
     if target_arch.eq("wasm32") || target_no_std {
-        if env::var("CARGO_CFG_TARGET_ENV").unwrap().ne("msvc") {
+        if target_env.ne("msvc") {
             cc.flag("-ffreestanding");
         }
         cc.define("SCRATCH_LIMIT", "(45 * 1024)");
+    }
+    if target_env.eq("sgx") {
+        cc.flag_if_supported("-mlvi-hardening");
+        cc.define("__BLST_NO_CPUID__", None);
     }
     if !cfg!(debug_assertions) {
         cc.opt_level(2);
