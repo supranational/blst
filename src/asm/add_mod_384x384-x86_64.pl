@@ -59,6 +59,9 @@ add_mod_384x384:
 .cfi_adjust_cfa_offset	8
 .cfi_end_prologue
 
+#ifdef	__SGX_LVI_HARDENING__
+	lfence
+#endif
 	mov	8*0($a_ptr), @acc[0]
 	mov	8*1($a_ptr), @acc[1]
 	mov	8*2($a_ptr), @acc[2]
@@ -160,6 +163,9 @@ sub_mod_384x384:
 .cfi_adjust_cfa_offset	8
 .cfi_end_prologue
 
+#ifdef	__SGX_LVI_HARDENING__
+	lfence
+#endif
 	mov	8*0($a_ptr), @acc[0]
 	mov	8*1($a_ptr), @acc[1]
 	mov	8*2($a_ptr), @acc[2]
