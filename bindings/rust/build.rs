@@ -214,6 +214,8 @@ fn main() {
     }
     if target_env.eq("sgx") {
         cc.flag_if_supported("-mlvi-hardening");
+        cc.flag("-ffreestanding");
+        cc.define("__SGX_LVI_HARDENING__", None);
         cc.define("__BLST_NO_CPUID__", None);
     }
     if !cfg!(debug_assertions) {
