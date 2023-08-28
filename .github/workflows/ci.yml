@@ -79,6 +79,15 @@ jobs:
                 AR=llvm-ar CARGO_TARGET_WASM32_WASI_RUNNER=wasmtime \
                 cargo test --release --target=wasm32-wasi
             cargo clean -p blst --release --target=wasm32-wasi
+            echo '--- test -mlvi-hardening'
+            echo
+            env CC=clang CFLAGS="-mlvi-hardening -D__SGX_LVI_HARDENING__" \
+                cargo test --release
+            echo '--- build x86_64-fortanix-unknown-sgx'
+            echo
+            rustup target add x86_64-fortanix-unknown-sgx
+            cargo build --release --target=x86_64-fortanix-unknown-sgx
+            cargo clean -p blst --release --target=x86_64-fortanix-unknown-sgx
             echo '--- dry-run publish'
             echo
             ./publish.sh --dry-run
