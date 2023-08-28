@@ -31,6 +31,9 @@ _add_mod_384x384:
 .cfi_adjust_cfa_offset	8
 
 
+#ifdef	__SGX_LVI_HARDENING__
+	lfence
+#endif
 	movq	0(%rsi),%r8
 	movq	8(%rsi),%r9
 	movq	16(%rsi),%r10
@@ -106,7 +109,15 @@ _add_mod_384x384:
 	leaq	56(%rsp),%rsp
 .cfi_adjust_cfa_offset	-56
 
+	
+#ifdef	__SGX_LVI_HARDENING__
+	popq	%rdx
+	lfence
+	jmpq	*%rdx
+	ud2
+#else
 	.byte	0xf3,0xc3
+#endif
 .cfi_endproc	
 
 
@@ -141,6 +152,9 @@ _sub_mod_384x384:
 .cfi_adjust_cfa_offset	8
 
 
+#ifdef	__SGX_LVI_HARDENING__
+	lfence
+#endif
 	movq	0(%rsi),%r8
 	movq	8(%rsi),%r9
 	movq	16(%rsi),%r10
@@ -215,6 +229,14 @@ _sub_mod_384x384:
 	leaq	56(%rsp),%rsp
 .cfi_adjust_cfa_offset	-56
 
+	
+#ifdef	__SGX_LVI_HARDENING__
+	popq	%rdx
+	lfence
+	jmpq	*%rdx
+	ud2
+#else
 	.byte	0xf3,0xc3
+#endif
 .cfi_endproc	
 

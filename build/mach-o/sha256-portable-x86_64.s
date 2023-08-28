@@ -1651,7 +1651,15 @@ L$rounds_16_xx:
 .cfi_restore	%rbp
 .cfi_restore	%rbx
 	leaq	(%r11),%rsp
+	
+#ifdef	__SGX_LVI_HARDENING__
+	popq	%rdx
+	lfence
+	jmpq	*%rdx
+	ud2
+#else
 	.byte	0xf3,0xc3
+#endif
 .cfi_endproc	
 
 
@@ -1705,7 +1713,15 @@ _blst_sha256_emit:
 	shrq	$32,%r11
 	movl	%r10d,16(%rdi)
 	movl	%r11d,24(%rdi)
+	
+#ifdef	__SGX_LVI_HARDENING__
+	popq	%rdx
+	lfence
+	jmpq	*%rdx
+	ud2
+#else
 	.byte	0xf3,0xc3
+#endif
 .cfi_endproc
 
 
@@ -1724,7 +1740,15 @@ L$oop_bcopy:
 	movb	%al,-1(%rdi,%rsi,1)
 	decq	%rdx
 	jnz	L$oop_bcopy
+	
+#ifdef	__SGX_LVI_HARDENING__
+	popq	%rdx
+	lfence
+	jmpq	*%rdx
+	ud2
+#else
 	.byte	0xf3,0xc3
+#endif
 .cfi_endproc
 
 
@@ -1744,7 +1768,15 @@ _blst_sha256_hcopy:
 	movq	%r9,8(%rdi)
 	movq	%r10,16(%rdi)
 	movq	%r11,24(%rdi)
+	
+#ifdef	__SGX_LVI_HARDENING__
+	popq	%rdx
+	lfence
+	jmpq	*%rdx
+	ud2
+#else
 	.byte	0xf3,0xc3
+#endif
 .cfi_endproc
 
 #endif

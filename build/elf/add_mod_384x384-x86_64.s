@@ -31,6 +31,9 @@ add_mod_384x384:
 .cfi_adjust_cfa_offset	8
 
 
+#ifdef	__SGX_LVI_HARDENING__
+	lfence
+#endif
 	movq	0(%rsi),%r8
 	movq	8(%rsi),%r9
 	movq	16(%rsi),%r10
@@ -106,7 +109,15 @@ add_mod_384x384:
 	leaq	56(%rsp),%rsp
 .cfi_adjust_cfa_offset	-56
 
+	
+#ifdef	__SGX_LVI_HARDENING__
+	popq	%rdx
+	lfence
+	jmpq	*%rdx
+	ud2
+#else
 	.byte	0xf3,0xc3
+#endif
 .cfi_endproc	
 .size	add_mod_384x384,.-add_mod_384x384
 
@@ -141,6 +152,9 @@ sub_mod_384x384:
 .cfi_adjust_cfa_offset	8
 
 
+#ifdef	__SGX_LVI_HARDENING__
+	lfence
+#endif
 	movq	0(%rsi),%r8
 	movq	8(%rsi),%r9
 	movq	16(%rsi),%r10
@@ -215,14 +229,24 @@ sub_mod_384x384:
 	leaq	56(%rsp),%rsp
 .cfi_adjust_cfa_offset	-56
 
+	
+#ifdef	__SGX_LVI_HARDENING__
+	popq	%rdx
+	lfence
+	jmpq	*%rdx
+	ud2
+#else
 	.byte	0xf3,0xc3
+#endif
 .cfi_endproc	
 .size	sub_mod_384x384,.-sub_mod_384x384
 
 .section	.note.GNU-stack,"",@progbits
+#ifndef	__SGX_LVI_HARDENING__
 .section	.note.gnu.property,"a",@note
 	.long	4,2f-1f,5
 	.byte	0x47,0x4E,0x55,0
 1:	.long	0xc0000002,4,3
 .align	8
 2:
+#endif
