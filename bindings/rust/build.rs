@@ -5,9 +5,14 @@ extern crate cc;
 use std::env;
 use std::path::{Path, PathBuf};
 
-fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path, _arch: &str) {
+fn assembly(
+    file_vec: &mut Vec<PathBuf>,
+    base_dir: &Path,
+    _arch: &str,
+    _is_msvc: bool,
+) {
     #[cfg(target_env = "msvc")]
-    if env::var("CARGO_CFG_TARGET_ENV").unwrap().eq("msvc") {
+    if _is_msvc {
         let sfx = match _arch {
             "x86_64" => "x86_64",
             "aarch64" => "armv8",
@@ -113,8 +118,8 @@ fn main() {
         }
     }
 
-    #[cfg(target_env = "msvc")]
-    if env::var("CARGO_CFG_TARGET_POINTER_WIDTH").unwrap().eq("32")
+    if target_env.eq("msvc")
+        && env::var("CARGO_CFG_TARGET_POINTER_WIDTH").unwrap().eq("32")
         && !env::var("CC").is_ok()
     {
         match std::process::Command::new("clang-cl")
@@ -142,7 +147,12 @@ fn main() {
     if target_arch.eq("x86_64") || target_arch.eq("aarch64") {
         let asm_dir = blst_base_dir.join("build");
         println!("cargo:rerun-if-changed={}", asm_dir.display());
-        assembly(&mut file_vec, &asm_dir, &target_arch);
+        assembly(
+            &mut file_vec,
+            &asm_dir,
+            &target_arch,
+            cc.get_compiler().is_like_msvc(),
+        );
     } else {
         cc.define("__BLST_NO_ASM__", None);
     }
@@ -199,7 +209,7 @@ fn main() {
             "Cannot compile with both `portable` and `force-adx` features"
         ),
     }
-    if target_env.eq("msvc") {
+    if target_env.eq("msvc") && cc.get_compiler().is_like_msvc() {
         cc.flag("-Zl");
     }
     cc.flag_if_supported("-mno-avx") // avoid costly transitions
