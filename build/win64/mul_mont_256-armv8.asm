@@ -28,7 +28,7 @@
 	umulh	x16,x12,x9
 	umulh	x17,x13,x9
 	adds	x20,x20,x14
-	//mul	x14,x5,x3
+
 	adcs	x21,x21,x15
 	mul	x15,x6,x3
 	adcs	x22,x22,x16
@@ -36,7 +36,7 @@
 	adc	x23,xzr,    x17
 	mul	x17,x8,x3
 	ldr	x9,[x2,8*1]
-	subs	xzr,x19,#1		//adds	x19,x19,x14
+	subs	xzr,x19,#1
 	umulh	x14,x5,x3
 	adcs	x20,x20,x15
 	umulh	x15,x6,x3
@@ -68,7 +68,7 @@
 	adc	x23,x23,xzr
 
 	adds	x20,x20,x14
-	//mul	x14,x5,x3
+
 	adcs	x21,x21,x15
 	mul	x15,x6,x3
 	adcs	x22,x22,x16
@@ -76,7 +76,7 @@
 	adc	x23,x23,x17
 	mul	x17,x8,x3
 	ldr	x9,[x2,8*2]
-	subs	xzr,x19,#1		//adds	x19,x19,x14
+	subs	xzr,x19,#1
 	umulh	x14,x5,x3
 	adcs	x20,x20,x15
 	umulh	x15,x6,x3
@@ -108,7 +108,7 @@
 	adc	x23,x23,xzr
 
 	adds	x20,x20,x14
-	//mul	x14,x5,x3
+
 	adcs	x21,x21,x15
 	mul	x15,x6,x3
 	adcs	x22,x22,x16
@@ -116,7 +116,7 @@
 	adc	x23,x23,x17
 	mul	x17,x8,x3
 	ldr	x9,[x2,8*3]
-	subs	xzr,x19,#1		//adds	x19,x19,x14
+	subs	xzr,x19,#1
 	umulh	x14,x5,x3
 	adcs	x20,x20,x15
 	umulh	x15,x6,x3
@@ -148,14 +148,14 @@
 	adc	x23,x23,xzr
 
 	adds	x20,x20,x14
-	//mul	x14,x5,x3
+
 	adcs	x21,x21,x15
 	mul	x15,x6,x3
 	adcs	x22,x22,x16
 	mul	x16,x7,x3
 	adc	x23,x23,x17
 	mul	x17,x8,x3
-	subs	xzr,x19,#1		//adds	x19,x19,x14
+	subs	xzr,x19,#1
 	umulh	x14,x5,x3
 	adcs	x20,x20,x15
 	umulh	x15,x6,x3
@@ -206,64 +206,64 @@
 	ldp	x7,x8,[x1,#16]
 	mov	x4,x3
 
-	////////////////////////////////////////////////////////////////
-	//  |  |  |  |  |  |a1*a0|  |
-	//  |  |  |  |  |a2*a0|  |  |
-	//  |  |a3*a2|a3*a0|  |  |  |
-	//  |  |  |  |a2*a1|  |  |  |
-	//  |  |  |a3*a1|  |  |  |  |
-	// *|  |  |  |  |  |  |  | 2|
-	// +|a3*a3|a2*a2|a1*a1|a0*a0|
-	//  |--+--+--+--+--+--+--+--|
-	//  |A7|A6|A5|A4|A3|A2|A1|A0|, where Ax is x10
-	//
-	//  "can't overflow" below mark carrying into high part of
-	//  multiplication result, which can't overflow, because it
-	//  can never be all ones.
 
-	mul	x11,x6,x5	// a[1]*a[0]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	mul	x11,x6,x5
 	umulh	x15,x6,x5
-	mul	x12,x7,x5	// a[2]*a[0]
+	mul	x12,x7,x5
 	umulh	x16,x7,x5
-	mul	x13,x8,x5	// a[3]*a[0]
+	mul	x13,x8,x5
 	umulh	x19,x8,x5
 
-	adds	x12,x12,x15	// accumulate high parts of multiplication
-	mul	x14,x7,x6	// a[2]*a[1]
+	adds	x12,x12,x15
+	mul	x14,x7,x6
 	umulh	x15,x7,x6
 	adcs	x13,x13,x16
-	mul	x16,x8,x6	// a[3]*a[1]
+	mul	x16,x8,x6
 	umulh	x17,x8,x6
-	adc	x19,x19,xzr	// can't overflow
+	adc	x19,x19,xzr
 
-	mul	x20,x8,x7	// a[3]*a[2]
+	mul	x20,x8,x7
 	umulh	x21,x8,x7
 
-	adds	x15,x15,x16	// accumulate high parts of multiplication
-	mul	x10,x5,x5	// a[0]*a[0]
-	adc	x16,x17,xzr	// can't overflow
+	adds	x15,x15,x16
+	mul	x10,x5,x5
+	adc	x16,x17,xzr
 
-	adds	x13,x13,x14	// accumulate low parts of multiplication
+	adds	x13,x13,x14
 	umulh	x5,x5,x5
 	adcs	x19,x19,x15
-	mul	x15,x6,x6	// a[1]*a[1]
+	mul	x15,x6,x6
 	adcs	x20,x20,x16
 	umulh	x6,x6,x6
-	adc	x21,x21,xzr	// can't overflow
+	adc	x21,x21,xzr
 
-	adds	x11,x11,x11	// acc[1-6]*=2
-	mul	x16,x7,x7	// a[2]*a[2]
+	adds	x11,x11,x11
+	mul	x16,x7,x7
 	adcs	x12,x12,x12
 	umulh	x7,x7,x7
 	adcs	x13,x13,x13
-	mul	x17,x8,x8	// a[3]*a[3]
+	mul	x17,x8,x8
 	adcs	x19,x19,x19
 	umulh	x8,x8,x8
 	adcs	x20,x20,x20
 	adcs	x21,x21,x21
 	adc	x22,xzr,xzr
 
-	adds	x11,x11,x5	// +a[i]*a[i]
+	adds	x11,x11,x5
 	adcs	x12,x12,x15
 	adcs	x13,x13,x6
 	adcs	x19,x19,x16
@@ -274,7 +274,7 @@
 	bl	__mul_by_1_mont_256
 	ldr	x30,[x29,#8]
 
-	adds	x10,x10,x19	// accumulate upper half
+	adds	x10,x10,x19
 	adcs	x11,x11,x20
 	adcs	x12,x12,x21
 	adcs	x13,x13,x22
@@ -384,11 +384,11 @@
 	mul	x3,x4,x10
 	ldp	x5,x6,[x2]
 	ldp	x7,x8,[x2,#16]
-	//mul	x14,x5,x3
+
 	mul	x15,x6,x3
 	mul	x16,x7,x3
 	mul	x17,x8,x3
-	subs	xzr,x10,#1		//adds	x10,x10,x14
+	subs	xzr,x10,#1
 	umulh	x14,x5,x3
 	adcs	x11,x11,x15
 	umulh	x15,x6,x3
@@ -403,11 +403,11 @@
 	adcs	x12,x13,x16
 	mul	x3,x4,x10
 	adc	x13,x9,x17
-	//mul	x14,x5,x3
+
 	mul	x15,x6,x3
 	mul	x16,x7,x3
 	mul	x17,x8,x3
-	subs	xzr,x10,#1		//adds	x10,x10,x14
+	subs	xzr,x10,#1
 	umulh	x14,x5,x3
 	adcs	x11,x11,x15
 	umulh	x15,x6,x3
@@ -422,11 +422,11 @@
 	adcs	x12,x13,x16
 	mul	x3,x4,x10
 	adc	x13,x9,x17
-	//mul	x14,x5,x3
+
 	mul	x15,x6,x3
 	mul	x16,x7,x3
 	mul	x17,x8,x3
-	subs	xzr,x10,#1		//adds	x10,x10,x14
+	subs	xzr,x10,#1
 	umulh	x14,x5,x3
 	adcs	x11,x11,x15
 	umulh	x15,x6,x3
@@ -441,11 +441,11 @@
 	adcs	x12,x13,x16
 	mul	x3,x4,x10
 	adc	x13,x9,x17
-	//mul	x14,x5,x3
+
 	mul	x15,x6,x3
 	mul	x16,x7,x3
 	mul	x17,x8,x3
-	subs	xzr,x10,#1		//adds	x10,x10,x14
+	subs	xzr,x10,#1
 	umulh	x14,x5,x3
 	adcs	x11,x11,x15
 	umulh	x15,x6,x3

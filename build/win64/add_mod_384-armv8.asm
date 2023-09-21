@@ -154,7 +154,7 @@
 	adcs	x13,x13,x20
 	and	x22,x22,x9
 	adcs	x14,x14,x21
-	extr	x10,x11,x10,#1	// a[0:5] >>= 1
+	extr	x10,x11,x10,#1
 	adcs	x15,x15,x22
 	extr	x11,x12,x11,#1
 	adc	x22,xzr,xzr
@@ -604,7 +604,7 @@
 	ldp	x8,x9,[x2,#32]
 	add	x2,x1,#48
 
-	bl	__sub_mod_384			// a->re - a->im
+	bl	__sub_mod_384
 
 	ldp	x16,x17,[x1]
 	ldp	x19,x20,[x1,#16]
@@ -616,7 +616,7 @@
 	stp	x14,x15,[x0,#32]
 	ldp	x14,x15,[x1,#80]
 
-	bl	__add_mod_384_ab_are_loaded	// a->re + a->im
+	bl	__add_mod_384_ab_are_loaded
 	ldr	x30,[sp,#8]
 
 	stp	x10,x11,[x0,#48]
@@ -744,7 +744,7 @@
 
 	and	x3,x3,#1
 	and	x1,x1,#2
-	orr	x0,x1,x3	// pack sign and parity
+	orr	x0,x1,x3
 
 	ret
 	ENDP
@@ -963,7 +963,7 @@
 |$Loop_is_zero_done|
 	dup	v1.2d, v0.d[1]
 	orr	v0.16b, v0.16b, v1.16b
-	mov	x1, v0.d[0]
+	umov	x1, v0.d[0]
 	mov	x0, #1
 	cmp	x1, #0
 	cseleq	x0,x0,xzr
@@ -992,7 +992,7 @@
 |$Loop_is_equal_done|
 	dup	v1.2d, v0.d[1]
 	orr	v0.16b, v0.16b, v1.16b
-	mov	x1, v0.d[0]
+	umov	x1, v0.d[0]
 	mov	x0, #1
 	cmp	x1, #0
 	cseleq	x0,x0,xzr

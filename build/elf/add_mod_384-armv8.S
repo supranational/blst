@@ -963,7 +963,7 @@ vec_is_zero_16x:
 .Loop_is_zero_done:
 	dup	v1.2d, v0.d[1]
 	orr	v0.16b, v0.16b, v1.16b
-	mov	x1, v0.d[0]
+	umov	x1, v0.d[0]
 	mov	x0, #1
 	cmp	x1, #0
 	csel	x0, x0, xzr, eq
@@ -992,7 +992,7 @@ vec_is_equal_16x:
 .Loop_is_equal_done:
 	dup	v1.2d, v0.d[1]
 	orr	v0.16b, v0.16b, v1.16b
-	mov	x1, v0.d[0]
+	umov	x1, v0.d[0]
 	mov	x0, #1
 	cmp	x1, #0
 	csel	x0, x0, xzr, eq
