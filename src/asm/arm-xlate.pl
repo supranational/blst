@@ -326,6 +326,17 @@ sub expand_line {
 
 while(my $line=<>) {
 
+    if ($flavour =~ /win/) {
+	if ($line =~ m/^#\s*(ifdef|ifndef|else|endif)\b(.*)/) {
+	    my ($op, $arg) = ($1, $2);
+	    $op = "if :def:"		if ($op eq "ifdef");
+	    $op = "if :lnot::def:"	if ($op eq "ifndef");
+	    print " ".$op.$arg."\n";
+	    next;
+	}
+	$line =~ s|//.*||;
+    }
+
     # fix up assembler-specific commentary delimiter
     $line =~ s/@(?=[\s@])/\;/g if ($flavour =~ /win|coff/);
 
