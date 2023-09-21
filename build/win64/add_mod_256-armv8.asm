@@ -234,12 +234,12 @@
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
 
-#ifdef	__AARCH64EB__
+ if :def:	__AARCH64EB__
 	rev	x8,x8
 	rev	x9,x9
 	rev	x10,x10
 	rev	x11,x11
-#endif
+ endif
 
 	subs	xzr,x8,x4
 	sbcs	xzr,x9,x5
@@ -268,7 +268,7 @@
 	ldp	x10,x11,[x1,#16]
 	ldp	x14,x15,[x2,#16]
 
-#ifdef	__AARCH64EB__
+ if :def:	__AARCH64EB__
 	rev	x8,x8
 	rev	x12,x12
 	rev	x9,x9
@@ -277,7 +277,7 @@
 	rev	x14,x14
 	rev	x11,x11
 	rev	x15,x15
-#endif
+ endif
 
 	adds	x8,x8,x12
 	ldp	x4,x5,[x3]
@@ -302,12 +302,12 @@
 	orr	x17, x10, x11
 	orr	x16, x16, x17
 
-#ifdef	__AARCH64EB__
+ if :def:	__AARCH64EB__
 	rev	x8,x8
 	rev	x9,x9
 	rev	x10,x10
 	rev	x11,x11
-#endif
+ endif
 
 	stp	x8,x9,[x0]
 	stp	x10,x11,[x0,#16]
@@ -329,7 +329,7 @@
 	ldp	x10,x11,[x1,#16]
 	ldp	x14,x15,[x2,#16]
 
-#ifdef	__AARCH64EB__
+ if :def:	__AARCH64EB__
 	rev	x8,x8
 	rev	x12,x12
 	rev	x9,x9
@@ -338,7 +338,7 @@
 	rev	x14,x14
 	rev	x11,x11
 	rev	x15,x15
-#endif
+ endif
 
 	subs	x8,x8,x12
 	sbcs	x9,x9,x13
@@ -361,12 +361,12 @@
 	orr	x17, x10, x11
 	orr	x16, x16, x17
 
-#ifdef	__AARCH64EB__
+ if :def:	__AARCH64EB__
 	rev	x8,x8
 	rev	x9,x9
 	rev	x10,x10
 	rev	x11,x11
-#endif
+ endif
 
 	stp	x8,x9,[x0]
 	stp	x10,x11,[x0,#16]
