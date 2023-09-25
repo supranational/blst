@@ -71,7 +71,19 @@
 #  include "mach-o/ct_is_square_mod_384-x86_64.s"
 # endif
 #elif defined(__aarch64__)
-# if defined(__ELF__)
+# if defined(__CHERI_PURE_CAPABILITY__)
+#  include "cheri/sha256-armv8.S"
+#  include "cheri/ct_inverse_mod_384-armv8.S"
+#  include "cheri/add_mod_384-armv8.S"
+#  define __add_mod_384     __add_mont_384
+#  define __sub_mod_384     __sub_mont_384
+#  include "cheri/mul_mont_384-armv8.S"
+#  include "cheri/mul_mont_256-armv8.S"
+#  include "cheri/add_mod_256-armv8.S"
+#  include "cheri/ct_inverse_mod_256-armv8.S"
+#  include "cheri/div3w-armv8.S"
+#  include "cheri/ct_is_square_mod_384-armv8.S"
+# elif defined(__ELF__)
 #  include "elf/sha256-armv8.S"
 #  include "elf/ct_inverse_mod_384-armv8.S"
 #  include "elf/add_mod_384-armv8.S"
