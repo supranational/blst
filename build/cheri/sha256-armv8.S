@@ -47,119 +47,119 @@
 .align	6
 blst_sha256_block_armv8:
 .Lv8_entry:
-	stp	x29,x30,[sp,#-2*__SIZEOF_POINTER__]!
-	add	x29,sp,#0
+	stp	c29,c30,[csp,#-2*__SIZEOF_POINTER__]!
+	add	c29,csp,#0
 
-	ld1	{v0.4s,v1.4s},[x0]
-	adr	x3,.LK256
+	ld1	{v0.4s,v1.4s},[c0]
+	adr	c3,.LK256
 
 .Loop_hw:
-	ld1	{v4.16b,v5.16b,v6.16b,v7.16b},[x1],#64
+	ld1	{v4.16b,v5.16b,v6.16b,v7.16b},[c1],#64
 	sub	x2,x2,#1
-	ld1	{v16.4s},[x3],#16
+	ld1	{v16.4s},[c3],#16
 	rev32	v4.16b,v4.16b
 	rev32	v5.16b,v5.16b
 	rev32	v6.16b,v6.16b
 	rev32	v7.16b,v7.16b
 	orr	v18.16b,v0.16b,v0.16b		// offload
 	orr	v19.16b,v1.16b,v1.16b
-	ld1	{v17.4s},[x3],#16
+	ld1	{v17.4s},[c3],#16
 	add	v16.4s,v16.4s,v4.4s
 .inst	0x5e2828a4	//sha256su0 v4.16b,v5.16b
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e104020	//sha256h v0.16b,v1.16b,v16.4s
 .inst	0x5e105041	//sha256h2 v1.16b,v2.16b,v16.4s
 .inst	0x5e0760c4	//sha256su1 v4.16b,v6.16b,v7.16b
-	ld1	{v16.4s},[x3],#16
+	ld1	{v16.4s},[c3],#16
 	add	v17.4s,v17.4s,v5.4s
 .inst	0x5e2828c5	//sha256su0 v5.16b,v6.16b
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e114020	//sha256h v0.16b,v1.16b,v17.4s
 .inst	0x5e115041	//sha256h2 v1.16b,v2.16b,v17.4s
 .inst	0x5e0460e5	//sha256su1 v5.16b,v7.16b,v4.16b
-	ld1	{v17.4s},[x3],#16
+	ld1	{v17.4s},[c3],#16
 	add	v16.4s,v16.4s,v6.4s
 .inst	0x5e2828e6	//sha256su0 v6.16b,v7.16b
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e104020	//sha256h v0.16b,v1.16b,v16.4s
 .inst	0x5e105041	//sha256h2 v1.16b,v2.16b,v16.4s
 .inst	0x5e056086	//sha256su1 v6.16b,v4.16b,v5.16b
-	ld1	{v16.4s},[x3],#16
+	ld1	{v16.4s},[c3],#16
 	add	v17.4s,v17.4s,v7.4s
 .inst	0x5e282887	//sha256su0 v7.16b,v4.16b
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e114020	//sha256h v0.16b,v1.16b,v17.4s
 .inst	0x5e115041	//sha256h2 v1.16b,v2.16b,v17.4s
 .inst	0x5e0660a7	//sha256su1 v7.16b,v5.16b,v6.16b
-	ld1	{v17.4s},[x3],#16
+	ld1	{v17.4s},[c3],#16
 	add	v16.4s,v16.4s,v4.4s
 .inst	0x5e2828a4	//sha256su0 v4.16b,v5.16b
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e104020	//sha256h v0.16b,v1.16b,v16.4s
 .inst	0x5e105041	//sha256h2 v1.16b,v2.16b,v16.4s
 .inst	0x5e0760c4	//sha256su1 v4.16b,v6.16b,v7.16b
-	ld1	{v16.4s},[x3],#16
+	ld1	{v16.4s},[c3],#16
 	add	v17.4s,v17.4s,v5.4s
 .inst	0x5e2828c5	//sha256su0 v5.16b,v6.16b
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e114020	//sha256h v0.16b,v1.16b,v17.4s
 .inst	0x5e115041	//sha256h2 v1.16b,v2.16b,v17.4s
 .inst	0x5e0460e5	//sha256su1 v5.16b,v7.16b,v4.16b
-	ld1	{v17.4s},[x3],#16
+	ld1	{v17.4s},[c3],#16
 	add	v16.4s,v16.4s,v6.4s
 .inst	0x5e2828e6	//sha256su0 v6.16b,v7.16b
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e104020	//sha256h v0.16b,v1.16b,v16.4s
 .inst	0x5e105041	//sha256h2 v1.16b,v2.16b,v16.4s
 .inst	0x5e056086	//sha256su1 v6.16b,v4.16b,v5.16b
-	ld1	{v16.4s},[x3],#16
+	ld1	{v16.4s},[c3],#16
 	add	v17.4s,v17.4s,v7.4s
 .inst	0x5e282887	//sha256su0 v7.16b,v4.16b
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e114020	//sha256h v0.16b,v1.16b,v17.4s
 .inst	0x5e115041	//sha256h2 v1.16b,v2.16b,v17.4s
 .inst	0x5e0660a7	//sha256su1 v7.16b,v5.16b,v6.16b
-	ld1	{v17.4s},[x3],#16
+	ld1	{v17.4s},[c3],#16
 	add	v16.4s,v16.4s,v4.4s
 .inst	0x5e2828a4	//sha256su0 v4.16b,v5.16b
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e104020	//sha256h v0.16b,v1.16b,v16.4s
 .inst	0x5e105041	//sha256h2 v1.16b,v2.16b,v16.4s
 .inst	0x5e0760c4	//sha256su1 v4.16b,v6.16b,v7.16b
-	ld1	{v16.4s},[x3],#16
+	ld1	{v16.4s},[c3],#16
 	add	v17.4s,v17.4s,v5.4s
 .inst	0x5e2828c5	//sha256su0 v5.16b,v6.16b
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e114020	//sha256h v0.16b,v1.16b,v17.4s
 .inst	0x5e115041	//sha256h2 v1.16b,v2.16b,v17.4s
 .inst	0x5e0460e5	//sha256su1 v5.16b,v7.16b,v4.16b
-	ld1	{v17.4s},[x3],#16
+	ld1	{v17.4s},[c3],#16
 	add	v16.4s,v16.4s,v6.4s
 .inst	0x5e2828e6	//sha256su0 v6.16b,v7.16b
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e104020	//sha256h v0.16b,v1.16b,v16.4s
 .inst	0x5e105041	//sha256h2 v1.16b,v2.16b,v16.4s
 .inst	0x5e056086	//sha256su1 v6.16b,v4.16b,v5.16b
-	ld1	{v16.4s},[x3],#16
+	ld1	{v16.4s},[c3],#16
 	add	v17.4s,v17.4s,v7.4s
 .inst	0x5e282887	//sha256su0 v7.16b,v4.16b
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e114020	//sha256h v0.16b,v1.16b,v17.4s
 .inst	0x5e115041	//sha256h2 v1.16b,v2.16b,v17.4s
 .inst	0x5e0660a7	//sha256su1 v7.16b,v5.16b,v6.16b
-	ld1	{v17.4s},[x3],#16
+	ld1	{v17.4s},[c3],#16
 	add	v16.4s,v16.4s,v4.4s
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e104020	//sha256h v0.16b,v1.16b,v16.4s
 .inst	0x5e105041	//sha256h2 v1.16b,v2.16b,v16.4s
 
-	ld1	{v16.4s},[x3],#16
+	ld1	{v16.4s},[c3],#16
 	add	v17.4s,v17.4s,v5.4s
 	orr	v2.16b,v0.16b,v0.16b
 .inst	0x5e114020	//sha256h v0.16b,v1.16b,v17.4s
 .inst	0x5e115041	//sha256h2 v1.16b,v2.16b,v17.4s
 
-	ld1	{v17.4s},[x3]
+	ld1	{v17.4s},[c3]
 	add	v16.4s,v16.4s,v6.4s
 	sub	x3,x3,#64*4-16	// rewind
 	orr	v2.16b,v0.16b,v0.16b
@@ -176,53 +176,53 @@ blst_sha256_block_armv8:
 
 	cbnz	x2,.Loop_hw
 
-	st1	{v0.4s,v1.4s},[x0]
+	st1	{v0.4s,v1.4s},[c0]
 
-	ldr	x29,[sp],#2*__SIZEOF_POINTER__
+	ldr	c29,[csp],#2*__SIZEOF_POINTER__
 	ret
 .size	blst_sha256_block_armv8,.-blst_sha256_block_armv8
 .globl	blst_sha256_block_data_order
 .type	blst_sha256_block_data_order,%function
 .align	4
 blst_sha256_block_data_order:
-	adrp	x16,__blst_platform_cap
-	ldr	w16,[x16,#:lo12:__blst_platform_cap]
+	adrp	c16,__blst_platform_cap
+	ldr	w16,[c16,#:lo12:__blst_platform_cap]
 	tst	w16,#1
 	b.ne	.Lv8_entry
 
-	stp	x29, x30, [sp, #-2*__SIZEOF_POINTER__]!
-	mov	x29, sp
-	sub	sp,sp,#16*4
+	stp	c29, c30, [csp, #-2*__SIZEOF_POINTER__]!
+	mov	c29, csp
+	sub	csp,csp,#16*4
 
-	adr	x16,.LK256
+	adr	c16,.LK256
 	add	x2,x1,x2,lsl#6	// len to point at the end of inp
 
-	ld1	{v0.16b},[x1], #16
-	ld1	{v1.16b},[x1], #16
-	ld1	{v2.16b},[x1], #16
-	ld1	{v3.16b},[x1], #16
-	ld1	{v4.4s},[x16], #16
-	ld1	{v5.4s},[x16], #16
-	ld1	{v6.4s},[x16], #16
-	ld1	{v7.4s},[x16], #16
+	ld1	{v0.16b},[c1], #16
+	ld1	{v1.16b},[c1], #16
+	ld1	{v2.16b},[c1], #16
+	ld1	{v3.16b},[c1], #16
+	ld1	{v4.4s},[c16], #16
+	ld1	{v5.4s},[c16], #16
+	ld1	{v6.4s},[c16], #16
+	ld1	{v7.4s},[c16], #16
 	rev32	v0.16b,v0.16b		// yes, even on
 	rev32	v1.16b,v1.16b		// big-endian
 	rev32	v2.16b,v2.16b
 	rev32	v3.16b,v3.16b
-	mov	x17,sp
+	mov	c17,csp
 	add	v4.4s,v4.4s,v0.4s
 	add	v5.4s,v5.4s,v1.4s
 	add	v6.4s,v6.4s,v2.4s
-	st1	{v4.4s,v5.4s},[x17], #32
+	st1	{v4.4s,v5.4s},[c17], #32
 	add	v7.4s,v7.4s,v3.4s
-	st1	{v6.4s,v7.4s},[x17]
-	sub	x17,x17,#32
+	st1	{v6.4s,v7.4s},[c17]
+	sub	c17,c17,#32
 
-	ldp	w3,w4,[x0]
-	ldp	w5,w6,[x0,#8]
-	ldp	w7,w8,[x0,#16]
-	ldp	w9,w10,[x0,#24]
-	ldr	w12,[sp,#0]
+	ldp	w3,w4,[c0]
+	ldp	w5,w6,[c0,#8]
+	ldp	w7,w8,[c0,#16]
+	ldp	w9,w10,[c0,#24]
+	ldr	w12,[csp,#0]
 	mov	w13,wzr
 	eor	w14,w4,w5
 	mov	w15,wzr
@@ -252,7 +252,7 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w3,ror#20
 	ushr	v7.4s,v4.4s,#18
 	add	w10,w10,w11
-	ldr	w12,[sp,#4]
+	ldr	w12,[csp,#4]
 	and	w14,w14,w13
 	eor	v5.16b,v5.16b,v6.16b
 	ror	w15,w15,#2
@@ -280,7 +280,7 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w10,ror#20
 	sli	v7.4s,v19.4s,#13
 	add	w9,w9,w11
-	ldr	w12,[sp,#8]
+	ldr	w12,[csp,#8]
 	and	w13,w13,w14
 	eor	v17.16b,v17.16b,v16.16b
 	ror	w15,w15,#2
@@ -308,10 +308,10 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w9,ror#20
 	add	w8,w8,w11
 	sli	v17.4s,v0.4s,#13
-	ldr	w12,[sp,#12]
+	ldr	w12,[csp,#12]
 	and	w14,w14,w13
 	ror	w15,w15,#2
-	ld1	{v4.4s},[x16], #16
+	ld1	{v4.4s},[c16], #16
 	add	w4,w4,w8
 	eor	v19.16b,v19.16b,v17.16b
 	eor	w14,w14,w10
@@ -333,12 +333,12 @@ blst_sha256_block_data_order:
 	eor	w14,w8,w9
 	eor	w15,w15,w8,ror#20
 	add	w7,w7,w11
-	ldr	w12,[sp,#16]
+	ldr	w12,[csp,#16]
 	and	w13,w13,w14
 	ror	w15,w15,#2
 	add	w3,w3,w7
 	eor	w13,w13,w9
-	st1	{v4.4s},[x17], #16
+	st1	{v4.4s},[c17], #16
 	ext	v4.16b,v1.16b,v2.16b,#4
 	add	w6,w6,w12
 	add	w7,w7,w15
@@ -361,7 +361,7 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w7,ror#20
 	ushr	v7.4s,v4.4s,#18
 	add	w6,w6,w11
-	ldr	w12,[sp,#20]
+	ldr	w12,[csp,#20]
 	and	w14,w14,w13
 	eor	v5.16b,v5.16b,v6.16b
 	ror	w15,w15,#2
@@ -389,7 +389,7 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w6,ror#20
 	sli	v7.4s,v19.4s,#13
 	add	w5,w5,w11
-	ldr	w12,[sp,#24]
+	ldr	w12,[csp,#24]
 	and	w13,w13,w14
 	eor	v17.16b,v17.16b,v16.16b
 	ror	w15,w15,#2
@@ -417,10 +417,10 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w5,ror#20
 	add	w4,w4,w11
 	sli	v17.4s,v1.4s,#13
-	ldr	w12,[sp,#28]
+	ldr	w12,[csp,#28]
 	and	w14,w14,w13
 	ror	w15,w15,#2
-	ld1	{v4.4s},[x16], #16
+	ld1	{v4.4s},[c16], #16
 	add	w8,w8,w4
 	eor	v19.16b,v19.16b,v17.16b
 	eor	w14,w14,w6
@@ -442,12 +442,12 @@ blst_sha256_block_data_order:
 	eor	w14,w4,w5
 	eor	w15,w15,w4,ror#20
 	add	w3,w3,w11
-	ldr	w12,[sp,#32]
+	ldr	w12,[csp,#32]
 	and	w13,w13,w14
 	ror	w15,w15,#2
 	add	w7,w7,w3
 	eor	w13,w13,w5
-	st1	{v4.4s},[x17], #16
+	st1	{v4.4s},[c17], #16
 	ext	v4.16b,v2.16b,v3.16b,#4
 	add	w10,w10,w12
 	add	w3,w3,w15
@@ -470,7 +470,7 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w3,ror#20
 	ushr	v7.4s,v4.4s,#18
 	add	w10,w10,w11
-	ldr	w12,[sp,#36]
+	ldr	w12,[csp,#36]
 	and	w14,w14,w13
 	eor	v5.16b,v5.16b,v6.16b
 	ror	w15,w15,#2
@@ -498,7 +498,7 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w10,ror#20
 	sli	v7.4s,v19.4s,#13
 	add	w9,w9,w11
-	ldr	w12,[sp,#40]
+	ldr	w12,[csp,#40]
 	and	w13,w13,w14
 	eor	v17.16b,v17.16b,v16.16b
 	ror	w15,w15,#2
@@ -526,10 +526,10 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w9,ror#20
 	add	w8,w8,w11
 	sli	v17.4s,v2.4s,#13
-	ldr	w12,[sp,#44]
+	ldr	w12,[csp,#44]
 	and	w14,w14,w13
 	ror	w15,w15,#2
-	ld1	{v4.4s},[x16], #16
+	ld1	{v4.4s},[c16], #16
 	add	w4,w4,w8
 	eor	v19.16b,v19.16b,v17.16b
 	eor	w14,w14,w10
@@ -551,12 +551,12 @@ blst_sha256_block_data_order:
 	eor	w14,w8,w9
 	eor	w15,w15,w8,ror#20
 	add	w7,w7,w11
-	ldr	w12,[sp,#48]
+	ldr	w12,[csp,#48]
 	and	w13,w13,w14
 	ror	w15,w15,#2
 	add	w3,w3,w7
 	eor	w13,w13,w9
-	st1	{v4.4s},[x17], #16
+	st1	{v4.4s},[c17], #16
 	ext	v4.16b,v3.16b,v0.16b,#4
 	add	w6,w6,w12
 	add	w7,w7,w15
@@ -579,7 +579,7 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w7,ror#20
 	ushr	v7.4s,v4.4s,#18
 	add	w6,w6,w11
-	ldr	w12,[sp,#52]
+	ldr	w12,[csp,#52]
 	and	w14,w14,w13
 	eor	v5.16b,v5.16b,v6.16b
 	ror	w15,w15,#2
@@ -607,7 +607,7 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w6,ror#20
 	sli	v7.4s,v19.4s,#13
 	add	w5,w5,w11
-	ldr	w12,[sp,#56]
+	ldr	w12,[csp,#56]
 	and	w13,w13,w14
 	eor	v17.16b,v17.16b,v16.16b
 	ror	w15,w15,#2
@@ -635,10 +635,10 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w5,ror#20
 	add	w4,w4,w11
 	sli	v17.4s,v3.4s,#13
-	ldr	w12,[sp,#60]
+	ldr	w12,[csp,#60]
 	and	w14,w14,w13
 	ror	w15,w15,#2
-	ld1	{v4.4s},[x16], #16
+	ld1	{v4.4s},[c16], #16
 	add	w8,w8,w4
 	eor	v19.16b,v19.16b,v17.16b
 	eor	w14,w14,w6
@@ -660,30 +660,30 @@ blst_sha256_block_data_order:
 	eor	w14,w4,w5
 	eor	w15,w15,w4,ror#20
 	add	w3,w3,w11
-	ldr	w12,[x16]
+	ldr	w12,[c16]
 	and	w13,w13,w14
 	ror	w15,w15,#2
 	add	w7,w7,w3
 	eor	w13,w13,w5
-	st1	{v4.4s},[x17], #16
+	st1	{v4.4s},[c17], #16
 	cmp	w12,#0				// check for K256 terminator
-	ldr	w12,[sp,#0]
-	sub	x17,x17,#64
+	ldr	w12,[csp,#0]
+	sub	c17,c17,#64
 	bne	.L_00_48
 
-	sub	x16,x16,#256
+	sub	c16,c16,#256
 	cmp	x1,x2
 	mov	x17, #-64
 	csel	x17, x17, xzr, eq
-	add	x1,x1,x17
-	mov	x17,sp
+	add	c1,c1,x17
+	mov	c17,csp
 	add	w10,w10,w12
 	add	w3,w3,w15
 	and	w12,w8,w7
-	ld1	{v0.16b},[x1],#16
+	ld1	{v0.16b},[c1],#16
 	bic	w15,w9,w7
 	eor	w11,w7,w7,ror#5
-	ld1	{v4.4s},[x16],#16
+	ld1	{v4.4s},[c16],#16
 	add	w3,w3,w13
 	orr	w12,w12,w15
 	eor	w11,w11,w7,ror#19
@@ -695,7 +695,7 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w3,ror#20
 	add	v4.4s,v4.4s,v0.4s
 	add	w10,w10,w11
-	ldr	w12,[sp,#4]
+	ldr	w12,[csp,#4]
 	and	w14,w14,w13
 	ror	w15,w15,#2
 	add	w6,w6,w10
@@ -714,7 +714,7 @@ blst_sha256_block_data_order:
 	eor	w14,w10,w3
 	eor	w15,w15,w10,ror#20
 	add	w9,w9,w11
-	ldr	w12,[sp,#8]
+	ldr	w12,[csp,#8]
 	and	w13,w13,w14
 	ror	w15,w15,#2
 	add	w5,w5,w9
@@ -733,7 +733,7 @@ blst_sha256_block_data_order:
 	eor	w13,w9,w10
 	eor	w15,w15,w9,ror#20
 	add	w8,w8,w11
-	ldr	w12,[sp,#12]
+	ldr	w12,[csp,#12]
 	and	w14,w14,w13
 	ror	w15,w15,#2
 	add	w4,w4,w8
@@ -752,19 +752,19 @@ blst_sha256_block_data_order:
 	eor	w14,w8,w9
 	eor	w15,w15,w8,ror#20
 	add	w7,w7,w11
-	ldr	w12,[sp,#16]
+	ldr	w12,[csp,#16]
 	and	w13,w13,w14
 	ror	w15,w15,#2
 	add	w3,w3,w7
 	eor	w13,w13,w9
-	st1	{v4.4s},[x17], #16
+	st1	{v4.4s},[c17], #16
 	add	w6,w6,w12
 	add	w7,w7,w15
 	and	w12,w4,w3
-	ld1	{v1.16b},[x1],#16
+	ld1	{v1.16b},[c1],#16
 	bic	w15,w5,w3
 	eor	w11,w3,w3,ror#5
-	ld1	{v4.4s},[x16],#16
+	ld1	{v4.4s},[c16],#16
 	add	w7,w7,w13
 	orr	w12,w12,w15
 	eor	w11,w11,w3,ror#19
@@ -776,7 +776,7 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w7,ror#20
 	add	v4.4s,v4.4s,v1.4s
 	add	w6,w6,w11
-	ldr	w12,[sp,#20]
+	ldr	w12,[csp,#20]
 	and	w14,w14,w13
 	ror	w15,w15,#2
 	add	w10,w10,w6
@@ -795,7 +795,7 @@ blst_sha256_block_data_order:
 	eor	w14,w6,w7
 	eor	w15,w15,w6,ror#20
 	add	w5,w5,w11
-	ldr	w12,[sp,#24]
+	ldr	w12,[csp,#24]
 	and	w13,w13,w14
 	ror	w15,w15,#2
 	add	w9,w9,w5
@@ -814,7 +814,7 @@ blst_sha256_block_data_order:
 	eor	w13,w5,w6
 	eor	w15,w15,w5,ror#20
 	add	w4,w4,w11
-	ldr	w12,[sp,#28]
+	ldr	w12,[csp,#28]
 	and	w14,w14,w13
 	ror	w15,w15,#2
 	add	w8,w8,w4
@@ -833,19 +833,19 @@ blst_sha256_block_data_order:
 	eor	w14,w4,w5
 	eor	w15,w15,w4,ror#20
 	add	w3,w3,w11
-	ldr	w12,[sp,#32]
+	ldr	w12,[csp,#32]
 	and	w13,w13,w14
 	ror	w15,w15,#2
 	add	w7,w7,w3
 	eor	w13,w13,w5
-	st1	{v4.4s},[x17], #16
+	st1	{v4.4s},[c17], #16
 	add	w10,w10,w12
 	add	w3,w3,w15
 	and	w12,w8,w7
-	ld1	{v2.16b},[x1],#16
+	ld1	{v2.16b},[c1],#16
 	bic	w15,w9,w7
 	eor	w11,w7,w7,ror#5
-	ld1	{v4.4s},[x16],#16
+	ld1	{v4.4s},[c16],#16
 	add	w3,w3,w13
 	orr	w12,w12,w15
 	eor	w11,w11,w7,ror#19
@@ -857,7 +857,7 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w3,ror#20
 	add	v4.4s,v4.4s,v2.4s
 	add	w10,w10,w11
-	ldr	w12,[sp,#36]
+	ldr	w12,[csp,#36]
 	and	w14,w14,w13
 	ror	w15,w15,#2
 	add	w6,w6,w10
@@ -876,7 +876,7 @@ blst_sha256_block_data_order:
 	eor	w14,w10,w3
 	eor	w15,w15,w10,ror#20
 	add	w9,w9,w11
-	ldr	w12,[sp,#40]
+	ldr	w12,[csp,#40]
 	and	w13,w13,w14
 	ror	w15,w15,#2
 	add	w5,w5,w9
@@ -895,7 +895,7 @@ blst_sha256_block_data_order:
 	eor	w13,w9,w10
 	eor	w15,w15,w9,ror#20
 	add	w8,w8,w11
-	ldr	w12,[sp,#44]
+	ldr	w12,[csp,#44]
 	and	w14,w14,w13
 	ror	w15,w15,#2
 	add	w4,w4,w8
@@ -914,19 +914,19 @@ blst_sha256_block_data_order:
 	eor	w14,w8,w9
 	eor	w15,w15,w8,ror#20
 	add	w7,w7,w11
-	ldr	w12,[sp,#48]
+	ldr	w12,[csp,#48]
 	and	w13,w13,w14
 	ror	w15,w15,#2
 	add	w3,w3,w7
 	eor	w13,w13,w9
-	st1	{v4.4s},[x17], #16
+	st1	{v4.4s},[c17], #16
 	add	w6,w6,w12
 	add	w7,w7,w15
 	and	w12,w4,w3
-	ld1	{v3.16b},[x1],#16
+	ld1	{v3.16b},[c1],#16
 	bic	w15,w5,w3
 	eor	w11,w3,w3,ror#5
-	ld1	{v4.4s},[x16],#16
+	ld1	{v4.4s},[c16],#16
 	add	w7,w7,w13
 	orr	w12,w12,w15
 	eor	w11,w11,w3,ror#19
@@ -938,7 +938,7 @@ blst_sha256_block_data_order:
 	eor	w15,w15,w7,ror#20
 	add	v4.4s,v4.4s,v3.4s
 	add	w6,w6,w11
-	ldr	w12,[sp,#52]
+	ldr	w12,[csp,#52]
 	and	w14,w14,w13
 	ror	w15,w15,#2
 	add	w10,w10,w6
@@ -957,7 +957,7 @@ blst_sha256_block_data_order:
 	eor	w14,w6,w7
 	eor	w15,w15,w6,ror#20
 	add	w5,w5,w11
-	ldr	w12,[sp,#56]
+	ldr	w12,[csp,#56]
 	and	w13,w13,w14
 	ror	w15,w15,#2
 	add	w9,w9,w5
@@ -976,7 +976,7 @@ blst_sha256_block_data_order:
 	eor	w13,w5,w6
 	eor	w15,w15,w5,ror#20
 	add	w4,w4,w11
-	ldr	w12,[sp,#60]
+	ldr	w12,[csp,#60]
 	and	w14,w14,w13
 	ror	w15,w15,#2
 	add	w8,w8,w4
@@ -999,34 +999,34 @@ blst_sha256_block_data_order:
 	ror	w15,w15,#2
 	add	w7,w7,w3
 	eor	w13,w13,w5
-	st1	{v4.4s},[x17], #16
+	st1	{v4.4s},[c17], #16
 	add	w3,w3,w15			// h+=Sigma0(a) from the past
-	ldp	w11,w12,[x0,#0]
+	ldp	w11,w12,[c0,#0]
 	add	w3,w3,w13			// h+=Maj(a,b,c) from the past
-	ldp	w13,w14,[x0,#8]
+	ldp	w13,w14,[c0,#8]
 	add	w3,w3,w11			// accumulate
 	add	w4,w4,w12
-	ldp	w11,w12,[x0,#16]
+	ldp	w11,w12,[c0,#16]
 	add	w5,w5,w13
 	add	w6,w6,w14
-	ldp	w13,w14,[x0,#24]
+	ldp	w13,w14,[c0,#24]
 	add	w7,w7,w11
 	add	w8,w8,w12
-	ldr	w12,[sp,#0]
-	stp	w3,w4,[x0,#0]
+	ldr	w12,[csp,#0]
+	stp	w3,w4,[c0,#0]
 	add	w9,w9,w13
 	mov	w13,wzr
-	stp	w5,w6,[x0,#8]
+	stp	w5,w6,[c0,#8]
 	add	w10,w10,w14
-	stp	w7,w8,[x0,#16]
+	stp	w7,w8,[c0,#16]
 	eor	w14,w4,w5
-	stp	w9,w10,[x0,#24]
+	stp	w9,w10,[c0,#24]
 	mov	w15,wzr
-	mov	x17,sp
+	mov	c17,csp
 	b.ne	.L_00_48
 
-	ldr	x29,[x29]
-	add	sp,sp,#16*4+2*__SIZEOF_POINTER__
+	ldr	c29,[c29]
+	add	csp,csp,#16*4+2*__SIZEOF_POINTER__
 	ret
 .size	blst_sha256_block_data_order,.-blst_sha256_block_data_order
 .globl	blst_sha256_emit
@@ -1034,26 +1034,26 @@ blst_sha256_block_data_order:
 .type	blst_sha256_emit,%function
 .align	4
 blst_sha256_emit:
-	ldp	x4,x5,[x1]
-	ldp	x6,x7,[x1,#16]
+	ldp	x4,x5,[c1]
+	ldp	x6,x7,[c1,#16]
 #ifndef	__AARCH64EB__
 	rev	x4,x4
 	rev	x5,x5
 	rev	x6,x6
 	rev	x7,x7
 #endif
-	str	w4,[x0,#4]
+	str	w4,[c0,#4]
 	lsr	x4,x4,#32
-	str	w5,[x0,#12]
+	str	w5,[c0,#12]
 	lsr	x5,x5,#32
-	str	w6,[x0,#20]
+	str	w6,[c0,#20]
 	lsr	x6,x6,#32
-	str	w7,[x0,#28]
+	str	w7,[c0,#28]
 	lsr	x7,x7,#32
-	str	w4,[x0,#0]
-	str	w5,[x0,#8]
-	str	w6,[x0,#16]
-	str	w7,[x0,#24]
+	str	w4,[c0,#0]
+	str	w5,[c0,#8]
+	str	w6,[c0,#16]
+	str	w7,[c0,#24]
 	ret
 .size	blst_sha256_emit,.-blst_sha256_emit
 
@@ -1063,9 +1063,9 @@ blst_sha256_emit:
 .align	4
 blst_sha256_bcopy:
 .Loop_bcopy:
-	ldrb	w3,[x1],#1
+	ldrb	w3,[c1],#1
 	sub	x2,x2,#1
-	strb	w3,[x0],#1
+	strb	w3,[c0],#1
 	cbnz	x2,.Loop_bcopy
 	ret
 .size	blst_sha256_bcopy,.-blst_sha256_bcopy
@@ -1075,9 +1075,9 @@ blst_sha256_bcopy:
 .type	blst_sha256_hcopy,%function
 .align	4
 blst_sha256_hcopy:
-	ldp	x4,x5,[x1]
-	ldp	x6,x7,[x1,#16]
-	stp	x4,x5,[x0]
-	stp	x6,x7,[x0,#16]
+	ldp	x4,x5,[c1]
+	ldp	x6,x7,[c1,#16]
+	stp	x4,x5,[c0]
+	stp	x6,x7,[c0,#16]
 	ret
 .size	blst_sha256_hcopy,.-blst_sha256_hcopy

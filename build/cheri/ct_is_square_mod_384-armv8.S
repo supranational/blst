@@ -1,25 +1,23 @@
 .text
 
 .globl	ct_is_square_mod_384
-
-.def	ct_is_square_mod_384;
-.type	32;
-.endef
-.p2align	5
+.hidden	ct_is_square_mod_384
+.type	ct_is_square_mod_384, %function
+.align	5
 ct_is_square_mod_384:
-.long	3573752639
-	stp	x29, x30, [sp,#-16*__SIZEOF_POINTER__]!
-	add	x29, sp, #0
-	stp	x19, x20, [sp,#2*__SIZEOF_POINTER__]
-	stp	x21, x22, [sp,#4*__SIZEOF_POINTER__]
-	stp	x23, x24, [sp,#6*__SIZEOF_POINTER__]
-	stp	x25, x26, [sp,#8*__SIZEOF_POINTER__]
-	stp	x27, x28, [sp,#10*__SIZEOF_POINTER__]
-	sub	sp, sp, #512
+	.inst	0xd503233f
+	stp	c29, c30, [csp,#-16*__SIZEOF_POINTER__]!
+	add	c29, csp, #0
+	stp	c19, c20, [csp,#2*__SIZEOF_POINTER__]
+	stp	c21, c22, [csp,#4*__SIZEOF_POINTER__]
+	stp	c23, c24, [csp,#6*__SIZEOF_POINTER__]
+	stp	c25, c26, [csp,#8*__SIZEOF_POINTER__]
+	stp	c27, c28, [csp,#10*__SIZEOF_POINTER__]
+	sub	csp, csp, #512
 
-	ldp	x3, x4, [x0,#8*0]		// load input
-	ldp	x5, x6, [x0,#8*2]
-	ldp	x7, x8, [x0,#8*4]
+	ldp	x3, x4, [c0,#8*0]		// load input
+	ldp	x5, x6, [c0,#8*2]
+	ldp	x7, x8, [c0,#8*4]
 
 	add	x0, sp, #255	// find closest 256-byte-aligned spot
 	and	x0, x0, #-256	// in the frame...
@@ -27,22 +25,22 @@ ct_is_square_mod_384:
 	scvalue	c0,csp,x0
 #endif
 
-	ldp	x9, x10, [x1,#8*0]		// load modulus
-	ldp	x11, x12, [x1,#8*2]
-	ldp	x13, x14, [x1,#8*4]
+	ldp	x9, x10, [c1,#8*0]		// load modulus
+	ldp	x11, x12, [c1,#8*2]
+	ldp	x13, x14, [c1,#8*4]
 
-	stp	x3, x4, [x0,#8*6]	// copy input to |a|
-	stp	x5, x6, [x0,#8*8]
-	stp	x7, x8, [x0,#8*10]
-	stp	x9, x10, [x0,#8*0]	// copy modulus to |b|
-	stp	x11, x12, [x0,#8*2]
-	stp	x13, x14, [x0,#8*4]
+	stp	x3, x4, [c0,#8*6]	// copy input to |a|
+	stp	x5, x6, [c0,#8*8]
+	stp	x7, x8, [c0,#8*10]
+	stp	x9, x10, [c0,#8*0]	// copy modulus to |b|
+	stp	x11, x12, [c0,#8*2]
+	stp	x13, x14, [c0,#8*4]
 
 	eor	x2, x2, x2			// init the .Legendre symbol
 	mov	x15, #24			// 24 is 768/30-1
 	b	.Loop_is_square
 
-.p2align	4
+.align	4
 .Loop_is_square:
 	bl	__ab_approximation_30
 	sub	x15, x15, #1
@@ -55,10 +53,10 @@ ct_is_square_mod_384:
 
 	mov	x19, x16			// |f0|
 	mov	x20, x17			// |g0|
-	add	x1,x1,#8*6
+	add	c1,c1,#8*6
 	bl	__smul_384_n_shift_by_30
 
-	ldp	x9, x10, [x1,#-8*6]
+	ldp	x9, x10, [c1,#-8*6]
 	eor	x0, x0, #128		// flip-flop src |a|b|
 #ifdef	__CHERI_PURE_CAPABILITY__
 	scvalue	c0,csp,x0
@@ -74,32 +72,30 @@ ct_is_square_mod_384:
 	//ldr	x14, [x0,#8*0]
 	mov	x15, #48			// 48 is 768%30 + 30
 	bl	__inner_loop_48
-	ldr	x30, [x29,#__SIZEOF_POINTER__]
+	ldr	c30, [c29,#__SIZEOF_POINTER__]
 
 	and	x0, x2, #1
 	eor	x0, x0, #1
 
-	add	sp, sp, #512
-	ldp	x19, x20, [x29,#2*__SIZEOF_POINTER__]
-	ldp	x21, x22, [x29,#4*__SIZEOF_POINTER__]
-	ldp	x23, x24, [x29,#6*__SIZEOF_POINTER__]
-	ldp	x25, x26, [x29,#8*__SIZEOF_POINTER__]
-	ldp	x27, x28, [x29,#10*__SIZEOF_POINTER__]
-	ldr	x29, [sp],#16*__SIZEOF_POINTER__
-.long	3573752767
+	add	csp, csp, #512
+	ldp	c19, c20, [c29,#2*__SIZEOF_POINTER__]
+	ldp	c21, c22, [c29,#4*__SIZEOF_POINTER__]
+	ldp	c23, c24, [c29,#6*__SIZEOF_POINTER__]
+	ldp	c25, c26, [c29,#8*__SIZEOF_POINTER__]
+	ldp	c27, c28, [c29,#10*__SIZEOF_POINTER__]
+	ldr	c29, [csp],#16*__SIZEOF_POINTER__
+	.inst	0xd50323bf
 	ret
+.size	ct_is_square_mod_384,.-ct_is_square_mod_384
 
-
-.def	__smul_384_n_shift_by_30;
-.type	32;
-.endef
-.p2align	5
+.type	__smul_384_n_shift_by_30, %function
+.align	5
 __smul_384_n_shift_by_30:
-	ldp	x3, x4, [x0,#8*0+0]	// load |b| (or |a|)
+	ldp	x3, x4, [c0,#8*0+0]	// load |b| (or |a|)
 	asr	x27, x20, #63		// |g1|'s sign as mask (or |f1|'s)
-	ldp	x5, x6, [x0,#8*2+0]
+	ldp	x5, x6, [c0,#8*2+0]
 	eor	x20, x20, x27		// conditionally negate |g1| (or |f1|)
-	ldp	x7, x8, [x0,#8*4+0]
+	ldp	x7, x8, [c0,#8*4+0]
 
 	eor	x3, x3, x27	// conditionally negate |b| (or |a|)
 	sub	x20, x20, x27
@@ -135,11 +131,11 @@ __smul_384_n_shift_by_30:
 	adcs	x7, x7, x24
 	adcs	x8, x8 ,x25
 	adc	x26, x26, x28
-	ldp	x9, x10, [x0,#8*0+48]	// load |b| (or |a|)
+	ldp	x9, x10, [c0,#8*0+48]	// load |b| (or |a|)
 	asr	x27, x19, #63		// |g1|'s sign as mask (or |f1|'s)
-	ldp	x11, x12, [x0,#8*2+48]
+	ldp	x11, x12, [c0,#8*2+48]
 	eor	x19, x19, x27		// conditionally negate |g1| (or |f1|)
-	ldp	x13, x14, [x0,#8*4+48]
+	ldp	x13, x14, [c0,#8*4+48]
 
 	eor	x9, x9, x27	// conditionally negate |b| (or |a|)
 	sub	x19, x19, x27
@@ -201,21 +197,19 @@ __smul_384_n_shift_by_30:
 	eor	x7, x7, x27
 	adcs	x6, x6, xzr
 	eor	x8, x8, x27
-	stp	x3, x4, [x1,#8*0]
+	stp	x3, x4, [c1,#8*0]
 	adcs	x7, x7, xzr
-	stp	x5, x6, [x1,#8*2]
+	stp	x5, x6, [c1,#8*2]
 	adc	x8, x8, xzr
-	stp	x7, x8, [x1,#8*4]
+	stp	x7, x8, [c1,#8*4]
 
 	ret
-
-.def	__ab_approximation_30;
-.type	32;
-.endef
-.p2align	4
+.size	__smul_384_n_shift_by_30,.-__smul_384_n_shift_by_30
+.type	__ab_approximation_30, %function
+.align	4
 __ab_approximation_30:
-	ldp	x13, x14, [x0,#8*4]	// |a| is still in registers
-	ldp	x11, x12, [x0,#8*2]
+	ldp	x13, x14, [c0,#8*4]	// |a| is still in registers
+	ldp	x11, x12, [c0,#8*2]
 
 	orr	x21, x8, x14	// check top-most limbs, ...
 	cmp	x21, #0
@@ -267,12 +261,10 @@ __ab_approximation_30:
 
 	b	__inner_loop_30
 	ret
+.size	__ab_approximation_30,.-__ab_approximation_30
 
-
-.def	__inner_loop_30;
-.type	32;
-.endef
-.p2align	4
+.type	__inner_loop_30, %function
+.align	4
 __inner_loop_30:
 	mov	x28, #30
 	mov	x17, #0x7FFFFFFF80000000	// |f0|=1, |g0|=0
@@ -317,11 +309,9 @@ __inner_loop_30:
 	sub	x20, x20, x27
 
 	ret
-
-.def	__inner_loop_48;
-.type	32;
-.endef
-.p2align	4
+.size	__inner_loop_30,.-__inner_loop_30
+.type	__inner_loop_48, %function
+.align	4
 __inner_loop_48:
 .Loop_48:
 	sbfx	x24, x3, #0, #1	// if |a_| is odd, then we'll be subtracting
@@ -341,4 +331,4 @@ __inner_loop_48:
 	cbnz	x15, .Loop_48
 
 	ret
-
+.size	__inner_loop_48,.-__inner_loop_48

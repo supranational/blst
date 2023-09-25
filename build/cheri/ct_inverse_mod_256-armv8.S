@@ -6,31 +6,31 @@
 .align	5
 ct_inverse_mod_256:
 	.inst	0xd503233f
-	stp	x29, x30, [sp,#-10*__SIZEOF_POINTER__]!
-	add	x29, sp, #0
-	stp	x19, x20, [sp,#2*__SIZEOF_POINTER__]
-	stp	x21, x22, [sp,#4*__SIZEOF_POINTER__]
-	stp	x23, x24, [sp,#6*__SIZEOF_POINTER__]
-	stp	x25, x26, [sp,#8*__SIZEOF_POINTER__]
-	sub	sp, sp, #1040
+	stp	c29, c30, [csp,#-10*__SIZEOF_POINTER__]!
+	add	c29, csp, #0
+	stp	c19, c20, [csp,#2*__SIZEOF_POINTER__]
+	stp	c21, c22, [csp,#4*__SIZEOF_POINTER__]
+	stp	c23, c24, [csp,#6*__SIZEOF_POINTER__]
+	stp	c25, c26, [csp,#8*__SIZEOF_POINTER__]
+	sub	csp, csp, #1040
 
-	ldp	x4, x5, [x1,#8*0]
-	ldp	x6, x7, [x1,#8*2]
+	ldp	x4, x5, [c1,#8*0]
+	ldp	x6, x7, [c1,#8*2]
 
 	add	x1, sp, #16+511	// find closest 512-byte-aligned spot
 	and	x1, x1, #-512	// in the frame...
 #ifdef	__CHERI_PURE_CAPABILITY__
 	scvalue	c1,csp,x1
 #endif
-	str	x0, [sp]		// offload out_ptr
+	str	c0, [csp]		// offload out_ptr
 
-	ldp	x8, x9, [x2,#8*0]
-	ldp	x10, x11, [x2,#8*2]
+	ldp	x8, x9, [c2,#8*0]
+	ldp	x10, x11, [c2,#8*2]
 
-	stp	x4, x5, [x1,#8*0]	// copy input to |a|
-	stp	x6, x7, [x1,#8*2]
-	stp	x8, x9, [x1,#8*4]	// copy modulus to |b|
-	stp	x10, x11, [x1,#8*6]
+	stp	x4, x5, [c1,#8*0]	// copy input to |a|
+	stp	x6, x7, [c1,#8*2]
+	stp	x8, x9, [c1,#8*4]	// copy modulus to |b|
+	stp	x10, x11, [c1,#8*6]
 
 	////////////////////////////////////////// first iteration
 	bl	.Lab_approximation_31_256_loaded
@@ -40,13 +40,13 @@ ct_inverse_mod_256:
 	scvalue	c0,csp,x0
 #endif
 	bl	__smul_256_n_shift_by_31
-	str	x12,[x0,#8*8]		// initialize |u| with |f0|
+	str	x12,[c0,#8*8]		// initialize |u| with |f0|
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
-	str	x12, [x0,#8*9]		// initialize |v| with |f1|
+	str	x12, [c0,#8*9]		// initialize |v| with |f1|
 
 	////////////////////////////////////////// second iteration
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
@@ -65,24 +65,24 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	ldr	x8, [x1,#8*8]		// |u|
-	ldr	x9, [x1,#8*13]	// |v|
+	ldr	x8, [c1,#8*8]		// |u|
+	ldr	x9, [c1,#8*13]	// |v|
 	madd	x4, x16, x8, xzr	// |u|*|f0|
 	madd	x4, x17, x9, x4	// |v|*|g0|
-	str	x4, [x0,#8*4]
+	str	x4, [c0,#8*4]
 	asr	x5, x4, #63		// sign extension
-	stp	x5, x5, [x0,#8*5]
-	stp	x5, x5, [x0,#8*7]
+	stp	x5, x5, [c0,#8*5]
+	stp	x5, x5, [c0,#8*7]
 
 	madd	x4, x12, x8, xzr	// |u|*|f1|
 	madd	x4, x13, x9, x4	// |v|*|g1|
-	str	x4, [x0,#8*9]
+	str	x4, [c0,#8*9]
 	asr	x5, x4, #63		// sign extension
-	stp	x5, x5, [x0,#8*10]
-	stp	x5, x5, [x0,#8*12]
+	stp	x5, x5, [c0,#8*10]
+	stp	x5, x5, [c0,#8*12]
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 #ifdef	__CHERI_PURE_CAPABILITY__
 	scvalue	c1,csp,x1
@@ -99,21 +99,21 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	stp	x22, x22, [x0,#8*4]
-	stp	x22, x22, [x0,#8*6]
+	stp	x22, x22, [c0,#8*4]
+	stp	x22, x22, [c0,#8*6]
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 #ifdef	__CHERI_PURE_CAPABILITY__
 	scvalue	c1,csp,x1
@@ -130,21 +130,21 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	stp	x22, x22, [x0,#8*4]
-	stp	x22, x22, [x0,#8*6]
+	stp	x22, x22, [c0,#8*4]
+	stp	x22, x22, [c0,#8*6]
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 #ifdef	__CHERI_PURE_CAPABILITY__
 	scvalue	c1,csp,x1
@@ -161,21 +161,21 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	stp	x22, x22, [x0,#8*4]
-	stp	x22, x22, [x0,#8*6]
+	stp	x22, x22, [c0,#8*4]
+	stp	x22, x22, [c0,#8*6]
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 #ifdef	__CHERI_PURE_CAPABILITY__
 	scvalue	c1,csp,x1
@@ -192,21 +192,21 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	stp	x22, x22, [x0,#8*4]
-	stp	x22, x22, [x0,#8*6]
+	stp	x22, x22, [c0,#8*4]
+	stp	x22, x22, [c0,#8*6]
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 #ifdef	__CHERI_PURE_CAPABILITY__
 	scvalue	c1,csp,x1
@@ -223,21 +223,21 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	stp	x22, x22, [x0,#8*4]
-	stp	x22, x22, [x0,#8*6]
+	stp	x22, x22, [c0,#8*4]
+	stp	x22, x22, [c0,#8*6]
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 #ifdef	__CHERI_PURE_CAPABILITY__
 	scvalue	c1,csp,x1
@@ -254,21 +254,21 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	stp	x22, x22, [x0,#8*4]
-	stp	x22, x22, [x0,#8*6]
+	stp	x22, x22, [c0,#8*4]
+	stp	x22, x22, [c0,#8*6]
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
 #ifdef	__CHERI_PURE_CAPABILITY__
 	scvalue	c1,csp,x1
@@ -285,17 +285,17 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	bl	__smul_512x63_tail
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
@@ -314,17 +314,17 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	bl	__smul_512x63_tail
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
@@ -343,17 +343,17 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	bl	__smul_512x63_tail
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
@@ -372,17 +372,17 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	bl	__smul_512x63_tail
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
@@ -401,17 +401,17 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	bl	__smul_512x63_tail
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
@@ -430,17 +430,17 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	bl	__smul_512x63_tail
 	eor	x1, x1, #256		// flip-flop src |a|b|u|v|
@@ -459,17 +459,17 @@ ct_inverse_mod_256:
 
 	mov	x12, x14			// |f1|
 	mov	x13, x15			// |g1|
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256_n_shift_by_31
 
-	add	x0,x0,#8*4
+	add	c0,c0,#8*4
 	bl	__smul_256x63
 	adc	x22, x22, x23
-	str	x22, [x0,#8*4]
+	str	x22, [c0,#8*4]
 
 	mov	x16, x12			// corrected |f1|
 	mov	x17, x13			// corrected |g1|
-	add	x0,x0,#8*5
+	add	c0,c0,#8*5
 	bl	__smul_256x63
 	bl	__smul_512x63_tail
 	////////////////////////////////////////// two[!] last iterations
@@ -479,21 +479,21 @@ ct_inverse_mod_256:
 #endif
 	mov	x2, #47			// 31 + 512 % 31
 	//bl	__ab_approximation_62_256	// |a| and |b| are exact,
-	ldr	x7, [x1,#8*0]		// just load
-	ldr	x11, [x1,#8*4]
+	ldr	x7, [c1,#8*0]		// just load
+	ldr	x11, [c1,#8*4]
 	bl	__inner_loop_62_256
 
 	mov	x16, x14
 	mov	x17, x15
-	ldr	x0, [sp]			// original out_ptr
+	ldr	c0, [csp]			// original out_ptr
 	bl	__smul_256x63
 	bl	__smul_512x63_tail
-	ldr	x30, [x29,#__SIZEOF_POINTER__]
+	ldr	c30, [c29,#__SIZEOF_POINTER__]
 
 	smulh	x20, x7, x17		// figure out top-most limb
-	ldp	x8, x9, [x3,#8*0]
+	ldp	x8, x9, [c3,#8*0]
 	adc	x23, x23, x25
-	ldp	x10, x11, [x3,#8*2]
+	ldp	x10, x11, [c3,#8*2]
 
 	add	x20, x20, x23		// x20 is 1, 0 or -1
 	asr	x19, x20, #63		// sign as mask
@@ -529,16 +529,16 @@ ct_inverse_mod_256:
 	adds	x4, x4, x8	// final adjustment for |mod|<<256
 	adcs	x5, x5, x9
 	adcs	x6, x6, x10
-	stp	x4, x5, [x0,#8*4]
+	stp	x4, x5, [c0,#8*4]
 	adc	x7, x7, x11
-	stp	x6, x7, [x0,#8*6]
+	stp	x6, x7, [c0,#8*6]
 
-	add	sp, sp, #1040
-	ldp	x19, x20, [x29,#2*__SIZEOF_POINTER__]
-	ldp	x21, x22, [x29,#4*__SIZEOF_POINTER__]
-	ldp	x23, x24, [x29,#6*__SIZEOF_POINTER__]
-	ldp	x25, x26, [x29,#8*__SIZEOF_POINTER__]
-	ldr	x29, [sp],#10*__SIZEOF_POINTER__
+	add	csp, csp, #1040
+	ldp	c19, c20, [c29,#2*__SIZEOF_POINTER__]
+	ldp	c21, c22, [c29,#4*__SIZEOF_POINTER__]
+	ldp	c23, c24, [c29,#6*__SIZEOF_POINTER__]
+	ldp	c25, c26, [c29,#8*__SIZEOF_POINTER__]
+	ldr	c29, [csp],#10*__SIZEOF_POINTER__
 	.inst	0xd50323bf
 	ret
 .size	ct_inverse_mod_256,.-ct_inverse_mod_256
@@ -547,11 +547,11 @@ ct_inverse_mod_256:
 .type	__smul_256x63, %function
 .align	5
 __smul_256x63:
-	ldp	x4, x5, [x1,#8*0+64]	// load |u| (or |v|)
+	ldp	x4, x5, [c1,#8*0+64]	// load |u| (or |v|)
 	asr	x14, x16, #63		// |f_|'s sign as mask (or |g_|'s)
-	ldp	x6, x7, [x1,#8*2+64]
+	ldp	x6, x7, [c1,#8*2+64]
 	eor	x16, x16, x14		// conditionally negate |f_| (or |g_|)
-	ldr	x22, [x1,#8*4+64]
+	ldr	x22, [c1,#8*4+64]
 
 	eor	x4, x4, x14	// conditionally negate |u| (or |v|)
 	sub	x16, x16, x14
@@ -577,11 +577,11 @@ __smul_256x63:
 	adcs	x6, x6, x20
 	adcs	x24, x24, x21
 	adc	x26, xzr, xzr
-	ldp	x8, x9, [x1,#8*0+104]	// load |u| (or |v|)
+	ldp	x8, x9, [c1,#8*0+104]	// load |u| (or |v|)
 	asr	x14, x17, #63		// |f_|'s sign as mask (or |g_|'s)
-	ldp	x10, x11, [x1,#8*2+104]
+	ldp	x10, x11, [c1,#8*2+104]
 	eor	x17, x17, x14		// conditionally negate |f_| (or |g_|)
-	ldr	x23, [x1,#8*4+104]
+	ldr	x23, [c1,#8*4+104]
 
 	eor	x8, x8, x14	// conditionally negate |u| (or |v|)
 	sub	x17, x17, x14
@@ -612,9 +612,9 @@ __smul_256x63:
 	adds	x4, x4, x8
 	adcs	x5, x5, x9
 	adcs	x6, x6, x10
-	stp	x4, x5, [x0,#8*0]
+	stp	x4, x5, [c0,#8*0]
 	adcs	x24,   x24,   x25
-	stp	x6, x24, [x0,#8*2]
+	stp	x6, x24, [c0,#8*2]
 
 	ret
 .size	__smul_256x63,.-__smul_256x63
@@ -623,9 +623,9 @@ __smul_256x63:
 .align	5
 __smul_512x63_tail:
 	umulh	x24, x7, x16
-	ldp	x5, x6, [x1,#8*18]	// load rest of |v|
+	ldp	x5, x6, [c1,#8*18]	// load rest of |v|
 	adc	x26, x26, xzr
-	ldr	x7, [x1,#8*20]
+	ldr	x7, [c1,#8*20]
 	and	x22, x22, x16
 
 	umulh	x11, x11, x17	// resume |v|*|g1| chain
@@ -657,9 +657,9 @@ __smul_512x63_tail:
 	adds	x4, x4, x24
 	adcs	x5, x5, x25
 	adcs	x6, x6, x25
-	stp	x4, x5, [x0,#8*4]
+	stp	x4, x5, [c0,#8*4]
 	adcs	x22,   x22,   x25	// carry is used in the final step
-	stp	x6, x22,   [x0,#8*6]
+	stp	x6, x22,   [c0,#8*6]
 
 	ret
 .size	__smul_512x63_tail,.-__smul_512x63_tail
@@ -667,9 +667,9 @@ __smul_512x63_tail:
 .type	__smul_256_n_shift_by_31, %function
 .align	5
 __smul_256_n_shift_by_31:
-	ldp	x4, x5, [x1,#8*0+0]	// load |a| (or |b|)
+	ldp	x4, x5, [c1,#8*0+0]	// load |a| (or |b|)
 	asr	x24, x12, #63		// |f0|'s sign as mask (or |g0|'s)
-	ldp	x6, x7, [x1,#8*2+0]
+	ldp	x6, x7, [c1,#8*2+0]
 	eor	x25, x12, x24	// conditionally negate |f0| (or |g0|)
 
 	eor	x4, x4, x24	// conditionally negate |a| (or |b|)
@@ -696,9 +696,9 @@ __smul_256_n_shift_by_31:
 	adcs	x6, x6, x20
 	adcs	x7, x7, x21
 	adc	x22, x22, x24
-	ldp	x8, x9, [x1,#8*0+32]	// load |a| (or |b|)
+	ldp	x8, x9, [c1,#8*0+32]	// load |a| (or |b|)
 	asr	x24, x13, #63		// |f0|'s sign as mask (or |g0|'s)
-	ldp	x10, x11, [x1,#8*2+32]
+	ldp	x10, x11, [c1,#8*2+32]
 	eor	x25, x13, x24	// conditionally negate |f0| (or |g0|)
 
 	eor	x8, x8, x24	// conditionally negate |a| (or |b|)
@@ -744,9 +744,9 @@ __smul_256_n_shift_by_31:
 	adcs	x5, x5, xzr
 	eor	x7, x7, x23
 	adcs	x6, x6, xzr
-	stp	x4, x5, [x0,#8*0]
+	stp	x4, x5, [c0,#8*0]
 	adc	x7, x7, xzr
-	stp	x6, x7, [x0,#8*2]
+	stp	x6, x7, [c0,#8*2]
 
 	eor	x12, x12, x23		// adjust |f/g| accordingly
 	eor	x13, x13, x23
@@ -758,10 +758,10 @@ __smul_256_n_shift_by_31:
 .type	__ab_approximation_31_256, %function
 .align	4
 __ab_approximation_31_256:
-	ldp	x6, x7, [x1,#8*2]
-	ldp	x10, x11, [x1,#8*6]
-	ldp	x4, x5, [x1,#8*0]
-	ldp	x8, x9, [x1,#8*4]
+	ldp	x6, x7, [c1,#8*2]
+	ldp	x10, x11, [c1,#8*6]
+	ldp	x4, x5, [c1,#8*0]
+	ldp	x8, x9, [c1,#8*4]
 
 .Lab_approximation_31_256_loaded:
 	orr	x19, x7, x11	// check top-most limbs, ...

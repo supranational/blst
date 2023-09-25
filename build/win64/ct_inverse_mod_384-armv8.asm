@@ -1,3 +1,5 @@
+ GBLA __SIZEOF_POINTER__
+__SIZEOF_POINTER__ SETA 64/8
 	AREA	|.text|,CODE,ALIGN=8,ARM64
 
 
@@ -6,21 +8,24 @@
 	ALIGN	32
 |ct_inverse_mod_383| PROC
 	DCDU	3573752639
-	stp	x29, x30, [sp,#-128]!
+	stp	x29, x30, [sp,#-16*__SIZEOF_POINTER__]!
 	add	x29, sp, #0
-	stp	x19, x20, [sp,#16]
-	stp	x21, x22, [sp,#32]
-	stp	x23, x24, [sp,#48]
-	stp	x25, x26, [sp,#64]
-	stp	x27, x28, [sp,#80]
-	sub	sp, sp, #1040
+	stp	x19, x20, [sp,#2*__SIZEOF_POINTER__]
+	stp	x21, x22, [sp,#4*__SIZEOF_POINTER__]
+	stp	x23, x24, [sp,#6*__SIZEOF_POINTER__]
+	stp	x25, x26, [sp,#8*__SIZEOF_POINTER__]
+	stp	x27, x28, [sp,#10*__SIZEOF_POINTER__]
+	sub	sp, sp, #1056
 
 	ldp	x22,   x4, [x1,#8*0]
 	ldp	x5, x6, [x1,#8*2]
 	ldp	x7, x8, [x1,#8*4]
 
-	add	x1, sp, #16+511
+	add	x1, sp, #32+511
 	and	x1, x1, #-512
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	stp	x0, x3, [sp]
 
 	ldp	x9, x10, [x2,#8*0]
@@ -39,28 +44,37 @@
 	bl	|$Lab_approximation_62_loaded|
 
 	eor	x0, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c0,csp,x0
+ endif
 	bl	__smul_383_n_shift_by_62
 	str	x15,[x0,#8*12]
 
 	mov	x15, x17
 	mov	x16, x19
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383_n_shift_by_62
 	str	x15, [x0,#8*12]
 
 
 	eor	x1, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	mov	x2, #62
 	bl	__ab_approximation_62
 
 	eor	x0, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c0,csp,x0
+ endif
 	bl	__smul_383_n_shift_by_62
 	mov	x20, x15
 	mov	x21, x16
 
 	mov	x15, x17
 	mov	x16, x19
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383_n_shift_by_62
 
 	ldr	x7, [x1,#8*12]
@@ -87,205 +101,262 @@
 	stp	x5, x5, [x0,#8*14]
 	stp	x5, x5, [x0,#8*16]
 	eor	x1, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	mov	x2, #62
 	bl	__ab_approximation_62
 
 	eor	x0, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c0,csp,x0
+ endif
 	bl	__smul_383_n_shift_by_62
 	mov	x20, x15
 	mov	x21, x16
 
 	mov	x15, x17
 	mov	x16, x19
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383_n_shift_by_62
 
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 
 	mov	x20, x15
 	mov	x21, x16
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 	eor	x1, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	mov	x2, #62
 	bl	__ab_approximation_62
 
 	eor	x0, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c0,csp,x0
+ endif
 	bl	__smul_383_n_shift_by_62
 	mov	x20, x15
 	mov	x21, x16
 
 	mov	x15, x17
 	mov	x16, x19
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383_n_shift_by_62
 
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 
 	mov	x20, x15
 	mov	x21, x16
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 	eor	x1, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	mov	x2, #62
 	bl	__ab_approximation_62
 
 	eor	x0, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c0,csp,x0
+ endif
 	bl	__smul_383_n_shift_by_62
 	mov	x20, x15
 	mov	x21, x16
 
 	mov	x15, x17
 	mov	x16, x19
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383_n_shift_by_62
 
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 
 	mov	x20, x15
 	mov	x21, x16
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 	eor	x1, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	mov	x2, #62
 	bl	__ab_approximation_62
 
 	eor	x0, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c0,csp,x0
+ endif
 	bl	__smul_383_n_shift_by_62
 	mov	x20, x15
 	mov	x21, x16
 
 	mov	x15, x17
 	mov	x16, x19
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383_n_shift_by_62
 
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 
 	mov	x20, x15
 	mov	x21, x16
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 	asr	x27, x27, #63
 	stp	x27, x27, [x0,#8*6]
 	stp	x27, x27, [x0,#8*8]
 	stp	x27, x27, [x0,#8*10]
 	eor	x1, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	mov	x2, #62
 	bl	__ab_approximation_62
 
 	eor	x0, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c0,csp,x0
+ endif
 	bl	__smul_383_n_shift_by_62
 	mov	x20, x15
 	mov	x21, x16
 
 	mov	x15, x17
 	mov	x16, x19
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383_n_shift_by_62
 
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 
 	mov	x20, x15
 	mov	x21, x16
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 	bl	__smul_767x63_tail
 	eor	x1, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	mov	x2, #62
 	bl	__ab_approximation_62
 
 	eor	x0, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c0,csp,x0
+ endif
 	bl	__smul_383_n_shift_by_62
 	mov	x20, x15
 	mov	x21, x16
 
 	mov	x15, x17
 	mov	x16, x19
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383_n_shift_by_62
 
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 
 	mov	x20, x15
 	mov	x21, x16
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 	bl	__smul_767x63_tail
 	eor	x1, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	mov	x2, #62
 	bl	__ab_approximation_62
 
 	eor	x0, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c0,csp,x0
+ endif
 	bl	__smul_383_n_shift_by_62
 	mov	x20, x15
 	mov	x21, x16
 
 	mov	x15, x17
 	mov	x16, x19
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383_n_shift_by_62
 
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 
 	mov	x20, x15
 	mov	x21, x16
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 	bl	__smul_767x63_tail
 	eor	x1, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	mov	x2, #62
 	bl	__ab_approximation_62
 
 	eor	x0, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c0,csp,x0
+ endif
 	bl	__smul_383_n_shift_by_62
 	mov	x20, x15
 	mov	x21, x16
 
 	mov	x15, x17
 	mov	x16, x19
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383_n_shift_by_62
 
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 
 	mov	x20, x15
 	mov	x21, x16
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 	bl	__smul_767x63_tail
 	eor	x1, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	mov	x2, #62
 	bl	__ab_approximation_62
 
 	eor	x0, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c0,csp,x0
+ endif
 	bl	__smul_383_n_shift_by_62
 	mov	x20, x15
 	mov	x21, x16
 
 	mov	x15, x17
 	mov	x16, x19
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383_n_shift_by_62
 
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 
 	mov	x20, x15
 	mov	x21, x16
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 	bl	__smul_767x63_tail
 
 	eor	x1, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	mov	x2, #62
 
 	ldp	x3, x8, [x1,#8*0]
@@ -293,6 +364,9 @@
 	bl	__inner_loop_62
 
 	eor	x0, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c0,csp,x0
+ endif
 	str	x3, [x0,#8*0]
 	str	x9, [x0,#8*6]
 
@@ -300,17 +374,20 @@
 	mov	x21, x16
 	mov	x15, x17
 	mov	x16, x19
-	add	x0, x0, #8*12
+	add	x0,x0,#8*12
 	bl	__smul_383x63
 
 	mov	x20, x15
 	mov	x21, x16
-	add	x0, x0, #8*6
+	add	x0,x0,#8*6
 	bl	__smul_383x63
 	bl	__smul_767x63_tail
 
 
 	eor	x1, x1, #256
+ if :def:	__CHERI_PURE_CAPABILITY__
+	scvalue	c1,csp,x1
+ endif
 	mov	x2, #22
 
 	ldr	x3, [x1,#8*0]
@@ -324,7 +401,7 @@
 	ldp	x0, x15, [sp]
 	bl	__smul_383x63
 	bl	__smul_767x63_tail
-	ldr	x30, [x29,#8]
+	ldr	x30, [x29,#__SIZEOF_POINTER__]
 
 	asr	x22, x8, #63
 	ldp	x9, x10, [x15,#8*0]
@@ -347,13 +424,13 @@
 	adc	x8, x8, x14
 	stp	x7, x8, [x0,#8*10]
 
-	add	sp, sp, #1040
-	ldp	x19, x20, [x29,#16]
-	ldp	x21, x22, [x29,#32]
-	ldp	x23, x24, [x29,#48]
-	ldp	x25, x26, [x29,#64]
-	ldp	x27, x28, [x29,#80]
-	ldr	x29, [sp],#128
+	add	sp, sp, #1056
+	ldp	x19, x20, [x29,#2*__SIZEOF_POINTER__]
+	ldp	x21, x22, [x29,#4*__SIZEOF_POINTER__]
+	ldp	x23, x24, [x29,#6*__SIZEOF_POINTER__]
+	ldp	x25, x26, [x29,#8*__SIZEOF_POINTER__]
+	ldp	x27, x28, [x29,#10*__SIZEOF_POINTER__]
+	ldr	x29, [sp],#16*__SIZEOF_POINTER__
 	DCDU	3573752767
 	ret
 	ENDP

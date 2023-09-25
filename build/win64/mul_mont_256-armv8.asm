@@ -1,3 +1,5 @@
+ GBLA __SIZEOF_POINTER__
+__SIZEOF_POINTER__ SETA 64/8
 	AREA	|.text|,CODE,ALIGN=8,ARM64
 
 
@@ -5,11 +7,11 @@
 	EXPORT	|mul_mont_sparse_256|[FUNC]
 	ALIGN	32
 |mul_mont_sparse_256| PROC
-	stp	x29,x30,[sp,#-64]!
+	stp	x29,x30,[sp,#-8*__SIZEOF_POINTER__]!
 	add	x29,sp,#0
-	stp	x19,x20,[sp,#16]
-	stp	x21,x22,[sp,#32]
-	stp	x23,x24,[sp,#48]
+	stp	x19,x20,[sp,#2*__SIZEOF_POINTER__]
+	stp	x21,x22,[sp,#4*__SIZEOF_POINTER__]
+	stp	x23,x24,[sp,#6*__SIZEOF_POINTER__]
 
 	ldp	x10,x11,[x1]
 	ldr	x9,        [x2]
@@ -185,10 +187,10 @@
 	stp	x19,x20,[x0]
 	stp	x21,x22,[x0,#16]
 
-	ldp	x19,x20,[x29,#16]
-	ldp	x21,x22,[x29,#32]
-	ldp	x23,x24,[x29,#48]
-	ldr	x29,[sp],#64
+	ldp	x19,x20,[x29,#2*__SIZEOF_POINTER__]
+	ldp	x21,x22,[x29,#4*__SIZEOF_POINTER__]
+	ldp	x23,x24,[x29,#6*__SIZEOF_POINTER__]
+	ldr	x29,[sp],#8*__SIZEOF_POINTER__
 	ret
 	ENDP
 
@@ -197,10 +199,10 @@
 	ALIGN	32
 |sqr_mont_sparse_256| PROC
 	DCDU	3573752639
-	stp	x29,x30,[sp,#-48]!
+	stp	x29,x30,[sp,#-6*__SIZEOF_POINTER__]!
 	add	x29,sp,#0
-	stp	x19,x20,[sp,#16]
-	stp	x21,x22,[sp,#32]
+	stp	x19,x20,[sp,#2*__SIZEOF_POINTER__]
+	stp	x21,x22,[sp,#4*__SIZEOF_POINTER__]
 
 	ldp	x5,x6,[x1]
 	ldp	x7,x8,[x1,#16]
@@ -272,7 +274,7 @@
 	adc	x22,x22,x8
 
 	bl	__mul_by_1_mont_256
-	ldr	x30,[x29,#8]
+	ldr	x30,[x29,#__SIZEOF_POINTER__]
 
 	adds	x10,x10,x19
 	adcs	x11,x11,x20
@@ -294,9 +296,9 @@
 	stp	x10,x11,[x0]
 	stp	x12,x13,[x0,#16]
 
-	ldp	x19,x20,[x29,#16]
-	ldp	x21,x22,[x29,#32]
-	ldr	x29,[sp],#48
+	ldp	x19,x20,[x29,#2*__SIZEOF_POINTER__]
+	ldp	x21,x22,[x29,#4*__SIZEOF_POINTER__]
+	ldr	x29,[sp],#6*__SIZEOF_POINTER__
 	DCDU	3573752767
 	ret
 	ENDP
@@ -306,7 +308,7 @@
 	ALIGN	32
 |from_mont_256| PROC
 	DCDU	3573752639
-	stp	x29,x30,[sp,#-16]!
+	stp	x29,x30,[sp,#-2*__SIZEOF_POINTER__]!
 	add	x29,sp,#0
 
 	mov	x4,x3
@@ -314,7 +316,7 @@
 	ldp	x12,x13,[x1,#16]
 
 	bl	__mul_by_1_mont_256
-	ldr	x30,[x29,#8]
+	ldr	x30,[x29,#__SIZEOF_POINTER__]
 
 	subs	x14,x10,x5
 	sbcs	x15,x11,x6
@@ -329,7 +331,7 @@
 	stp	x10,x11,[x0]
 	stp	x12,x13,[x0,#16]
 
-	ldr	x29,[sp],#16
+	ldr	x29,[sp],#2*__SIZEOF_POINTER__
 	DCDU	3573752767
 	ret
 	ENDP
@@ -340,7 +342,7 @@
 	ALIGN	32
 |redc_mont_256| PROC
 	DCDU	3573752639
-	stp	x29,x30,[sp,#-16]!
+	stp	x29,x30,[sp,#-2*__SIZEOF_POINTER__]!
 	add	x29,sp,#0
 
 	mov	x4,x3
@@ -348,7 +350,7 @@
 	ldp	x12,x13,[x1,#16]
 
 	bl	__mul_by_1_mont_256
-	ldr	x30,[x29,#8]
+	ldr	x30,[x29,#__SIZEOF_POINTER__]
 
 	ldp	x14,x15,[x1,#32]
 	ldp	x16,x17,[x1,#48]
@@ -373,7 +375,7 @@
 	stp	x10,x11,[x0]
 	stp	x12,x13,[x0,#16]
 
-	ldr	x29,[sp],#16
+	ldr	x29,[sp],#2*__SIZEOF_POINTER__
 	DCDU	3573752767
 	ret
 	ENDP

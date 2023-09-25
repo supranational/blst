@@ -1,3 +1,5 @@
+ GBLA __SIZEOF_POINTER__
+__SIZEOF_POINTER__ SETA 64/8
 
 
 
@@ -47,7 +49,7 @@
 	ALIGN	64
 |blst_sha256_block_armv8| PROC
 |$Lv8_entry|
-	stp	x29,x30,[sp,#-16]!
+	stp	x29,x30,[sp,#-2*__SIZEOF_POINTER__]!
 	add	x29,sp,#0
 
 	ld1	{v0.4s,v1.4s},[x0]
@@ -178,7 +180,7 @@
 
 	st1	{v0.4s,v1.4s},[x0]
 
-	ldr	x29,[sp],#16
+	ldr	x29,[sp],#2*__SIZEOF_POINTER__
 	ret
 	ENDP
 
@@ -190,7 +192,7 @@
 	tst	w16,#1
 	bne	|$Lv8_entry|
 
-	stp	x29, x30, [sp, #-16]!
+	stp	x29, x30, [sp, #-2*__SIZEOF_POINTER__]!
 	mov	x29, sp
 	sub	sp,sp,#16*4
 
@@ -673,9 +675,9 @@
 
 	sub	x16,x16,#256
 	cmp	x1,x2
-	mov	x17, #64
+	mov	x17, #-64
 	cseleq	x17,x17,xzr
-	sub	x1,x1,x17
+	add	x1,x1,x17
 	mov	x17,sp
 	add	w10,w10,w12
 	add	w3,w3,w15
@@ -1026,7 +1028,7 @@
 	bne	|$L_00_48|
 
 	ldr	x29,[x29]
-	add	sp,sp,#16*4+16
+	add	sp,sp,#16*4+2*__SIZEOF_POINTER__
 	ret
 	ENDP
 
