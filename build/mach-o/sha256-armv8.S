@@ -185,12 +185,11 @@ Loop_hw:
 
 .align	4
 _blst_sha256_block_data_order:
-#ifndef	__CHERI_PURE_CAPABILITY__
 	adrp	x16,___blst_platform_cap@PAGE
 	ldr	w16,[x16,___blst_platform_cap@PAGEOFF]
 	tst	w16,#1
 	b.ne	Lv8_entry
-#endif
+
 	stp	x29, x30, [sp, #-2*__SIZEOF_POINTER__]!
 	mov	x29, sp
 	sub	sp,sp,#16*4

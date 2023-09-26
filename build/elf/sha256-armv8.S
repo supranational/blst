@@ -185,12 +185,11 @@ blst_sha256_block_armv8:
 .type	blst_sha256_block_data_order,%function
 .align	4
 blst_sha256_block_data_order:
-#ifndef	__CHERI_PURE_CAPABILITY__
 	adrp	x16,__blst_platform_cap
 	ldr	w16,[x16,#:lo12:__blst_platform_cap]
 	tst	w16,#1
 	b.ne	.Lv8_entry
-#endif
+
 	stp	x29, x30, [sp, #-2*__SIZEOF_POINTER__]!
 	mov	x29, sp
 	sub	sp,sp,#16*4

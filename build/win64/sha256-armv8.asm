@@ -187,12 +187,11 @@ __SIZEOF_POINTER__ SETA 64/8
 	EXPORT	|blst_sha256_block_data_order|[FUNC]
 	ALIGN	16
 |blst_sha256_block_data_order| PROC
- if :lnot::def:	__CHERI_PURE_CAPABILITY__
 	adrp	x16,__blst_platform_cap
 	ldr	w16,[x16,__blst_platform_cap]
 	tst	w16,#1
 	bne	|$Lv8_entry|
- endif
+
 	stp	x29, x30, [sp, #-2*__SIZEOF_POINTER__]!
 	mov	x29, sp
 	sub	sp,sp,#16*4
