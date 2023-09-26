@@ -54,7 +54,7 @@ __declspec(allocate(".CRT$XCU")) static int (*p)(void) = __blst_cpuid;
 #  pragma init(__blst_cpuid)
 # endif
 
-#elif defined(__aarch64__) || defined(__aarch64)
+#elif defined(__aarch64__) || defined(__aarch64) || defined(_M_ARM64)
 
 # if defined(__linux__) && (defined(__GNUC__) || defined(__clang__))
 extern unsigned long getauxval(unsigned long type) __attribute__ ((weak));
@@ -80,6 +80,23 @@ static int __blst_cpuid()
     __blst_platform_cap = 1; /* SHA256 */
     return 0;
 }
+# elif defined(_WIN64)
+int IsProcessorFeaturePresent(int);
+
+#  if defined(__GNUC__) || defined(__clang__)
+__attribute__((constructor))
+#  endif
+static int __blst_cpuid()
+{
+    __blst_platform_cap = IsProcessorFeaturePresent(30); /* AES, SHA1, SHA2 */
+
+    return 0;
+}
+
+#  if defined(_MSC_VER) && !defined(__clang__)
+#   pragma section(".CRT$XCU",read)
+__declspec(allocate(".CRT$XCU")) static int (*p)(void) = __blst_cpuid;
+#  endif
 # endif
 
 #endif
