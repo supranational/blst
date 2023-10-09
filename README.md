@@ -35,7 +35,7 @@ Formal verification of this library by Galois is on-going and can be found [here
 
 This library is compliant with the following IETF draft specifications:
 - [IETF BLS Signature V5](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature)
-- [IETF Hash-to-Curve V16](https://tools.ietf.org/html/draft-irtf-cfrg-hash-to-curve)
+- [IETF RFC 9380 Hashing to Elliptic Curves](https://www.rfc-editor.org/rfc/rfc9380.html)
 
 The serialization formatting is implemented according to [the ZCash definition](#serialization-format).
 
@@ -199,6 +199,8 @@ For more details see the Rust binding [readme](bindings/rust/README.md).
     * blst_aux.h - contains experimental functions not yet committed for long-term maintenance
     * blst.hpp - provides foundational class-oriented C++ interface to blst library
     * blst.swg - provides SWIG definitions for creating blst bindings for other languages, such as Java and Python
+    * **C#** - folder containing C# bindings and an example of how to use them
+    * **Emscripten**  - folder containing an example of how to use Emscripten WebAssembly bindings from Javascript
     * **Go** - folder containing Go bindings for blst, including tests and benchmarks
     * **Java** - folder containing an example of how to use SWIG Java bindings for blst
     * **Node.js** - folder containing an example of how to use SWIG Javascript bindings for blst
