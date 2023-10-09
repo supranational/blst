@@ -80,6 +80,18 @@ static int __blst_cpuid()
     __blst_platform_cap = 1; /* SHA256 */
     return 0;
 }
+# elif defined(__FreeBSD__) && __FreeBSD__ >= 12
+#  include <sys/auxv.h>
+__attribute__((constructor))
+static int __blst_cpuid()
+{
+    unsigned long cap;
+
+    if (elf_aux_info(AT_HWCAP, &cap, sizeof(cap)) == 0)
+        __blst_platform_cap = (cap & HWCAP_SHA2) != 0;
+
+    return 0;
+}
 # elif defined(_WIN64)
 int IsProcessorFeaturePresent(int);
 
