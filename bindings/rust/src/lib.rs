@@ -2026,3 +2026,35 @@ mod fp12_test {
         );
     }
 }
+
+#[cfg(test)]
+mod sk_test {
+    use super::*;
+    use rand::{RngCore, SeedableRng};
+    use rand_chacha::ChaCha20Rng;
+
+    #[test]
+    fn inverse() {
+        let mut bytes = [0u8; 64];
+        ChaCha20Rng::from_entropy().fill_bytes(bytes.as_mut());
+
+        let mut sk = blst_scalar::default();
+        let mut p1 = blst_p1::default();
+        let mut p2 = blst_p2::default();
+
+        unsafe {
+            blst_scalar_from_be_bytes(&mut sk, bytes.as_ptr(), bytes.len());
+
+            blst_p1_mult(&mut p1, blst_p1_generator(), sk.b.as_ptr(), 255);
+            blst_sk_inverse(&mut sk, &sk);
+            blst_p1_mult(&mut p1, &p1, sk.b.as_ptr(), 255);
+
+            blst_p2_mult(&mut p2, blst_p2_generator(), sk.b.as_ptr(), 255);
+            blst_sk_inverse(&mut sk, &sk);
+            blst_p2_mult(&mut p2, &p2, sk.b.as_ptr(), 255);
+        }
+
+        assert_eq!(p1, unsafe { *blst_p1_generator() });
+        assert_eq!(p2, unsafe { *blst_p2_generator() });
+    }
+}
