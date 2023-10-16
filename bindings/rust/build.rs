@@ -227,6 +227,8 @@ fn main() {
         cc.flag("-ffreestanding");
         cc.define("__SGX_LVI_HARDENING__", None);
         cc.define("__BLST_NO_CPUID__", None);
+        cc.define("__ELF__", None);
+        cc.define("SCRATCH_LIMIT", "(45 * 1024)");
     }
     if !cfg!(debug_assertions) {
         cc.opt_level(2);
