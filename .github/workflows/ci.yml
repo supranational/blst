@@ -86,7 +86,7 @@ jobs:
             echo '--- build x86_64-fortanix-unknown-sgx'
             echo
             rustup target add x86_64-fortanix-unknown-sgx
-            cargo build --release --target=x86_64-fortanix-unknown-sgx
+            cargo test --release --target=x86_64-fortanix-unknown-sgx --no-run
             cargo clean -p blst --release --target=x86_64-fortanix-unknown-sgx
             echo '--- dry-run publish'
             echo
