@@ -558,10 +558,9 @@ func TestSignVerifyAggregateValidatesInfinitePubkeyMinPk(t *testing.T) {
     }
 
     // All signers sign the same message
-    sigs := make([]*SignatureMinPk, 0)
-    for i := 0; i < size; i++ {
-        sigs = append(sigs, new(SignatureMinPk).Sign(sks[i], msgs[i],
-          dstMinPk))
+    sigs := make([]*SignatureMinPk, size)
+    for i := range sigs {
+        sigs[i] = new(SignatureMinPk).Sign(sks[i], msgs[i], dstMinPk)
     }
 
     // Single message: Infinite pubkeys and signature
