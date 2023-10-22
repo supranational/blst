@@ -33,12 +33,14 @@ func init() {
 }
 
 func TestInfinityMinSig(t *testing.T) {
+    t.Parallel()
     var infComp [48]byte
     infComp[0] |= 0xc0
     new(PublicKeyMinSig).Uncompress(infComp[:])
 }
 
 func TestSerdesMinSig(t *testing.T) {
+    t.Parallel()
     var ikm = [...]byte{
         0x93, 0xad, 0x7e, 0x65, 0xde, 0xad, 0x05, 0x2a,
         0x08, 0x3a, 0x91, 0x0c, 0x8b, 0x72, 0x85, 0x91,
@@ -84,6 +86,7 @@ func TestSerdesMinSig(t *testing.T) {
 }
 
 func TestSignVerifyMinSig(t *testing.T) {
+    t.Parallel()
     var ikm = [...]byte{
         0x93, 0xad, 0x7e, 0x65, 0xde, 0xad, 0x05, 0x2a,
         0x08, 0x3a, 0x91, 0x0c, 0x8b, 0x72, 0x85, 0x91,
@@ -158,6 +161,7 @@ func TestSignVerifyMinSig(t *testing.T) {
 }
 
 func TestSignVerifyAugMinSig(t *testing.T) {
+    t.Parallel()
     sk := genRandomKeyMinSig()
     pk := new(PublicKeyMinSig).From(sk)
     msg := []byte("hello foo")
@@ -177,6 +181,7 @@ func TestSignVerifyAugMinSig(t *testing.T) {
 }
 
 func TestSignVerifyEncodeMinSig(t *testing.T) {
+    t.Parallel()
     sk := genRandomKeyMinSig()
     pk := new(PublicKeyMinSig).From(sk)
     msg := []byte("hello foo")
@@ -193,6 +198,7 @@ func TestSignVerifyEncodeMinSig(t *testing.T) {
 }
 
 func TestSignVerifyAggregateMinSig(t *testing.T) {
+    t.Parallel()
     for size := 1; size < 20; size++ {
         sks, msgs, _, pubks, _, err :=
             generateBatchTestDataUncompressedMinSig(size)
@@ -246,6 +252,7 @@ func TestSignVerifyAggregateMinSig(t *testing.T) {
 }
 
 func TestSignMultipleVerifyAggregateMinSig(t *testing.T) {
+    t.Parallel()
     msgCount := 5
     for size := 1; size < 20; size++ {
         msgs := make([]Message, 0)
@@ -325,6 +332,7 @@ func TestSignMultipleVerifyAggregateMinSig(t *testing.T) {
 }
 
 func TestBatchUncompressMinSig(t *testing.T) {
+    t.Parallel()
     size := 128
     var points []*P1Affine
     var compPoints [][]byte
@@ -385,6 +393,7 @@ func BenchmarkCoreVerifyMinSig(b *testing.B) {
 func BenchmarkCoreVerifyAggregateMinSig(b *testing.B) {
     run := func(size int) func(b *testing.B) {
         return func(b *testing.B) {
+            b.Helper()
             msgs, _, pubks, agsig, err := generateBatchTestDataMinSig(size)
             if err {
                 b.Fatal("Error generating test data")
@@ -412,6 +421,7 @@ func BenchmarkCoreVerifyAggregateMinSig(b *testing.B) {
 func BenchmarkVerifyAggregateUncompressedMinSig(b *testing.B) {
     run := func(size int) func(b *testing.B) {
         return func(b *testing.B) {
+            b.Helper()
             _, msgs, _, pubks, agsig, err :=
                 generateBatchTestDataUncompressedMinSig(size)
             if err {
@@ -438,6 +448,7 @@ func BenchmarkVerifyAggregateUncompressedMinSig(b *testing.B) {
 func BenchmarkCoreAggregateMinSig(b *testing.B) {
     run := func(size int) func(b *testing.B) {
         return func(b *testing.B) {
+            b.Helper()
             _, sigs, _, _, err := generateBatchTestDataMinSig(size)
             if err {
                 b.Fatal("Error generating test data")
@@ -553,6 +564,7 @@ func BenchmarkBatchUncompressMinSig(b *testing.B) {
 }
 
 func TestSignVerifyAggregateValidatesInfinitePubkeyMinSig(t *testing.T) {
+    t.Parallel()
     size := 20
     sks, msgs, _, pubks, _, err :=
       generateBatchTestDataUncompressedMinSig(size)
@@ -598,6 +610,7 @@ func TestSignVerifyAggregateValidatesInfinitePubkeyMinSig(t *testing.T) {
 }
 
 func TestEmptyMessageMinSig(t *testing.T) {
+    t.Parallel()
     msg := []byte("")
     var sk_bytes = []byte {99, 64, 58, 175, 15, 139, 113, 184, 37, 222, 127,
         204, 233, 209, 34, 8, 61, 27, 85, 251, 68, 31, 255, 214, 8, 189, 190, 71,
@@ -612,6 +625,7 @@ func TestEmptyMessageMinSig(t *testing.T) {
 }
 
 func TestEmptySignatureMinSig(t *testing.T) {
+    t.Parallel()
     msg := []byte("message")
     var sk_bytes = []byte {99, 64, 58, 175, 15, 139, 113, 184, 37, 222, 127,
         204, 233, 209, 34, 8, 61, 27, 85, 251, 68, 31, 255, 214, 8, 189, 190, 71,
@@ -625,6 +639,7 @@ func TestEmptySignatureMinSig(t *testing.T) {
 }
 
 func TestMultiScalarP2(t *testing.T) {
+    t.Parallel()
     const npoints = 1027
     scalars := make([]byte, npoints*16)
     _, err := rand.Read(scalars)
@@ -659,17 +674,18 @@ func BenchmarkMultiScalarP2(b *testing.B) {
         temp[i] = *generator.Mult(scalars[i*4:(i+1)*4])
     }
     points := P2s(temp).ToAffine()
-    run := func(size int) func(b *testing.B) {
+    run := func(points []P2Affine) func(b *testing.B) {
         return func(b *testing.B) {
+            b.Helper()
             for i:=0; i<b.N; i++ {
-                P2Affines(points[:size]).Mult(scalars, 255)
+                P2Affines(points).Mult(scalars, 255)
             }
         }
     }
-    b.Run(fmt.Sprintf("%d",npoints/8), run(npoints/8))
-    b.Run(fmt.Sprintf("%d",npoints/4), run(npoints/4))
-    b.Run(fmt.Sprintf("%d",npoints/2), run(npoints/2))
-    b.Run(fmt.Sprintf("%d",npoints), run(npoints))
+    b.Run(fmt.Sprintf("%d",npoints/8), run(points[:npoints/8]))
+    b.Run(fmt.Sprintf("%d",npoints/4), run(points[:npoints/4]))
+    b.Run(fmt.Sprintf("%d",npoints/2), run(points[:npoints/2]))
+    b.Run(fmt.Sprintf("%d",npoints), run(points))
 }
 
 func BenchmarkToP2Affines(b *testing.B) {
@@ -687,6 +703,7 @@ func BenchmarkToP2Affines(b *testing.B) {
     scratch := make([]P2Affine, npoints)
     run := func(size int) func(b *testing.B) {
         return func(b *testing.B) {
+            b.Helper()
             b.ResetTimer()
             for i:=0; i<b.N; i++ {
                 P2s(temp[:size]).ToAffine(scratch)

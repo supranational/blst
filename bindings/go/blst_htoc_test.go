@@ -36,6 +36,7 @@ func decodeP1(m map[string]interface{}) *P1Affine {
 }
 
 func testG1HashToCurve(t *testing.T, fname string) {
+	t.Helper()
 	vfile, err := os.Open(fname)
 	if err != nil {
 		t.Skipf("%.16s... not found", fname)
@@ -82,6 +83,7 @@ func testG1HashToCurve(t *testing.T, fname string) {
 }
 
 func TestG1HashToCurve(t *testing.T) {
+	t.Parallel()
 	testG1HashToCurve(t, "../vectors/hash_to_curve/BLS12381G1_XMD_SHA-256_SSWU_RO_.json")
 	testG1HashToCurve(t, "../vectors/hash_to_curve/BLS12381G1_XMD_SHA-256_SSWU_NU_.json")
 }
@@ -118,6 +120,7 @@ func decodeP2(m map[string]interface{}) *P2Affine {
 }
 
 func testG2HashToCurve(t *testing.T, fname string) {
+	t.Helper()
 	vfile, err := os.Open(fname)
 	if err != nil {
 		t.Skipf("%.16s... not found", fname)
@@ -164,11 +167,13 @@ func testG2HashToCurve(t *testing.T, fname string) {
 }
 
 func TestG2HashToCurve(t *testing.T) {
+	t.Parallel()
 	testG2HashToCurve(t, "../vectors/hash_to_curve/BLS12381G2_XMD_SHA-256_SSWU_RO_.json")
 	testG2HashToCurve(t, "../vectors/hash_to_curve/BLS12381G2_XMD_SHA-256_SSWU_NU_.json")
 }
 
 func testExpandMessageXmd(t *testing.T, fname string) {
+	t.Helper()
 	vfile, err := os.Open(fname)
 	if err != nil {
 		t.Skipf("%.16s... not found", fname)
@@ -216,6 +221,7 @@ func testExpandMessageXmd(t *testing.T, fname string) {
 }
 
 func TestExpandMessageXmd(t *testing.T) {
+	t.Parallel()
 	testExpandMessageXmd(t, "../vectors/hash_to_curve/expand_message_xmd_SHA256_256.json")
 	testExpandMessageXmd(t, "../vectors/hash_to_curve/expand_message_xmd_SHA256_38.json")
 }
