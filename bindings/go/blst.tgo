@@ -204,18 +204,14 @@ func (sk *SecretKey) Zeroize() {
 func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
     var sk SecretKey
     var info []byte
-    var infoP *C.byte
     if len(optional) > 0 {
         info = optional[0]
-        if len(info) > 0 {
-            infoP = (*C.byte)(&info[0])
-        }
     }
     if len(ikm) < 32 {
         return nil
     }
     C.blst_keygen(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
-                       infoP, C.size_t(len(info)))
+                       ptrOrNil(info), C.size_t(len(info)))
     // Postponing secret key zeroing till garbage collection can be too
     // late to be effective, but every little bit helps...
     runtime.SetFinalizer(&sk, func(sk *SecretKey) { sk.Zeroize() })
@@ -228,15 +224,11 @@ func KeyGenV3(ikm []byte, optional ...[]byte) *SecretKey {
     }
     var sk SecretKey
     var info []byte
-    var infoP *C.byte
     if len(optional) > 0 {
         info = optional[0]
-        if len(info) > 0 {
-            infoP = (*C.byte)(&info[0])
-        }
     }
     C.blst_keygen_v3(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
-                          infoP, C.size_t(len(info)))
+                          ptrOrNil(info), C.size_t(len(info)))
     // Postponing secret key zeroing till garbage collection can be too
     // late to be effective, but every little bit helps...
     runtime.SetFinalizer(&sk, func(sk *SecretKey) { sk.Zeroize() })
@@ -249,16 +241,12 @@ func KeyGenV45(ikm []byte, salt []byte, optional ...[]byte) *SecretKey {
     }
     var sk SecretKey
     var info []byte
-    var infoP *C.byte
     if len(optional) > 0 {
         info = optional[0]
-        if len(info) > 0 {
-            infoP = (*C.byte)(&info[0])
-        }
     }
     C.blst_keygen_v4_5(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
                             (*C.byte)(&salt[0]), C.size_t(len(salt)),
-                            infoP, C.size_t(len(info)))
+                            ptrOrNil(info), C.size_t(len(info)))
     // Postponing secret key zeroing till garbage collection can be too
     // late to be effective, but every little bit helps...
     runtime.SetFinalizer(&sk, func(sk *SecretKey) { sk.Zeroize() })
@@ -271,16 +259,12 @@ func KeyGenV5(ikm []byte, salt []byte, optional ...[]byte) *SecretKey {
     }
     var sk SecretKey
     var info []byte
-    var infoP *C.byte
     if len(optional) > 0 {
         info = optional[0]
-        if len(info) > 0 {
-            infoP = (*C.byte)(&info[0])
-        }
     }
     C.blst_keygen_v5(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
                           (*C.byte)(&salt[0]), C.size_t(len(salt)),
-                          infoP, C.size_t(len(info)))
+                          ptrOrNil(info), C.size_t(len(info)))
     // Postponing secret key zeroing till garbage collection can be too
     // late to be effective, but every little bit helps...
     runtime.SetFinalizer(&sk, func(sk *SecretKey) { sk.Zeroize() })
@@ -314,11 +298,7 @@ func (master *SecretKey) DeriveChildEip2333(child_index uint32) *SecretKey {
 func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
     DST_len := C.size_t(len(DST))
     ctx := make([]C.blst_pairing, int(C.go_pairing_sizeof(DST_len)))
-    var uDST *C.byte
-    if DST_len > 0 {
-        uDST = (*C.byte)(&DST[0])
-    }
-    C.go_pairing_init(&ctx[0], C.bool(hash_or_encode), uDST, DST_len)
+    C.go_pairing_init(&ctx[0], C.bool(hash_or_encode), ptrOrNil(DST), DST_len)
     return ctx
 }
 
@@ -332,7 +312,7 @@ func PairingMerge(ctx Pairing, ctx1 Pairing) int {
 }
 
 func PairingFinalVerify(ctx Pairing, optional ...*Fp12) bool {
-    var gtsig *Fp12 = nil
+    var gtsig *Fp12
     if len(optional) > 0 {
         gtsig = optional[0]
     }
@@ -441,4 +421,12 @@ func (pt *Fp12) ToBendian() []byte {
 
 func (pt1 *Fp12) Equals(pt2 *Fp12) bool {
     return *pt1 == *pt2
+}
+
+func ptrOrNil(bytes []byte) *C.byte {
+    var ptr *C.byte
+    if len(bytes) > 0 {
+        ptr = (*C.byte)(&bytes[0])
+    }
+    return ptr
 }
