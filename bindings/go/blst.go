@@ -212,18 +212,14 @@ func (sk *SecretKey) Zeroize() {
 func KeyGen(ikm []byte, optional ...[]byte) *SecretKey {
 	var sk SecretKey
 	var info []byte
-	var infoP *C.byte
 	if len(optional) > 0 {
 		info = optional[0]
-		if len(info) > 0 {
-			infoP = (*C.byte)(&info[0])
-		}
 	}
 	if len(ikm) < 32 {
 		return nil
 	}
 	C.blst_keygen(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
-		infoP, C.size_t(len(info)))
+		ptrOrNil(info), C.size_t(len(info)))
 	// Postponing secret key zeroing till garbage collection can be too
 	// late to be effective, but every little bit helps...
 	runtime.SetFinalizer(&sk, func(sk *SecretKey) { sk.Zeroize() })
@@ -236,15 +232,11 @@ func KeyGenV3(ikm []byte, optional ...[]byte) *SecretKey {
 	}
 	var sk SecretKey
 	var info []byte
-	var infoP *C.byte
 	if len(optional) > 0 {
 		info = optional[0]
-		if len(info) > 0 {
-			infoP = (*C.byte)(&info[0])
-		}
 	}
 	C.blst_keygen_v3(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
-		infoP, C.size_t(len(info)))
+		ptrOrNil(info), C.size_t(len(info)))
 	// Postponing secret key zeroing till garbage collection can be too
 	// late to be effective, but every little bit helps...
 	runtime.SetFinalizer(&sk, func(sk *SecretKey) { sk.Zeroize() })
@@ -257,16 +249,12 @@ func KeyGenV45(ikm []byte, salt []byte, optional ...[]byte) *SecretKey {
 	}
 	var sk SecretKey
 	var info []byte
-	var infoP *C.byte
 	if len(optional) > 0 {
 		info = optional[0]
-		if len(info) > 0 {
-			infoP = (*C.byte)(&info[0])
-		}
 	}
 	C.blst_keygen_v4_5(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
 		(*C.byte)(&salt[0]), C.size_t(len(salt)),
-		infoP, C.size_t(len(info)))
+		ptrOrNil(info), C.size_t(len(info)))
 	// Postponing secret key zeroing till garbage collection can be too
 	// late to be effective, but every little bit helps...
 	runtime.SetFinalizer(&sk, func(sk *SecretKey) { sk.Zeroize() })
@@ -279,16 +267,12 @@ func KeyGenV5(ikm []byte, salt []byte, optional ...[]byte) *SecretKey {
 	}
 	var sk SecretKey
 	var info []byte
-	var infoP *C.byte
 	if len(optional) > 0 {
 		info = optional[0]
-		if len(info) > 0 {
-			infoP = (*C.byte)(&info[0])
-		}
 	}
 	C.blst_keygen_v5(&sk, (*C.byte)(&ikm[0]), C.size_t(len(ikm)),
 		(*C.byte)(&salt[0]), C.size_t(len(salt)),
-		infoP, C.size_t(len(info)))
+		ptrOrNil(info), C.size_t(len(info)))
 	// Postponing secret key zeroing till garbage collection can be too
 	// late to be effective, but every little bit helps...
 	runtime.SetFinalizer(&sk, func(sk *SecretKey) { sk.Zeroize() })
@@ -320,11 +304,7 @@ func (master *SecretKey) DeriveChildEip2333(child_index uint32) *SecretKey {
 func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
 	DST_len := C.size_t(len(DST))
 	ctx := make([]C.blst_pairing, int(C.go_pairing_sizeof(DST_len)))
-	var uDST *C.byte
-	if DST_len > 0 {
-		uDST = (*C.byte)(&DST[0])
-	}
-	C.go_pairing_init(&ctx[0], C.bool(hash_or_encode), uDST, DST_len)
+	C.go_pairing_init(&ctx[0], C.bool(hash_or_encode), ptrOrNil(DST), DST_len)
 	return ctx
 }
 
@@ -338,7 +318,7 @@ func PairingMerge(ctx Pairing, ctx1 Pairing) int {
 }
 
 func PairingFinalVerify(ctx Pairing, optional ...*Fp12) bool {
-	var gtsig *Fp12 = nil
+	var gtsig *Fp12
 	if len(optional) > 0 {
 		gtsig = optional[0]
 	}
@@ -447,6 +427,14 @@ func (pt *Fp12) ToBendian() []byte {
 
 func (pt1 *Fp12) Equals(pt2 *Fp12) bool {
 	return *pt1 == *pt2
+}
+
+func ptrOrNil(bytes []byte) *C.byte {
+	var ptr *C.byte
+	if len(bytes) > 0 {
+		ptr = (*C.byte)(&bytes[0])
+	}
+	return ptr
 }
 
 //
@@ -559,9 +547,8 @@ func (sig *P2Affine) AggregateVerify(sigGroupcheck bool,
 	pkFn := func(i uint32, _ *P1Affine) (*P1Affine, []byte) {
 		if useAugs {
 			return pks[i], augs[i]
-		} else {
-			return pks[i], nil
 		}
+		return pks[i], nil
 	}
 
 	return coreAggregateVerifyPkInG1(sigFn, sigGroupcheck, pkFn, pksVerify,
@@ -664,7 +651,7 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, sigGroupcheck bool,
 					// main thread has completed its miller loop before
 					// proceeding.
 					mutex.Lock()
-					mutex.Unlock()
+					mutex.Unlock() // nolint:staticcheck
 				}
 
 				// Pull Public Key and augmentation blob
@@ -735,12 +722,8 @@ func CoreVerifyPkInG1(pk *P1Affine, sig *P2Affine, hash_or_encode bool,
 	msg Message, dst []byte, optional ...[]byte) int {
 
 	var aug []byte
-	var uaug *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
-		}
 	}
 
 	if runtime.NumGoroutine() < maxProcs {
@@ -757,19 +740,10 @@ func CoreVerifyPkInG1(pk *P1Affine, sig *P2Affine, hash_or_encode bool,
 		return C.BLST_SUCCESS
 	}
 
-	var udst *C.byte
-	if len(dst) > 0 {
-		udst = (*C.byte)(&dst[0])
-	}
-	var umsg *C.byte
-	if len(msg) > 0 {
-		umsg = (*C.byte)(&msg[0])
-	}
-
 	return int(C.blst_core_verify_pk_in_g1(pk, sig, C.bool(hash_or_encode),
-		umsg, C.size_t(len(msg)),
-		udst, C.size_t(len(dst)),
-		uaug, C.size_t(len(aug))))
+		ptrOrNil(msg), C.size_t(len(msg)),
+		ptrOrNil(dst), C.size_t(len(dst)),
+		ptrOrNil(aug), C.size_t(len(aug))))
 }
 
 // pks are assumed to be verified for proof of possession,
@@ -1179,9 +1153,8 @@ func (sig *P1Affine) AggregateVerify(sigGroupcheck bool,
 	pkFn := func(i uint32, _ *P2Affine) (*P2Affine, []byte) {
 		if useAugs {
 			return pks[i], augs[i]
-		} else {
-			return pks[i], nil
 		}
+		return pks[i], nil
 	}
 
 	return coreAggregateVerifyPkInG2(sigFn, sigGroupcheck, pkFn, pksVerify,
@@ -1284,7 +1257,7 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, sigGroupcheck bool,
 					// main thread has completed its miller loop before
 					// proceeding.
 					mutex.Lock()
-					mutex.Unlock()
+					mutex.Unlock() // nolint:staticcheck
 				}
 
 				// Pull Public Key and augmentation blob
@@ -1355,12 +1328,8 @@ func CoreVerifyPkInG2(pk *P2Affine, sig *P1Affine, hash_or_encode bool,
 	msg Message, dst []byte, optional ...[]byte) int {
 
 	var aug []byte
-	var uaug *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
-		}
 	}
 
 	if runtime.NumGoroutine() < maxProcs {
@@ -1377,19 +1346,10 @@ func CoreVerifyPkInG2(pk *P2Affine, sig *P1Affine, hash_or_encode bool,
 		return C.BLST_SUCCESS
 	}
 
-	var udst *C.byte
-	if len(dst) > 0 {
-		udst = (*C.byte)(&dst[0])
-	}
-	var umsg *C.byte
-	if len(msg) > 0 {
-		umsg = (*C.byte)(&msg[0])
-	}
-
 	return int(C.blst_core_verify_pk_in_g2(pk, sig, C.bool(hash_or_encode),
-		umsg, C.size_t(len(msg)),
-		udst, C.size_t(len(dst)),
-		uaug, C.size_t(len(aug))))
+		ptrOrNil(msg), C.size_t(len(msg)),
+		ptrOrNil(dst), C.size_t(len(dst)),
+		ptrOrNil(aug), C.size_t(len(aug))))
 }
 
 // pks are assumed to be verified for proof of possession,
@@ -1692,23 +1652,15 @@ func PairingAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
 	sig *P2Affine, sigGroupcheck bool, msg []byte,
 	optional ...[]byte) int { // aug
 	var aug []byte
-	var uaug *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
-		}
-	}
-	var umsg *C.byte
-	if len(msg) > 0 {
-		umsg = (*C.byte)(&msg[0])
 	}
 
 	r := C.blst_pairing_chk_n_aggr_pk_in_g1(&ctx[0],
 		PK, C.bool(pkValidate),
 		sig, C.bool(sigGroupcheck),
-		umsg, C.size_t(len(msg)),
-		uaug, C.size_t(len(aug)))
+		ptrOrNil(msg), C.size_t(len(msg)),
+		ptrOrNil(aug), C.size_t(len(aug)))
 
 	return int(r)
 }
@@ -1718,24 +1670,16 @@ func PairingMulNAggregatePkInG1(ctx Pairing, PK *P1Affine, pkValidate bool,
 	rand *Scalar, randBits int, msg []byte,
 	optional ...[]byte) int { // aug
 	var aug []byte
-	var uaug *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
-		}
-	}
-	var umsg *C.byte
-	if len(msg) > 0 {
-		umsg = (*C.byte)(&msg[0])
 	}
 
 	r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g1(&ctx[0],
 		PK, C.bool(pkValidate),
 		sig, C.bool(sigGroupcheck),
 		&rand.b[0], C.size_t(randBits),
-		umsg, C.size_t(len(msg)),
-		uaug, C.size_t(len(aug)))
+		ptrOrNil(msg), C.size_t(len(msg)),
+		ptrOrNil(aug), C.size_t(len(aug)))
 
 	return int(r)
 }
@@ -1974,29 +1918,14 @@ func HashToG1(msg []byte, dst []byte,
 	optional ...[]byte) *P1 { // aug
 	var q P1
 
-	// Handle zero length message
-	var msgC *C.byte
-	if len(msg) > 0 {
-		msgC = (*C.byte)(&msg[0])
-	}
-
-	var dstC *C.byte
-	if len(dst) > 0 {
-		dstC = (*C.byte)(&dst[0])
-	}
-
 	var aug []byte
-	var augC *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if len(aug) > 0 {
-			augC = (*C.byte)(&aug[0])
-		}
 	}
 
-	C.blst_hash_to_g1(&q, msgC, C.size_t(len(msg)),
-		dstC, C.size_t(len(dst)),
-		augC, C.size_t(len(aug)))
+	C.blst_hash_to_g1(&q, ptrOrNil(msg), C.size_t(len(msg)),
+		ptrOrNil(dst), C.size_t(len(dst)),
+		ptrOrNil(aug), C.size_t(len(aug)))
 	return &q
 }
 
@@ -2004,29 +1933,14 @@ func EncodeToG1(msg []byte, dst []byte,
 	optional ...[]byte) *P1 { // aug
 	var q P1
 
-	// Handle zero length message
-	var msgC *C.byte
-	if len(msg) > 0 {
-		msgC = (*C.byte)(&msg[0])
-	}
-
-	var dstC *C.byte
-	if len(dst) > 0 {
-		dstC = (*C.byte)(&dst[0])
-	}
-
 	var aug []byte
-	var augC *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if len(aug) > 0 {
-			augC = (*C.byte)(&aug[0])
-		}
 	}
 
-	C.blst_encode_to_g1(&q, msgC, C.size_t(len(msg)),
-		dstC, C.size_t(len(dst)),
-		augC, C.size_t(len(aug)))
+	C.blst_encode_to_g1(&q, ptrOrNil(msg), C.size_t(len(msg)),
+		ptrOrNil(dst), C.size_t(len(dst)),
+		ptrOrNil(aug), C.size_t(len(aug)))
 	return &q
 }
 
@@ -2231,7 +2145,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 			p_scalars = &scalars[0]
 		case []Scalar:
 			if nbits > 248 {
-				scalarsBySlice[0] = (*C.byte)(&val[0].b[0])
+				scalarsBySlice[0] = &val[0].b[0]
 				p_scalars = &scalarsBySlice[0]
 			} else {
 				p_scalars = &scalars[0]
@@ -2331,7 +2245,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 					p_scalars = &scalars[x]
 				case []Scalar:
 					if nbits > 248 {
-						scalarsBySlice[0] = (*C.byte)(&val[x].b[0])
+						scalarsBySlice[0] = &val[x].b[0]
 						p_scalars = &scalarsBySlice[0]
 					} else {
 						p_scalars = &scalars[x]
@@ -2400,23 +2314,15 @@ func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
 	sig *P1Affine, sigGroupcheck bool, msg []byte,
 	optional ...[]byte) int { // aug
 	var aug []byte
-	var uaug *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
-		}
-	}
-	var umsg *C.byte
-	if len(msg) > 0 {
-		umsg = (*C.byte)(&msg[0])
 	}
 
 	r := C.blst_pairing_chk_n_aggr_pk_in_g2(&ctx[0],
 		PK, C.bool(pkValidate),
 		sig, C.bool(sigGroupcheck),
-		umsg, C.size_t(len(msg)),
-		uaug, C.size_t(len(aug)))
+		ptrOrNil(msg), C.size_t(len(msg)),
+		ptrOrNil(aug), C.size_t(len(aug)))
 
 	return int(r)
 }
@@ -2426,24 +2332,16 @@ func PairingMulNAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
 	rand *Scalar, randBits int, msg []byte,
 	optional ...[]byte) int { // aug
 	var aug []byte
-	var uaug *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if len(aug) > 0 {
-			uaug = (*C.byte)(&aug[0])
-		}
-	}
-	var umsg *C.byte
-	if len(msg) > 0 {
-		umsg = (*C.byte)(&msg[0])
 	}
 
 	r := C.blst_pairing_chk_n_mul_n_aggr_pk_in_g2(&ctx[0],
 		PK, C.bool(pkValidate),
 		sig, C.bool(sigGroupcheck),
 		&rand.b[0], C.size_t(randBits),
-		umsg, C.size_t(len(msg)),
-		uaug, C.size_t(len(aug)))
+		ptrOrNil(msg), C.size_t(len(msg)),
+		ptrOrNil(aug), C.size_t(len(aug)))
 
 	return int(r)
 }
@@ -2682,29 +2580,14 @@ func HashToG2(msg []byte, dst []byte,
 	optional ...[]byte) *P2 { // aug
 	var q P2
 
-	// Handle zero length message
-	var msgC *C.byte
-	if len(msg) > 0 {
-		msgC = (*C.byte)(&msg[0])
-	}
-
-	var dstC *C.byte
-	if len(dst) > 0 {
-		dstC = (*C.byte)(&dst[0])
-	}
-
 	var aug []byte
-	var augC *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if len(aug) > 0 {
-			augC = (*C.byte)(&aug[0])
-		}
 	}
 
-	C.blst_hash_to_g2(&q, msgC, C.size_t(len(msg)),
-		dstC, C.size_t(len(dst)),
-		augC, C.size_t(len(aug)))
+	C.blst_hash_to_g2(&q, ptrOrNil(msg), C.size_t(len(msg)),
+		ptrOrNil(dst), C.size_t(len(dst)),
+		ptrOrNil(aug), C.size_t(len(aug)))
 	return &q
 }
 
@@ -2712,29 +2595,14 @@ func EncodeToG2(msg []byte, dst []byte,
 	optional ...[]byte) *P2 { // aug
 	var q P2
 
-	// Handle zero length message
-	var msgC *C.byte
-	if len(msg) > 0 {
-		msgC = (*C.byte)(&msg[0])
-	}
-
-	var dstC *C.byte
-	if len(dst) > 0 {
-		dstC = (*C.byte)(&dst[0])
-	}
-
 	var aug []byte
-	var augC *C.byte
 	if len(optional) > 0 {
 		aug = optional[0]
-		if len(aug) > 0 {
-			augC = (*C.byte)(&aug[0])
-		}
 	}
 
-	C.blst_encode_to_g2(&q, msgC, C.size_t(len(msg)),
-		dstC, C.size_t(len(dst)),
-		augC, C.size_t(len(aug)))
+	C.blst_encode_to_g2(&q, ptrOrNil(msg), C.size_t(len(msg)),
+		ptrOrNil(dst), C.size_t(len(dst)),
+		ptrOrNil(aug), C.size_t(len(aug)))
 	return &q
 }
 
@@ -2939,7 +2807,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 			p_scalars = &scalars[0]
 		case []Scalar:
 			if nbits > 248 {
-				scalarsBySlice[0] = (*C.byte)(&val[0].b[0])
+				scalarsBySlice[0] = &val[0].b[0]
 				p_scalars = &scalarsBySlice[0]
 			} else {
 				p_scalars = &scalars[0]
@@ -3039,7 +2907,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 					p_scalars = &scalars[x]
 				case []Scalar:
 					if nbits > 248 {
-						scalarsBySlice[0] = (*C.byte)(&val[x].b[0])
+						scalarsBySlice[0] = &val[x].b[0]
 						p_scalars = &scalarsBySlice[0]
 					} else {
 						p_scalars = &scalars[x]
@@ -3125,15 +2993,6 @@ func parseOpts(optional ...interface{}) ([]byte, [][]byte, bool, bool) {
 	return augSingle, aug, useHash, true
 }
 
-func bytesAllZero(s []byte) bool {
-	for _, v := range s {
-		if v != 0 {
-			return false
-		}
-	}
-	return true
-}
-
 // These methods are inefficient because of cgo call overhead. For this
 // reason they should be used primarily for prototyping with a goal to
 // formulate interfaces that would process multiple scalars per cgo call.
@@ -3205,18 +3064,8 @@ func (s *Scalar) HashTo(msg []byte, dst []byte) bool {
 func HashToScalar(msg []byte, dst []byte) *Scalar {
 	var ret Scalar
 
-	var msgC *C.byte
-	if len(msg) > 0 {
-		msgC = (*C.byte)(&msg[0])
-	}
-
-	var dstC *C.byte
-	if len(dst) > 0 {
-		dstC = (*C.byte)(&dst[0])
-	}
-
-	if C.go_hash_to_scalar(&ret, msgC, C.size_t(len(msg)),
-		dstC, C.size_t(len(dst))) {
+	if C.go_hash_to_scalar(&ret, ptrOrNil(msg), C.size_t(len(msg)),
+		ptrOrNil(dst), C.size_t(len(dst))) {
 		return &ret
 	}
 
@@ -3299,7 +3148,7 @@ func PrintBytes(val []byte, name string) {
 
 func (s *Scalar) Print(name string) {
 	arr := s.ToBEndian()
-	PrintBytes(arr[:], name)
+	PrintBytes(arr, name)
 }
 
 func (p *P1Affine) Print(name string) {
@@ -3373,19 +3222,9 @@ func (e1 *P2) Equals(e2 *P2) bool {
 func expandMessageXmd(msg []byte, dst []byte, len_in_bytes int) []byte {
 	ret := make([]byte, len_in_bytes)
 
-	var msgC *C.byte
-	if len(msg) > 0 {
-		msgC = (*C.byte)(&msg[0])
-	}
-
-	var dstC *C.byte
-	if len(dst) > 0 {
-		dstC = (*C.byte)(&dst[0])
-	}
-
 	C.blst_expand_message_xmd((*C.byte)(&ret[0]), C.size_t(len(ret)),
-		msgC, C.size_t(len(msg)),
-		dstC, C.size_t(len(dst)))
+		ptrOrNil(msg), C.size_t(len(msg)),
+		ptrOrNil(dst), C.size_t(len(dst)))
 	return ret
 }
 
