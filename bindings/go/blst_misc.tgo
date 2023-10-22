@@ -199,7 +199,7 @@ func PrintBytes(val []byte, name string) {
 
 func (s *Scalar) Print(name string) {
     arr := s.ToBEndian()
-    PrintBytes(arr[:], name)
+    PrintBytes(arr, name)
 }
 
 func (p *P1Affine) Print(name string) {
