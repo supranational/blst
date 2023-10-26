@@ -88,7 +88,7 @@ fn main() {
     // Optimization level depends on whether or not --release is passed
     // or implied.
 
-    if target_os.eq("uefi") && !env::var("CC").is_ok() {
+    if target_os.eq("uefi") && env::var("CC").is_err() {
         match std::process::Command::new("clang")
             .arg("--version")
             .output()
@@ -98,7 +98,7 @@ fn main() {
         }
     }
 
-    if target_env.eq("sgx") && !env::var("CC").is_ok() {
+    if target_env.eq("sgx") && env::var("CC").is_err() {
         match std::process::Command::new("clang")
             .arg("--version")
             .output()
@@ -108,7 +108,7 @@ fn main() {
                     .unwrap_or("unintelligible".to_string());
                 if let Some(x) = version.find("clang version ") {
                     let x = x + 14;
-                    let y = version[x..].find(".").unwrap_or(0);
+                    let y = version[x..].find('.').unwrap_or(0);
                     if version[x..x + y].parse::<i32>().unwrap_or(0) >= 11 {
                         env::set_var("CC", "clang");
                     }
@@ -120,7 +120,7 @@ fn main() {
 
     if target_env.eq("msvc")
         && env::var("CARGO_CFG_TARGET_POINTER_WIDTH").unwrap().eq("32")
-        && !env::var("CC").is_ok()
+        && env::var("CC").is_err()
     {
         match std::process::Command::new("clang-cl")
             .arg("--version")
