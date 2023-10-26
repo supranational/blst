@@ -51,6 +51,7 @@ macro_rules! pippenger_mult_impl {
                 let mut ret = Self {
                     points: Vec::with_capacity(npoints),
                 };
+                #[allow(clippy::uninit_vec)]
                 unsafe { ret.points.set_len(npoints) };
 
                 let p: [*const $point; 2] = [&points[0], ptr::null()];
@@ -74,6 +75,7 @@ macro_rules! pippenger_mult_impl {
                 unsafe {
                     let mut scratch: Vec<u64> =
                         Vec::with_capacity($scratch_sizeof(npoints) / 8);
+                    #[allow(clippy::uninit_vec)]
                     scratch.set_len(scratch.capacity());
                     $multi_scalar_mult(
                         &mut ret,

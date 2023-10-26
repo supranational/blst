@@ -131,6 +131,7 @@ macro_rules! pippenger_mult_impl {
                     unsafe {
                         let mut scratch: Vec<u64> =
                             Vec::with_capacity($scratch_sizeof(npoints) / 8);
+                        #[allow(clippy::uninit_vec)]
                         scratch.set_len(scratch.capacity());
                         let mut ret = <$point>::default();
                         $multi_scalar_mult(
@@ -151,6 +152,7 @@ macro_rules! pippenger_mult_impl {
                 // |grid[]| holds "coordinates" and place for result
                 let mut grid: Vec<(tile, Cell<$point>)> =
                     Vec::with_capacity(nx * ny);
+                #[allow(clippy::uninit_vec)]
                 unsafe { grid.set_len(grid.capacity()) };
                 let dx = npoints / nx;
                 let mut y = window * (ny - 1);

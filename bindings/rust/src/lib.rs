@@ -364,6 +364,7 @@ impl Pairing {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn mul_n_aggregate(
         &mut self,
         pk: &dyn Any,
@@ -1208,6 +1209,7 @@ macro_rules! sig_variant_impl {
 
             // https://ethresear.ch/t/fast-verification-of-multiple-bls-signatures/5407
             #[cfg(feature = "std")]
+            #[allow(clippy::too_many_arguments)]
             pub fn verify_multiple_aggregate_signatures(
                 msgs: &[&[u8]],
                 dst: &[u8],
