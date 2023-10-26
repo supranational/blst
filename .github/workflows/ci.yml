@@ -92,6 +92,11 @@ jobs:
             echo
             ./publish.sh --dry-run
         elif [ $OSTYPE = "msys" ]; then
+            echo '-- test x86_64-pc-windows-gnu'
+            echo
+            rustup target add x86_64-pc-windows-gnu
+            cargo test --release --target=x86_64-pc-windows-gnu
+            cargo clean -p blst --release --target=x86_64-pc-windows-gnu
             echo '-- build aarch64-pc-windows-msvc'
             echo
             rustup target add aarch64-pc-windows-msvc
