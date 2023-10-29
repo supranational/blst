@@ -39,6 +39,7 @@ jobs:
       shell: bash
       run: |
         lscpu 2>/dev/null && echo --- || true
+        sysctl hw 2>/dev/null && echo --- || true
         env | sort
 
     - name: Rust
@@ -65,10 +66,10 @@ jobs:
         echo 'set -e'                                       > ulimit-s
         echo 'export RUST_MIN_STACK=$(($1 * 1024)); shift'  >> ulimit-s
         echo 'exec "$@"'                                    >> ulimit-s
-        triple=`rustc -vV | awk '/host:/ {print $2}' | tr 'a-z-' 'A-Z_'`
+        triplet=`rustc -vV | awk '/host:/ {print $2}' | tr 'a-z-' 'A-Z_'`
         stack_size=`[ $OSTYPE = "msys" ] && echo 65 || echo 56`
         env BLST_TEST_NO_STD= \
-            CARGO_TARGET_${triple}_RUNNER="bash ulimit-s $stack_size" \
+            CARGO_TARGET_${triplet}_RUNNER="bash ulimit-s $stack_size" \
             cargo test --release
         if [ `uname -s` = "Linux" ]; then
             echo '--- test wasm32-wasi'
@@ -91,6 +92,12 @@ jobs:
             echo '--- dry-run publish'
             echo
             ./publish.sh --dry-run
+        elif [ `uname -s` = "Darwin" ]; then
+            echo '--- build aarch64-apple-darwin'
+            echo
+            rustup target add aarch64-apple-darwin
+            cargo test --release --target=aarch64-apple-darwin --no-run
+            cargo clean -p blst --release --target=aarch64-apple-darwin
         elif [ $OSTYPE = "msys" ]; then
             echo '-- test x86_64-pc-windows-gnu'
             echo
@@ -107,6 +114,7 @@ jobs:
             find target/aarch64-pc-windows-msvc -name blst-\*.exe -exec cp {} blst-arm-test.exe \; -quit
             cargo clean -p blst --release --target=aarch64-pc-windows-msvc
         fi
+        echo
         echo '--- cargo clippy'
         echo
         cargo clippy --release
