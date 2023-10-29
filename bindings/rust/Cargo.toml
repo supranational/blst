@@ -54,9 +54,9 @@ threadpool = "^1.8.1"
 [dev-dependencies]
 rand = "0.8"
 rand_chacha = "0.3"
+rmp-serde = "1.1.1"
 
 [target.'cfg(any(unix, windows))'.dev-dependencies]
-rmp-serde = "1.1.1"
 criterion = "0.3"
 
 [[bench]]
