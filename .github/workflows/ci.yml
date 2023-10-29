@@ -48,6 +48,8 @@ jobs:
         rustc --version --verbose
         export CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
         cd bindings/rust
+        sed "s/^crit/#crit/" Cargo.toml > Cargo.$$.toml && \
+        mv Cargo.$$.toml Cargo.toml
         if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
             cargo update
         fi
