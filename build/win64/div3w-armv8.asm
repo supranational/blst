@@ -3,6 +3,7 @@ __SIZEOF_POINTER__ SETA 64/8
 	AREA	|.text|,CODE,ALIGN=8,ARM64
 
 
+
 	EXPORT	|div_3_limbs|[FUNC]
 	ALIGN	32
 |div_3_limbs| PROC
@@ -35,6 +36,7 @@ __SIZEOF_POINTER__ SETA 64/8
 
 	ret
 	ENDP
+
 
 	EXPORT	|quot_rem_128|[FUNC]
 	ALIGN	32
@@ -70,6 +72,7 @@ __SIZEOF_POINTER__ SETA 64/8
 
 	ret
 	ENDP
+
 
 
 	EXPORT	|quot_rem_64|[FUNC]
