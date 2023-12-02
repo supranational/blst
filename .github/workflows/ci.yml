@@ -78,8 +78,7 @@ jobs:
             echo
             rustup target add wasm32-wasi
             curl https://wasmtime.dev/install.sh -sSf | bash
-            env PATH=$PATH:~/.wasmtime/bin:`clang -print-search-dirs | awk -F= '/^programs:/{print$2}'` \
-                AR=llvm-ar CARGO_TARGET_WASM32_WASI_RUNNER=wasmtime \
+            env CARGO_TARGET_WASM32_WASI_RUNNER=~/.wasmtime/bin/wasmtime \
                 cargo test --release --target=wasm32-wasi
             cargo clean -p blst --release --target=wasm32-wasi
             echo '--- test -mlvi-hardening'
@@ -89,17 +88,27 @@ jobs:
             echo '--- build x86_64-fortanix-unknown-sgx'
             echo
             rustup target add x86_64-fortanix-unknown-sgx
-            cargo test --release --target=x86_64-fortanix-unknown-sgx --no-run
+            cargo test --no-run --release --target=x86_64-fortanix-unknown-sgx
+            echo
             cargo clean -p blst --release --target=x86_64-fortanix-unknown-sgx
             echo '--- dry-run publish'
             echo
             ./publish.sh --dry-run
         elif [ `uname -s` = "Darwin" ]; then
-            echo '--- build aarch64-apple-darwin'
-            echo
-            rustup target add aarch64-apple-darwin
-            cargo test --release --target=aarch64-apple-darwin --no-run
-            cargo clean -p blst --release --target=aarch64-apple-darwin
+            if [ $HOSTTYPE = "arm64" ]; then
+                echo '--- test x86_64-apple-darwin'
+                echo
+                rustup target add x86_64-apple-darwin
+                cargo test --release --target=x86_64-apple-darwin
+                cargo clean -p blst --release --target=x86_64-apple-darwin
+            else
+                echo '--- build aarch64-apple-darwin'
+                echo
+                rustup target add aarch64-apple-darwin
+                cargo test --no-run --release --target=aarch64-apple-darwin
+                echo
+                cargo clean -p blst --release --target=aarch64-apple-darwin
+            fi
         elif [ $OSTYPE = "msys" ]; then
             echo '-- test x86_64-pc-windows-gnu'
             echo
@@ -113,7 +122,8 @@ jobs:
             echo '[patch.crates-io]' > .cargo/config.toml
             echo 'cc = { git = "https://github.com/rust-lang/cc-rs" }' >> .cargo/config.toml
             cargo update
-            cargo test --release --target=aarch64-pc-windows-msvc --no-run
+            cargo test --no-run --release --target=aarch64-pc-windows-msvc
+            echo
             find target/aarch64-pc-windows-msvc -name blst-\*.exe -exec cp {} blst-arm-test.exe \; -quit
             cargo clean -p blst --release --target=aarch64-pc-windows-msvc
         fi
