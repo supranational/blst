@@ -112,6 +112,7 @@ jobs:
             mkdir .cargo
             echo '[patch.crates-io]' > .cargo/config.toml
             echo 'cc = { git = "https://github.com/rust-lang/cc-rs" }' >> .cargo/config.toml
+            cargo update
             cargo test --release --target=aarch64-pc-windows-msvc --no-run
             find target/aarch64-pc-windows-msvc -name blst-\*.exe -exec cp {} blst-arm-test.exe \; -quit
             cargo clean -p blst --release --target=aarch64-pc-windows-msvc
