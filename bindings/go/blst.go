@@ -33,10 +33,6 @@ package blst
 // }
 // #endif
 //
-// static size_t go_pairing_sizeof(size_t DST_len)
-// {   return (blst_pairing_sizeof() + DST_len + sizeof(blst_pairing) - 1) /
-//            sizeof(blst_pairing);
-// }
 // static void go_pairing_init(blst_pairing *new_ctx, bool hash_or_encode,
 //                             const byte *DST, size_t DST_len)
 // {   if (DST != NULL) {
@@ -143,6 +139,16 @@ package blst
 //     for (i = 2; i < n; i++)
 //         blst_fp12_mul(dst, dst, &in[i]);
 // }
+// static bool go_p1_affine_validate(const blst_p1_affine *p, bool infcheck)
+// {   if (infcheck && blst_p1_affine_is_inf(p))
+//         return 0;
+//     return blst_p1_affine_in_g1(p);
+// }
+// static bool go_p2_affine_validate(const blst_p2_affine *p, bool infcheck)
+// {   if (infcheck && blst_p2_affine_is_inf(p))
+//         return 0;
+//     return blst_p2_affine_in_g2(p);
+// }
 import "C"
 
 import (
@@ -203,6 +209,11 @@ func SetMaxProcs(max int) {
 	}
 	maxProcs = max
 }
+
+var cgo_pairingSizeOf = C.blst_pairing_sizeof()
+var cgo_p1Generator = *C.blst_p1_generator()
+var cgo_p2Generator = *C.blst_p2_generator()
+var cgo_fp12One = *C.blst_fp12_one()
 
 // Secret key
 func (sk *SecretKey) Zeroize() {
@@ -302,9 +313,13 @@ func (master *SecretKey) DeriveChildEip2333(child_index uint32) *SecretKey {
 }
 
 // Pairing
+func pairingSizeOf(DST_len C.size_t) int {
+	return int((cgo_pairingSizeOf + DST_len + 7) / 8)
+}
+
 func PairingCtx(hash_or_encode bool, DST []byte) Pairing {
 	DST_len := C.size_t(len(DST))
-	ctx := make([]C.blst_pairing, int(C.go_pairing_sizeof(DST_len)))
+	ctx := make([]C.blst_pairing, pairingSizeOf(DST_len))
 	C.go_pairing_init(&ctx[0], C.bool(hash_or_encode), ptrOrNil(DST), DST_len)
 	return ctx
 }
@@ -337,7 +352,7 @@ func PairingAsFp12(ctx Pairing) *Fp12 {
 }
 
 func Fp12One() Fp12 {
-	return *C.blst_fp12_one()
+	return cgo_fp12One
 }
 
 func Fp12FinalVerify(pt1 *Fp12, pt2 *Fp12) bool {
@@ -452,8 +467,7 @@ func (pk *P1Affine) From(s *Scalar) *P1Affine {
 }
 
 func (pk *P1Affine) KeyValidate() bool {
-	return !bool(C.blst_p1_affine_is_inf(pk)) &&
-		bool(C.blst_p1_affine_in_g1(pk))
+	return bool(C.go_p1_affine_validate(pk, true))
 }
 
 // sigInfcheck, check for infinity, is a way to avoid going
@@ -461,10 +475,7 @@ func (pk *P1Affine) KeyValidate() bool {
 // always cryptographically safe, but application might want
 // to guard against obviously bogus individual[!] signatures.
 func (sig *P2Affine) SigValidate(sigInfcheck bool) bool {
-	if sigInfcheck && bool(C.blst_p2_affine_is_inf(sig)) {
-		return false
-	}
-	return bool(C.blst_p2_affine_in_g2(sig))
+	return bool(C.go_p2_affine_validate(sig, C.bool(sigInfcheck)))
 }
 
 //
@@ -1058,8 +1069,7 @@ func (pk *P2Affine) From(s *Scalar) *P2Affine {
 }
 
 func (pk *P2Affine) KeyValidate() bool {
-	return !bool(C.blst_p2_affine_is_inf(pk)) &&
-		bool(C.blst_p2_affine_in_g2(pk))
+	return bool(C.go_p2_affine_validate(pk, true))
 }
 
 // sigInfcheck, check for infinity, is a way to avoid going
@@ -1067,10 +1077,7 @@ func (pk *P2Affine) KeyValidate() bool {
 // always cryptographically safe, but application might want
 // to guard against obviously bogus individual[!] signatures.
 func (sig *P1Affine) SigValidate(sigInfcheck bool) bool {
-	if sigInfcheck && bool(C.blst_p1_affine_is_inf(sig)) {
-		return false
-	}
-	return bool(C.blst_p1_affine_in_g1(sig))
+	return bool(C.go_p1_affine_validate(sig, C.bool(sigInfcheck)))
 }
 
 //
@@ -1859,7 +1866,7 @@ func (p1 *P1) Sub(pointIf interface{}) *P1 {
 }
 
 func P1Generator() *P1 {
-	return C.blst_p1_generator()
+	return &cgo_p1Generator
 }
 
 // 'acc += point * scalar', passing 'nil' for 'point' means "use the
@@ -2521,7 +2528,7 @@ func (p2 *P2) Sub(pointIf interface{}) *P2 {
 }
 
 func P2Generator() *P2 {
-	return C.blst_p2_generator()
+	return &cgo_p2Generator
 }
 
 // 'acc += point * scalar', passing 'nil' for 'point' means "use the
