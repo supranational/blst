@@ -77,7 +77,7 @@ func (tree *rbTree) insert(data *[]byte) bool {
         x := nodes[k-2]         /* |z|'s grandparent    */
         s := x.leafs[ydir^1]    /* |z|'s uncle          */
 
-        if s != nil && s.colour == red { //nolint:gosimple
+        if s != nil && s.colour == red { //nolint:gosimple,revive
             x.colour = red
             y.colour = black
             s.colour = black
