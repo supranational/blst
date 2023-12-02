@@ -1,7 +1,7 @@
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // DO NOT MODIFY THIS FILE!!
 // The file is generated from *.tgo by generate.py
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 /*
  * Copyright Supranational LLC
  * Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -144,6 +144,7 @@ package blst
 //         blst_fp12_mul(dst, dst, &in[i]);
 // }
 import "C"
+
 import (
 	"fmt"
 	"math/bits"
@@ -557,7 +558,7 @@ func (sig *P2Affine) AggregateVerify(sigGroupcheck bool,
 
 // Aggregate verify with compressed signature and public keys
 // Uses a dummy signature to get the correct type
-func (dummy *P2Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
+func (_ *P2Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
 	pks [][]byte, pksVerify bool, msgs []Message, dst []byte,
 	optional ...bool) bool { // useHash bool, usePksAsAugs bool
 
@@ -651,7 +652,7 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, sigGroupcheck bool,
 					// main thread has completed its miller loop before
 					// proceeding.
 					mutex.Lock()
-					mutex.Unlock() // nolint:staticcheck
+					mutex.Unlock() //nolint:staticcheck
 				}
 
 				// Pull Public Key and augmentation blob
@@ -768,7 +769,7 @@ func (sig *P2Affine) FastAggregateVerify(sigGroupcheck bool,
 	return sig.Verify(sigGroupcheck, pkAff, false, msg, dst, optional...)
 }
 
-func (dummy *P2Affine) MultipleAggregateVerify(sigs []*P2Affine,
+func (_ *P2Affine) MultipleAggregateVerify(sigs []*P2Affine,
 	sigsGroupcheck bool, pks []*P1Affine, pksVerify bool,
 	msgs []Message, dst []byte, randFn func(*Scalar), randBits int,
 	optional ...interface{}) bool { // useHash
@@ -906,7 +907,7 @@ func (agg *P2Aggregate) Aggregate(elmts []*P2Affine,
 		return true
 	}
 	getter := func(i uint32, _ *P2Affine) *P2Affine { return elmts[i] }
-	return agg.aggregate(getter, groupcheck, len(elmts))
+	return agg.coreAggregate(getter, groupcheck, len(elmts))
 }
 
 // Aggregate compressed elements
@@ -922,7 +923,7 @@ func (agg *P2Aggregate) AggregateCompressed(elmts [][]byte,
 		}
 		return p
 	}
-	return agg.aggregate(getter, groupcheck, len(elmts))
+	return agg.coreAggregate(getter, groupcheck, len(elmts))
 }
 
 func (agg *P2Aggregate) AddAggregate(other *P2Aggregate) {
@@ -955,7 +956,7 @@ func (agg *P2Aggregate) ToAffine() *P2Affine {
 	return agg.v.ToAffine()
 }
 
-func (agg *P2Aggregate) aggregate(getter aggGetterP2, groupcheck bool,
+func (agg *P2Aggregate) coreAggregate(getter aggGetterP2, groupcheck bool,
 	n int) bool {
 
 	if n == 0 {
@@ -1163,7 +1164,7 @@ func (sig *P1Affine) AggregateVerify(sigGroupcheck bool,
 
 // Aggregate verify with compressed signature and public keys
 // Uses a dummy signature to get the correct type
-func (dummy *P1Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
+func (_ *P1Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
 	pks [][]byte, pksVerify bool, msgs []Message, dst []byte,
 	optional ...bool) bool { // useHash bool, usePksAsAugs bool
 
@@ -1257,7 +1258,7 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, sigGroupcheck bool,
 					// main thread has completed its miller loop before
 					// proceeding.
 					mutex.Lock()
-					mutex.Unlock() // nolint:staticcheck
+					mutex.Unlock() //nolint:staticcheck
 				}
 
 				// Pull Public Key and augmentation blob
@@ -1374,7 +1375,7 @@ func (sig *P1Affine) FastAggregateVerify(sigGroupcheck bool,
 	return sig.Verify(sigGroupcheck, pkAff, false, msg, dst, optional...)
 }
 
-func (dummy *P1Affine) MultipleAggregateVerify(sigs []*P1Affine,
+func (_ *P1Affine) MultipleAggregateVerify(sigs []*P1Affine,
 	sigsGroupcheck bool, pks []*P2Affine, pksVerify bool,
 	msgs []Message, dst []byte, randFn func(*Scalar), randBits int,
 	optional ...interface{}) bool { // useHash
@@ -1512,7 +1513,7 @@ func (agg *P1Aggregate) Aggregate(elmts []*P1Affine,
 		return true
 	}
 	getter := func(i uint32, _ *P1Affine) *P1Affine { return elmts[i] }
-	return agg.aggregate(getter, groupcheck, len(elmts))
+	return agg.coreAggregate(getter, groupcheck, len(elmts))
 }
 
 // Aggregate compressed elements
@@ -1528,7 +1529,7 @@ func (agg *P1Aggregate) AggregateCompressed(elmts [][]byte,
 		}
 		return p
 	}
-	return agg.aggregate(getter, groupcheck, len(elmts))
+	return agg.coreAggregate(getter, groupcheck, len(elmts))
 }
 
 func (agg *P1Aggregate) AddAggregate(other *P1Aggregate) {
@@ -1561,7 +1562,7 @@ func (agg *P1Aggregate) ToAffine() *P1Affine {
 	return agg.v.ToAffine()
 }
 
-func (agg *P1Aggregate) aggregate(getter aggGetterP1, groupcheck bool,
+func (agg *P1Aggregate) coreAggregate(getter aggGetterP1, groupcheck bool,
 	n int) bool {
 
 	if n == 0 {
@@ -1724,7 +1725,7 @@ func (p1 *P1Affine) InG1() bool {
 	return bool(C.blst_p1_affine_in_g1(p1))
 }
 
-func (dummy *P1Affine) BatchUncompress(in [][]byte) []*P1Affine {
+func (_ *P1Affine) BatchUncompress(in [][]byte) []*P1Affine {
 	// Allocate space for all of the resulting points. Later we'll save pointers
 	// and return those so that the result could be used in other functions,
 	// such as MultipleAggregateVerify.
@@ -2386,7 +2387,7 @@ func (p2 *P2Affine) InG2() bool {
 	return bool(C.blst_p2_affine_in_g2(p2))
 }
 
-func (dummy *P2Affine) BatchUncompress(in [][]byte) []*P2Affine {
+func (_ *P2Affine) BatchUncompress(in [][]byte) []*P2Affine {
 	// Allocate space for all of the resulting points. Later we'll save pointers
 	// and return those so that the result could be used in other functions,
 	// such as MultipleAggregateVerify.
@@ -3228,10 +3229,9 @@ func expandMessageXmd(msg []byte, dst []byte, len_in_bytes int) []byte {
 	return ret
 }
 
-func breakdown(nbits, window, ncpus int) (int, int, int) {
-	var nx, ny, wnd int
+func breakdown(nbits, window, ncpus int) (nx int, ny int, wnd int) {
 
-	if nbits > window*ncpus {
+	if nbits > window*ncpus { //nolint:nestif
 		nx = 1
 		wnd = bits.Len(uint(ncpus) / 4)
 		if (window + wnd) > 18 {
