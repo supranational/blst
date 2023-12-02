@@ -13,7 +13,7 @@ import (
     "testing"
 )
 
-// Min PK
+// Min PK.
 type PublicKeyMinPk = P1Affine
 type SignatureMinPk = P2Affine
 type AggregateSignatureMinPk = P2Aggregate
@@ -492,21 +492,21 @@ func generateBatchTestDataMinPk(size int) (msgs []Message,
     if !agProj.AggregateCompressed(sigs, true) {
         fmt.Println("AggregateCompressed unexpectedly returned nil")
         err = true
-        return
+        return //nolint:revive
     }
     agAff := agProj.ToAffine()
     if agAff == nil {
         fmt.Println("ToAffine unexpectedly returned nil")
         err = true
-        return
+        return //nolint:revive
     }
     agsig = agAff.Compress()
-    return
+    return //nolint:revive
 }
 
 func generateBatchTestDataUncompressedMinPk(size int) (sks []*SecretKey,
-    msgs []Message, sigs []*SignatureMinPk, pubks []*PublicKeyMinPk,
-    agsig *SignatureMinPk, err bool) {
+    msgs []Message, sigs []*SignatureMinPk, //nolint:unparam
+    pubks []*PublicKeyMinPk, agsig *SignatureMinPk, err bool) {
     err = false
     for i := 0; i < size; i++ {
         msg := Message(fmt.Sprintf("blst is a blast!! %d", i))
@@ -520,10 +520,10 @@ func generateBatchTestDataUncompressedMinPk(size int) (sks []*SecretKey,
     if !agProj.Aggregate(sigs, true) {
         fmt.Println("Aggregate unexpectedly returned nil")
         err = true
-        return
+        return //nolint:revive
     }
     agsig = agProj.ToAffine()
-    return
+    return //nolint:revive
 }
 
 func BenchmarkBatchUncompressMinPk(b *testing.B) {
