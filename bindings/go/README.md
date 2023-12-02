@@ -1,4 +1,4 @@
-# blst
+# blst [![Lint Status](https://github.com/supranational/blst/workflows/golang-lint/badge.svg)](https://github.com/supranational/blst/actions/workflows/golang-lint.yml)
 
 The `blst` package provides a Go interface to the blst BLS12-381 signature library.
 
