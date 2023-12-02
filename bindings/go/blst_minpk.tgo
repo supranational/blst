@@ -15,8 +15,7 @@ func (pk *P1Affine) From(s *Scalar) *P1Affine {
 }
 
 func (pk *P1Affine) KeyValidate() bool {
-    return !bool(C.blst_p1_affine_is_inf(pk)) &&
-            bool(C.blst_p1_affine_in_g1(pk))
+    return bool(C.go_p1_affine_validate(pk, true))
 }
 
 // sigInfcheck, check for infinity, is a way to avoid going
@@ -24,10 +23,7 @@ func (pk *P1Affine) KeyValidate() bool {
 // always cryptographically safe, but application might want
 // to guard against obviously bogus individual[!] signatures.
 func (sig *P2Affine) SigValidate(sigInfcheck bool) bool {
-    if sigInfcheck && bool(C.blst_p2_affine_is_inf(sig)) {
-        return false
-    }
-    return bool(C.blst_p2_affine_in_g2(sig))
+    return bool(C.go_p2_affine_validate(sig, C.bool(sigInfcheck)))
 }
 
 //

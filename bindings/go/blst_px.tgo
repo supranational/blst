@@ -208,7 +208,7 @@ func (p1 *P1) Sub(pointIf interface{}) *P1 {
 }
 
 func P1Generator() *P1 {
-    return C.blst_p1_generator()
+    return &cgo_p1Generator
 }
 
 // 'acc += point * scalar', passing 'nil' for 'point' means "use the
