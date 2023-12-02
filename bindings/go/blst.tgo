@@ -140,6 +140,7 @@ package blst
 //         blst_fp12_mul(dst, dst, &in[i]);
 // }
 import "C"
+
 import "runtime"
 
 const BLST_SCALAR_BYTES = 256 / 8

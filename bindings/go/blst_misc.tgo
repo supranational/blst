@@ -260,10 +260,9 @@ func expandMessageXmd(msg []byte, dst []byte, len_in_bytes int) []byte {
     return ret
 }
 
-func breakdown(nbits, window, ncpus int) (int, int, int) {
-    var nx, ny, wnd int
+func breakdown(nbits, window, ncpus int) (nx int, ny int, wnd int) {
 
-    if nbits > window*ncpus {
+    if nbits > window*ncpus { //nolint:nestif
         nx = 1
         wnd = bits.Len(uint(ncpus)/4)
         if (window + wnd) > 18 {
