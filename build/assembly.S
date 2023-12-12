@@ -26,6 +26,19 @@
 #  include "elf/div3w-x86_64.s"
 #  include "elf/ct_is_square_mod_384-x86_64.s"
 # elif defined(_WIN64) || defined(__CYGWIN__)
+#  if defined(__BLST_PORTABLE__)
+#   include "coff/sha256-portable-x86_64.s"
+#   define blst_sha256_block_data_order                     blst_sha256_block_ssse3
+#   define LSEH_begin_blst_sha256_block_data_order          LSEH_begin_blst_sha256_block_ssse3
+#   define LSEH_body_blst_sha256_block_data_order           LSEH_body_blst_sha256_block_ssse3
+#   define LSEH_info_blst_sha256_block_data_order_prologue  LSEH_info_blst_sha256_block_ssse3_prologue
+#   define LSEH_body_blst_sha256_block_data_order           LSEH_body_blst_sha256_block_ssse3
+#   define LSEH_epilogue_blst_sha256_block_data_order       LSEH_epilogue_blst_sha256_block_ssse3
+#   define LSEH_info_blst_sha256_block_data_order_body      LSEH_info_blst_sha256_block_ssse3_body
+#   define LSEH_epilogue_blst_sha256_block_data_order       LSEH_epilogue_blst_sha256_block_ssse3
+#   define LSEH_end_blst_sha256_block_data_order            LSEH_end_blst_sha256_block_ssse3
+#   define LSEH_info_blst_sha256_block_data_order_epilogue  LSEH_info_blst_sha256_block_ssse3_epilogue
+#  endif
 #  include "coff/sha256-x86_64.s"
 #  if defined(__ADX__) || defined(__BLST_PORTABLE__)
 #   include "coff/ctx_inverse_mod_384-x86_64.s"
