@@ -81,6 +81,7 @@ jobs:
             env CARGO_TARGET_WASM32_WASI_RUNNER=~/.wasmtime/bin/wasmtime \
                 cargo test --release --target=wasm32-wasi
             cargo clean -p blst --release --target=wasm32-wasi
+            echo
             echo '--- test -mlvi-hardening'
             echo
             env CC=clang CFLAGS="-mlvi-hardening -D__SGX_LVI_HARDENING__" \
@@ -89,8 +90,8 @@ jobs:
             echo
             rustup target add x86_64-fortanix-unknown-sgx
             cargo test --no-run --release --target=x86_64-fortanix-unknown-sgx
-            echo
             cargo clean -p blst --release --target=x86_64-fortanix-unknown-sgx
+            echo
             echo '--- dry-run publish'
             echo
             ./publish.sh --dry-run
@@ -101,20 +102,30 @@ jobs:
                 rustup target add x86_64-apple-darwin
                 cargo test --release --target=x86_64-apple-darwin
                 cargo clean -p blst --release --target=x86_64-apple-darwin
+                echo
             else
                 echo '--- build aarch64-apple-darwin'
                 echo
                 rustup target add aarch64-apple-darwin
                 cargo test --no-run --release --target=aarch64-apple-darwin
-                echo
                 cargo clean -p blst --release --target=aarch64-apple-darwin
+                echo
             fi
         elif [ $OSTYPE = "msys" ]; then
+            if which clang-cl > /dev/null 2>&1; then
+                echo '-- test i686-pc-windows-msvc'
+                echo
+                rustup target add i686-pc-windows-msvc
+                cargo test --release --target=i686-pc-windows-msvc
+                cargo clean -p blst --release --target=i686-pc-windows-msvc
+                echo
+            fi
             echo '-- test x86_64-pc-windows-gnu'
             echo
             rustup target add x86_64-pc-windows-gnu
             cargo test --release --target=x86_64-pc-windows-gnu
             cargo clean -p blst --release --target=x86_64-pc-windows-gnu
+            echo
             echo '-- build aarch64-pc-windows-msvc'
             echo
             rustup target add aarch64-pc-windows-msvc
@@ -123,9 +134,9 @@ jobs:
             echo 'cc = { git = "https://github.com/rust-lang/cc-rs" }' >> .cargo/config.toml
             cargo update
             cargo test --no-run --release --target=aarch64-pc-windows-msvc
-            echo
             find target/aarch64-pc-windows-msvc -name blst-\*.exe -exec cp {} blst-arm-test.exe \; -quit
             cargo clean -p blst --release --target=aarch64-pc-windows-msvc
+            echo
         fi
         echo
         echo '--- cargo clippy'
