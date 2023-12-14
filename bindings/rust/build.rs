@@ -123,13 +123,13 @@ fn main() {
         && env::var("CC").is_err()
     {
         match std::process::Command::new("clang-cl")
-            .arg("--version")
+            .args(["-m32", "--version"])
             .output()
         {
             Ok(out) => {
                 if String::from_utf8(out.stdout)
                     .unwrap_or("unintelligible".to_string())
-                    .contains("Target: i686-")
+                    .contains("Target: i386-pc-windows-msvc")
                 {
                     env::set_var("CC", "clang-cl");
                 }
