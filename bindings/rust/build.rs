@@ -231,7 +231,11 @@ fn main() {
         cc.define("SCRATCH_LIMIT", "(45 * 1024)");
     }
     if !cfg!(debug_assertions) {
-        cc.opt_level(2);
+        if target_arch.eq("s390x") {
+            cc.opt_level(3);
+        } else {
+            cc.opt_level(2);
+        }
     }
     cc.files(&file_vec).compile("blst");
 
