@@ -291,7 +291,7 @@ impl blst_scalar {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Pairing {
     v: Box<[u64]>,
 }
@@ -1120,18 +1120,14 @@ macro_rules! sig_variant_impl {
 
                 // TODO - check msg uniqueness?
 
-                let pool = mt::da_pool();
-                let (tx, rx) = channel();
-                let counter = Arc::new(AtomicUsize::new(0));
-                let valid = Arc::new(AtomicBool::new(true));
+                let counter = AtomicUsize::new(0);
+                let valid = AtomicBool::new(true);
+                let acc = Mutex::new(None::<Pairing>);
+                let mut gtsig = blst_fp12::default();
 
-                let n_workers = core::cmp::min(pool.max_count(), n_elems);
-                for _ in 0..n_workers {
-                    let tx = tx.clone();
-                    let counter = counter.clone();
-                    let valid = valid.clone();
-
-                    pool.joined_execute(move || {
+                rayon::scope(|scope| {
+                    scope.spawn_broadcast(|_scope, _ctx| {
+                        let mut processed = 0;
                         let mut pairing = Pairing::new($hash_or_encode, dst);
 
                         while valid.load(Ordering::Relaxed) {
@@ -1139,6 +1135,7 @@ macro_rules! sig_variant_impl {
                             if work >= n_elems {
                                 break;
                             }
+
                             if pairing.aggregate(
                                 &pks[work].point,
                                 pks_validate,
@@ -1148,37 +1145,49 @@ macro_rules! sig_variant_impl {
                                 &[],
                             ) != BLST_ERROR::BLST_SUCCESS
                             {
-                                valid.store(false, Ordering::Relaxed);
+                                valid.store(false, Ordering::Release);
                                 break;
                             }
+
+                            processed += 1;
                         }
-                        if valid.load(Ordering::Relaxed) {
+
+                        if processed > 0 && valid.load(Ordering::Relaxed) {
                             pairing.commit();
+
+                            let mut acc = acc.lock().unwrap();
+                            match acc.as_mut() {
+                                Some(acc) => {
+                                    acc.merge(&pairing);
+                                }
+                                None => {
+                                    acc.replace(pairing);
+                                }
+                            }
                         }
-                        tx.send(pairing).expect("disaster");
                     });
+                    scope.spawn(|_scope| {
+                        if sig_groupcheck && self.validate(false).is_err() {
+                            valid.store(false, Ordering::Release);
+                        }
+                    });
+                    scope.spawn(|_scope| {
+                        Pairing::aggregated(&mut gtsig, &self.point);
+                    });
+                });
+
+                if !valid.load(Ordering::Acquire) {
+                    return BLST_ERROR::BLST_VERIFY_FAIL;
                 }
 
-                if sig_groupcheck && valid.load(Ordering::Relaxed) {
-                    match self.validate(false) {
-                        Err(_err) => valid.store(false, Ordering::Relaxed),
-                        _ => (),
+                let acc = match acc.lock().unwrap().take() {
+                    Some(acc) => acc,
+                    None => {
+                        return BLST_ERROR::BLST_VERIFY_FAIL;
                     }
-                }
+                };
 
-                let mut gtsig = blst_fp12::default();
-                if valid.load(Ordering::Relaxed) {
-                    Pairing::aggregated(&mut gtsig, &self.point);
-                }
-
-                let mut acc = rx.recv().unwrap();
-                for _ in 1..n_workers {
-                    acc.merge(&rx.recv().unwrap());
-                }
-
-                if valid.load(Ordering::Relaxed)
-                    && acc.finalverify(Some(&gtsig))
-                {
+                if acc.finalverify(Some(&gtsig)) {
                     BLST_ERROR::BLST_SUCCESS
                 } else {
                     BLST_ERROR::BLST_VERIFY_FAIL
