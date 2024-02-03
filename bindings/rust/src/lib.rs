@@ -1253,18 +1253,13 @@ macro_rules! sig_variant_impl {
 
                 // TODO - check msg uniqueness?
 
-                let pool = mt::da_pool();
-                let (tx, rx) = channel();
-                let counter = Arc::new(AtomicUsize::new(0));
-                let valid = Arc::new(AtomicBool::new(true));
+                let counter = AtomicUsize::new(0);
+                let valid = AtomicBool::new(true);
+                let acc = Mutex::new(None::<Pairing>);
 
-                let n_workers = core::cmp::min(pool.max_count(), n_elems);
-                for _ in 0..n_workers {
-                    let tx = tx.clone();
-                    let counter = counter.clone();
-                    let valid = valid.clone();
-
-                    pool.joined_execute(move || {
+                rayon::scope(|scope| {
+                    scope.spawn_broadcast(|_scope, _ctx| {
+                        let mut processed = 0;
                         let mut pairing = Pairing::new($hash_or_encode, dst);
 
                         // TODO - engage multi-point mul-n-add for larger
@@ -1286,23 +1281,36 @@ macro_rules! sig_variant_impl {
                                 &[],
                             ) != BLST_ERROR::BLST_SUCCESS
                             {
-                                valid.store(false, Ordering::Relaxed);
+                                valid.store(false, Ordering::Release);
                                 break;
                             }
+
+                            processed += 1;
                         }
-                        if valid.load(Ordering::Relaxed) {
+                        if processed > 0 && valid.load(Ordering::Relaxed) {
                             pairing.commit();
+
+                            let mut acc = acc.lock().unwrap();
+                            match acc.as_mut() {
+                                Some(acc) => {
+                                    acc.merge(&pairing);
+                                }
+                                None => {
+                                    acc.replace(pairing);
+                                }
+                            }
                         }
-                        tx.send(pairing).expect("disaster");
-                    });
-                }
+                    })
+                });
 
-                let mut acc = rx.recv().unwrap();
-                for _ in 1..n_workers {
-                    acc.merge(&rx.recv().unwrap());
-                }
+                let acc = match acc.lock().unwrap().take() {
+                    Some(acc) => acc,
+                    None => {
+                        return BLST_ERROR::BLST_VERIFY_FAIL;
+                    }
+                };
 
-                if valid.load(Ordering::Relaxed) && acc.finalverify(None) {
+                if valid.load(Ordering::Acquire) && acc.finalverify(None) {
                     BLST_ERROR::BLST_SUCCESS
                 } else {
                     BLST_ERROR::BLST_VERIFY_FAIL
