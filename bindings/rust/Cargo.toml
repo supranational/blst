@@ -46,6 +46,7 @@ glob = "0.3"
 
 [dependencies]
 zeroize = { version = "^1.1", features = ["zeroize_derive"] }
+rayon = "1.8.1"
 serde = { version = "1.0.152", optional = true }
 
 [target.'cfg(not(any(target_arch="wasm32", target_os="none", target_os="unknown", target_os="uefi")))'.dependencies]

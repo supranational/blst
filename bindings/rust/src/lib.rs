@@ -18,7 +18,7 @@ use core::ptr;
 use zeroize::Zeroize;
 
 #[cfg(feature = "std")]
-use std::sync::{atomic::*, mpsc::channel, Arc};
+use std::sync::{atomic::*, mpsc::channel, Arc, Mutex};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -177,33 +177,33 @@ impl blst_fp12 {
             panic!("inputs' lengths mismatch");
         }
 
-        let pool = mt::da_pool();
-
-        let mut n_workers = pool.max_count();
+        let n_workers = rayon::current_num_threads();
         if n_workers == 1 {
-            let qs: [*const _; 2] = [&q[0], ptr::null()];
-            let ps: [*const _; 2] = [&p[0], ptr::null()];
+            let qs = [q.as_ptr(), ptr::null()];
+            let ps = [p.as_ptr(), ptr::null()];
             let mut out = MaybeUninit::<blst_fp12>::uninit();
             unsafe {
-                blst_miller_loop_n(out.as_mut_ptr(), &qs[0], &ps[0], n_elems);
+                blst_miller_loop_n(
+                    out.as_mut_ptr(),
+                    qs.as_ptr(),
+                    ps.as_ptr(),
+                    n_elems,
+                );
                 return out.assume_init();
             }
         }
 
-        let (tx, rx) = channel();
-        let counter = Arc::new(AtomicUsize::new(0));
-
+        let ret = Mutex::new(None::<blst_fp12>);
+        let counter = AtomicUsize::new(0);
         let stride = core::cmp::min((n_elems + n_workers - 1) / n_workers, 16);
-        n_workers = core::cmp::min((n_elems + stride - 1) / stride, n_workers);
-        for _ in 0..n_workers {
-            let tx = tx.clone();
-            let counter = counter.clone();
 
-            pool.joined_execute(move || {
+        rayon::scope(|scope| {
+            scope.spawn_broadcast(|_scope, _ctx| {
+                let mut processed = 0;
                 let mut acc = blst_fp12::default();
                 let mut tmp = MaybeUninit::<blst_fp12>::uninit();
-                let mut qs: [*const _; 2] = [ptr::null(), ptr::null()];
-                let mut ps: [*const _; 2] = [ptr::null(), ptr::null()];
+                let mut qs = [ptr::null(), ptr::null()];
+                let mut ps = [ptr::null(), ptr::null()];
 
                 loop {
                     let work = counter.fetch_add(stride, Ordering::Relaxed);
@@ -214,21 +214,34 @@ impl blst_fp12 {
                     qs[0] = &q[work];
                     ps[0] = &p[work];
                     unsafe {
-                        blst_miller_loop_n(tmp.as_mut_ptr(), &qs[0], &ps[0], n);
+                        blst_miller_loop_n(
+                            tmp.as_mut_ptr(),
+                            qs.as_ptr(),
+                            ps.as_ptr(),
+                            n,
+                        );
                         acc *= tmp.assume_init();
                     }
+
+                    processed += 1;
                 }
 
-                tx.send(acc).expect("disaster");
+                if processed > 0 {
+                    let mut ret = ret.lock().unwrap();
+                    match ret.as_mut() {
+                        Some(ret) => {
+                            *ret *= acc;
+                        }
+                        None => {
+                            ret.replace(acc);
+                        }
+                    }
+                }
             });
-        }
+        });
 
-        let mut acc = rx.recv().unwrap();
-        for _ in 1..n_workers {
-            acc *= rx.recv().unwrap();
-        }
-
-        acc
+        let mut ret = ret.lock().unwrap();
+        ret.take().unwrap()
     }
 
     pub fn final_exp(&self) -> Self {
