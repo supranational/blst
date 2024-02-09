@@ -269,29 +269,26 @@ macro_rules! pippenger_mult_impl {
             pub fn add(&self) -> $point {
                 let npoints = self.points.len();
 
-                let pool = mt::da_pool();
-                let ncpus = pool.max_count();
+                let ncpus = rayon::current_num_threads();
                 if ncpus < 2 || npoints < 384 {
-                    let p: [*const _; 2] = [&self.points[0], ptr::null()];
+                    let p = [self.points.as_ptr(), ptr::null()];
                     let mut ret = <$point>::default();
                     unsafe { $add(&mut ret, &p[0], npoints) };
                     return ret;
                 }
 
-                let (tx, rx) = channel();
-                let counter = Arc::new(AtomicUsize::new(0));
+                let ret = Mutex::new(None::<$point>);
+                let counter = AtomicUsize::new(0);
                 let nchunks = (npoints + 255) / 256;
                 let chunk = npoints / nchunks + 1;
 
-                let n_workers = core::cmp::min(ncpus, nchunks);
-                for _ in 0..n_workers {
-                    let tx = tx.clone();
-                    let counter = counter.clone();
-
-                    pool.joined_execute(move || {
+                rayon::scope(|scope| {
+                    let ret = &ret;
+                    scope.spawn_broadcast(move |_scope, _ctx| {
+                        let mut processed = 0;
                         let mut acc = <$point>::default();
                         let mut chunk = chunk;
-                        let mut p: [*const _; 2] = [ptr::null(), ptr::null()];
+                        let mut p = [ptr::null(), ptr::null()];
 
                         loop {
                             let work =
@@ -308,19 +305,24 @@ macro_rules! pippenger_mult_impl {
                                 $add(t.as_mut_ptr(), &p[0], chunk);
                                 $add_or_double(&mut acc, &acc, t.as_ptr());
                             };
+                            processed += 1;
                         }
-                        tx.send(acc).expect("disaster");
-                    });
-                }
+                        if processed > 0 {
+                            let mut ret = ret.lock().unwrap();
+                            match ret.as_mut() {
+                                Some(ret) => {
+                                    unsafe { $add_or_double(ret, ret, &acc) };
+                                }
+                                None => {
+                                    ret.replace(acc);
+                                }
+                            }
+                        }
+                    })
+                });
 
-                let mut ret = rx.recv().unwrap();
-                for _ in 1..n_workers {
-                    unsafe {
-                        $add_or_double(&mut ret, &ret, &rx.recv().unwrap())
-                    };
-                }
-
-                ret
+                let mut ret = ret.lock().unwrap();
+                ret.take().unwrap()
             }
         }
 
