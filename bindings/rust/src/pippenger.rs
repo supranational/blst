@@ -215,11 +215,11 @@ macro_rules! pippenger_mult_impl {
                             unsafe {
                                 $tile_mult(
                                     grid[work].1.as_ptr(),
-                                    &p[0],
+                                    p.as_ptr(),
                                     grid[work].0.dx,
-                                    &s[0],
+                                    s.as_ptr(),
                                     nbits,
-                                    &mut scratch[0],
+                                    scratch.as_mut_ptr(),
                                     y,
                                     window,
                                 );
@@ -273,7 +273,7 @@ macro_rules! pippenger_mult_impl {
                 if ncpus < 2 || npoints < 384 {
                     let p = [self.points.as_ptr(), ptr::null()];
                     let mut ret = <$point>::default();
-                    unsafe { $add(&mut ret, &p[0], npoints) };
+                    unsafe { $add(&mut ret, p.as_ptr(), npoints) };
                     return ret;
                 }
 
@@ -302,7 +302,7 @@ macro_rules! pippenger_mult_impl {
                             }
                             unsafe {
                                 let mut t = MaybeUninit::<$point>::uninit();
-                                $add(t.as_mut_ptr(), &p[0], chunk);
+                                $add(t.as_mut_ptr(), p.as_ptr(), chunk);
                                 $add_or_double(&mut acc, &acc, t.as_ptr());
                             };
                             processed += 1;

@@ -94,11 +94,16 @@ impl blst_fp12 {
         if n_elems != p.len() || n_elems == 0 {
             panic!("inputs' lengths mismatch");
         }
-        let qs: [*const _; 2] = [&q[0], ptr::null()];
-        let ps: [*const _; 2] = [&p[0], ptr::null()];
+        let qs = [q.as_ptr(), ptr::null()];
+        let ps = [p.as_ptr(), ptr::null()];
         let mut out = MaybeUninit::<blst_fp12>::uninit();
         unsafe {
-            blst_miller_loop_n(out.as_mut_ptr(), &qs[0], &ps[0], n_elems);
+            blst_miller_loop_n(
+                out.as_mut_ptr(),
+                qs.as_ptr(),
+                ps.as_ptr(),
+                n_elems,
+            );
             out.assume_init()
         }
     }
