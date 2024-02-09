@@ -5,7 +5,6 @@
 use core::num::Wrapping;
 use core::ops::{Index, IndexMut};
 use core::slice::SliceIndex;
-use std::sync::Barrier;
 
 struct tile {
     x: usize,
@@ -75,8 +74,7 @@ macro_rules! pippenger_mult_impl {
                     points: Vec::with_capacity(npoints),
                 };
 
-                let pool = mt::da_pool();
-                let ncpus = pool.max_count();
+                let ncpus = rayon::current_num_threads();
                 if ncpus < 2 || npoints < 768 {
                     let p = [points.as_ptr(), ptr::null()];
                     unsafe {
@@ -92,7 +90,6 @@ macro_rules! pippenger_mult_impl {
 
                 let mut nslices = (npoints + 511) / 512;
                 nslices = core::cmp::min(nslices, ncpus);
-                let wg = Arc::new((Barrier::new(2), AtomicUsize::new(nslices)));
 
                 // TODO: Use pointer arithmetic once Rust 1.75 can be used
                 #[allow(clippy::uninit_vec)]
@@ -101,25 +98,28 @@ macro_rules! pippenger_mult_impl {
                 }
                 let (mut delta, mut rem) =
                     (npoints / nslices + 1, Wrapping(npoints % nslices));
-                let mut x = 0usize;
-                while x < npoints {
-                    let out = &mut ret.points[x];
-                    let inp = &points[x];
-
-                    delta -= (rem == Wrapping(0)) as usize;
-                    rem -= Wrapping(1);
-                    x += delta;
-
-                    let wg = wg.clone();
-                    pool.joined_execute(move || {
-                        let p: [*const $point; 2] = [inp, ptr::null()];
-                        unsafe { $to_affines(out, &p[0], delta) };
-                        if wg.1.fetch_sub(1, Ordering::AcqRel) == 1 {
-                            wg.0.wait();
+                rayon::scope(|scope| {
+                    let mut ret_points = ret.points.as_mut_slice();
+                    let mut points = points;
+                    while !points.is_empty() {
+                        if rem == Wrapping(0) {
+                            delta -= 1;
                         }
-                    });
-                }
-                wg.0.wait();
+                        rem -= Wrapping(1);
+
+                        let out;
+                        (out, ret_points) = ret_points.split_at_mut(delta);
+                        let inp;
+                        (inp, points) = points.split_at(delta);
+
+                        scope.spawn(move |_scope| {
+                            let p = [inp.as_ptr(), ptr::null()];
+                            unsafe {
+                                $to_affines(out.as_mut_ptr(), p.as_ptr(), delta)
+                            };
+                        });
+                    }
+                });
 
                 ret
             }
