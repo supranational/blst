@@ -25,8 +25,7 @@ macro_rules! pippenger_test_mod {
                 let mut scalars = Box::new([0u8; nbytes * npoints]);
                 ChaCha20Rng::from_seed([0u8; 32]).fill_bytes(scalars.as_mut());
 
-                let mut points: Vec<$point> = Vec::with_capacity(npoints);
-                unsafe { points.set_len(points.capacity()) };
+                let mut points = vec![<$point>::default(); npoints];
 
                 let mut naive = <$point>::default();
                 for i in 0..npoints {
@@ -61,8 +60,7 @@ macro_rules! pippenger_test_mod {
                 let mut scalars = Box::new([0u8; nbytes * npoints]);
                 ChaCha20Rng::from_seed([0u8; 32]).fill_bytes(scalars.as_mut());
 
-                let mut points: Vec<$point> = Vec::with_capacity(npoints);
-                unsafe { points.set_len(points.capacity()) };
+                let mut points = vec![<$point>::default(); npoints];
 
                 let mut naive = <$point>::default();
                 for i in 0..npoints {

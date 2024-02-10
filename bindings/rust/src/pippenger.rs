@@ -74,13 +74,19 @@ macro_rules! pippenger_mult_impl {
                 let mut ret = Self {
                     points: Vec::with_capacity(npoints),
                 };
-                unsafe { ret.points.set_len(npoints) };
 
                 let pool = mt::da_pool();
                 let ncpus = pool.max_count();
                 if ncpus < 2 || npoints < 768 {
-                    let p: [*const $point; 2] = [&points[0], ptr::null()];
-                    unsafe { $to_affines(&mut ret.points[0], &p[0], npoints) };
+                    let p = [points.as_ptr(), ptr::null()];
+                    unsafe {
+                        $to_affines(
+                            ret.points.as_mut_ptr(),
+                            p.as_ptr(),
+                            ret.points.capacity(),
+                        );
+                        ret.points.set_len(ret.points.capacity());
+                    };
                     return ret;
                 }
 
@@ -88,6 +94,11 @@ macro_rules! pippenger_mult_impl {
                 nslices = core::cmp::min(nslices, ncpus);
                 let wg = Arc::new((Barrier::new(2), AtomicUsize::new(nslices)));
 
+                // TODO: Use pointer arithmetic once Rust 1.75 can be used
+                #[allow(clippy::uninit_vec)]
+                unsafe {
+                    ret.points.set_len(ret.points.capacity());
+                }
                 let (mut delta, mut rem) =
                     (npoints / nslices + 1, Wrapping(npoints % nslices));
                 let mut x = 0usize;
@@ -128,32 +139,34 @@ macro_rules! pippenger_mult_impl {
                         [&self.points[0], ptr::null()];
                     let s: [*const u8; 2] = [&scalars[0], ptr::null()];
 
+                    let mut ret = <$point>::default();
                     unsafe {
                         let mut scratch: Vec<u64> =
                             Vec::with_capacity($scratch_sizeof(npoints) / 8);
-                        #[allow(clippy::uninit_vec)]
-                        scratch.set_len(scratch.capacity());
-                        let mut ret = <$point>::default();
+
                         $multi_scalar_mult(
                             &mut ret,
                             &p[0],
                             npoints,
                             &s[0],
                             nbits,
-                            &mut scratch[0],
+                            scratch.as_mut_ptr(),
                         );
-                        return ret;
                     }
+                    return ret;
                 }
 
                 let (nx, ny, window) =
                     breakdown(nbits, pippenger_window_size(npoints), ncpus);
 
                 // |grid[]| holds "coordinates" and place for result
-                let mut grid: Vec<(tile, Cell<$point>)> =
-                    Vec::with_capacity(nx * ny);
+                let mut grid =
+                    Vec::<(tile, Cell<$point>)>::with_capacity(nx * ny);
+                // TODO: Use pointer arithmetic once Rust 1.75 can be used
                 #[allow(clippy::uninit_vec)]
-                unsafe { grid.set_len(grid.capacity()) };
+                unsafe {
+                    grid.set_len(grid.capacity());
+                }
                 let dx = npoints / nx;
                 let mut y = window * (ny - 1);
                 let mut total = 0usize;
