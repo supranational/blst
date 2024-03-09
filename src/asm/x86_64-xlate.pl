@@ -1135,6 +1135,10 @@ my @pdata_seg = (".section	.pdata", ".align	4");
 			if	($flavour eq "macosx")	{ $self->{value} = ".mod_init_func"; }
 			elsif	($flavour eq "mingw64")	{ $self->{value} = ".section\t.ctors"; }
 		    }
+		    if (!$elf && $current_segment eq ".rodata") {
+			if	($flavour eq "macosx")	{ $self->{value} = ".section\t__TEXT,__const"; }
+			elsif	($flavour eq "mingw64")	{ $self->{value} = ".section\t.rdata"; }
+		    }
 		} elsif ($dir =~ /\.(text|data)/) {
 		    $current_segment=".$1";
 		} elsif ($dir =~ /\.hidden/) {
@@ -1177,20 +1181,21 @@ my @pdata_seg = (".section	.pdata", ".align	4");
 		/\.section/ && do { my $v=undef;
 				    $$line =~ s/([^,]*).*/$1/;
 				    $$line = ".CRT\$XCU" if ($$line eq ".init");
+				    $$line = ".rdata" if ($$line eq ".rodata");
+				    my %align = ( p=>4, x=>8, r=>256);
 				    if ($nasm) {
 					$v="section	$$line";
-					if ($$line=~/\.([px])data/) {
-					    $v.=" rdata align=";
-					    $v.=$1 eq "p"? 4 : 8;
+					if ($$line=~/\.([pxr])data/) {
+					    $v.=" rdata align=$align{$1}";
 					} elsif ($$line=~/\.CRT\$/i) {
 					    $v.=" rdata align=8";
 					}
 				    } else {
 					$v="$current_segment\tENDS\n" if ($current_segment);
 					$v.="$$line\tSEGMENT";
-					if ($$line=~/\.([px])data/) {
+					if ($$line=~/\.([pxr])data/) {
 					    $v.=" READONLY";
-					    $v.=" ALIGN(".($1 eq "p" ? 4 : 8).")" if ($masm>=$masmref);
+					    $v.=" ALIGN($align{$1})" if ($masm>=$masmref);
 					} elsif ($$line=~/\.CRT\$/i) {
 					    $v.=" READONLY ";
 					    $v.=$masm>=$masmref ? "ALIGN(8)" : "DWORD";
