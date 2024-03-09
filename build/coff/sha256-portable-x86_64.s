@@ -1668,6 +1668,7 @@ blst_sha256_block_data_order:
 .LSEH_end_blst_sha256_block_data_order:
 
 #ifndef __BLST_PORTABLE__
+.section	.rdata
 .p2align	6
 
 K256:

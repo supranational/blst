@@ -1664,6 +1664,7 @@ L$rounds_16_xx:
 
 
 #ifndef __BLST_PORTABLE__
+.section	__TEXT,__const
 .p2align	6
 
 K256:

@@ -1664,6 +1664,7 @@ blst_sha256_block_data_order:
 .size	blst_sha256_block_data_order,.-blst_sha256_block_data_order
 
 #ifndef __BLST_PORTABLE__
+.section	.rodata
 .align	64
 .type	K256,@object
 K256:

@@ -1,6 +1,6 @@
 .comm	___blst_platform_cap,4
-.text	
 
+.section	__TEXT,__const
 .p2align	6
 
 K256:
@@ -25,6 +25,7 @@ K256:
 .long	0x03020100,0x0b0a0908,0xffffffff,0xffffffff
 .long	0xffffffff,0xffffffff,0x03020100,0x0b0a0908
 .byte	83,72,65,50,53,54,32,98,108,111,99,107,32,116,114,97,110,115,102,111,114,109,32,102,111,114,32,120,56,54,95,54,52,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32,64,100,111,116,45,97,115,109,0
+.text	
 .globl	_blst_sha256_block_data_order_shaext
 .private_extern	_blst_sha256_block_data_order_shaext
 
