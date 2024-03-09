@@ -62,8 +62,8 @@ $framesz="16*$SZ+3*8";
 
 $code=<<___;
 .comm	__blst_platform_cap,4
-.text
 
+.section	.rodata
 .align	64
 .type	$TABLE,\@object
 $TABLE:
@@ -88,6 +88,7 @@ $TABLE:
 	.long	0x03020100,0x0b0a0908,0xffffffff,0xffffffff
 	.long	0xffffffff,0xffffffff,0x03020100,0x0b0a0908
 	.asciz	"SHA256 block transform for x86_64, CRYPTOGAMS by \@dot-asm"
+.text
 ___
 
 ######################################################################
