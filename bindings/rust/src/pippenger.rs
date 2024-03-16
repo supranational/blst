@@ -5,7 +5,6 @@
 use core::num::Wrapping;
 use core::ops::{Index, IndexMut};
 use core::slice::SliceIndex;
-use std::sync::Barrier;
 
 struct tile {
     x: usize,
@@ -74,41 +73,53 @@ macro_rules! pippenger_mult_impl {
                 let mut ret = Self {
                     points: Vec::with_capacity(npoints),
                 };
-                unsafe { ret.points.set_len(npoints) };
 
-                let pool = mt::da_pool();
-                let ncpus = pool.max_count();
+                let ncpus = rayon::current_num_threads();
                 if ncpus < 2 || npoints < 768 {
-                    let p: [*const $point; 2] = [&points[0], ptr::null()];
-                    unsafe { $to_affines(&mut ret.points[0], &p[0], npoints) };
+                    let p = [points.as_ptr(), ptr::null()];
+                    unsafe {
+                        $to_affines(
+                            ret.points.as_mut_ptr(),
+                            p.as_ptr(),
+                            ret.points.capacity(),
+                        );
+                        ret.points.set_len(ret.points.capacity());
+                    };
                     return ret;
                 }
 
                 let mut nslices = (npoints + 511) / 512;
                 nslices = core::cmp::min(nslices, ncpus);
-                let wg = Arc::new((Barrier::new(2), AtomicUsize::new(nslices)));
 
+                // TODO: Use pointer arithmetic once Rust 1.75 can be used
+                #[allow(clippy::uninit_vec)]
+                unsafe {
+                    ret.points.set_len(ret.points.capacity());
+                }
                 let (mut delta, mut rem) =
                     (npoints / nslices + 1, Wrapping(npoints % nslices));
-                let mut x = 0usize;
-                while x < npoints {
-                    let out = &mut ret.points[x];
-                    let inp = &points[x];
-
-                    delta -= (rem == Wrapping(0)) as usize;
-                    rem -= Wrapping(1);
-                    x += delta;
-
-                    let wg = wg.clone();
-                    pool.joined_execute(move || {
-                        let p: [*const $point; 2] = [inp, ptr::null()];
-                        unsafe { $to_affines(out, &p[0], delta) };
-                        if wg.1.fetch_sub(1, Ordering::AcqRel) == 1 {
-                            wg.0.wait();
+                rayon::scope(|scope| {
+                    let mut ret_points = ret.points.as_mut_slice();
+                    let mut points = points;
+                    while !points.is_empty() {
+                        if rem == Wrapping(0) {
+                            delta -= 1;
                         }
-                    });
-                }
-                wg.0.wait();
+                        rem -= Wrapping(1);
+
+                        let out;
+                        (out, ret_points) = ret_points.split_at_mut(delta);
+                        let inp;
+                        (inp, points) = points.split_at(delta);
+
+                        scope.spawn(move |_scope| {
+                            let p = [inp.as_ptr(), ptr::null()];
+                            unsafe {
+                                $to_affines(out.as_mut_ptr(), p.as_ptr(), delta)
+                            };
+                        });
+                    }
+                });
 
                 ret
             }
@@ -121,39 +132,39 @@ macro_rules! pippenger_mult_impl {
                     panic!("scalars length mismatch");
                 }
 
-                let pool = mt::da_pool();
-                let ncpus = pool.max_count();
+                let ncpus = rayon::current_num_threads();
                 if ncpus < 2 || npoints < 32 {
-                    let p: [*const $point_affine; 2] =
-                        [&self.points[0], ptr::null()];
-                    let s: [*const u8; 2] = [&scalars[0], ptr::null()];
+                    let p = [self.points.as_ptr(), ptr::null()];
+                    let s = [scalars.as_ptr(), ptr::null()];
 
+                    let mut ret = <$point>::default();
                     unsafe {
                         let mut scratch: Vec<u64> =
                             Vec::with_capacity($scratch_sizeof(npoints) / 8);
-                        #[allow(clippy::uninit_vec)]
-                        scratch.set_len(scratch.capacity());
-                        let mut ret = <$point>::default();
+
                         $multi_scalar_mult(
                             &mut ret,
-                            &p[0],
+                            p.as_ptr(),
                             npoints,
-                            &s[0],
+                            s.as_ptr(),
                             nbits,
-                            &mut scratch[0],
+                            scratch.as_mut_ptr(),
                         );
-                        return ret;
                     }
+                    return ret;
                 }
 
                 let (nx, ny, window) =
                     breakdown(nbits, pippenger_window_size(npoints), ncpus);
 
                 // |grid[]| holds "coordinates" and place for result
-                let mut grid: Vec<(tile, Cell<$point>)> =
-                    Vec::with_capacity(nx * ny);
+                let mut grid =
+                    Vec::<(tile, Cell<$point>)>::with_capacity(nx * ny);
+                // TODO: Use pointer arithmetic once Rust 1.75 can be used
                 #[allow(clippy::uninit_vec)]
-                unsafe { grid.set_len(grid.capacity()) };
+                unsafe {
+                    grid.set_len(grid.capacity());
+                }
                 let dx = npoints / nx;
                 let mut y = window * (ny - 1);
                 let mut total = 0usize;
@@ -181,22 +192,15 @@ macro_rules! pippenger_mult_impl {
                 let points = &self.points[..];
                 let sz = unsafe { $scratch_sizeof(0) / 8 };
 
-                let mut row_sync: Vec<AtomicUsize> = Vec::with_capacity(ny);
-                row_sync.resize_with(ny, Default::default);
-                let row_sync = Arc::new(row_sync);
-                let counter = Arc::new(AtomicUsize::new(0));
+                let mut row_sync = Vec::with_capacity(ny);
+                row_sync.resize_with(ny, AtomicUsize::default);
+                let counter = AtomicUsize::new(0);
                 let (tx, rx) = channel();
-                let n_workers = core::cmp::min(ncpus, total);
-                for _ in 0..n_workers {
-                    let tx = tx.clone();
-                    let counter = counter.clone();
-                    let row_sync = row_sync.clone();
-
-                    pool.joined_execute(move || {
+                rayon::scope(|scope| {
+                    scope.spawn_broadcast(move |_scope, _ctx| {
                         let mut scratch = vec![0u64; sz << (window - 1)];
-                        let mut p: [*const $point_affine; 2] =
-                            [ptr::null(), ptr::null()];
-                        let mut s: [*const u8; 2] = [ptr::null(), ptr::null()];
+                        let mut p = [ptr::null(), ptr::null()];
+                        let mut s = [ptr::null(), ptr::null()];
 
                         loop {
                             let work = counter.fetch_add(1, Ordering::Relaxed);
@@ -211,11 +215,11 @@ macro_rules! pippenger_mult_impl {
                             unsafe {
                                 $tile_mult(
                                     grid[work].1.as_ptr(),
-                                    &p[0],
+                                    p.as_ptr(),
                                     grid[work].0.dx,
-                                    &s[0],
+                                    s.as_ptr(),
                                     nbits,
-                                    &mut scratch[0],
+                                    scratch.as_mut_ptr(),
                                     y,
                                     window,
                                 );
@@ -228,7 +232,7 @@ macro_rules! pippenger_mult_impl {
                             }
                         }
                     });
-                }
+                });
 
                 let mut ret = <$point>::default();
                 let mut rows = vec![false; ny];
@@ -265,29 +269,26 @@ macro_rules! pippenger_mult_impl {
             pub fn add(&self) -> $point {
                 let npoints = self.points.len();
 
-                let pool = mt::da_pool();
-                let ncpus = pool.max_count();
+                let ncpus = rayon::current_num_threads();
                 if ncpus < 2 || npoints < 384 {
-                    let p: [*const _; 2] = [&self.points[0], ptr::null()];
+                    let p = [self.points.as_ptr(), ptr::null()];
                     let mut ret = <$point>::default();
-                    unsafe { $add(&mut ret, &p[0], npoints) };
+                    unsafe { $add(&mut ret, p.as_ptr(), npoints) };
                     return ret;
                 }
 
-                let (tx, rx) = channel();
-                let counter = Arc::new(AtomicUsize::new(0));
+                let ret = Mutex::new(None::<$point>);
+                let counter = AtomicUsize::new(0);
                 let nchunks = (npoints + 255) / 256;
                 let chunk = npoints / nchunks + 1;
 
-                let n_workers = core::cmp::min(ncpus, nchunks);
-                for _ in 0..n_workers {
-                    let tx = tx.clone();
-                    let counter = counter.clone();
-
-                    pool.joined_execute(move || {
+                rayon::scope(|scope| {
+                    let ret = &ret;
+                    scope.spawn_broadcast(move |_scope, _ctx| {
+                        let mut processed = 0;
                         let mut acc = <$point>::default();
                         let mut chunk = chunk;
-                        let mut p: [*const _; 2] = [ptr::null(), ptr::null()];
+                        let mut p = [ptr::null(), ptr::null()];
 
                         loop {
                             let work =
@@ -301,22 +302,27 @@ macro_rules! pippenger_mult_impl {
                             }
                             unsafe {
                                 let mut t = MaybeUninit::<$point>::uninit();
-                                $add(t.as_mut_ptr(), &p[0], chunk);
+                                $add(t.as_mut_ptr(), p.as_ptr(), chunk);
                                 $add_or_double(&mut acc, &acc, t.as_ptr());
                             };
+                            processed += 1;
                         }
-                        tx.send(acc).expect("disaster");
-                    });
-                }
+                        if processed > 0 {
+                            let mut ret = ret.lock().unwrap();
+                            match ret.as_mut() {
+                                Some(ret) => {
+                                    unsafe { $add_or_double(ret, ret, &acc) };
+                                }
+                                None => {
+                                    ret.replace(acc);
+                                }
+                            }
+                        }
+                    })
+                });
 
-                let mut ret = rx.recv().unwrap();
-                for _ in 1..n_workers {
-                    unsafe {
-                        $add_or_double(&mut ret, &ret, &rx.recv().unwrap())
-                    };
-                }
-
-                ret
+                let mut ret = ret.lock().unwrap();
+                ret.take().unwrap()
             }
         }
 

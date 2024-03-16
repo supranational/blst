@@ -57,9 +57,6 @@ jobs:
         echo '--- test portable'
         echo
         cargo test --release --features=portable
-        echo '--- test no-threads'
-        echo
-        cargo test --release --features=no-threads
         echo '--- test serde-secret'
         echo
         cargo test --release --features=serde-secret

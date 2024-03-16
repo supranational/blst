@@ -49,9 +49,6 @@ fn main() {
 
     if !target_no_std {
         println!("cargo:rustc-cfg=feature=\"std\"");
-        if target_arch.eq("wasm32") || target_os.eq("unknown") {
-            println!("cargo:rustc-cfg=feature=\"no-threads\"");
-        }
     }
     println!("cargo:rerun-if-env-changed=BLST_TEST_NO_STD");
 

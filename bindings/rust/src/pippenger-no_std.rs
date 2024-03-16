@@ -51,11 +51,12 @@ macro_rules! pippenger_mult_impl {
                 let mut ret = Self {
                     points: Vec::with_capacity(npoints),
                 };
-                #[allow(clippy::uninit_vec)]
-                unsafe { ret.points.set_len(npoints) };
 
-                let p: [*const $point; 2] = [&points[0], ptr::null()];
-                unsafe { $to_affines(&mut ret.points[0], &p[0], npoints) };
+                let p = [points.as_ptr(), ptr::null()];
+                unsafe {
+                    $to_affines(ret.points.as_mut_ptr(), p.as_ptr(), npoints);
+                    ret.points.set_len(npoints);
+                }
                 ret
             }
 
@@ -67,23 +68,20 @@ macro_rules! pippenger_mult_impl {
                     panic!("scalars length mismatch");
                 }
 
-                let p: [*const $point_affine; 2] =
-                    [&self.points[0], ptr::null()];
-                let s: [*const u8; 2] = [&scalars[0], ptr::null()];
+                let p = [self.points.as_ptr(), ptr::null()];
+                let s = [scalars.as_ptr(), ptr::null()];
 
                 let mut ret = <$point>::default();
                 unsafe {
                     let mut scratch: Vec<u64> =
                         Vec::with_capacity($scratch_sizeof(npoints) / 8);
-                    #[allow(clippy::uninit_vec)]
-                    scratch.set_len(scratch.capacity());
                     $multi_scalar_mult(
                         &mut ret,
-                        &p[0],
+                        p.as_ptr(),
                         npoints,
-                        &s[0],
+                        s.as_ptr(),
                         nbits,
-                        &mut scratch[0],
+                        scratch.as_mut_ptr(),
                     );
                 }
                 ret
@@ -92,9 +90,9 @@ macro_rules! pippenger_mult_impl {
             pub fn add(&self) -> $point {
                 let npoints = self.points.len();
 
-                let p: [*const _; 2] = [&self.points[0], ptr::null()];
+                let p = [self.points.as_ptr(), ptr::null()];
                 let mut ret = <$point>::default();
-                unsafe { $add(&mut ret, &p[0], npoints) };
+                unsafe { $add(&mut ret, p.as_ptr(), npoints) };
 
                 ret
             }
