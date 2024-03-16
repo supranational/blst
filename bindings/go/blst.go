@@ -797,7 +797,7 @@ func (_ *P2Affine) MultipleAggregateVerify(sigs []*P2Affine,
 	}
 
 	paramsFn :=
-		func(work uint32, sig *P2Affine, pk *P1Affine, rand *Scalar) (
+		func(work uint32, _ *P2Affine, _ *P1Affine, rand *Scalar) (
 			*P2Affine, *P1Affine, *Scalar, []byte) {
 			randFn(rand)
 			var aug []byte
@@ -1399,7 +1399,7 @@ func (_ *P1Affine) MultipleAggregateVerify(sigs []*P1Affine,
 	}
 
 	paramsFn :=
-		func(work uint32, sig *P1Affine, pk *P2Affine, rand *Scalar) (
+		func(work uint32, _ *P1Affine, _ *P2Affine, rand *Scalar) (
 			*P1Affine, *P2Affine, *Scalar, []byte) {
 			randFn(rand)
 			var aug []byte
