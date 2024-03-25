@@ -926,14 +926,22 @@ macro_rules! sig_variant_impl {
                 pks: &[&PublicKey],
                 pks_validate: bool,
             ) -> Result<Self, BLST_ERROR> {
-                if pks.len() == 0 {
-                    return Err(BLST_ERROR::BLST_AGGR_TYPE_MISMATCH);
-                }
+                // Convert Iterator<Item = &&PublicKey> To Iterator<Item = &PublicKey>
+                Self::aggregate_iter(pks.iter().copied(), pks_validate)
+            }
+
+            pub fn aggregate_iter<'a>(
+                pks: impl IntoIterator<Item = &'a PublicKey>,
+                pks_validate: bool,
+            ) -> Result<Self, BLST_ERROR> {
+                let mut pks = pks.into_iter();
+                let first =
+                    pks.next().ok_or(BLST_ERROR::BLST_AGGR_TYPE_MISMATCH)?;
                 if pks_validate {
-                    pks[0].validate()?;
+                    first.validate()?;
                 }
-                let mut agg_pk = AggregatePublicKey::from_public_key(pks[0]);
-                for s in pks.iter().skip(1) {
+                let mut agg_pk = AggregatePublicKey::from_public_key(first);
+                for s in pks {
                     if pks_validate {
                         s.validate()?;
                     }
@@ -1425,17 +1433,25 @@ macro_rules! sig_variant_impl {
                 sigs: &[&Signature],
                 sigs_groupcheck: bool,
             ) -> Result<Self, BLST_ERROR> {
-                if sigs.len() == 0 {
-                    return Err(BLST_ERROR::BLST_AGGR_TYPE_MISMATCH);
-                }
+                // Convert Iterator<Item = &&Signature> To Iterator<Item = &Signature>
+                Self::aggregate_iter(sigs.iter().copied(), sigs_groupcheck)
+            }
+
+            pub fn aggregate_iter<'a>(
+                sigs: impl IntoIterator<Item = &'a Signature>,
+                sigs_groupcheck: bool,
+            ) -> Result<Self, BLST_ERROR> {
+                let mut sigs = sigs.into_iter();
+                let first =
+                    sigs.next().ok_or(BLST_ERROR::BLST_AGGR_TYPE_MISMATCH)?;
                 if sigs_groupcheck {
                     // We can't actually judge if input is individual or
                     // aggregated signature, so we can't enforce infinity
                     // check.
-                    sigs[0].validate(false)?;
+                    first.validate(false)?;
                 }
-                let mut agg_sig = AggregateSignature::from_signature(sigs[0]);
-                for s in sigs.iter().skip(1) {
+                let mut agg_sig = AggregateSignature::from_signature(first);
+                for s in sigs {
                     if sigs_groupcheck {
                         s.validate(false)?;
                     }
@@ -1609,9 +1625,8 @@ macro_rules! sig_variant_impl {
                     .collect::<Vec<BLST_ERROR>>();
                 assert_ne!(errs, vec![BLST_ERROR::BLST_SUCCESS; num_msgs]);
 
-                let sig_refs =
-                    sigs.iter().map(|s| s).collect::<Vec<&Signature>>();
-                let agg = match AggregateSignature::aggregate(&sig_refs, true) {
+                let agg = match AggregateSignature::aggregate_iter(&sigs, true)
+                {
                     Ok(agg) => agg,
                     Err(err) => panic!("aggregate failure: {:?}", err),
                 };
@@ -1651,8 +1666,7 @@ macro_rules! sig_variant_impl {
                         .iter()
                         .map(|sk| sk.sk_to_pk())
                         .collect::<Vec<_>>();
-                    let pks_refs_i: Vec<&PublicKey> =
-                        pks_i.iter().map(|pk| pk).collect();
+                    let pks_refs_i: Vec<&PublicKey> = pks_i.iter().collect();
 
                     // Create random message for pks to all sign
                     let msg_len = (rng.next_u64() & 0x3F) + 1;
@@ -1678,14 +1692,12 @@ macro_rules! sig_variant_impl {
                         vec![BLST_ERROR::BLST_SUCCESS; num_pks_per_sig]
                     );
 
-                    let sig_refs_i =
-                        sigs_i.iter().map(|s| s).collect::<Vec<&Signature>>();
-                    let agg_i =
-                        match AggregateSignature::aggregate(&sig_refs_i, false)
-                        {
-                            Ok(agg_i) => agg_i,
-                            Err(err) => panic!("aggregate failure: {:?}", err),
-                        };
+                    let agg_i = match AggregateSignature::aggregate_iter(
+                        &sigs_i, false,
+                    ) {
+                        Ok(agg_i) => agg_i,
+                        Err(err) => panic!("aggregate failure: {:?}", err),
+                    };
 
                     // Test current aggregate signature
                     sigs.push(agg_i.to_signature());
@@ -1710,7 +1722,7 @@ macro_rules! sig_variant_impl {
 
                     // aggregate public keys and push into vec
                     let agg_pk_i =
-                        match AggregatePublicKey::aggregate(&pks_refs_i, false)
+                        match AggregatePublicKey::aggregate_iter(&pks_i, false)
                         {
                             Ok(agg_pk_i) => agg_pk_i,
                             Err(err) => panic!("aggregate failure: {:?}", err),
