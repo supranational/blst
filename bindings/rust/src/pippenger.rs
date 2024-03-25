@@ -69,6 +69,10 @@ macro_rules! pippenger_mult_impl {
                 self.points.as_slice()
             }
 
+            pub fn new(points: &[$point_affine]) -> Self {
+                Self { points: Vec::from(points) }
+            }
+
             pub fn from(points: &[$point]) -> Self {
                 let npoints = points.len();
                 let mut ret = Self {
