@@ -1231,9 +1231,9 @@ $L$oop_62::
 	mov	rsi,QWORD PTR[8+rsp]
 	
 ifdef	__SGX_LVI_HARDENING__
-	pop	r8
+	pop	rdx
 	lfence
-	jmp	r8
+	jmp	rdx
 	ud2
 else
 	DB	0F3h,0C3h

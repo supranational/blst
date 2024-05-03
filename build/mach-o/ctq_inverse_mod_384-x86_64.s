@@ -1230,9 +1230,9 @@ L$oop_62:
 	movq	8(%rsp),%rsi
 	
 #ifdef	__SGX_LVI_HARDENING__
-	popq	%r8
+	popq	%rdx
 	lfence
-	jmpq	*%r8
+	jmpq	*%rdx
 	ud2
 #else
 	.byte	0xf3,0xc3

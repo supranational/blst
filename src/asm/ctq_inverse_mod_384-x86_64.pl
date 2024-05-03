@@ -887,7 +887,7 @@ __inner_loop_62:
 	jnz	.Loop_62
 
 	mov	8(%rsp), $in_ptr
-	ret	# __SGX_LVI_HARDENING_CLOBBER__=$a_lo
+	ret	# __SGX_LVI_HARDENING_CLOBBER__=$cnt
 .size	__inner_loop_62,.-__inner_loop_62
 ___
 }
