@@ -38,6 +38,8 @@ force-adx = []
 no-threads = []
 # Add support for serializing SecretKey, not suitable for production.
 serde-secret = ["serde"]
+# Add sgx flag to enable non-fortanix SGX support
+sgx = []
 
 [build-dependencies]
 cc = "1.0"

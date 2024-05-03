@@ -222,7 +222,7 @@ fn main() {
         }
         cc.define("SCRATCH_LIMIT", "(45 * 1024)");
     }
-    if target_env.eq("sgx") {
+    if target_env.eq("sgx") || cfg!(feature = "sgx") {
         cc.flag_if_supported("-mlvi-hardening");
         cc.flag("-ffreestanding");
         cc.define("__SGX_LVI_HARDENING__", None);
