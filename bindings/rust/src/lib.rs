@@ -2060,3 +2060,19 @@ mod sk_test {
         assert_eq!(p2, unsafe { *blst_p2_generator() });
     }
 }
+
+#[cfg(test)]
+mod fp_test {
+    use super::*;
+    #[test]
+    fn inverse() {
+        let mut out = blst_fp::default();
+        let inp = blst_fp::default();
+
+        unsafe {
+            blst_fp_inverse(&mut out, &inp);
+        }
+    }
+
+    assert_eq!(out, blst_fp { l: [0,0,0,0,0,0] });
+}
