@@ -159,6 +159,9 @@ fn main() {
     }
     match (cfg!(feature = "portable"), cfg!(feature = "force-adx")) {
         (true, false) => {
+            if target_arch.eq("x86_64") && target_env.eq("sgx") {
+                panic!("'portable' is not supported on SGX target");
+            }
             println!("Compiling in portable mode without ISA extensions");
             cc.define("__BLST_PORTABLE__", None);
         }
@@ -172,12 +175,15 @@ fn main() {
         }
         (false, false) => {
             if target_arch.eq("x86_64") {
-                // If target-cpu is specified on the rustc command line,
-                // then obey the resulting target-features.
-                if env::var("CARGO_ENCODED_RUSTFLAGS")
+                if target_env.eq("sgx") {
+                    println!("Enabling ADX for Intel SGX target");
+                    cc.define("__ADX__", None);
+                } else if env::var("CARGO_ENCODED_RUSTFLAGS")
                     .unwrap_or_default()
                     .contains("target-cpu=")
                 {
+                    // If target-cpu is specified on the rustc command line,
+                    // then obey the resulting target-features.
                     let feat_list = env::var("CARGO_CFG_TARGET_FEATURE")
                         .unwrap_or_default();
                     let features: Vec<_> = feat_list.split(',').collect();
@@ -192,9 +198,6 @@ fn main() {
                         );
                         cc.define("__ADX__", None);
                     }
-                } else if target_env.eq("sgx") {
-                    println!("Enabling ADX for Intel SGX target");
-                    cc.define("__ADX__", None);
                 } else {
                     #[cfg(target_arch = "x86_64")]
                     if std::is_x86_feature_detected!("adx") {
