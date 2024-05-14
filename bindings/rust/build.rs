@@ -41,6 +41,7 @@ fn main() {
     let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
     let target_env = env::var("CARGO_CFG_TARGET_ENV").unwrap();
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let target_family = env::var("CARGO_CFG_TARGET_FAMILY").unwrap_or_default();
 
     let target_no_std = target_os.eq("none")
         || (target_os.eq("unknown") && target_arch.eq("wasm32"))
@@ -216,15 +217,14 @@ fn main() {
         .flag_if_supported("-fno-builtin")
         .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-command-line-argument");
+    if target_arch.eq("wasm32") || target_family.is_empty() {
+        cc.flag("-ffreestanding");
+    }
     if target_arch.eq("wasm32") || target_no_std {
-        if target_env.ne("msvc") {
-            cc.flag("-ffreestanding");
-        }
         cc.define("SCRATCH_LIMIT", "(45 * 1024)");
     }
     if target_env.eq("sgx") {
         cc.flag_if_supported("-mlvi-hardening");
-        cc.flag("-ffreestanding");
         cc.define("__SGX_LVI_HARDENING__", None);
         cc.define("__BLST_NO_CPUID__", None);
         cc.define("__ELF__", None);
