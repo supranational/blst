@@ -25,8 +25,7 @@ using System.IO;
 namespace supranational { public static class blst {
 
 #if NET5_0_OR_GREATER
-// this prevents multiple attempts to load the native
-// library if there is more than one AppDomain 
+
 private static readonly string dll;
 
 static blst()
