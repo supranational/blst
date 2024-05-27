@@ -59,16 +59,29 @@ macro_rules! pippenger_mult_impl {
                 ret
             }
 
+            #[inline]
             pub fn mult(&self, scalars: &[u8], nbits: usize) -> $point {
-                let npoints = self.points.len();
+                self.as_slice().mult(scalars, nbits)
+            }
+
+            #[inline]
+            pub fn add(&self) -> $point {
+                self.as_slice().add()
+            }
+        }
+
+        impl MultiPoint for [$point_affine] {
+            type Output = $point;
+
+            fn mult(&self, scalars: &[u8], nbits: usize) -> $point {
+                let npoints = self.len();
                 let nbytes = (nbits + 7) / 8;
 
                 if scalars.len() < nbytes * npoints {
                     panic!("scalars length mismatch");
                 }
 
-                let p: [*const $point_affine; 2] =
-                    [&self.points[0], ptr::null()];
+                let p: [*const $point_affine; 2] = [&self[0], ptr::null()];
                 let s: [*const u8; 2] = [&scalars[0], ptr::null()];
 
                 let mut ret = <$point>::default();
@@ -89,10 +102,10 @@ macro_rules! pippenger_mult_impl {
                 ret
             }
 
-            pub fn add(&self) -> $point {
-                let npoints = self.points.len();
+            fn add(&self) -> $point {
+                let npoints = self.len();
 
-                let p: [*const _; 2] = [&self.points[0], ptr::null()];
+                let p: [*const _; 2] = [&self[0], ptr::null()];
                 let mut ret = <$point>::default();
                 unsafe { $add(&mut ret, &p[0], npoints) };
 
@@ -125,7 +138,7 @@ pippenger_mult_impl!(
     blst_p1s_tile_pippenger,
     blst_p1_add_or_double,
     blst_p1_double,
-    p1_multi_scalar,
+    p1_multi_point,
     blst_p1_generator,
     blst_p1_mult,
     blst_p1s_add,
@@ -141,7 +154,7 @@ pippenger_mult_impl!(
     blst_p2s_tile_pippenger,
     blst_p2_add_or_double,
     blst_p2_double,
-    p2_multi_scalar,
+    p2_multi_point,
     blst_p2_generator,
     blst_p2_mult,
     blst_p2s_add,

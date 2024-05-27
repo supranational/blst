@@ -1971,6 +1971,13 @@ pub mod min_sig {
     );
 }
 
+pub trait MultiPoint {
+    type Output;
+
+    fn mult(&self, scalars: &[u8], nbits: usize) -> Self::Output;
+    fn add(&self) -> Self::Output;
+}
+
 #[cfg(feature = "std")]
 include!("pippenger.rs");
 
