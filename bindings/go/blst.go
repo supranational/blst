@@ -12,7 +12,9 @@ package blst
 
 // #cgo CFLAGS: -I${SRCDIR}/.. -I${SRCDIR}/../../build -I${SRCDIR}/../../src -D__BLST_CGO__ -fno-builtin-memcpy -fno-builtin-memset
 // #cgo amd64 CFLAGS: -D__ADX__ -mno-avx
-// #cgo mips64 mips64le ppc64 ppc64le riscv64 s390x CFLAGS: -D__BLST_NO_ASM__
+// // no-asm 64-bit platforms from https://go.dev/doc/install/source
+// #cgo loong64 mips64 mips64le ppc64 ppc64le riscv64 s390x CFLAGS: -D__BLST_NO_ASM__
+//
 // #include "blst.h"
 //
 // #if defined(__x86_64__) && (defined(__unix__) || defined(__APPLE__))
