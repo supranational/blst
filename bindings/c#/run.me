@@ -32,6 +32,10 @@ static blst()
 {
     if (String.IsNullOrEmpty(dll))
     {
+        var name = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "blst.dll"
+                    : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "libblst.dll.dylib"
+                    : "libblst.dll.so";
+
         var dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".";
         var arch = RuntimeInformation.ProcessArchitecture switch
         {
@@ -39,21 +43,18 @@ static blst()
             Architecture.Arm64 => "arm64",
             _ => "unsupported"
         };
-        var os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "win"
-                    : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osx"
-                    : RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD) ? "freebsd"
-                    : "linux";
-        var name = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "blst.dll"
-                    : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "libblst.dll.dylib"
-                    : "libblst.dll.so";
 
 #if NET8_0_OR_GREATER
-        // RuntimeInformation.RuntimeIdentifier changed between net 7 and 8 
+        // RuntimeInformation.RuntimeIdentifier changed between net 7 and 8
         // and only aligns to the nuget layout in 8+
         var rid = RuntimeInformation.RuntimeIdentifier;
 #else
         // mimic RuntimeInformation.RuntimeIdentifier on  earlier than .NET 8
-        // mimic "win-x64", "linux-x64", "linux-arm64", "osx-x64" 
+        // mimic "win-x64", "linux-x64", "linux-arm64", "osx-x64"
+        var os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "win"
+                    : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osx"
+                    : RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD) ? "freebsd"
+                    : "linux";
         var rid = $"{os}-{arch}";
 #endif
 
@@ -64,12 +65,12 @@ static blst()
         {
             // if not found in the nuget location, try a simple default
             dll = Path.Combine(dir, arch, name);
+        }
 
-            if (!File.Exists(dll))
-            {
-                // if not there we'll try the current directory
-                dll = Path.Combine(Environment.CurrentDirectory, name);
-            }
+        if (!File.Exists(dll))
+        {
+            // if not there we'll try the current directory
+            dll = Path.Combine(Environment.CurrentDirectory, name);
         }
 
         if (File.Exists(dll))
