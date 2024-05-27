@@ -2,17 +2,19 @@ linters:
   enable-all: true
   disable:
     # deprecated
-    - deadcode
-    - exhaustivestruct
-    - golint
-    - ifshort
-    - interfacer
-    - maligned
-    - nosnakecase
-    - scopelint
-    - structcheck
-    - varcheck
+    #- deadcode
+    - execinquery
+    #- exhaustivestruct
+    #- golint
+    #- ifshort
+    #- interfacer
+    #- maligned
+    #- nosnakecase
+    #- scopelint
+    #- structcheck
+    #- varcheck
     # just whining
+    - copyloopvar                       # go>=1.22
     - cyclop
     - dupword
     - forbidigo
@@ -27,7 +29,9 @@ linters:
     - gofumpt
     - goimports
     - gomnd
+    - intrange                          # go>=1.22
     - lll
+    - mnd
     - nlreturn
     - stylecheck
     - varnamelen
@@ -43,7 +47,7 @@ linters:
     - nonamedreturns
     - perfsprint
     - testpackage
-    # 75 active linters remaining including gosec, gosimple, govet, etc.
+    # 77 active linters remaining including gosec, gosimple, govet, etc.
 
 linters-settings:
   revive:
