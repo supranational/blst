@@ -1,14 +1,16 @@
 @echo off
 set TOP=%~dp0
 cl /nologo /c /O2 /Zi /Fdblst.pdb /W4 /MT /Zl %TOP%src\server.c || EXIT /B
-FOR %%F IN (%TOP%build\win64\*-x86_64.asm) DO (
-    ml64 /nologo /c /Cp /Cx /Zi %%F || EXIT /B
+cl 2>&1 | find "for ARM64" > nul:
+IF ERRORLEVEL 1 (
+    FOR %%F IN (%TOP%build\win64\*-x86_64.asm) DO (
+        ml64 /nologo /c /Cp /Cx /Zi %%F || EXIT /B
+    )
+) ELSE (
+    FOR %%F IN (%TOP%build\win64\*-armv8.asm) DO (
+        armasm64 -nologo %%F || EXIT /B
+    )
 )
-rem FOR %%F IN (%TOP%src\asm\*-x86_64.pl) DO (
-rem     IF NOT EXIST %%~nF.asm (perl %%F masm %%~nF.asm)
-rem )
-rem FOR %%F IN (*.asm) DO (ml64 /nologo /c /Cp /Cx /Zi %%F || EXIT /B)
-
 SETLOCAL ENABLEDELAYEDEXPANSION
 set static=/out:blst.lib
 set shared=
