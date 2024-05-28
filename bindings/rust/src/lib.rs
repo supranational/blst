@@ -23,6 +23,7 @@ use std::sync::{atomic::*, mpsc::channel, Arc};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+#[cfg(feature = "std")]
 trait ThreadPoolExt {
     fn joined_execute<'any, F>(&self, job: F)
     where
