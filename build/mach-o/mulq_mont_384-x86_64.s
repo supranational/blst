@@ -214,7 +214,7 @@ _mul_mont_384x:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	mul_mont_384x$1
+	jnz	L$mul_mont_384x$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -342,7 +342,7 @@ _sqr_mont_384x:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	sqr_mont_384x$1
+	jnz	L$sqr_mont_384x$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -478,7 +478,7 @@ _mul_382x:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	mul_382x$1
+	jnz	L$mul_382x$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -625,7 +625,7 @@ _sqr_382x:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	sqr_382x$1
+	jnz	L$sqr_382x$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -770,7 +770,7 @@ _mul_384:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	mul_384$1
+	jnz	L$mul_384$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -1114,7 +1114,7 @@ _sqr_384:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	sqr_384$1
+	jnz	L$sqr_384$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -1380,7 +1380,7 @@ _sqr_mont_384:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	sqr_mont_384$1
+	jnz	L$sqr_mont_384$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -1459,7 +1459,7 @@ _redc_mont_384:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	redc_mont_384$1
+	jnz	L$redc_mont_384$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -1528,7 +1528,7 @@ _from_mont_384:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	from_mont_384$1
+	jnz	L$from_mont_384$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -1987,7 +1987,7 @@ _sgn0_pty_mont_384:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	sgn0_pty_mont_384$1
+	jnz	L$sgn0_pty_mont_384$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -2077,7 +2077,7 @@ _sgn0_pty_mont_384x:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	sgn0_pty_mont_384x$1
+	jnz	L$sgn0_pty_mont_384x$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -2216,7 +2216,7 @@ _mul_mont_384:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	mul_mont_384$1
+	jnz	L$mul_mont_384$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -2900,7 +2900,7 @@ _sqr_n_mul_mont_384:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	sqr_n_mul_mont_384$1
+	jnz	L$sqr_n_mul_mont_384$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -3000,7 +3000,7 @@ _sqr_n_mul_mont_383:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	sqr_n_mul_mont_383$1
+	jnz	L$sqr_n_mul_mont_383$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -3681,7 +3681,7 @@ _sqr_mont_382x:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	sqr_mont_382x$1
+	jnz	L$sqr_mont_382x$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8

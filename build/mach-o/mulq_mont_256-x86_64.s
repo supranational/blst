@@ -12,7 +12,7 @@ _mul_mont_sparse_256:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	mul_mont_sparse_256$1
+	jnz	L$mul_mont_sparse_256$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -88,7 +88,7 @@ _sqr_mont_sparse_256:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	sqr_mont_sparse_256$1
+	jnz	L$sqr_mont_sparse_256$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -454,7 +454,7 @@ _from_mont_256:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	from_mont_256$1
+	jnz	L$from_mont_256$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
@@ -541,7 +541,7 @@ _redc_mont_256:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	redc_mont_256$1
+	jnz	L$redc_mont_256$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8

@@ -9,7 +9,7 @@ _mulx_mont_sparse_256:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-mul_mont_sparse_256$1:
+L$mul_mont_sparse_256$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -83,7 +83,7 @@ _sqrx_mont_sparse_256:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-sqr_mont_sparse_256$1:
+L$sqr_mont_sparse_256$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -364,7 +364,7 @@ _fromx_mont_256:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-from_mont_256$1:
+L$from_mont_256$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -448,7 +448,7 @@ _redcx_mont_256:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-redc_mont_256$1:
+L$redc_mont_256$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16

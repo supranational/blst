@@ -12,7 +12,7 @@ _ct_inverse_mod_383:
 
 #ifdef __BLST_PORTABLE__
 	testl	$1,___blst_platform_cap(%rip)
-	jnz	ct_inverse_mod_383$1
+	jnz	L$ct_inverse_mod_383$1
 #endif
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8

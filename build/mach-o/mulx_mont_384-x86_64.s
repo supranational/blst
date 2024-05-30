@@ -217,7 +217,7 @@ _mulx_mont_384x:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-mul_mont_384x$1:
+L$mul_mont_384x$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -355,7 +355,7 @@ _sqrx_mont_384x:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-sqr_mont_384x$1:
+L$sqr_mont_384x$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -502,7 +502,7 @@ _mulx_382x:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-mul_382x$1:
+L$mul_382x$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -655,7 +655,7 @@ _sqrx_382x:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-sqr_382x$1:
+L$sqr_382x$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -803,7 +803,7 @@ _mulx_384:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-mul_384$1:
+L$mul_384$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -1049,7 +1049,7 @@ _sqrx_384:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-sqr_384$1:
+L$sqr_384$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -1263,7 +1263,7 @@ _redcx_mont_384:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-redc_mont_384$1:
+L$redc_mont_384$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -1332,7 +1332,7 @@ _fromx_mont_384:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-from_mont_384$1:
+L$from_mont_384$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -1682,7 +1682,7 @@ _sgn0x_pty_mont_384:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-sgn0_pty_mont_384$1:
+L$sgn0_pty_mont_384$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -1772,7 +1772,7 @@ _sgn0x_pty_mont_384x:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-sgn0_pty_mont_384x$1:
+L$sgn0_pty_mont_384x$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -1911,7 +1911,7 @@ _mulx_mont_384:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-mul_mont_384$1:
+L$mul_mont_384$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -2398,7 +2398,7 @@ _sqrx_mont_384:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-sqr_mont_384$1:
+L$sqr_mont_384$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -2477,7 +2477,7 @@ _sqrx_n_mul_mont_384:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-sqr_n_mul_mont_384$1:
+L$sqr_n_mul_mont_384$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -2574,7 +2574,7 @@ _sqrx_n_mul_mont_383:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-sqr_n_mul_mont_383$1:
+L$sqr_n_mul_mont_383$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
@@ -3040,7 +3040,7 @@ _sqrx_mont_382x:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-sqr_mont_382x$1:
+L$sqr_mont_382x$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16

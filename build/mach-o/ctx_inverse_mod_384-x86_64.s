@@ -9,7 +9,7 @@ _ctx_inverse_mod_383:
 	.byte	0xf3,0x0f,0x1e,0xfa
 
 
-ct_inverse_mod_383$1:
+L$ct_inverse_mod_383$1:
 	pushq	%rbp
 .cfi_adjust_cfa_offset	8
 .cfi_offset	%rbp,-16
