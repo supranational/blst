@@ -412,6 +412,7 @@ my $ret_clobber;
 	    $ret = $self;
 	    $$line = substr($$line,@+[0]); $$line =~ s/^\s+//;
 
+	    $self->{value} =~ s/^(\w+\$\w*)/$decor\1/ if ($flavour eq "macosx");
 	    $self->{value} =~ s/^\.L/$decor/;
 	}
 	$ret;
@@ -508,6 +509,9 @@ my $ret_clobber;
 
 	    $self->{value} =~ s/\@PLT// if (!$elf);
 	    $self->{value} =~ s/([_a-z][_a-z0-9\$]*)/$globals{$1} or $1/gei;
+	    if ($flavour eq "macosx" and $self->{value} !~ /\.L/) {
+		$self->{value} =~ s/(\w+\$\w*)/$decor\1/g;
+	    }
 	    $self->{value} =~ s/\.L/$decor/g;
 	    $self->{opcode} = $opcode;
 	}
