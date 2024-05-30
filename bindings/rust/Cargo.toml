@@ -1,6 +1,6 @@
 [package]
 name = "blst"
-version = "0.3.11"
+version = "0.3.12"
 authors = ["sean-sn <sean@supranational.net>"]
 edition = "2018"
 license = "Apache-2.0"
