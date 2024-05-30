@@ -273,10 +273,10 @@ void blst_p2s_tile_pippenger(blst_p2 *ret, const blst_p2_affine *const points[],
 /*
  * Hash-to-curve operations.
  */
-#ifndef SWIG
+
 void blst_map_to_g1(blst_p1 *out, const blst_fp *u, const blst_fp *v DEFNULL);
+
 void blst_map_to_g2(blst_p2 *out, const blst_fp2 *u, const blst_fp2 *v DEFNULL);
-#endif
 
 void blst_encode_to_g1(blst_p1 *out,
                        const byte *msg, size_t msg_len,

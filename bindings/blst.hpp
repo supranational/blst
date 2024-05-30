@@ -307,6 +307,14 @@ public:
                                   aug, aug_len);
         return this;
     }
+    P1* map_to(const byte *u)
+    {
+        blst_fp ret;
+        blst_fp_from_bendian(&ret, u);
+        blst_map_to_g1(&point, &ret, nullptr);
+        return this;
+    }
+
 #if __cplusplus >= 201703L
     P1* hash_to(const app__string_view msg, const std::string& DST = "",
                 const app__string_view aug = None)
@@ -605,6 +613,15 @@ public:
                                   aug, aug_len);
         return this;
     }
+    P2* map_to(const byte *u)
+    {
+        blst_fp2 fp2;
+        blst_fp_from_bendian(&fp2.fp[0], u);
+        blst_fp_from_bendian(&fp2.fp[1], u+48);
+        blst_map_to_g2(&point, &fp2, nullptr);
+        return this;
+    }
+
 #if __cplusplus >= 201703L
     P2* hash_to(const app__string_view msg, const std::string& DST = "",
                 const app__string_view aug = None)
