@@ -21,10 +21,12 @@ ct_inverse_mod_383:
 	ldp	x5, x6, [x1,#8*2]
 	ldp	x7, x8, [x1,#8*4]
 
+#ifdef	__CHERI_PURE_CAPABILITY__
+	add	x1,sp,#32+511
+	alignd	c1,c1,#9
+#else
 	add	x1, sp, #32+511	// find closest 512-byte-aligned spot
 	and	x1, x1, #-512	// in the frame...
-#ifdef	__CHERI_PURE_CAPABILITY__
-	scvalue	c1,csp,x1
 #endif
 	stp	x0, x3, [sp]		// offload out_ptr, nx_ptr
 

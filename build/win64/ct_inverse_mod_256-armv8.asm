@@ -19,10 +19,12 @@ __SIZEOF_POINTER__ SETA 64/8
 	ldp	x4, x5, [x1,#8*0]
 	ldp	x6, x7, [x1,#8*2]
 
+ if :def:	__CHERI_PURE_CAPABILITY__
+	add	x1,sp,#16+511
+	alignd	c1,c1,#9
+ else
 	add	x1, sp, #16+511
 	and	x1, x1, #-512
- if :def:	__CHERI_PURE_CAPABILITY__
-	scvalue	c1,csp,x1
  endif
 	str	x0, [sp]
 
