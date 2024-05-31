@@ -109,10 +109,12 @@ ct_inverse_mod_383:
 	ldp	@acc[2], @acc[3], [$in_ptr,#8*2]
 	ldp	@acc[4], @acc[5], [$in_ptr,#8*4]
 
+#ifdef	__CHERI_PURE_CAPABILITY__
+	cadd	$in_ptr, csp, #32+511
+	alignd	$in_ptr, $in_ptr, #9
+#else
 	add	$in_ptr, sp, #32+511	// find closest 512-byte-aligned spot
 	and	$in_ptr, $in_ptr, #-512	// in the frame...
-#ifdef	__CHERI_PURE_CAPABILITY__
-	scvalue $in_ptr, csp, $in_ptr
 #endif
 	stp	c0, c3, [csp]		// offload out_ptr, nx_ptr
 
