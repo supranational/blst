@@ -262,6 +262,14 @@ my $csetm = sub {
 
 ################################################################
 # CHERI-specific synthetic instructions
+my $alignd = sub {
+    my ($args,$comment) = split(m|\s*//|,shift);
+    $args =~ s/\b(?:x([0-9]+)|(sp))\b/c$1$2/g;
+    my @regs = split(m|,\s*|,$args);
+
+    "\talignd\t".join(',',@regs);
+};
+
 my $scvalue = sub {
     my ($args,$comment) = split(m|\s*//|,shift);
     $args =~ s/\b(?:x([0-9]+)|(sp))\b/c$1$2/g;
