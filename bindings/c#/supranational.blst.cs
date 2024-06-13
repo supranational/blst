@@ -344,6 +344,13 @@ static extern ERROR blst_core_verify_pk_in_g2([In] long[] pk, [In] long[] sig,
                                               [In] byte[] dst, size_t dst_len,
                                               [In] byte[] aug, size_t aug_len);
 
+[DllImport("blst.dll", CallingConvention = CallingConvention.Cdecl)]
+static extern ERROR blst_p1_deserialize_eip2537([Out] long[] ret,
+                                                [In] byte[] inp);
+[DllImport("blst.dll", CallingConvention = CallingConvention.Cdecl)]
+static extern void blst_p1_affine_serialize_eip2537([Out] byte[] ret,
+                                                    [In] long[] inp);
+
 public struct P1_Affine {
     internal readonly long[] point;
 
@@ -355,10 +362,12 @@ public struct P1_Affine {
 
     public P1_Affine(byte[] inp) : this(true)
     {   int len = inp.Length;
-        if (len == 0 || len != ((inp[0]&0x80) == 0x80 ? P1_COMPRESSED_SZ
-                                                      : 2*P1_COMPRESSED_SZ))
+        if (len == 0 || (len != ((inp[0]&0x80) == 0x80 ? P1_COMPRESSED_SZ
+                                                       : 2*P1_COMPRESSED_SZ) &&
+                         len != 128*1))
             throw new Exception(ERROR.BAD_ENCODING);
-        ERROR err = blst_p1_deserialize(point, inp);
+        ERROR err = len == 128*1 ? blst_p1_deserialize_eip2537(point, inp)
+                                 : blst_p1_deserialize(point, inp);
         if (err != ERROR.SUCCESS)
             throw new Exception(err);
     }
@@ -367,6 +376,11 @@ public struct P1_Affine {
 
     public P1_Affine dup()      { return new P1_Affine(this);   }
     public P1 to_jacobian()     { return new P1(this);          }
+    public byte[] serialize_eip2537()
+    {   byte[] ret = new byte[128*1];
+        blst_p1_affine_serialize_eip2537(ret, point);
+        return ret;
+    }
     public byte[] serialize()
     {   byte[] ret = new byte[2*P1_COMPRESSED_SZ];
         blst_p1_affine_serialize(ret, point);
@@ -451,6 +465,9 @@ void blst_p1_add_or_double_affine([Out] long[] ret, [In] long[] a,
 [DllImport("blst.dll", CallingConvention = CallingConvention.Cdecl)]
 static extern void blst_p1_double([Out] long[] ret, [In] long[] a);
 
+[DllImport("blst.dll", CallingConvention = CallingConvention.Cdecl)]
+static extern void blst_p1_serialize_eip2537([Out] byte[] ret, [In] long[] inp);
+
 public struct P1 {
     internal long[] point;
 
@@ -466,10 +483,12 @@ public struct P1 {
     {   blst_sk_to_pk_in_g1(point, sk.key);   }
     public P1(byte[] inp) : this(true)
     {   int len = inp.Length;
-        if (len == 0 || len != ((inp[0]&0x80) == 0x80 ? P1_COMPRESSED_SZ
-                                                      : 2*P1_COMPRESSED_SZ))
+        if (len == 0 || (len != ((inp[0]&0x80) == 0x80 ? P1_COMPRESSED_SZ
+                                                       : 2*P1_COMPRESSED_SZ) &&
+                         len != 128*1))
             throw new Exception(ERROR.BAD_ENCODING);
-        ERROR err = blst_p1_deserialize(point, inp);
+        ERROR err = len == 128*1 ? blst_p1_deserialize_eip2537(point, inp)
+                                 : blst_p1_deserialize(point, inp);
         if (err != ERROR.SUCCESS)
             throw new Exception(err);
         blst_p1_from_affine(point, point);
@@ -479,6 +498,11 @@ public struct P1 {
 
     public P1 dup()                 { return new P1(this);                  }
     public P1_Affine to_affine()    { return new P1_Affine(this);           }
+    public byte[] serialize_eip2537()
+    {   byte[] ret = new byte[128*1];
+        blst_p1_serialize_eip2537(ret, point);
+        return ret;
+    }
     public byte[] serialize()
     {   byte[] ret = new byte[2*P1_COMPRESSED_SZ];
         blst_p1_serialize(ret, point);
@@ -607,6 +631,13 @@ static extern ERROR blst_core_verify_pk_in_g1([In] long[] pk, [In] long[] sig,
                                               [In] byte[] dst, size_t dst_len,
                                               [In] byte[] aug, size_t aug_len);
 
+[DllImport("blst.dll", CallingConvention = CallingConvention.Cdecl)]
+static extern ERROR blst_p2_deserialize_eip2537([Out] long[] ret,
+                                                [In] byte[] inp);
+[DllImport("blst.dll", CallingConvention = CallingConvention.Cdecl)]
+static extern void blst_p2_affine_serialize_eip2537([Out] byte[] ret,
+                                                    [In] long[] inp);
+
 public struct P2_Affine {
     internal readonly long[] point;
 
@@ -618,10 +649,12 @@ public struct P2_Affine {
 
     public P2_Affine(byte[] inp) : this(true)
     {   int len = inp.Length;
-        if (len == 0 || len != ((inp[0]&0x80) == 0x80 ? P2_COMPRESSED_SZ
-                                                      : 2*P2_COMPRESSED_SZ))
+        if (len == 0 || (len != ((inp[0]&0x80) == 0x80 ? P2_COMPRESSED_SZ
+                                                       : 2*P2_COMPRESSED_SZ) &&
+                         len != 128*2))
             throw new Exception(ERROR.BAD_ENCODING);
-        ERROR err = blst_p2_deserialize(point, inp);
+        ERROR err = len == 128*2 ? blst_p2_deserialize_eip2537(point, inp)
+                                 : blst_p2_deserialize(point, inp);
         if (err != ERROR.SUCCESS)
             throw new Exception(err);
     }
@@ -630,6 +663,11 @@ public struct P2_Affine {
 
     public P2_Affine dup()      { return new P2_Affine(this);   }
     public P2 to_jacobian()     { return new P2(this);          }
+    public byte[] serialize_eip2537()
+    {   byte[] ret = new byte[128*2];
+        blst_p2_affine_serialize_eip2537(ret, point);
+        return ret;
+    }
     public byte[] serialize()
     {   byte[] ret = new byte[2*P2_COMPRESSED_SZ];
         blst_p2_affine_serialize(ret, point);
@@ -714,6 +752,9 @@ void blst_p2_add_or_double_affine([Out] long[] ret, [In] long[] a,
 [DllImport("blst.dll", CallingConvention = CallingConvention.Cdecl)]
 static extern void blst_p2_double([Out] long[] ret, [In] long[] a);
 
+[DllImport("blst.dll", CallingConvention = CallingConvention.Cdecl)]
+static extern void blst_p2_serialize_eip2537([Out] byte[] ret, [In] long[] inp);
+
 public struct P2 {
     internal long[] point;
 
@@ -729,10 +770,12 @@ public struct P2 {
     {   blst_sk_to_pk_in_g2(point, sk.key);   }
     public P2(byte[] inp) : this(true)
     {   int len = inp.Length;
-        if (len == 0 || len != ((inp[0]&0x80) == 0x80 ? P2_COMPRESSED_SZ
-                                                      : 2*P2_COMPRESSED_SZ))
+        if (len == 0 || (len != ((inp[0]&0x80) == 0x80 ? P2_COMPRESSED_SZ
+                                                       : 2*P2_COMPRESSED_SZ) &&
+                         len != 128*2))
             throw new Exception(ERROR.BAD_ENCODING);
-        ERROR err = blst_p2_deserialize(point, inp);
+        ERROR err = len == 128*2 ? blst_p2_deserialize_eip2537(point, inp)
+                                 : blst_p2_deserialize(point, inp);
         if (err != ERROR.SUCCESS)
             throw new Exception(err);
         blst_p2_from_affine(point, point);
@@ -742,6 +785,11 @@ public struct P2 {
 
     public P2 dup()                 { return new P2(this);                  }
     public P2_Affine to_affine()    { return new P2_Affine(this);           }
+    public byte[] serialize_eip2537()
+    {   byte[] ret = new byte[128*2];
+        blst_p2_serialize_eip2537(ret, point);
+        return ret;
+    }
     public byte[] serialize()
     {   byte[] ret = new byte[2*P2_COMPRESSED_SZ];
         blst_p2_serialize(ret, point);
