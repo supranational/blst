@@ -217,5 +217,11 @@ EXPORTS
 	blst_p2_sizeof
 	blst_p2_affine_sizeof
 	blst_fp12_sizeof
+	blst_p1_affine_serialize_eip2537
+	blst_p1_serialize_eip2537
+	blst_p1_deserialize_eip2537
+	blst_p2_affine_serialize_eip2537
+	blst_p2_serialize_eip2537
+	blst_p2_deserialize_eip2537
 	blst_sha256
 
