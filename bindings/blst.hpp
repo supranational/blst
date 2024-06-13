@@ -204,9 +204,10 @@ public:
     }
 #endif
     P1_Affine(const byte *in, size_t len)
-    {   if (len == 0 || len != (in[0]&0x80 ? 48 : 96))
+    {   if (len == 0 || (len != (in[0]&0x80 ? 48 : 96) && len != 128))
             throw BLST_BAD_ENCODING;
-        BLST_ERROR err = blst_p1_deserialize(&point, in);
+        BLST_ERROR err = len == 128 ? blst_p1_deserialize_eip2537(&point, in)
+                                    : blst_p1_deserialize(&point, in);
         if (err != BLST_SUCCESS)
             throw err;
     }
@@ -214,6 +215,8 @@ public:
 
     P1_Affine dup() const { return *this; }
     P1 to_jacobian() const;
+    void serialize_eip2537(byte out[128]) const
+    {   blst_p1_affine_serialize_eip2537(out, &point);   }
     void serialize(byte out[96]) const
     {   blst_p1_affine_serialize(out, &point);   }
     void compress(byte out[48]) const
@@ -264,18 +267,15 @@ public:
     }
 #endif
     P1(const byte *in, size_t len)
-    {   if (len == 0 || len != (in[0]&0x80 ? 48 : 96))
-            throw BLST_BAD_ENCODING;
-        blst_p1_affine a;
-        BLST_ERROR err = blst_p1_deserialize(&a, in);
-        if (err != BLST_SUCCESS)
-            throw err;
-        blst_p1_from_affine(&point, &a);
+    {   P1_Affine affine{in, len};
+        blst_p1_from_affine(&point, &affine.point);
     }
     P1(const P1_Affine& affine) { blst_p1_from_affine(&point, affine); }
 
     P1 dup() const                      { return *this; }
     P1_Affine to_affine() const         { return P1_Affine(*this);           }
+    void serialize_eip2537(byte out[128]) const
+    {   blst_p1_serialize_eip2537(out, &point);   }
     void serialize(byte out[96]) const  { blst_p1_serialize(out, &point);    }
     void compress(byte out[48]) const   { blst_p1_compress(out, &point);     }
     bool on_curve() const               { return blst_p1_on_curve(&point);   }
@@ -502,9 +502,10 @@ public:
     }
 #endif
     P2_Affine(const byte *in, size_t len)
-    {   if (len == 0 || len != (in[0]&0x80 ? 96 : 192))
+    {   if (len == 0 || (len != (in[0]&0x80 ? 96 : 192) && len != 256))
             throw BLST_BAD_ENCODING;
-        BLST_ERROR err = blst_p2_deserialize(&point, in);
+        BLST_ERROR err = len == 256 ? blst_p2_deserialize_eip2537(&point, in)
+                                    : blst_p2_deserialize(&point, in);
         if (err != BLST_SUCCESS)
             throw err;
     }
@@ -512,6 +513,8 @@ public:
 
     P2_Affine dup() const { return *this; }
     P2 to_jacobian() const;
+    void serialize_eip2537(byte out[256]) const
+    {   blst_p2_affine_serialize_eip2537(out, &point);   }
     void serialize(byte out[192]) const
     {   blst_p2_affine_serialize(out, &point);   }
     void compress(byte out[96]) const
@@ -562,18 +565,15 @@ public:
     }
 #endif
     P2(const byte *in, size_t len)
-    {   if (len == 0 || len != (in[0]&0x80 ? 96 : 192))
-            throw BLST_BAD_ENCODING;
-        blst_p2_affine a;
-        BLST_ERROR err = blst_p2_deserialize(&a, in);
-        if (err != BLST_SUCCESS)
-            throw err;
-        blst_p2_from_affine(&point, &a);
+    {   P2_Affine affine{in, len};
+        blst_p2_from_affine(&point, &affine.point);
     }
     P2(const P2_Affine& affine) { blst_p2_from_affine(&point, affine); }
 
     P2 dup() const                      { return *this; }
     P2_Affine to_affine() const         { return P2_Affine(*this);          }
+    void serialize_eip2537(byte out[256]) const
+    {   blst_p2_serialize(out, &point);   }
     void serialize(byte out[192]) const { blst_p2_serialize(out, &point);   }
     void compress(byte out[96]) const   { blst_p2_compress(out, &point);    }
     bool on_curve() const               { return blst_p2_on_curve(&point);  }
