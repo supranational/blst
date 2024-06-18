@@ -526,19 +526,25 @@ macro_rules! sig_variant_impl {
         $pk_from_aff:ident,
         $pk_ser:ident,
         $pk_comp:ident,
+        $pk_ser_eip2537:ident,
         $pk_deser:ident,
         $pk_uncomp:ident,
+        $pk_deser_eip2537:ident,
         $pk_comp_size:expr,
         $pk_ser_size:expr,
+        $pk_eip2537_size:expr,
         $sig_in_group:ident,
         $sig_to_aff:ident,
         $sig_from_aff:ident,
         $sig_ser:ident,
         $sig_comp:ident,
+        $sig_ser_eip2537:ident,
         $sig_deser:ident,
         $sig_uncomp:ident,
+        $sig_deser_eip2537:ident,
         $sig_comp_size:expr,
         $sig_ser_size:expr,
+        $sig_eip2537_size:expr,
         $pk_add_or_dbl:ident,
         $pk_add_or_dbl_aff:ident,
         $sig_add_or_dbl:ident,
@@ -829,6 +835,14 @@ macro_rules! sig_variant_impl {
                 pk_out
             }
 
+            pub fn serialize_eip2537(&self) -> [u8; $pk_eip2537_size] {
+                let mut pk_out = [0u8; $pk_eip2537_size];
+                unsafe {
+                    $pk_ser_eip2537(pk_out.as_mut_ptr(), &self.point);
+                }
+                pk_out
+            }
+
             pub fn uncompress(pk_comp: &[u8]) -> Result<Self, BLST_ERROR> {
                 if pk_comp.len() == $pk_comp_size && (pk_comp[0] & 0x80) != 0 {
                     let mut pk = <$pk_aff>::default();
@@ -843,11 +857,17 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn deserialize(pk_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                if (pk_in.len() == $pk_ser_size && (pk_in[0] & 0x80) == 0)
-                    || (pk_in.len() == $pk_comp_size && (pk_in[0] & 0x80) != 0)
+                let len = pk_in.len();
+                if (len == $pk_ser_size && (pk_in[0] & 0x80) == 0)
+                    || (len == $pk_comp_size && (pk_in[0] & 0x80) != 0)
+                    || (len == $pk_eip2537_size)
                 {
                     let mut pk = <$pk_aff>::default();
-                    let err = unsafe { $pk_deser(&mut pk, pk_in.as_ptr()) };
+                    let err = if len == $pk_eip2537_size {
+                        unsafe { $pk_deser_eip2537(&mut pk, pk_in.as_ptr()) }
+                    } else {
+                        unsafe { $pk_deser(&mut pk, pk_in.as_ptr()) }
+                    };
                     if err != BLST_ERROR::BLST_SUCCESS {
                         return Err(err);
                     }
@@ -1312,6 +1332,14 @@ macro_rules! sig_variant_impl {
                 sig_out
             }
 
+            pub fn serialize_eip2537(&self) -> [u8; $sig_eip2537_size] {
+                let mut sig_out = [0; $sig_eip2537_size];
+                unsafe {
+                    $sig_ser_eip2537(sig_out.as_mut_ptr(), &self.point);
+                }
+                sig_out
+            }
+
             pub fn uncompress(sig_comp: &[u8]) -> Result<Self, BLST_ERROR> {
                 if sig_comp.len() == $sig_comp_size && (sig_comp[0] & 0x80) != 0
                 {
@@ -1328,12 +1356,17 @@ macro_rules! sig_variant_impl {
             }
 
             pub fn deserialize(sig_in: &[u8]) -> Result<Self, BLST_ERROR> {
-                if (sig_in.len() == $sig_ser_size && (sig_in[0] & 0x80) == 0)
-                    || (sig_in.len() == $sig_comp_size
-                        && (sig_in[0] & 0x80) != 0)
+                let len = sig_in.len();
+                if (len == $sig_ser_size && (sig_in[0] & 0x80) == 0)
+                    || (len == $sig_comp_size && (sig_in[0] & 0x80) != 0)
+                    || (len == $sig_eip2537_size)
                 {
                     let mut sig = <$sig_aff>::default();
-                    let err = unsafe { $sig_deser(&mut sig, sig_in.as_ptr()) };
+                    let err = if len == $sig_eip2537_size {
+                        unsafe { $sig_deser_eip2537(&mut sig, sig_in.as_ptr()) }
+                    } else {
+                        unsafe { $sig_deser(&mut sig, sig_in.as_ptr()) }
+                    };
                     if err != BLST_ERROR::BLST_SUCCESS {
                         return Err(err);
                     }
@@ -1904,19 +1937,25 @@ pub mod min_pk {
         blst_p1_from_affine,
         blst_p1_affine_serialize,
         blst_p1_affine_compress,
+        blst_p1_affine_serialize_eip2537,
         blst_p1_deserialize,
         blst_p1_uncompress,
+        blst_p1_deserialize_eip2537,
         48,
         96,
+        128,
         blst_p2_affine_in_g2,
         blst_p2_to_affine,
         blst_p2_from_affine,
         blst_p2_affine_serialize,
         blst_p2_affine_compress,
+        blst_p2_affine_serialize_eip2537,
         blst_p2_deserialize,
         blst_p2_uncompress,
+        blst_p2_deserialize_eip2537,
         96,
         192,
+        256,
         blst_p1_add_or_double,
         blst_p1_add_or_double_affine,
         blst_p2_add_or_double,
@@ -1948,19 +1987,25 @@ pub mod min_sig {
         blst_p2_from_affine,
         blst_p2_affine_serialize,
         blst_p2_affine_compress,
+        blst_p2_affine_serialize_eip2537,
         blst_p2_deserialize,
         blst_p2_uncompress,
+        blst_p2_deserialize_eip2537,
         96,
         192,
+        256,
         blst_p1_affine_in_g1,
         blst_p1_to_affine,
         blst_p1_from_affine,
         blst_p1_affine_serialize,
         blst_p1_affine_compress,
+        blst_p1_affine_serialize_eip2537,
         blst_p1_deserialize,
         blst_p1_uncompress,
+        blst_p1_deserialize_eip2537,
         48,
         96,
+        128,
         blst_p2_add_or_double,
         blst_p2_add_or_double_affine,
         blst_p1_add_or_double,
