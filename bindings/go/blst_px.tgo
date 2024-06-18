@@ -45,11 +45,22 @@ func (p1 *P1Affine) Serialize() []byte {
     return out[:]
 }
 
+func (p1 *P1Affine) SerializeEip2537() []byte {
+    var out [BLST_P1_SERIALIZE_EIP2537_BYTES]byte
+    C.blst_p1_affine_serialize_eip2537((*C.byte)(&out[0]), p1)
+    return out[:]
+}
+
 func (p1 *P1Affine) Deserialize(in []byte) *P1Affine {
-    if len(in) != BLST_P1_SERIALIZE_BYTES {
-        return nil
-    }
-    if C.blst_p1_deserialize(p1, (*C.byte)(&in[0])) != C.BLST_SUCCESS {
+    if len(in) == BLST_P1_SERIALIZE_BYTES {
+        if C.blst_p1_deserialize(p1, (*C.byte)(&in[0])) != C.BLST_SUCCESS {
+            return nil
+        }
+    } else if len(in) == BLST_P1_SERIALIZE_EIP2537_BYTES {
+        if C.blst_p1_deserialize_eip2537(p1, (*C.byte)(&in[0])) != C.BLST_SUCCESS {
+            return nil
+        }
+    } else {
         return nil
     }
     return p1
@@ -135,6 +146,11 @@ func (_ *P1Affine) BatchUncompress(in [][]byte) []*P1Affine {
 func (p1 *P1) Serialize() []byte {
     var out [BLST_P1_SERIALIZE_BYTES]byte
     C.blst_p1_serialize((*C.byte)(&out[0]), p1)
+    return out[:]
+}
+func (p1 *P1) SerializeEip2537() []byte {
+    var out [BLST_P1_SERIALIZE_EIP2537_BYTES]byte
+    C.blst_p1_serialize_eip2537((*C.byte)(&out[0]), p1)
     return out[:]
 }
 func (p1 *P1) Compress() []byte {
