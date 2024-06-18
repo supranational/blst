@@ -541,8 +541,10 @@ macro_rules! sig_variant_impl {
         $sig_ser_size:expr,
         $pk_add_or_dbl:ident,
         $pk_add_or_dbl_aff:ident,
+        $pk_mult:ident,
         $sig_add_or_dbl:ident,
         $sig_add_or_dbl_aff:ident,
+        $sig_mult:ident,
         $pk_is_inf:ident,
         $sig_is_inf:ident,
         $sig_aggr_in_group:ident,
@@ -783,6 +785,18 @@ macro_rules! sig_variant_impl {
 
         impl PublicKey {
             // Core operations
+
+            pub fn multiply_by(&self, rand: &[u8]) -> PublicKey {
+                let mut input = <$pk>::default();
+                let mut output = <$pk>::default();
+                let mut ret_val = <$pk_aff>::default();
+                unsafe {
+                    $pk_from_aff(&mut input, &self.point);
+                    $pk_mult(&mut output, &input, rand.as_ptr(), 64);
+                    $pk_to_aff(&mut ret_val, &output);
+                }
+                PublicKey { point: ret_val }
+            }
 
             // key_validate
             pub fn validate(&self) -> Result<(), BLST_ERROR> {
@@ -1354,6 +1368,18 @@ macro_rules! sig_variant_impl {
             pub fn subgroup_check(&self) -> bool {
                 unsafe { $sig_in_group(&self.point) }
             }
+
+            pub fn multiply_by(&self, rand: &[u8]) -> Signature {
+                let mut input = <$sig>::default();
+                let mut output = <$sig>::default();
+                let mut ret_val = <$sig_aff>::default();
+                unsafe {
+                    $sig_from_aff(&mut input, &self.point);
+                    $sig_mult(&mut output, &input, rand.as_ptr(), 64);
+                    $sig_to_aff(&mut ret_val, &output);
+                }
+                Signature { point: ret_val }
+            }
         }
 
         // Trait for equality comparisons which are equivalence relations.
@@ -1919,8 +1945,10 @@ pub mod min_pk {
         192,
         blst_p1_add_or_double,
         blst_p1_add_or_double_affine,
+        blst_p1_mult,
         blst_p2_add_or_double,
         blst_p2_add_or_double_affine,
+        blst_p2_mult,
         blst_p1_affine_is_inf,
         blst_p2_affine_is_inf,
         blst_p2_in_g2,
@@ -1963,8 +1991,10 @@ pub mod min_sig {
         96,
         blst_p2_add_or_double,
         blst_p2_add_or_double_affine,
+        blst_p2_mult,
         blst_p1_add_or_double,
         blst_p1_add_or_double_affine,
+        blst_p1_mult,
         blst_p2_affine_is_inf,
         blst_p1_affine_is_inf,
         blst_p1_in_g1,
