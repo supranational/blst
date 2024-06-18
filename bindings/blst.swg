@@ -689,6 +689,10 @@ import java.nio.file.*;
                         void blst_p2_serialize, void blst_p2_affine_serialize,
     void compress,      void blst_p1_compress,  void blst_p1_affine_compress,
                         void blst_p2_compress,  void blst_p2_affine_compress,
+    void serialize_eip2537,     void blst_p1_serialize_eip2537,
+                                void blst_p2_serialize_eip2537,
+                                void blst_p1_affine_serialize_eip2537,
+                                void blst_p2_affine_serialize_eip2537,
     void blst_sk_to_pk2_in_g1,  void blst_sign_pk2_in_g1,
     void blst_sk_to_pk2_in_g2,  void blst_sign_pk2_in_g2
 }

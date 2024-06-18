@@ -179,6 +179,8 @@ static void exp_mont_384x(vec384x out, const vec384x inp, const byte *pow,
                           size_t pow_bits, const vec384 p, limb_t n0);
 static void div_by_zz(limb_t val[]);
 static void div_by_z(limb_t val[]);
+static void eip2537_from_fp(unsigned char out[64], const vec384 in);
+static bool_t fp_from_eip2537(vec384 ret, const unsigned char in[64]);
 
 #ifdef __UINTPTR_TYPE__
 typedef __UINTPTR_TYPE__ uptr_t;

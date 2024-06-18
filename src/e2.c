@@ -409,6 +409,59 @@ BLST_ERROR blst_p2_deserialize(POINTonE2_affine *out,
                                const unsigned char in[192])
 {   return POINTonE2_Deserialize_Z(out, in);   }
 
+void blst_p2_affine_serialize_eip2537(unsigned char out[256],
+                                      const POINTonE2_affine *in)
+{
+    eip2537_from_fp(out, in->X[0]);
+    eip2537_from_fp(out + 64, in->X[1]);
+    eip2537_from_fp(out + 128, in->Y[0]);
+    eip2537_from_fp(out + 192, in->Y[1]);
+}
+
+void blst_p2_serialize_eip2537(unsigned char out[256], const POINTonE2 *in)
+{
+    if (vec_is_zero(in->Z, sizeof(in->Z))) {
+        bytes_zero(out, 256);
+    } else {
+        POINTonE2 p;
+
+        if (!vec_is_equal(in->Z, BLS12_381_Rx.p, sizeof(in->Z))) {
+            POINTonE2_from_Jacobian(&p, in);
+            in = &p;
+        }
+
+        eip2537_from_fp(out, in->X[0]);
+        eip2537_from_fp(out + 64, in->X[1]);
+        eip2537_from_fp(out + 128, in->Y[0]);
+        eip2537_from_fp(out + 192, in->Y[1]);
+    }
+}
+
+BLST_ERROR blst_p2_deserialize_eip2537(POINTonE2_affine *out,
+                                       const unsigned char in[256])
+{
+    POINTonE2_affine ret;
+
+    if (!fp_from_eip2537(ret.X[0], in))
+        return BLST_BAD_ENCODING;
+
+    if (!fp_from_eip2537(ret.X[1], in + 64))
+        return BLST_BAD_ENCODING;
+
+    if (!fp_from_eip2537(ret.Y[0], in + 128))
+        return BLST_BAD_ENCODING;
+
+    if (!fp_from_eip2537(ret.Y[1], in + 192))
+        return BLST_BAD_ENCODING;
+
+    if (!POINTonE2_affine_on_curve(&ret))
+        return BLST_POINT_NOT_ON_CURVE;
+
+    vec_copy(out, &ret, sizeof(ret));
+
+    return BLST_SUCCESS;
+}
+
 #include "ec_ops.h"
 POINT_DADD_IMPL(POINTonE2, 384x, fp2)
 POINT_DADD_AFFINE_IMPL_A0(POINTonE2, 384x, fp2, BLS12_381_Rx.p2)
