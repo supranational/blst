@@ -792,7 +792,8 @@ macro_rules! sig_variant_impl {
                 let mut ret_val = <$pk_aff>::default();
                 unsafe {
                     $pk_from_aff(&mut input, &self.point);
-                    $pk_mult(&mut output, &input, rand.as_ptr(), 64);
+                    // convert byte length to bit length
+                    $pk_mult(&mut output, &input, rand.as_ptr(), rand.len() * 8);
                     $pk_to_aff(&mut ret_val, &output);
                 }
                 PublicKey { point: ret_val }
@@ -1375,7 +1376,8 @@ macro_rules! sig_variant_impl {
                 let mut ret_val = <$sig_aff>::default();
                 unsafe {
                     $sig_from_aff(&mut input, &self.point);
-                    $sig_mult(&mut output, &input, rand.as_ptr(), 64);
+                    // convert byte length to bit length
+                    $sig_mult(&mut output, &input, rand.as_ptr(), rand.len() * 8);
                     $sig_to_aff(&mut ret_val, &output);
                 }
                 Signature { point: ret_val }
