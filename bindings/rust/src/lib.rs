@@ -786,14 +786,18 @@ macro_rules! sig_variant_impl {
         impl PublicKey {
             // Core operations
 
-            pub fn multiply_by(&self, rand: &[u8]) -> PublicKey {
+            pub fn multiply_by(
+                &self,
+                rand: &[u8],
+                rand_bits: usize,
+            ) -> PublicKey {
                 let mut input = <$pk>::default();
                 let mut output = <$pk>::default();
                 let mut ret_val = <$pk_aff>::default();
                 unsafe {
                     $pk_from_aff(&mut input, &self.point);
                     // convert byte length to bit length
-                    $pk_mult(&mut output, &input, rand.as_ptr(), rand.len() * 8);
+                    $pk_mult(&mut output, &input, rand.as_ptr(), rand_bits);
                     $pk_to_aff(&mut ret_val, &output);
                 }
                 PublicKey { point: ret_val }
@@ -1016,7 +1020,7 @@ macro_rules! sig_variant_impl {
             }
         }
 
-        #[derive(Default, Debug, Clone, Copy)]
+        #[derive(Debug, Clone, Copy)]
         pub struct Signature {
             point: $sig_aff,
         }
@@ -1370,14 +1374,18 @@ macro_rules! sig_variant_impl {
                 unsafe { $sig_in_group(&self.point) }
             }
 
-            pub fn multiply_by(&self, rand: &[u8]) -> Signature {
+            pub fn multiply_by(
+                &self,
+                rand: &[u8],
+                rand_bits: usize,
+            ) -> Signature {
                 let mut input = <$sig>::default();
                 let mut output = <$sig>::default();
                 let mut ret_val = <$sig_aff>::default();
                 unsafe {
                     $sig_from_aff(&mut input, &self.point);
                     // convert byte length to bit length
-                    $sig_mult(&mut output, &input, rand.as_ptr(), rand.len() * 8);
+                    $sig_mult(&mut output, &input, rand.as_ptr(), rand_bits);
                     $sig_to_aff(&mut ret_val, &output);
                 }
                 Signature { point: ret_val }
