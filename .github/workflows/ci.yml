@@ -218,7 +218,7 @@ jobs:
         node_js=bindings/node.js
         if [ -x $node_js/run.me ]; then
             if [ ! -x ~/swig/bin/swig ]; then
-              ( git clone https://github.com/swig/swig;
+              ( git clone --branch v4.2.1 https://github.com/swig/swig;
                 cd swig;
                 ./autogen.sh;
                 ./configure --prefix=$HOME/swig;
@@ -264,7 +264,7 @@ jobs:
         registry: https://index.docker.io/v1/
         image: emscripten/emsdk
         options: --volume ${{ github.workspace }}:/blst --network=none
-        run: git clone -q /blst /tmp/blst && /tmp/blst/bindings/emscripten/run.me -O2
+        run: git config --global safe.directory \* && git clone -q /blst /tmp/blst && /tmp/blst/bindings/emscripten/run.me -O2
 
     - name: C#
       run: |
