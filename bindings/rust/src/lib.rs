@@ -1035,44 +1035,6 @@ macro_rules! sig_variant_impl {
                 Ok(sig)
             }
 
-            #[cfg(not(feature = "std"))]
-            pub fn verify(
-                &self,
-                sig_groupcheck: bool,
-                msg: &[u8],
-                dst: &[u8],
-                aug: &[u8],
-                pk: &PublicKey,
-                pk_validate: bool,
-            ) -> BLST_ERROR {
-                if sig_groupcheck {
-                    match self.validate(false) {
-                        Err(err) => return err,
-                        _ => (),
-                    }
-                }
-                if pk_validate {
-                    match pk.validate() {
-                        Err(err) => return err,
-                        _ => (),
-                    }
-                }
-                unsafe {
-                    $verify(
-                        &pk.point,
-                        &self.point,
-                        $hash_or_encode,
-                        msg.as_ptr(),
-                        msg.len(),
-                        dst.as_ptr(),
-                        dst.len(),
-                        aug.as_ptr(),
-                        aug.len(),
-                    )
-                }
-            }
-
-            #[cfg(feature = "std")]
             pub fn verify(
                 &self,
                 sig_groupcheck: bool,
@@ -1090,6 +1052,57 @@ macro_rules! sig_variant_impl {
                     &[pk],
                     pk_validate,
                 )
+            }
+
+            #[cfg(not(feature = "std"))]
+            pub fn aggregate_verify(
+                &self,
+                sig_groupcheck: bool,
+                msgs: &[&[u8]],
+                dst: &[u8],
+                pks: &[&PublicKey],
+                pks_validate: bool,
+            ) -> BLST_ERROR {
+                let n_elems = pks.len();
+                if n_elems == 0 || msgs.len() != n_elems {
+                    return BLST_ERROR::BLST_VERIFY_FAIL;
+                }
+
+                let mut pairing = Pairing::new($hash_or_encode, dst);
+
+                let err = pairing.aggregate(
+                    &pks[0].point,
+                    pks_validate,
+                    &self.point,
+                    sig_groupcheck,
+                    &msgs[0],
+                    &[],
+                );
+                if err != BLST_ERROR::BLST_SUCCESS {
+                    return err;
+                }
+
+                for i in 1..n_elems {
+                    let err = pairing.aggregate(
+                        &pks[i].point,
+                        pks_validate,
+                        &unsafe { ptr::null::<$sig_aff>().as_ref() },
+                        false,
+                        &msgs[i],
+                        &[],
+                    );
+                    if err != BLST_ERROR::BLST_SUCCESS {
+                        return err;
+                    }
+                }
+
+                pairing.commit();
+
+                if pairing.finalverify(None) {
+                    BLST_ERROR::BLST_SUCCESS
+                } else {
+                    BLST_ERROR::BLST_VERIFY_FAIL
+                }
             }
 
             #[cfg(feature = "std")]
@@ -1556,7 +1569,6 @@ macro_rules! sig_variant_impl {
             }
 
             #[test]
-            #[cfg(feature = "std")]
             fn test_aggregate() {
                 let num_msgs = 10;
                 let dst = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
