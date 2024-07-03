@@ -9,7 +9,7 @@ __attribute__((visibility("hidden")))
 #endif
 int __blst_platform_cap = 0;
 
-#if defined(__x86_64__) || defined(__x86_64) || defined(_M_X64)
+#if defined(__x86_64__) || defined(__x86_64) || (defined(_M_X64) && !defined(_M_ARM64EC))
 
 # if defined(__GNUC__) || defined(__clang__) || defined(__SUNPRO_C)
 static void __cpuidex(int info[4], int func, int sub)
@@ -98,7 +98,7 @@ int IsProcessorFeaturePresent(int);
 #  if defined(__GNUC__) || defined(__clang__)
 __attribute__((constructor))
 #  endif
-static int __blst_cpuid()
+static int __blst_cpuid(void)
 {
     __blst_platform_cap = IsProcessorFeaturePresent(30); /* AES, SHA1, SHA2 */
 
