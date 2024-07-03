@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/supranational/blst.svg?branch=master)](https://travis-ci.com/github/supranational/blst) [![Actions status](https://github.com/supranational/blst/workflows/build/badge.svg)](https://github.com/supranational/blst/actions) [![CodeQL status](https://github.com/supranational/blst/workflows/CodeQL/badge.svg)](https://github.com/supranational/blst/actions/workflows/codeql-analysis.yml)
+[![Build Status](https://api.travis-ci.com/supranational/blst.svg?branch=master)](https://travis-ci.com/github/supranational/blst) [![Actions status](https://github.com/supranational/blst/workflows/build/badge.svg)](https://github.com/supranational/blst/actions) [![CodeQL status](https://github.com/supranational/blst/workflows/CodeQL/badge.svg)](https://github.com/supranational/blst/actions/workflows/codeql-analysis.yml)
 <div align="left">
   <img src=blst_logo_small.png>
 </div>
