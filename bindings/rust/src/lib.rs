@@ -6,6 +6,7 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
+#![allow(unexpected_cfgs)]
 
 extern crate alloc;
 
@@ -39,12 +40,11 @@ mod mt {
 
     pub fn da_pool() -> ThreadPool {
         static INIT: Once = Once::new();
-        static mut POOL: *const Mutex<ThreadPool> =
-            0 as *const Mutex<ThreadPool>;
+        static mut POOL: *const Mutex<ThreadPool> = ptr::null();
 
         INIT.call_once(|| {
             let pool = Mutex::new(ThreadPool::default());
-            unsafe { POOL = transmute(Box::new(pool)) };
+            unsafe { POOL = transmute::<Box<_>, *const _>(Box::new(pool)) };
         });
         unsafe { (*POOL).lock().unwrap().clone() }
     }
