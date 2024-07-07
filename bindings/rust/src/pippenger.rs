@@ -43,6 +43,8 @@ macro_rules! pippenger_mult_impl {
         $generator:ident,
         $mult:ident,
         $add:ident,
+        $is_inf:ident,
+        $in_group:ident,
     ) => {
         pub struct $points {
             points: Vec<$point_affine>,
@@ -331,6 +333,66 @@ macro_rules! pippenger_mult_impl {
 
                 ret
             }
+
+            fn validate(&self) -> Result<(), BLST_ERROR> {
+                fn check(point: &$point_affine) -> Result<(), BLST_ERROR> {
+                    if unsafe { $is_inf(point) } {
+                        return Err(BLST_ERROR::BLST_PK_IS_INFINITY);
+                    }
+                    if !unsafe { $in_group(point) } {
+                        return Err(BLST_ERROR::BLST_POINT_NOT_IN_GROUP);
+                    }
+                    Ok(())
+                }
+
+                let npoints = self.len();
+
+                let pool = mt::da_pool();
+                let n_workers = core::cmp::min(npoints, pool.max_count());
+                if n_workers < 2 {
+                    for i in 0..npoints {
+                        check(&self[i])?
+                    }
+                    return Ok(())
+                }
+
+                let counter = Arc::new(AtomicUsize::new(0));
+                let valid = Arc::new(AtomicBool::new(true));
+                let wg =
+                    Arc::new((Barrier::new(2), AtomicUsize::new(n_workers)));
+
+                for _ in 0..n_workers {
+                    let counter = counter.clone();
+                    let valid = valid.clone();
+                    let wg = wg.clone();
+
+                    pool.joined_execute(move || {
+                        while valid.load(Ordering::Relaxed) {
+                            let work = counter.fetch_add(1, Ordering::Relaxed);
+                            if work >= npoints {
+                                break;
+                            }
+
+                            if check(&self[work]).is_err() {
+                                valid.store(false, Ordering::Relaxed);
+                                break;
+                            }
+                        }
+
+                        if wg.1.fetch_sub(1, Ordering::AcqRel) == 1 {
+                            wg.0.wait();
+                        }
+                    });
+                }
+
+                wg.0.wait();
+
+                if valid.load(Ordering::Relaxed) {
+                    return Ok(());
+                } else {
+                    return Err(BLST_ERROR::BLST_POINT_NOT_IN_GROUP);
+                }
+            }
         }
 
         #[cfg(test)]
@@ -362,6 +424,8 @@ pippenger_mult_impl!(
     blst_p1_generator,
     blst_p1_mult,
     blst_p1s_add,
+    blst_p1_affine_is_inf,
+    blst_p1_affine_in_g1,
 );
 
 pippenger_mult_impl!(
@@ -378,6 +442,8 @@ pippenger_mult_impl!(
     blst_p2_generator,
     blst_p2_mult,
     blst_p2s_add,
+    blst_p2_affine_is_inf,
+    blst_p2_affine_in_g2,
 );
 
 fn num_bits(l: usize) -> usize {

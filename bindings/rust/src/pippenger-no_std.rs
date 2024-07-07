@@ -20,6 +20,8 @@ macro_rules! pippenger_mult_impl {
         $generator:ident,
         $mult:ident,
         $add:ident,
+        $is_inf:ident,
+        $in_group:ident,
     ) => {
         pub struct $points {
             points: Vec<$point_affine>,
@@ -111,6 +113,18 @@ macro_rules! pippenger_mult_impl {
 
                 ret
             }
+
+            fn validate(&self) -> Result<(), BLST_ERROR> {
+                for i in 0..self.len() {
+                    if unsafe { $is_inf(&self[i]) } {
+                        return Err(BLST_ERROR::BLST_PK_IS_INFINITY);
+                    }
+                    if !unsafe { $in_group(&self[i]) } {
+                        return Err(BLST_ERROR::BLST_POINT_NOT_IN_GROUP);
+                    }
+                }
+                Ok(())
+            }
         }
 
         #[cfg(test)]
@@ -142,6 +156,8 @@ pippenger_mult_impl!(
     blst_p1_generator,
     blst_p1_mult,
     blst_p1s_add,
+    blst_p1_affine_is_inf,
+    blst_p1_affine_in_g1,
 );
 
 pippenger_mult_impl!(
@@ -158,4 +174,6 @@ pippenger_mult_impl!(
     blst_p2_generator,
     blst_p2_mult,
     blst_p2s_add,
+    blst_p2_affine_is_inf,
+    blst_p2_affine_in_g2,
 );

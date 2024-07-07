@@ -2155,6 +2155,9 @@ pub trait MultiPoint {
 
     fn mult(&self, scalars: &[u8], nbits: usize) -> Self::Output;
     fn add(&self) -> Self::Output;
+    fn validate(&self) -> Result<(), BLST_ERROR> {
+        Err(BLST_ERROR::BLST_POINT_NOT_IN_GROUP)
+    }
 }
 
 #[cfg(feature = "std")]
