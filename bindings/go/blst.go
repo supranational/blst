@@ -2320,6 +2320,101 @@ func (points P1Affines) Mult(scalarsIf interface{}, nbits int) *P1 {
 func (points P1s) Mult(scalarsIf interface{}, nbits int) *P1 {
 	return points.ToAffine().Mult(scalarsIf, nbits)
 }
+
+//
+// Group-check
+//
+
+func P1AffinesValidate(pointsIf interface{}) bool {
+	var npoints int
+	switch val := pointsIf.(type) {
+	case []*P1Affine:
+		npoints = len(val)
+	case []P1Affine:
+		npoints = len(val)
+	case P1Affines:
+		npoints = len(val)
+	default:
+		panic(fmt.Sprintf("unsupported type %T", val))
+	}
+
+	numCores := runtime.GOMAXPROCS(0)
+	numThreads := maxProcs
+	if numThreads > numCores {
+		numThreads = numCores
+	}
+	if numThreads > npoints {
+		numThreads = npoints
+	}
+
+	if numThreads < 2 {
+		for i := 0; i < npoints; i++ {
+			var point *P1Affine
+
+			switch val := pointsIf.(type) {
+			case []*P1Affine:
+				point = val[i]
+			case []P1Affine:
+				point = &val[i]
+			case P1Affines:
+				point = &val[i]
+			default:
+				panic(fmt.Sprintf("unsupported type %T", val))
+			}
+
+			if !C.go_p1_affine_validate(point, true) {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	valid := int32(1)
+	curItem := uint32(0)
+
+	var wg sync.WaitGroup
+	wg.Add(numThreads)
+
+	for tid := 0; tid < numThreads; tid++ {
+		go func() {
+			for atomic.LoadInt32(&valid) != 0 {
+				work := atomic.AddUint32(&curItem, 1) - 1
+				if work >= uint32(npoints) {
+					break
+				}
+
+				var point *P1Affine
+
+				switch val := pointsIf.(type) {
+				case []*P1Affine:
+					point = val[work]
+				case []P1Affine:
+					point = &val[work]
+				case P1Affines:
+					point = &val[work]
+				default:
+					panic(fmt.Sprintf("unsupported type %T", val))
+				}
+
+				if !C.go_p1_affine_validate(point, true) {
+					atomic.StoreInt32(&valid, 0)
+					break
+				}
+			}
+
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
+
+	return atomic.LoadInt32(&valid) != 0
+}
+
+func (points P1Affines) Validate() bool {
+	return P1AffinesValidate(points)
+}
 func PairingAggregatePkInG2(ctx Pairing, PK *P2Affine, pkValidate bool,
 	sig *P1Affine, sigGroupcheck bool, msg []byte,
 	optional ...[]byte) int { // aug
@@ -2981,6 +3076,101 @@ func (points P2Affines) Mult(scalarsIf interface{}, nbits int) *P2 {
 
 func (points P2s) Mult(scalarsIf interface{}, nbits int) *P2 {
 	return points.ToAffine().Mult(scalarsIf, nbits)
+}
+
+//
+// Group-check
+//
+
+func P2AffinesValidate(pointsIf interface{}) bool {
+	var npoints int
+	switch val := pointsIf.(type) {
+	case []*P2Affine:
+		npoints = len(val)
+	case []P2Affine:
+		npoints = len(val)
+	case P2Affines:
+		npoints = len(val)
+	default:
+		panic(fmt.Sprintf("unsupported type %T", val))
+	}
+
+	numCores := runtime.GOMAXPROCS(0)
+	numThreads := maxProcs
+	if numThreads > numCores {
+		numThreads = numCores
+	}
+	if numThreads > npoints {
+		numThreads = npoints
+	}
+
+	if numThreads < 2 {
+		for i := 0; i < npoints; i++ {
+			var point *P2Affine
+
+			switch val := pointsIf.(type) {
+			case []*P2Affine:
+				point = val[i]
+			case []P2Affine:
+				point = &val[i]
+			case P2Affines:
+				point = &val[i]
+			default:
+				panic(fmt.Sprintf("unsupported type %T", val))
+			}
+
+			if !C.go_p2_affine_validate(point, true) {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	valid := int32(1)
+	curItem := uint32(0)
+
+	var wg sync.WaitGroup
+	wg.Add(numThreads)
+
+	for tid := 0; tid < numThreads; tid++ {
+		go func() {
+			for atomic.LoadInt32(&valid) != 0 {
+				work := atomic.AddUint32(&curItem, 1) - 1
+				if work >= uint32(npoints) {
+					break
+				}
+
+				var point *P2Affine
+
+				switch val := pointsIf.(type) {
+				case []*P2Affine:
+					point = val[work]
+				case []P2Affine:
+					point = &val[work]
+				case P2Affines:
+					point = &val[work]
+				default:
+					panic(fmt.Sprintf("unsupported type %T", val))
+				}
+
+				if !C.go_p2_affine_validate(point, true) {
+					atomic.StoreInt32(&valid, 0)
+					break
+				}
+			}
+
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
+
+	return atomic.LoadInt32(&valid) != 0
+}
+
+func (points P2Affines) Validate() bool {
+	return P2AffinesValidate(points)
 }
 
 func parseOpts(optional ...interface{}) ([]byte, [][]byte, bool, bool) {
