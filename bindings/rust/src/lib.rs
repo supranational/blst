@@ -1959,14 +1959,12 @@ macro_rules! sig_variant_impl {
                 // create random values
                 let mut rands: Vec<u8> = Vec::with_capacity(32 * num_pks);
                 for _ in 0..num_pks {
-                    let mut vals = [0u8; 32];
                     let mut r = rng.next_u64();
                     while r == 0 {
                         // Reject zero as it is used for multiplication.
                         r = rng.next_u64();
                     }
-                    vals[0..8].copy_from_slice(&r.to_le_bytes());
-                    rands.extend_from_slice(&vals);
+                    rands.extend_from_slice(&r.to_le_bytes());
                 }
 
                 // Sanity test each current single signature
