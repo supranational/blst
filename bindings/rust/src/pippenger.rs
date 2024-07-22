@@ -45,6 +45,7 @@ macro_rules! pippenger_mult_impl {
         $add:ident,
         $is_inf:ident,
         $in_group:ident,
+        $from_affine:ident,
     ) => {
         pub struct $points {
             points: Vec<$point_affine>,
@@ -139,7 +140,7 @@ macro_rules! pippenger_mult_impl {
 
                 let pool = mt::da_pool();
                 let ncpus = pool.max_count();
-                if ncpus < 2 || npoints < 32 {
+                if ncpus < 2 {
                     let p: [*const $point_affine; 2] = [&self[0], ptr::null()];
                     let s: [*const u8; 2] = [&scalars[0], ptr::null()];
 
@@ -159,6 +160,53 @@ macro_rules! pippenger_mult_impl {
                         );
                         return ret;
                     }
+                }
+
+                if npoints < 32 {
+                    let (tx, rx) = channel();
+                    let counter = Arc::new(AtomicUsize::new(0));
+                    let n_workers = core::cmp::min(ncpus, npoints);
+
+                    for _ in 0..n_workers {
+                        let tx = tx.clone();
+                        let counter = counter.clone();
+
+                        pool.joined_execute(move || {
+                            let mut acc = <$point>::default();
+                            let mut tmp = <$point>::default();
+                            let mut first = true;
+
+                            loop {
+                                let work =
+                                    counter.fetch_add(1, Ordering::Relaxed);
+                                if work >= npoints {
+                                    break;
+                                }
+
+                                unsafe {
+                                    $from_affine(&mut tmp, &self[work]);
+                                    let scalar = &scalars[nbytes * work];
+                                    if first {
+                                        $mult(&mut acc, &tmp, scalar, nbits);
+                                        first = false;
+                                    } else {
+                                        $mult(&mut tmp, &tmp, scalar, nbits);
+                                        $add_or_double(&mut acc, &acc, &tmp);
+                                    }
+                                }
+                            }
+
+                            tx.send(acc).expect("disaster");
+                        });
+                    }
+
+                    let mut ret = rx.recv().expect("disaster");
+                    for _ in 1..n_workers {
+                        let p = rx.recv().expect("disaster");
+                        unsafe { $add_or_double(&mut ret, &ret, &p) };
+                    }
+
+                    return ret;
                 }
 
                 let (nx, ny, window) =
@@ -426,6 +474,7 @@ pippenger_mult_impl!(
     blst_p1s_add,
     blst_p1_affine_is_inf,
     blst_p1_affine_in_g1,
+    blst_p1_from_affine,
 );
 
 pippenger_mult_impl!(
@@ -444,6 +493,7 @@ pippenger_mult_impl!(
     blst_p2s_add,
     blst_p2_affine_is_inf,
     blst_p2_affine_in_g2,
+    blst_p2_from_affine,
 );
 
 fn num_bits(l: usize) -> usize {
