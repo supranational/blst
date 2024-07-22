@@ -179,13 +179,8 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, sigGroupcheck bool,
     }
 
     numCores := runtime.GOMAXPROCS(0)
-    numThreads := maxProcs
-    if numThreads > numCores {
-        numThreads = numCores
-    }
-    if numThreads > n {
-        numThreads = n
-    }
+    numThreads := numThreads(n)
+
     // Each thread will determine next message to process by atomically
     // incrementing curItem, process corresponding pk,msg[,aug] tuple and
     // repeat until n is exceeded.  The resulting accumulations will be
@@ -376,14 +371,8 @@ func multipleAggregateVerifyPkInG1(paramsFn mulAggGetterPkInG1,
         useHash = optional[0]
     }
 
-    numCores := runtime.GOMAXPROCS(0)
-    numThreads := maxProcs
-    if numThreads > numCores {
-        numThreads = numCores
-    }
-    if numThreads > n {
-        numThreads = n
-    }
+    numThreads := numThreads(n)
+
     // Each thread will determine next message to process by atomically
     // incrementing curItem, process corresponding pk,msg[,aug] tuple and
     // repeat until n is exceeded.  The resulting accumulations will be

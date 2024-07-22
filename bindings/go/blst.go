@@ -212,6 +212,22 @@ func SetMaxProcs(max int) {
 	maxProcs = max
 }
 
+func numThreads(maxThreads int) int {
+	numThreads := maxProcs
+
+	// take into consideration the possility that application reduced
+	// GOMAXPROCS after |maxProcs| was initialized
+	numProcs := runtime.GOMAXPROCS(0)
+	if maxProcs > numProcs {
+		numThreads = numProcs
+	}
+
+	if maxThreads > 0 && numThreads > maxThreads {
+		return maxThreads
+	}
+	return numThreads
+}
+
 var cgo_pairingSizeOf = C.blst_pairing_sizeof()
 var cgo_p1Generator = *C.blst_p1_generator()
 var cgo_p2Generator = *C.blst_p2_generator()
@@ -633,13 +649,8 @@ func coreAggregateVerifyPkInG1(sigFn sigGetterP2, sigGroupcheck bool,
 	}
 
 	numCores := runtime.GOMAXPROCS(0)
-	numThreads := maxProcs
-	if numThreads > numCores {
-		numThreads = numCores
-	}
-	if numThreads > n {
-		numThreads = n
-	}
+	numThreads := numThreads(n)
+
 	// Each thread will determine next message to process by atomically
 	// incrementing curItem, process corresponding pk,msg[,aug] tuple and
 	// repeat until n is exceeded.  The resulting accumulations will be
@@ -830,14 +841,8 @@ func multipleAggregateVerifyPkInG1(paramsFn mulAggGetterPkInG1,
 		useHash = optional[0]
 	}
 
-	numCores := runtime.GOMAXPROCS(0)
-	numThreads := maxProcs
-	if numThreads > numCores {
-		numThreads = numCores
-	}
-	if numThreads > n {
-		numThreads = n
-	}
+	numThreads := numThreads(n)
+
 	// Each thread will determine next message to process by atomically
 	// incrementing curItem, process corresponding pk,msg[,aug] tuple and
 	// repeat until n is exceeded.  The resulting accumulations will be
@@ -1235,13 +1240,8 @@ func coreAggregateVerifyPkInG2(sigFn sigGetterP1, sigGroupcheck bool,
 	}
 
 	numCores := runtime.GOMAXPROCS(0)
-	numThreads := maxProcs
-	if numThreads > numCores {
-		numThreads = numCores
-	}
-	if numThreads > n {
-		numThreads = n
-	}
+	numThreads := numThreads(n)
+
 	// Each thread will determine next message to process by atomically
 	// incrementing curItem, process corresponding pk,msg[,aug] tuple and
 	// repeat until n is exceeded.  The resulting accumulations will be
@@ -1432,14 +1432,8 @@ func multipleAggregateVerifyPkInG2(paramsFn mulAggGetterPkInG2,
 		useHash = optional[0]
 	}
 
-	numCores := runtime.GOMAXPROCS(0)
-	numThreads := maxProcs
-	if numThreads > numCores {
-		numThreads = numCores
-	}
-	if numThreads > n {
-		numThreads = n
-	}
+	numThreads := numThreads(n)
+
 	// Each thread will determine next message to process by atomically
 	// incrementing curItem, process corresponding pk,msg[,aug] tuple and
 	// repeat until n is exceeded.  The resulting accumulations will be
@@ -1742,14 +1736,8 @@ func (_ *P1Affine) BatchUncompress(in [][]byte) []*P1Affine {
 	points := make([]P1Affine, n)
 	pointsPtrs := make([]*P1Affine, n)
 
-	numCores := runtime.GOMAXPROCS(0)
-	numThreads := maxProcs
-	if numThreads > numCores {
-		numThreads = numCores
-	}
-	if numThreads > n {
-		numThreads = n
-	}
+	numThreads := numThreads(n)
+
 	// Each thread will determine next message to process by atomically
 	// incrementing curItem, process corresponding point, and
 	// repeat until n is exceeded. Each thread will send a result (true for
@@ -2122,11 +2110,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 		panic(fmt.Sprintf("unsupported type %T", val))
 	}
 
-	numThreads := maxProcs
-	numCores := runtime.GOMAXPROCS(0)
-	if numCores < maxProcs {
-		numThreads = numCores
-	}
+	numThreads := numThreads(0)
 
 	if numThreads < 2 || npoints < 32 {
 		sz := int(C.blst_p1s_mult_pippenger_scratch_sizeof(C.size_t(npoints))) / 8
@@ -2338,14 +2322,7 @@ func P1AffinesValidate(pointsIf interface{}) bool {
 		panic(fmt.Sprintf("unsupported type %T", val))
 	}
 
-	numCores := runtime.GOMAXPROCS(0)
-	numThreads := maxProcs
-	if numThreads > numCores {
-		numThreads = numCores
-	}
-	if numThreads > npoints {
-		numThreads = npoints
-	}
+	numThreads := numThreads(npoints)
 
 	if numThreads < 2 {
 		for i := 0; i < npoints; i++ {
@@ -2499,14 +2476,8 @@ func (_ *P2Affine) BatchUncompress(in [][]byte) []*P2Affine {
 	points := make([]P2Affine, n)
 	pointsPtrs := make([]*P2Affine, n)
 
-	numCores := runtime.GOMAXPROCS(0)
-	numThreads := maxProcs
-	if numThreads > numCores {
-		numThreads = numCores
-	}
-	if numThreads > n {
-		numThreads = n
-	}
+	numThreads := numThreads(n)
+
 	// Each thread will determine next message to process by atomically
 	// incrementing curItem, process corresponding point, and
 	// repeat until n is exceeded. Each thread will send a result (true for
@@ -2879,11 +2850,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 		panic(fmt.Sprintf("unsupported type %T", val))
 	}
 
-	numThreads := maxProcs
-	numCores := runtime.GOMAXPROCS(0)
-	if numCores < maxProcs {
-		numThreads = numCores
-	}
+	numThreads := numThreads(0)
 
 	if numThreads < 2 || npoints < 32 {
 		sz := int(C.blst_p2s_mult_pippenger_scratch_sizeof(C.size_t(npoints))) / 8
@@ -3095,14 +3062,7 @@ func P2AffinesValidate(pointsIf interface{}) bool {
 		panic(fmt.Sprintf("unsupported type %T", val))
 	}
 
-	numCores := runtime.GOMAXPROCS(0)
-	numThreads := maxProcs
-	if numThreads > numCores {
-		numThreads = numCores
-	}
-	if numThreads > npoints {
-		numThreads = npoints
-	}
+	numThreads := numThreads(npoints)
 
 	if numThreads < 2 {
 		for i := 0; i < npoints; i++ {

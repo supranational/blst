@@ -202,6 +202,22 @@ func SetMaxProcs(max int) {
     maxProcs = max
 }
 
+func numThreads(maxThreads int) int {
+    numThreads := maxProcs
+
+    // take into consideration the possility that application reduced
+    // GOMAXPROCS after |maxProcs| was initialized
+    numProcs := runtime.GOMAXPROCS(0)
+    if maxProcs > numProcs {
+        numThreads = numProcs
+    }
+
+    if maxThreads > 0 && numThreads > maxThreads {
+        return maxThreads
+    }
+    return numThreads
+}
+
 var cgo_pairingSizeOf = C.blst_pairing_sizeof()
 var cgo_p1Generator = *C.blst_p1_generator()
 var cgo_p2Generator = *C.blst_p2_generator()
