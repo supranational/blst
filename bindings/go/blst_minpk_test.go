@@ -649,6 +649,13 @@ func TestMultiScalarP1(t *testing.T) {
     for i := range points {
         points[i] = *generator.Mult(scalars[i*4:(i+1)*4])
         refs[i]   = *points[i].Mult(scalars[i*16:(i+1)*16], 128)
+        if i < 27 {
+            ref := P1s(refs[:i+1]).Add()
+            ret := P1s(points[:i+1]).Mult(scalars, 128)
+            if !ref.Equals(ret) {
+                t.Errorf("failed self-consistency multi-scalar test")
+            }
+        }
     }
     ref := P1s(refs).Add()
     ret := P1s(points).Mult(scalars, 128)

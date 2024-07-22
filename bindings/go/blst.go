@@ -2112,7 +2112,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 
 	numThreads := numThreads(0)
 
-	if numThreads < 2 || npoints < 32 {
+	if numThreads < 2 {
 		sz := int(C.blst_p1s_mult_pippenger_scratch_sizeof(C.size_t(npoints))) / 8
 		scratch := make([]uint64, sz)
 
@@ -2153,6 +2153,71 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 		C.blst_p1s_mult_pippenger(&ret, p_points, C.size_t(npoints),
 			p_scalars, C.size_t(nbits),
 			(*C.limb_t)(&scratch[0]))
+
+		for i := range scalars {
+			scalars[i] = nil
+		}
+
+		return &ret
+	}
+
+	if npoints < 32 {
+		if numThreads > npoints {
+			numThreads = npoints
+		}
+
+		curItem := uint32(0)
+		msgs := make(chan P1, numThreads)
+
+		for tid := 0; tid < numThreads; tid++ {
+			go func() {
+				var acc P1
+
+				for {
+					workItem := int(atomic.AddUint32(&curItem, 1) - 1)
+					if workItem >= npoints {
+						break
+					}
+
+					var point *P1Affine
+					switch val := pointsIf.(type) {
+					case []*P1Affine:
+						point = val[workItem]
+					case []P1Affine:
+						point = &val[workItem]
+					case P1Affines:
+						point = &val[workItem]
+					}
+
+					var scalar *C.byte
+					switch val := scalarsIf.(type) {
+					case []byte:
+						scalar = (*C.byte)(&val[workItem*nbytes])
+					case [][]byte:
+						scalar = scalars[workItem]
+					case []Scalar:
+						if nbits > 248 {
+							scalar = &val[workItem].b[0]
+						} else {
+							scalar = scalars[workItem]
+						}
+					case []*Scalar:
+						scalar = scalars[workItem]
+					}
+
+					C.go_p1_mult_n_acc(&acc, &point.x, true,
+						scalar, C.size_t(nbits))
+				}
+
+				msgs <- acc
+			}()
+		}
+
+		ret := <-msgs
+		for tid := 1; tid < numThreads; tid++ {
+			point := <-msgs
+			C.blst_p1_add_or_double(&ret, &ret, &point)
+		}
 
 		for i := range scalars {
 			scalars[i] = nil
@@ -2852,7 +2917,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 
 	numThreads := numThreads(0)
 
-	if numThreads < 2 || npoints < 32 {
+	if numThreads < 2 {
 		sz := int(C.blst_p2s_mult_pippenger_scratch_sizeof(C.size_t(npoints))) / 8
 		scratch := make([]uint64, sz)
 
@@ -2893,6 +2958,71 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 		C.blst_p2s_mult_pippenger(&ret, p_points, C.size_t(npoints),
 			p_scalars, C.size_t(nbits),
 			(*C.limb_t)(&scratch[0]))
+
+		for i := range scalars {
+			scalars[i] = nil
+		}
+
+		return &ret
+	}
+
+	if npoints < 32 {
+		if numThreads > npoints {
+			numThreads = npoints
+		}
+
+		curItem := uint32(0)
+		msgs := make(chan P2, numThreads)
+
+		for tid := 0; tid < numThreads; tid++ {
+			go func() {
+				var acc P2
+
+				for {
+					workItem := int(atomic.AddUint32(&curItem, 1) - 1)
+					if workItem >= npoints {
+						break
+					}
+
+					var point *P2Affine
+					switch val := pointsIf.(type) {
+					case []*P2Affine:
+						point = val[workItem]
+					case []P2Affine:
+						point = &val[workItem]
+					case P2Affines:
+						point = &val[workItem]
+					}
+
+					var scalar *C.byte
+					switch val := scalarsIf.(type) {
+					case []byte:
+						scalar = (*C.byte)(&val[workItem*nbytes])
+					case [][]byte:
+						scalar = scalars[workItem]
+					case []Scalar:
+						if nbits > 248 {
+							scalar = &val[workItem].b[0]
+						} else {
+							scalar = scalars[workItem]
+						}
+					case []*Scalar:
+						scalar = scalars[workItem]
+					}
+
+					C.go_p2_mult_n_acc(&acc, &point.x, true,
+						scalar, C.size_t(nbits))
+				}
+
+				msgs <- acc
+			}()
+		}
+
+		ret := <-msgs
+		for tid := 1; tid < numThreads; tid++ {
+			point := <-msgs
+			C.blst_p2_add_or_double(&ret, &ret, &point)
+		}
 
 		for i := range scalars {
 			scalars[i] = nil
