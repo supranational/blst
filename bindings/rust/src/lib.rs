@@ -1990,7 +1990,7 @@ macro_rules! sig_variant_impl {
             #[test]
             fn test_multi_point() {
                 let dst = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
-                let num_pks = 10;
+                let num_pks = 13;
 
                 let seed = [0u8; 32];
                 let mut rng = ChaCha20Rng::from_seed(seed);
@@ -2018,7 +2018,7 @@ macro_rules! sig_variant_impl {
                     sigs.iter().map(|s| s).collect();
 
                 // create random values
-                let mut rands: Vec<u8> = Vec::with_capacity(32 * num_pks);
+                let mut rands: Vec<u8> = Vec::with_capacity(8 * num_pks);
                 for _ in 0..num_pks {
                     let mut r = rng.next_u64();
                     while r == 0 {
