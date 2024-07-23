@@ -928,6 +928,15 @@ func (agg *P2Aggregate) Aggregate(elmts []*P2Affine,
 	return agg.coreAggregate(getter, groupcheck, len(elmts))
 }
 
+func (agg *P2Aggregate) AggregateWithRandomness(pointsIf interface{},
+	scalarsIf interface{}, nbits int, groupcheck bool) bool {
+	if groupcheck && !P2AffinesValidate(pointsIf) {
+		return false
+	}
+	agg.v = P2AffinesMult(pointsIf, scalarsIf, nbits)
+	return true
+}
+
 // Aggregate compressed elements
 func (agg *P2Aggregate) AggregateCompressed(elmts [][]byte,
 	groupcheck bool) bool {
@@ -1517,6 +1526,15 @@ func (agg *P1Aggregate) Aggregate(elmts []*P1Affine,
 	}
 	getter := func(i uint32, _ *P1Affine) *P1Affine { return elmts[i] }
 	return agg.coreAggregate(getter, groupcheck, len(elmts))
+}
+
+func (agg *P1Aggregate) AggregateWithRandomness(pointsIf interface{},
+	scalarsIf interface{}, nbits int, groupcheck bool) bool {
+	if groupcheck && !P1AffinesValidate(pointsIf) {
+		return false
+	}
+	agg.v = P1AffinesMult(pointsIf, scalarsIf, nbits)
+	return true
 }
 
 // Aggregate compressed elements
