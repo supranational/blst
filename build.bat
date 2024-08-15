@@ -1,6 +1,6 @@
 @echo off
 SETLOCAL
-set PATH=%windir%\system32;%PATH% &:: override msys if there is one on %PATH%
+set PATH=%windir%\system32;%PATH% &:: override msys if there is one on PATH
 set TOP=%~dp0
 cl /nologo /c /O2 /Zi /Fdblst.pdb /W4 /MT /Zl %TOP%src\server.c || EXIT /B
 cl 2>&1 | find "for ARM64" > nul:
