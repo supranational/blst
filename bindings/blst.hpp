@@ -294,6 +294,14 @@ public:
     P1* sign_with(const Scalar& scalar)
     {   blst_sign_pk_in_g2(&point, &point, scalar); return this;   }
     P1* hash_to(const byte* msg, size_t msg_len,
+                const byte* DST,
+                size_t DST_len,
+                const byte* aug = nullptr, size_t aug_len = 0)
+    {   blst_hash_to_g1(&point, msg, msg_len, DST, DST_len,
+                                aug, aug_len);
+        return this;
+    }
+    P1* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
                 const byte* aug = nullptr, size_t aug_len = 0)
     {   blst_hash_to_g1(&point, msg, msg_len, C_bytes(DST.data()), DST.size(),
@@ -599,6 +607,13 @@ public:
     {   blst_sign_pk_in_g1(&point, &point, &sk.key); return this;   }
     P2* sign_with(const Scalar& scalar)
     {   blst_sign_pk_in_g1(&point, &point, scalar); return this;   }
+    P2* hash_to(const byte* msg, size_t msg_len,
+                const byte* DST, size_t DST_len,
+                const byte* aug = nullptr, size_t aug_len = 0)
+    {   blst_hash_to_g2(&point, msg, msg_len, DST, DST_len,
+                                aug, aug_len);
+        return this;
+    }
     P2* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
                 const byte* aug = nullptr, size_t aug_len = 0)
