@@ -343,6 +343,14 @@ public:
 #endif
     static P1 generator()
     {   return P1(blst_p1_generator());   }
+    static P1_Affine uncompress(const byte in[48])
+    {
+        P1_Affine ret;
+        BLST_ERROR err = blst_p1_uncompress(ret, in);
+        if (err != BLST_SUCCESS)
+            throw err;
+        return ret;
+    }
 
 private:
     friend class P1_Affine;
@@ -641,6 +649,14 @@ public:
 #endif
     static P2 generator()
     {   return P2(blst_p2_generator());   }
+    static P2_Affine uncompress(const byte in[96])
+    {
+        P2_Affine ret;
+        BLST_ERROR err = blst_p2_uncompress(ret, in);
+        if (err != BLST_SUCCESS)
+            throw err;
+        return ret;
+    }
 
 private:
     friend class P2_Affine;

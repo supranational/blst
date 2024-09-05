@@ -709,10 +709,12 @@ import java.nio.file.*;
 %catches(BLST_ERROR) P1(const byte* in, size_t len);
 %catches(BLST_ERROR) P1_Affine(const byte* in, size_t len);
 %catches(BLST_ERROR) aggregate(const P1_Affine& in);
+%catches(BLST_ERROR) uncompress(const byte in[48]);
 
 %catches(BLST_ERROR) P2(const byte* in, size_t len);
 %catches(BLST_ERROR) P2_Affine(const byte* in, size_t len);
 %catches(BLST_ERROR) aggregate(const P2_Affine& in);
+%catches(BLST_ERROR) uncompress(const byte in[96]);
 
 %catches(BLST_ERROR) blst::Scalar::add;
 %catches(BLST_ERROR) blst::Scalar::sub;
