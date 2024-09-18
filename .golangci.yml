@@ -5,6 +5,7 @@ linters:
     #- deadcode
     - execinquery
     #- exhaustivestruct
+    - exportloopref
     #- golint
     #- ifshort
     #- interfacer
@@ -47,7 +48,7 @@ linters:
     - nonamedreturns
     - perfsprint
     - testpackage
-    # 77 active linters remaining including gosec, gosimple, govet, etc.
+    # 76 active linters remaining including gosec, gosimple, govet, etc.
 
 linters-settings:
   revive:
