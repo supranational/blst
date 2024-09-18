@@ -62,6 +62,7 @@ if newer("blst_wrap.cpp", "../libblst.a", blst_so):
             cmd.extend(["-std=c++11"])
     except:
         pass
+    print(" ".join(["+"] + cmd))
     subprocess.check_call(cmd)
 
 print("testing...") or sys.stdout.flush()
