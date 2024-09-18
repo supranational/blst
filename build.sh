@@ -98,7 +98,7 @@ fi
 if echo ${predefs} | grep -q __AVX__; then
     cflags="$cflags -mno-avx" # avoid costly transitions
 fi
-if echo ${predefs} | grep -q 'x86_64\|aarch64'; then :; else
+if echo ${predefs} | grep -E -q 'x86_64|aarch64'; then :; else
     cflags="$cflags -D__BLST_NO_ASM__"
 fi
 
