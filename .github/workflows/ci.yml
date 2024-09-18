@@ -78,7 +78,7 @@ jobs:
             echo
             rustup target add wasm32-wasip1
             curl https://wasmtime.dev/install.sh -sSf | bash
-            env CARGO_TARGET_WASM32_WASI_RUNNER=~/.wasmtime/bin/wasmtime \
+            env CARGO_TARGET_WASM32_WASIP1_RUNNER=~/.wasmtime/bin/wasmtime \
                 cargo test --release --target=wasm32-wasip1
             cargo clean -p blst --release --target=wasm32-wasip1
             echo
