@@ -74,13 +74,13 @@ jobs:
             CARGO_TARGET_${triplet}_RUNNER="bash ulimit-s $stack_size" \
             cargo test --release
         if [ `uname -s` = "Linux" ]; then
-            echo '--- test wasm32-wasi'
+            echo '--- test wasm32-wasip1'
             echo
-            rustup target add wasm32-wasi
+            rustup target add wasm32-wasip1
             curl https://wasmtime.dev/install.sh -sSf | bash
             env CARGO_TARGET_WASM32_WASI_RUNNER=~/.wasmtime/bin/wasmtime \
-                cargo test --release --target=wasm32-wasi
-            cargo clean -p blst --release --target=wasm32-wasi
+                cargo test --release --target=wasm32-wasip1
+            cargo clean -p blst --release --target=wasm32-wasip1
             echo
             echo '--- test -mlvi-hardening'
             echo
