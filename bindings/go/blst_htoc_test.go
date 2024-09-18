@@ -11,7 +11,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -35,22 +34,42 @@ func decodeP1(m map[string]interface{}) *P1Affine {
 	return &p1
 }
 
+func readAll(file *os.File) ([]byte, error) {
+	defer file.Close()
+
+	stat, err := file.Stat()
+	if err != nil {
+		return nil, err //nolint:wrapcheck
+	}
+
+	buf := make([]byte, stat.Size())
+	total := 0
+	for total < len(buf) {
+		read, err := file.Read(buf[total:])
+		if err != nil {
+			return nil, err //nolint:wrapcheck
+		}
+		total += read
+	}
+
+	return buf, nil
+}
+
 func jsonG1HashToCurve(t *testing.T, fname string) {
 	t.Helper()
 	vfile, err := os.Open(fname)
 	if err != nil {
 		t.Skipf("%.16s... not found", fname)
 	}
-	defer vfile.Close()
-	buf, err := ioutil.ReadAll(vfile)
+	buf, err := readAll(vfile)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 
 	var vectors map[string]interface{}
 	err = json.Unmarshal(buf, &vectors)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 
 	dst := []byte(vectors["dst"].(string))
@@ -58,7 +77,7 @@ func jsonG1HashToCurve(t *testing.T, fname string) {
 
 	vectorsArr, ok := vectors["vectors"].([]interface{})
 	if !ok {
-		t.Errorf("Could not cast vectors to an array")
+		t.Error("Could not cast vectors to an array")
 	}
 
 	for _, v := range vectorsArr {
@@ -125,16 +144,15 @@ func jsonG2HashToCurve(t *testing.T, fname string) {
 	if err != nil {
 		t.Skipf("%.16s... not found", fname)
 	}
-	defer vfile.Close()
-	buf, err := ioutil.ReadAll(vfile)
+	buf, err := readAll(vfile)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 
 	var vectors map[string]interface{}
 	err = json.Unmarshal(buf, &vectors)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 
 	dst := []byte(vectors["dst"].(string))
@@ -142,7 +160,7 @@ func jsonG2HashToCurve(t *testing.T, fname string) {
 
 	vectorsArr, ok := vectors["vectors"].([]interface{})
 	if !ok {
-		t.Errorf("Could not cast vectors to an array")
+		t.Error("Could not cast vectors to an array")
 	}
 
 	for _, v := range vectorsArr {
@@ -178,44 +196,43 @@ func jsonExpandMessageXmd(t *testing.T, fname string) {
 	if err != nil {
 		t.Skipf("%.16s... not found", fname)
 	}
-	defer vfile.Close()
-	buf, err := ioutil.ReadAll(vfile)
+	buf, err := readAll(vfile)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 
 	var vectors map[string]interface{}
 	err = json.Unmarshal(buf, &vectors)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 
 	DST := []byte(vectors["DST"].(string))
 
 	tests, ok := vectors["tests"].([]interface{})
 	if !ok {
-		t.Errorf("Could not cast 'tests' to an array")
+		t.Error("Could not cast 'tests' to an array")
 	}
 
 	for _, v := range tests {
 		test, ok := v.(map[string]interface{})
 		if !ok {
-			t.Errorf("Could not map 'tests[]' element")
+			t.Error("Could not map 'tests[]' element")
 		}
 
 		len_in_bytes, err := strconv.ParseInt(test["len_in_bytes"].(string), 0, 0)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 		}
 		msg := []byte(test["msg"].(string))
 		expected, err := hex.DecodeString(test["uniform_bytes"].(string))
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 		}
 
 		hashed := expandMessageXmd(msg, DST, int(len_in_bytes))
 		if !bytes.Equal(hashed, expected) {
-			t.Errorf("hashed != expected")
+			t.Error("hashed != expected")
 		}
 	}
 }

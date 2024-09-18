@@ -205,11 +205,11 @@ func initMaxProcs() int {
 	return maxProcs
 }
 
-func SetMaxProcs(max int) {
-	if max <= 0 {
-		max = 1
+func SetMaxProcs(procs int) {
+	if procs <= 0 {
+		procs = 1
 	}
-	maxProcs = max
+	maxProcs = procs
 }
 
 func numThreads(maxThreads int) int {

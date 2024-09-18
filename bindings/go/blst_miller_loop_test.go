@@ -11,7 +11,7 @@ func TestMillerLoopN(t *testing.T) {
     scalars := make([]byte, npoints*8)
     _, err := rand.Read(scalars)
     if err != nil {
-        t.Errorf(err.Error())
+        t.Error(err.Error())
         return
     }
 
