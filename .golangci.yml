@@ -3,10 +3,11 @@ linters:
   disable:
     # deprecated
     #- deadcode
-    - execinquery
+    #- execinquery
     #- exhaustivestruct
     - exportloopref
     #- golint
+    #- gomnd
     #- ifshort
     #- interfacer
     #- maligned
@@ -29,7 +30,6 @@ linters:
     - gofmt
     - gofumpt
     - goimports
-    - gomnd
     - intrange                          # go>=1.22
     - lll
     - mnd
@@ -48,7 +48,7 @@ linters:
     - nonamedreturns
     - perfsprint
     - testpackage
-    # 76 active linters remaining including gosec, gosimple, govet, etc.
+    # 78 active linters remaining including gosec, gosimple, govet, etc.
 
 linters-settings:
   revive:
