@@ -77,7 +77,7 @@ Programming is understanding, and understanding implies mastering the lingo. So 
 
 We have two elliptic curves, E1 and E2, points on which are contained in `blst_p1` and `blst_p2`, or `blst_p1_affine` and `blst_p2_affine` structures. Elements in the multiplicative group are held in a `blst_fp12` structure. One of the curves, or more specifically, a subset of points that form a cyclic group, is chosen for public keys, and another, for signatures. The choice is denoted by the subroutines' suffixes, `_pk_in_g1` or `_pk_in_g2`. The most common choice appears to be the former, that is, `blst_p1` for public keys, and `blst_p2` for signatures. But it all starts with a secret key...
 
-The secret key is held in a 256-bit `blst_scalar` structure which can be instantiated with either [`blst_keygen`](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature#section-2.3), or deserialized with `blst_scalar_from_bendian` or `blst_scalar_from_lendian` from a previously serialized byte sequence. It shouldn't come as surprise that there are two uses for a secret key:
+The secret key is held in a 256-bit `blst_scalar` structure which can be instantiated with either [`blst_keygen`](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature#section-2.3), or deserialized with `blst_scalar_from_bendian` or `blst_scalar_from_lendian` from a previously serialized byte sequence. It shouldn't come as a surprise that there are two uses for a secret key:
 
 - generating the associated public key, either with `blst_sk_to_pk_in_g1` or `blst_sk_to_pk_in_g2`;
 - performing a sign operation, either with `blst_sign_pk_in_g1` or `blst_sign_pk_in_g2`;
@@ -210,9 +210,9 @@ For more details see the Rust binding [readme](bindings/rust/README.md).
         * **Hash_to_curve**: folder containing test for hash_to_curve from IETF specification
 * **Src** - folder containing C code for lower level blst functions such as field operations, extension field operations, hash-to-field, and more
     * **Asm** - folder containing Perl scripts that are used to generate assembly code for different hardware platforms including x86 with ADX instructions, x86 without ADX instructions, and ARMv8, and [ABI](https://en.wikipedia.org/wiki/Application_binary_interface)[1]
-* **Build** - this folder containing a set of pre-generated assembly files for a variety of operating systems and maintenance scripts.
+* **Build** - this folder contains a set of pre-generated assembly files for a variety of operating systems and maintenance scripts.
     * **Cheri** - assembly code for use on [CHERI](https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/) platforms
-    * **Coff** - assembly code for use on Window systems with GNU toolchain
+    * **Coff** - assembly code for use on Windows systems with GNU toolchain
     * **Elf** - assembly code for use on Unix systems
     * **Mach-o** - assembly code for use on Apple operating systems
     * **Win64** - assembly code for use on Windows systems with Microsoft toolchain
