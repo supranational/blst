@@ -29,8 +29,7 @@ func decodeP1(m map[string]interface{}) *P1Affine {
 		return nil
 	}
 	var p1 P1Affine
-	p1.x.FromBEndian(x)
-	p1.y.FromBEndian(y)
+	p1.Deserialize(append(x, y...))
 	return &p1
 }
 
@@ -131,10 +130,7 @@ func decodeP2(m map[string]interface{}) *P2Affine {
 		return nil
 	}
 	var p2 P2Affine
-	p2.x.fp[0].FromBEndian(x0)
-	p2.x.fp[1].FromBEndian(x1)
-	p2.y.fp[0].FromBEndian(y0)
-	p2.y.fp[1].FromBEndian(y1)
+	p2.Deserialize(append(x1, append(x0, append(y1, y0...)...)...))
 	return &p2
 }
 
