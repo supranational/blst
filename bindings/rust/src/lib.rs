@@ -782,9 +782,9 @@ macro_rules! sig_variant_impl {
             }
         }
 
-        impl From<&SecretKey> for blst_scalar {
-            fn from(sk: &SecretKey) -> Self {
-                sk.value.clone()
+        impl<'a> From<&'a SecretKey> for &'a blst_scalar {
+            fn from(sk: &'a SecretKey) -> Self {
+                &sk.value
             }
         }
 
@@ -1497,6 +1497,12 @@ macro_rules! sig_variant_impl {
         impl From<Signature> for $sig_aff {
             fn from(sig: Signature) -> Self {
                 sig.point
+            }
+        }
+
+        impl<'a> From<&'a Signature> for &'a $sig_aff {
+            fn from(sig: &'a Signature) -> Self {
+                &sig.point
             }
         }
 
