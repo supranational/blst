@@ -750,6 +750,13 @@ macro_rules! sig_variant_impl {
             pub fn from_bytes(sk_in: &[u8]) -> Result<Self, BLST_ERROR> {
                 SecretKey::deserialize(sk_in)
             }
+
+            /// # Safety
+            ///
+            /// passed [`blst_scalar`] must be ok as per [`blst_sk_check`]
+            pub unsafe fn from_scalar_unchecked(value: blst_scalar) -> Self {
+                SecretKey { value }
+            }
         }
 
         #[cfg(feature = "serde-secret")]
@@ -772,6 +779,25 @@ macro_rules! sig_variant_impl {
                 Self::deserialize(bytes).map_err(|e| {
                     <D::Error as serde::de::Error>::custom(format!("{:?}", e))
                 })
+            }
+        }
+
+        impl From<&SecretKey> for blst_scalar {
+            fn from(sk: &SecretKey) -> Self {
+                sk.value.clone()
+            }
+        }
+
+        impl std::convert::TryFrom<blst_scalar> for SecretKey {
+            type Error = BLST_ERROR;
+
+            fn try_from(value: blst_scalar) -> Result<Self, Self::Error> {
+                unsafe {
+                    if !blst_sk_check(&value) {
+                        return Err(BLST_ERROR::BLST_BAD_ENCODING);
+                    }
+                }
+                Ok(SecretKey { value })
             }
         }
 
