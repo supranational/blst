@@ -1494,6 +1494,18 @@ macro_rules! sig_variant_impl {
             }
         }
 
+        impl From<Signature> for $sig_aff {
+            fn from(sig: Signature) -> Self {
+                sig.point
+            }
+        }
+
+        impl From<$sig_aff> for Signature {
+            fn from(point: $sig_aff) -> Self {
+                Self { point }
+            }
+        }
+
         #[repr(transparent)]
         #[derive(Debug, Clone, Copy)]
         pub struct AggregateSignature {
