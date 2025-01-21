@@ -926,6 +926,24 @@ macro_rules! sig_variant_impl {
             }
         }
 
+        impl From<PublicKey> for $pk_aff {
+            fn from(pk: PublicKey) -> Self {
+                pk.point
+            }
+        }
+
+        impl<'a> From<&'a PublicKey> for &'a $pk_aff {
+            fn from(pk: &'a PublicKey) -> Self {
+                &pk.point
+            }
+        }
+
+        impl From<$pk_aff> for PublicKey {
+            fn from(point: $pk_aff) -> Self {
+                Self { point }
+            }
+        }
+
         #[repr(transparent)]
         #[derive(Debug, Clone, Copy)]
         pub struct AggregatePublicKey {
@@ -1040,6 +1058,24 @@ macro_rules! sig_variant_impl {
                     $pk_add_or_dbl_aff(&mut self.point, &self.point, &pk.point);
                 }
                 Ok(())
+            }
+        }
+
+        impl From<AggregatePublicKey> for $pk {
+            fn from(pk: AggregatePublicKey) -> Self {
+                pk.point
+            }
+        }
+
+        impl<'a> From<&'a AggregatePublicKey> for &'a $pk {
+            fn from(pk: &'a AggregatePublicKey) -> Self {
+                &pk.point
+            }
+        }
+
+        impl From<$pk> for AggregatePublicKey {
+            fn from(point: $pk) -> Self {
+                Self { point }
             }
         }
 
@@ -1650,6 +1686,24 @@ macro_rules! sig_variant_impl {
 
             pub fn subgroup_check(&self) -> bool {
                 unsafe { $sig_aggr_in_group(&self.point) }
+            }
+        }
+
+        impl From<AggregateSignature> for $sig {
+            fn from(sig: AggregateSignature) -> Self {
+                sig.point
+            }
+        }
+
+        impl<'a> From<&'a AggregateSignature> for &'a $sig {
+            fn from(sig: &'a AggregateSignature) -> Self {
+                &sig.point
+            }
+        }
+
+        impl From<$sig> for AggregateSignature {
+            fn from(point: $sig) -> Self {
+                Self { point }
             }
         }
 
