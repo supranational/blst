@@ -788,7 +788,7 @@ macro_rules! sig_variant_impl {
             }
         }
 
-        impl std::convert::TryFrom<blst_scalar> for SecretKey {
+        impl core::convert::TryFrom<blst_scalar> for SecretKey {
             type Error = BLST_ERROR;
 
             fn try_from(value: blst_scalar) -> Result<Self, Self::Error> {
