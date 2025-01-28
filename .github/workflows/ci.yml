@@ -272,6 +272,7 @@ jobs:
             bindings/c#/run.me;
             if which dotnet > /dev/null 2>&1; then
                 cd bindings/c#
+                [ -f libblst.dll.so ] || ../../build.sh -dll
                 dotnet run -c Release
             fi
         fi
