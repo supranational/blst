@@ -218,7 +218,7 @@ jobs:
         node_js=bindings/node.js
         if [ -x $node_js/run.me ]; then
             if [ ! -x ~/swig/bin/swig ]; then
-              ( git clone --branch v4.2.1 https://github.com/swig/swig;
+              ( git clone --branch v4.3.0 https://github.com/swig/swig;
                 cd swig;
                 ./autogen.sh;
                 ./configure --prefix=$HOME/swig;
