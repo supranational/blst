@@ -13,9 +13,18 @@ go test
 
 The generate.py script is used to generate both min-pk and min-sig variants of the binding from a common code base. It consumes the `*.tgo` files along with `blst_minpk_test.go` and produces `blst.go` and `blst_minsig_test.go`. The .tgo files can treated as if they were .go files, including the use of gofmt and goimports. The generate script will filter out extra imports while processing and automatically run goimports on the final blst.go file.
 
-After running generate.py, <nobr>`go build`</nobr> and <nobr>`go test`</nobr> can be run as usual. Cgo will compile `cgo_server.c`, which includes the required C implementation files, and `cgo_assembly.S`, which includes appropriate pre-generated assembly code for the platform. To compile on Windows one has to have MinGW gcc on the `%PATH%`.
+After running generate.py, <nobr>`go build`</nobr> and <nobr>`go test`</nobr> can be run as usual. Cgo will compile `cgo_server.c`, which includes the required C implementation files, and `cgo_assembly.S`, which includes appropriate pre-generated assembly code for the platform.
+
+#### Caveats
 
 If the test or target application crashes with an "illegal instruction" exception [after copying to an older system], rebuild with `CGO_CFLAGS` environment variable set to <nobr>`-O2 -D__BLST_PORTABLE__`</nobr>. Don't forget <nobr>`-O2`</nobr>!
+
+On Windows the C compiler invoked by cgo, one denoted in `go env CC` output, has to target [MinGW](https://www.mingw-w64.org/). Verify with `<go-env-CC-output> -dM -E -x c nul: | findstr "MINGW64"`.
+
+If you're cross-compiling, you have to set `CC` environment variable to the target C cross-compiler and `CGO_ENABLED` to 1. For example, to compile the test program for ARM:
+```
+env GOARCH=arm CC=arm-linux-gnueabi-gcc CGO_ENABLED=1 go test -c
+```
 
 ## Usage
 There are two primary modes of operation that can be chosen based on type definitions in the application.
@@ -73,8 +82,3 @@ func main() {
 ```
 
 See the tests for further examples of usage.
-
-If you're cross-compiling, you have to set `CC` environment variable to the target C cross-compiler and `CGO_ENABLED` to 1. For example, to compile the test program for ARM:
-```
-env GOARCH=arm CC=arm-linux-gnueabi-gcc CGO_ENABLED=1 go test -c
-```
