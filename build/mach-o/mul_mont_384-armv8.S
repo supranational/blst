@@ -1,6 +1,7 @@
 .text
 
 .globl	_add_mod_384x384
+.private_extern	_add_mod_384x384
 
 .align	5
 _add_mod_384x384:
@@ -82,6 +83,7 @@ __add_mod_384x384:
 
 
 .globl	_sub_mod_384x384
+.private_extern	_sub_mod_384x384
 
 .align	5
 _sub_mod_384x384:

@@ -43,6 +43,7 @@ LK256:
 .align	2
 .align	2
 .globl	_blst_sha256_block_armv8
+.private_extern	_blst_sha256_block_armv8
 
 .align	6
 _blst_sha256_block_armv8:
@@ -182,6 +183,7 @@ Loop_hw:
 	ret
 
 .globl	_blst_sha256_block_data_order
+.private_extern	_blst_sha256_block_data_order
 
 .align	4
 _blst_sha256_block_data_order:

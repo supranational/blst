@@ -43,6 +43,7 @@
 .align	2
 .p2align	2
 .globl	blst_sha256_block_armv8
+
 .def	blst_sha256_block_armv8;
 .type	32;
 .endef
@@ -184,6 +185,7 @@ blst_sha256_block_armv8:
 	ret
 
 .globl	blst_sha256_block_data_order
+
 .def	blst_sha256_block_data_order;
 .type	32;
 .endef

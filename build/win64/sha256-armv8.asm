@@ -45,6 +45,7 @@ __SIZEOF_POINTER__ SETA 64/8
 	ALIGN	4
 	ALIGN	4
 
+
 	EXPORT	|blst_sha256_block_armv8|[FUNC]
 	ALIGN	64
 |blst_sha256_block_armv8| PROC
@@ -183,6 +184,7 @@ __SIZEOF_POINTER__ SETA 64/8
 	ldr	x29,[sp],#2*__SIZEOF_POINTER__
 	ret
 	ENDP
+
 
 	EXPORT	|blst_sha256_block_data_order|[FUNC]
 	ALIGN	16

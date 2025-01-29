@@ -1,6 +1,7 @@
 .text
 
 .globl	add_mod_384x384
+
 .def	add_mod_384x384;
 .type	32;
 .endef
@@ -86,6 +87,7 @@ __add_mod_384x384:
 
 
 .globl	sub_mod_384x384
+
 .def	sub_mod_384x384;
 .type	32;
 .endef

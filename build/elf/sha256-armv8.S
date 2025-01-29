@@ -43,6 +43,7 @@
 .align	2
 .align	2
 .globl	blst_sha256_block_armv8
+.hidden	blst_sha256_block_armv8
 .type	blst_sha256_block_armv8,%function
 .align	6
 blst_sha256_block_armv8:
@@ -182,6 +183,7 @@ blst_sha256_block_armv8:
 	ret
 .size	blst_sha256_block_armv8,.-blst_sha256_block_armv8
 .globl	blst_sha256_block_data_order
+.hidden	blst_sha256_block_data_order
 .type	blst_sha256_block_data_order,%function
 .align	4
 blst_sha256_block_data_order:
