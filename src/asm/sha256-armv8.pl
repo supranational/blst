@@ -81,6 +81,7 @@ my ($ABCD_SAVE,$EFGH_SAVE)=("v18.16b","v19.16b");
 
 $code.=<<___;
 .globl	${pre}sha256_block_armv8
+.hidden	${pre}sha256_block_armv8
 .type	${pre}sha256_block_armv8,%function
 .align	6
 ${pre}sha256_block_armv8:
@@ -341,6 +342,7 @@ sub body_00_15 () {
 
 $code.=<<___;
 .globl	${pre}sha256_block_data_order
+.hidden	${pre}sha256_block_data_order
 .type	${pre}sha256_block_data_order,%function
 .align	4
 ${pre}sha256_block_data_order:
