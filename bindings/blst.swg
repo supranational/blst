@@ -20,6 +20,24 @@
 
 #if defined(SWIGPYTHON)
 
+%header %{
+#if PY_VERSION_HEX<0x030d0000
+/* Tailored polyfill, for example no need to handle |n_bytes| == 0 here */
+Py_ssize_t PyLong_AsNativeBytes(PyObject* v, void* buffer, Py_ssize_t n_bytes,
+                                int flags)
+{
+    return _PyLong_AsByteArray((PyLongObject*)v,
+                               (unsigned char*)buffer, n_bytes,
+                               flags&1, (flags&4) == 0) < 0 ? -1 : n_bytes;
+}
+# define My_PYLONG_FLAGS (1 | 4 | 8)
+#else
+# define My_PYLONG_FLAGS (Py_ASNATIVEBYTES_LITTLE_ENDIAN | \
+                          Py_ASNATIVEBYTES_UNSIGNED_BUFFER | \
+                          Py_ASNATIVEBYTES_REJECT_NEGATIVE)
+#endif
+%}
+
 // some sorcery to allow assignments as output, e.g.
 //      hash = blst.encode_to_g1(b"foo")
 %typemap(in, numinputs=0) OBJECT *OUTPUT($1_basetype temp) %{ $1 = &temp; %}
@@ -139,7 +157,7 @@
         $2 = _PyLong_NumBits($input);
         $1 = ($1_ltype)alloca(nbytes = ($2 + 7)/8);
 
-        if (_PyLong_AsByteArray((PyLongObject*)$input, $1, nbytes, 1, 0) < 0)
+        if (PyLong_AsNativeBytes($input, $1, nbytes, My_PYLONG_FLAGS) < 0)
             SWIG_exception_fail(SWIG_OverflowError, "in method '$symname'");
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
@@ -265,8 +283,8 @@
             bytes = std::unique_ptr<byte[]>(new byte[_global_npoints*nbytes]);
             byte* scalar = bytes.get();
             for (size_t i = 0; i < _global_npoints; i++, scalar += nbytes)
-                _PyLong_AsByteArray((PyLongObject*)PyList_GET_ITEM($input, i),
-                                    scalar, nbytes, 1, 0);
+                PyLong_AsNativeBytes(PyList_GET_ITEM($input, i),
+                                     scalar, nbytes, My_PYLONG_FLAGS);
 
             scalars[0] = bytes.get();
             scalars[1] = nullptr;
