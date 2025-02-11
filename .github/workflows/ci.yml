@@ -137,6 +137,7 @@ jobs:
         echo
         echo '--- cargo clippy'
         echo
+        echo 'msrv = "1.56"' > .clippy.toml
         cargo clippy --release
         cargo clean -p blst
         cargo clean -p blst --release
