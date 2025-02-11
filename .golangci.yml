@@ -27,12 +27,14 @@ linters:
     - gocognit
     - gocritic
     - gocyclo
+    - godot
     - gofmt
     - gofumpt
     - goimports
     - intrange                          # go>=1.22
     - lll
     - mnd
+    - nestif
     - nlreturn
     - stylecheck
     - varnamelen
@@ -48,7 +50,7 @@ linters:
     - nonamedreturns
     - perfsprint
     - testpackage
-    # 78 active linters remaining including gosec, gosimple, govet, etc.
+    # 79 active linters remaining including gosec, gosimple, govet, etc.
 
 linters-settings:
   revive:
