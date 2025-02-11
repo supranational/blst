@@ -547,6 +547,7 @@ macro_rules! sig_variant_impl {
         $sig_aggr_in_group:ident,
     ) => {
         /// Secret Key
+        #[repr(transparent)]
         #[derive(Default, Debug, Clone, Zeroize)]
         #[zeroize(drop)]
         pub struct SecretKey {
@@ -772,6 +773,29 @@ macro_rules! sig_variant_impl {
                 Self::deserialize(bytes).map_err(|e| {
                     <D::Error as serde::de::Error>::custom(format!("{:?}", e))
                 })
+            }
+        }
+
+        // From<by-value> traits are not provided to discourage duplication
+        // of the secret key material.
+        impl<'a> From<&'a SecretKey> for &'a blst_scalar {
+            fn from(sk: &'a SecretKey) -> Self {
+                unsafe {
+                    transmute::<&SecretKey, Self>(sk)
+                }
+            }
+        }
+
+        impl<'a> core::convert::TryFrom<&'a blst_scalar> for &'a SecretKey {
+            type Error = BLST_ERROR;
+
+            fn try_from(sk: &'a blst_scalar) -> Result<Self, Self::Error> {
+                unsafe {
+                    if !blst_sk_check(sk) {
+                        return Err(BLST_ERROR::BLST_BAD_ENCODING);
+                    }
+                    Ok(transmute::<&blst_scalar, Self>(sk))
+                }
             }
         }
 
