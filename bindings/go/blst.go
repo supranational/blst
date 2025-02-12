@@ -3310,10 +3310,10 @@ func (points P2Affines) Validate() bool {
 	return P2AffinesValidate(points)
 }
 
-func parseOpts(optional ...interface{}) ([]byte, [][]byte, bool, bool) {
-	var aug [][]byte     // For aggregate verify
-	var augSingle []byte // For signing
-	useHash := true      // hash (true), encode (false)
+// aug [][]byte - augmentation bytes for signing (default: nil)
+func parseOpts(optional ...interface{}) (augSingle []byte, aug [][]byte,
+	useHash bool, ok bool) {
+	useHash = true // hash (true), encode (false)
 
 	for _, arg := range optional {
 		switch v := arg.(type) {

@@ -1,12 +1,14 @@
 
 import "fmt"
 
+//
 // Parse out optional arguments for sign and verify.
-//   aug []byte - augmentation bytes (default: nil)
-func parseOpts(optional ...interface{}) ([]byte, [][]byte, bool, bool) {
-    var aug [][]byte     // For aggregate verify
-    var augSingle []byte // For signing
-    useHash := true      // hash (true), encode (false)
+//  augSingle []byte - augmentation bytes for aggregate verify (default: nil)
+//  aug [][]byte - augmentation bytes for signing (default: nil)
+//
+func parseOpts(optional ...interface{}) (augSingle []byte, aug [][]byte,
+                                         useHash bool, ok bool) {
+    useHash = true  // hash (true), encode (false)
 
     for _, arg := range optional {
         switch v := arg.(type) {
