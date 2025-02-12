@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -33,34 +34,13 @@ func decodeP1(m map[string]interface{}) *P1Affine {
 	return &p1
 }
 
-func readAll(file *os.File) ([]byte, error) {
-	defer file.Close()
-
-	stat, err := file.Stat()
-	if err != nil {
-		return nil, err //nolint:wrapcheck
-	}
-
-	buf := make([]byte, stat.Size())
-	total := 0
-	for total < len(buf) {
-		read, err := file.Read(buf[total:])
-		if err != nil {
-			return nil, err //nolint:wrapcheck
-		}
-		total += read
-	}
-
-	return buf, nil
-}
-
 func jsonG1HashToCurve(t *testing.T, fname string) {
 	t.Helper()
 	vfile, err := os.Open(fname)
 	if err != nil {
 		t.Skipf("%.16s... not found", fname)
 	}
-	buf, err := readAll(vfile)
+	buf, err := io.ReadAll(vfile)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -140,7 +120,7 @@ func jsonG2HashToCurve(t *testing.T, fname string) {
 	if err != nil {
 		t.Skipf("%.16s... not found", fname)
 	}
-	buf, err := readAll(vfile)
+	buf, err := io.ReadAll(vfile)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -192,7 +172,7 @@ func jsonExpandMessageXmd(t *testing.T, fname string) {
 	if err != nil {
 		t.Skipf("%.16s... not found", fname)
 	}
-	buf, err := readAll(vfile)
+	buf, err := io.ReadAll(vfile)
 	if err != nil {
 		t.Error(err.Error())
 	}
