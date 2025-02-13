@@ -33,7 +33,7 @@ jobs:
           ~/.cargo/registry
           **/Cargo.lock
           **/bindings/rust/target
-        key: ${{ runner.os }}-cargo-${{ steps.get-date.outputs.date }}
+        key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ steps.get-date.outputs.date }}
 
     - name: Environment
       shell: bash
