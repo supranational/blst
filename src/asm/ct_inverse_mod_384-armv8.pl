@@ -111,7 +111,7 @@ ct_inverse_mod_383:
 
 #ifdef	__CHERI_PURE_CAPABILITY__
 	cadd	$in_ptr, csp, #32+511
-	alignd	$in_ptr, $in_ptr, #9
+	aligned	$in_ptr, $in_ptr, #9
 #else
 	add	$in_ptr, sp, #32+511	// find closest 512-byte-aligned spot
 	and	$in_ptr, $in_ptr, #-512	// in the frame...
