@@ -267,7 +267,14 @@ static size_t pippenger_window_size(size_t npoints)
 
     for (wbits=0; npoints>>=1; wbits++) ;
 
-    return wbits>12 ? wbits-3 : (wbits>4 ? wbits-2 : (wbits ? 2 : 1));
+    if (wbits > 12)
+        return wbits - 3;
+    else if (wbits > 8)
+        return wbits - 2;
+    else if (wbits > 4)
+        return wbits - 1;
+
+    return wbits ? 2 : 1;
 }
 
 #define DECLARE_PRIVATE_POINTXYZZ(ptype, bits) \
@@ -402,10 +409,11 @@ void prefix##s_mult_pippenger(ptype *ret, \
 { \
     if (npoints == 1) { \
         prefix##_from_affine(ret, points[0]); \
-        prefix##_mult(ret, ret, scalars[0], nbits); \
+        ptype##_mult_w5(ret, ret, scalars[0], nbits); \
         return; \
     } \
-    if ((npoints * sizeof(ptype##_affine) * 8 * 3) <= SCRATCH_LIMIT) { \
+    if ((npoints * sizeof(ptype##_affine) * 8 * 3) <= SCRATCH_LIMIT && \
+        npoints < 32) { \
         ptype##_affine *table = alloca(npoints * sizeof(ptype##_affine) * 8); \
         ptype##s_precompute_wbits(table, 4, points, npoints); \
         ptype##s_mult_wbits(ret, table, 4, npoints, scalars, nbits, NULL); \
