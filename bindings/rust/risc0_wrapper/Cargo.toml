@@ -1,0 +1,8 @@
+[package]
+name = "risc0-wrapper"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+risc0-wrapper-methods = { path = "methods" }
+risc0-zkvm = { git = "https://github.com/risc0/risc0", tag = "v1.3.0-rc.1", features = [ "unstable", ] }

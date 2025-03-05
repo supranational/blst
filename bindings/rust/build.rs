@@ -233,6 +233,10 @@ fn main() {
         cc.define("__ELF__", None);
         cc.define("SCRATCH_LIMIT", "(45 * 1024)");
     }
+    if target_os.eq("zkvm") {
+        cc.define("__ZKVM__", None);
+    }
+
     if !cfg!(debug_assertions) {
         cc.opt_level(2);
     }
