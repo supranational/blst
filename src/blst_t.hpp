@@ -87,6 +87,33 @@ public:
     }
     inline blst_384_t(int a) : blst_384_t((uint64_t)a) {}
 
+#if defined(__CUDACC__) || defined(__HIPCC__)
+    template<typename... Ts>
+    constexpr blst_384_t(limb_t a0, Ts... arr)
+    {
+        limb_t temp[11] = {arr...};
+
+        if (sizeof...(arr) < 6) {
+            val[0] = a0;
+            val[1] = temp[0];
+            val[2] = temp[1];
+            val[3] = temp[2];
+            val[4] = temp[3];
+            val[5] = temp[4];
+        } else {
+            val[0] = a0      | (temp[0] << 32);
+            val[1] = temp[1] | (temp[2] << 32);
+            val[2] = temp[3] | (temp[4] << 32);
+            val[3] = temp[5] | (temp[6] << 32);
+            val[4] = temp[7] | (temp[8] << 32);
+            val[5] = temp[9] | (temp[10] << 32);
+        }
+    }
+#else
+    template<typename... Ts>
+    constexpr blst_384_t(limb_t a0, Ts... arr) : vec{a0, arr...} {}
+#endif
+
     inline void to_scalar(pow_t& scalar) const
     {
         const union {
@@ -296,7 +323,7 @@ public:
         *str++ = '0', *str++ = 'x';
         for (size_t i = 0; i < sizeof(obj); i++)
             *str++ = hex_from_nibble(be[i]>>4), *str++ = hex_from_nibble(be[i]);
-	*str = '\0';
+        *str = '\0';
 
         return os << buf;
     }
@@ -337,6 +364,29 @@ public:
         if (a) to();
     }
     inline blst_256_t(int a) : blst_256_t((uint64_t)a) {}
+
+#if defined(__CUDACC__) || defined(__HIPCC__)
+    template<typename... Ts>
+    constexpr blst_256_t(limb_t a0, Ts... arr)
+    {
+        limb_t temp[7] = {arr...};
+
+        if (sizeof...(arr) < 4) {
+            val[0] = a0;
+            val[1] = temp[0];
+            val[2] = temp[1];
+            val[3] = temp[2];
+        } else {
+            val[0] = a0      | (temp[0] << 32);
+            val[1] = temp[1] | (temp[2] << 32);
+            val[2] = temp[3] | (temp[4] << 32);
+            val[3] = temp[5] | (temp[6] << 32);
+        }
+    }
+#else
+    template<typename... Ts>
+    constexpr blst_256_t(limb_t a0, Ts... arr) : vec{a0, arr...} {}
+#endif
 
     inline void to_scalar(pow_t& scalar) const
     {
@@ -614,7 +664,7 @@ public:
         *str++ = '0', *str++ = 'x';
         for (size_t i = 0; i < sizeof(obj); i++)
             *str++ = hex_from_nibble(be[i]>>4), *str++ = hex_from_nibble(be[i]);
-	*str = '\0';
+        *str = '\0';
 
         return os << buf;
     }
