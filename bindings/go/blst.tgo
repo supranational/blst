@@ -151,6 +151,8 @@ import "C"
 
 import "runtime"
 
+import "fmt"
+
 const BLST_SCALAR_BYTES = 256 / 8
 const BLST_FP_BYTES = 384 / 8
 const BLST_P1_COMPRESS_BYTES = BLST_FP_BYTES
@@ -205,7 +207,7 @@ func SetMaxProcs(procs int) {
 func numThreads(maxThreads int) int {
     numThreads := maxProcs
 
-    // take into consideration the possility that application reduced
+    // take into consideration the possibility that application reduced
     // GOMAXPROCS after |maxProcs| was initialized
     numProcs := runtime.GOMAXPROCS(0)
     if maxProcs > numProcs {
@@ -364,7 +366,7 @@ func PairingAsFp12(ctx Pairing) *Fp12 {
 }
 
 func (pt *Fp12) asPtr() *C.blst_fp12 {
-    if (pt != nil) {
+    if pt != nil {
         return &pt.cgo
     }
 
