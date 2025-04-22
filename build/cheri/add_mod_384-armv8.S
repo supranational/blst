@@ -754,13 +754,12 @@ sgn0_pty_mod_384x:
 .align	5
 vec_select_32:
 	dup	v6.2d, x3
-	ld1	{v0.2d, v1.2d, v2.2d}, [c1],#48
+	ld1	{v0.2d, v1.2d}, [c1]
 	cmeq	v6.2d, v6.2d, #0
-	ld1	{v3.2d, v4.2d, v5.2d}, [c2],#48
+	ld1	{v3.2d, v4.2d}, [c2]
 	bit	v0.16b, v3.16b, v6.16b
 	bit	v1.16b, v4.16b, v6.16b
-	bit	v2.16b, v5.16b, v6.16b
-	st1	{v0.2d, v1.2d, v2.2d}, [c0]
+	st1	{v0.2d, v1.2d}, [c0]
 	ret
 .size	vec_select_32,.-vec_select_32
 .globl	vec_select_48
