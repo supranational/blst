@@ -28,17 +28,6 @@ CFLAGS=${CFLAGS:--O2 -fno-builtin -fPIC -Wall -Wextra -Werror}
 PERL=${PERL:-perl}
 unset cflags shared dll
 
-case `uname -s` in
-    Darwin)	flavour=macosx
-                if [ "`sysctl -n hw.optional.adx 2>/dev/null`" = "1" ]; then
-                    cflags="-D__ADX__"
-                fi
-                ;;
-    CYGWIN*)	flavour=mingw64;;
-    MINGW*)	flavour=mingw64;;
-    *)		flavour=elf;;
-esac
-
 while [ "x$1" != "x" ]; do
     case $1 in
         -shared)    shared=1;;
@@ -90,10 +79,24 @@ fi
 AR=${AR:-${CROSS_COMPILE}ar}
 RANLIB=${RANLIB:-${CROSS_COMPILE}ranlib}
 
-if echo ${predefs} | grep -q x86_64; then
-    if (grep -q -e '^flags.*\badx\b' /proc/cpuinfo) 2>/dev/null; then
-        cflags="-D__ADX__ $cflags"
+if [ -z "${flavour}" ]; then
+    if echo ${predefs} | grep -q __APPLE__; then
+        flavour=macosx
+    elif echo ${predefs} | grep -q _WIN32; then
+        flavour=mingw64
+    else
+        flavour=elf
     fi
+fi
+if echo ${predefs} | grep -q x86_64; then
+    case `uname -s` in
+        Darwin) if [ "`sysctl -n hw.optional.adx 2>/dev/null`" = "1" ]; then
+                    cflags="-D__ADX__ $cflags"
+                fi;;
+        *)      if (grep -q -e '^flags.*\badx\b' /proc/cpuinfo) 2>/dev/null; then
+                    cflags="-D__ADX__ $cflags"
+                fi;;
+    esac
 fi
 if echo ${predefs} | grep -q __AVX__; then
     cflags="$cflags -mno-avx" # avoid costly transitions
@@ -118,11 +121,11 @@ if [ $shared ]; then
         macosx) (set -x; ${CC} -dynamiclib -o libblst$dll.dylib \
                                -all_load libblst.a ${CFLAGS}); exit 0;;
         mingw*) sharedlib="blst.dll ${TOP}/build/win64/blst.def"
-                CFLAGS="${CFLAGS} --entry=DllMain ${TOP}/build/win64/dll.c"
-                CFLAGS="${CFLAGS} -nostdlib -lgcc";;
-        *)      sharedlib=libblst$dll.so;;
+                CFLAGS="${CFLAGS} -Wl,--entry=DllMain ${TOP}/build/win64/dll.c"
+                CFLAGS="${CFLAGS} -nostartfiles";;
+        *)      sharedlib=libblst$dll.so
+                CFLAGS="${CFLAGS} -Wl,-Bsymbolic";;
     esac
     (set -x; ${CC} -shared -o $sharedlib \
-                   -Wl,--whole-archive,libblst.a,--no-whole-archive ${CFLAGS} \
-                   -Wl,-Bsymbolic)
+                   -Wl,--whole-archive,libblst.a,--no-whole-archive ${CFLAGS})
 fi
