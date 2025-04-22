@@ -813,7 +813,24 @@ $code.=<<___;
 .size	vec_select_$sz,.-vec_select_$sz
 ___
 }
-vec_select(32);
+
+$code.=<<___;
+.globl	vec_select_32
+.hidden	vec_select_32
+.type	vec_select_32,%function
+.align	5
+vec_select_32:
+	dup	v6.2d, $n_ptr
+	ld1	{v0.2d, v1.2d}, [$a_ptr]
+	cmeq	v6.2d, v6.2d, #0
+	ld1	{v3.2d, v4.2d}, [$b_ptr]
+	bit	v0.16b, v3.16b, v6.16b
+	bit	v1.16b, v4.16b, v6.16b
+	st1	{v0.2d, v1.2d}, [$r_ptr]
+	ret
+.size	vec_select_32,.-vec_select_32
+___
+
 vec_select(48);
 vec_select(96);
 vec_select(192);
