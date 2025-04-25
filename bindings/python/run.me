@@ -46,10 +46,10 @@ if newer("blst_wrap.cpp", "../libblst.a", blst_so):
     if sysconfig.get_config_var('MACHDEP') == 'darwin':
         cmd = ["c++", "-bundle", "-undefined", "dynamic_lookup",
                "-arch", "arm64", "-arch", "x86_64"]
+    elif blst_so.endswith(".so"):
+        cmd = ["c++", "-shared", "-Wl,-Bsymbolic"]
     else:
         cmd = ["c++", "-shared"]
-    if blst_so.endswith(".so"):
-        cmd.extend(["-Wl,-Bsymbolic"])
     cmd.extend(["-o", blst_so, "-fPIC", "-fvisibility=hidden",
                 "-I"+sysconfig.get_config_var('INCLUDEPY'), "-I..",
                 "-O", "-Wall", "blst_wrap.cpp", "../libblst.a"])
