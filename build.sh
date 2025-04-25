@@ -84,6 +84,9 @@ if [ -z "${flavour}" ]; then
         flavour=macosx
     elif echo ${predefs} | grep -q _WIN32; then
         flavour=mingw64
+        if [ $shared ]; then
+            cflags="$cflags -D__BLST_DLL_MAIN__"
+        fi
     else
         flavour=elf
     fi
@@ -121,8 +124,7 @@ if [ $shared ]; then
         macosx) (set -x; ${CC} -dynamiclib -o libblst$dll.dylib \
                                -all_load libblst.a ${CFLAGS}); exit 0;;
         mingw*) sharedlib="blst.dll ${TOP}/build/win64/blst.def"
-                CFLAGS="${CFLAGS} -Wl,--entry=DllMain ${TOP}/build/win64/dll.c"
-                CFLAGS="${CFLAGS} -nostartfiles";;
+                CFLAGS="${CFLAGS} -Wl,--entry=DllMain -nostartfiles";;
         *)      sharedlib=libblst$dll.so
                 CFLAGS="${CFLAGS} -Wl,-Bsymbolic";;
     esac
