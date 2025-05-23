@@ -111,7 +111,7 @@ public:
     }
 #else
     template<typename... Ts>
-    constexpr blst_384_t(limb_t a0, Ts... arr) : vec{a0, arr...} {}
+    constexpr blst_384_t(limb_t a0, Ts... arr) : val{a0, arr...} {}
 #endif
 
     inline void to_scalar(pow_t& scalar) const
@@ -385,7 +385,7 @@ public:
     }
 #else
     template<typename... Ts>
-    constexpr blst_256_t(limb_t a0, Ts... arr) : vec{a0, arr...} {}
+    constexpr blst_256_t(limb_t a0, Ts... arr) : val{a0, arr...} {}
 #endif
 
     inline void to_scalar(pow_t& scalar) const
