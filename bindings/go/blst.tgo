@@ -363,14 +363,6 @@ func PairingAsFp12(ctx Pairing) *Fp12 {
     return &pt
 }
 
-func (pt *Fp12) asPtr() *C.blst_fp12 {
-    if (pt != nil) {
-        return &pt.cgo
-    }
-
-    return nil
-}
-
 func Fp12One() Fp12 {
     return cgo_fp12One
 }
@@ -463,6 +455,14 @@ func (pt *Fp12) ToBendian() []byte {
 
 func (pt1 *Fp12) Equals(pt2 *Fp12) bool {
     return *pt1 == *pt2
+}
+
+func (pt *Fp12) asPtr() *C.blst_fp12 {
+    if (pt != nil) {
+        return &pt.cgo
+    }
+
+    return nil
 }
 
 func ptrOrNil(bytes []byte) *C.byte {

@@ -244,12 +244,28 @@ func (e1 *P1Affine) Equals(e2 *P1Affine) bool {
     return bool(C.blst_p1_affine_is_equal(&e1.cgo, &e2.cgo))
 }
 
+func (pt *P1Affine) asPtr() *C.blst_p1_affine {
+    if (pt != nil) {
+        return &pt.cgo
+    }
+
+    return nil
+}
+
 func (e1 *P1) Equals(e2 *P1) bool {
     return bool(C.blst_p1_is_equal(&e1.cgo, &e2.cgo))
 }
 
 func (e1 *P2Affine) Equals(e2 *P2Affine) bool {
     return bool(C.blst_p2_affine_is_equal(&e1.cgo, &e2.cgo))
+}
+
+func (pt *P2Affine) asPtr() *C.blst_p2_affine {
+    if (pt != nil) {
+        return &pt.cgo
+    }
+
+    return nil
 }
 
 func (e1 *P2) Equals(e2 *P2) bool {

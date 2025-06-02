@@ -370,14 +370,6 @@ func PairingAsFp12(ctx Pairing) *Fp12 {
 	return &pt
 }
 
-func (pt *Fp12) asPtr() *C.blst_fp12 {
-	if pt != nil {
-		return &pt.cgo
-	}
-
-	return nil
-}
-
 func Fp12One() Fp12 {
 	return cgo_fp12One
 }
@@ -472,6 +464,14 @@ func (pt1 *Fp12) Equals(pt2 *Fp12) bool {
 	return *pt1 == *pt2
 }
 
+func (pt *Fp12) asPtr() *C.blst_fp12 {
+	if pt != nil {
+		return &pt.cgo
+	}
+
+	return nil
+}
+
 func ptrOrNil(bytes []byte) *C.byte {
 	var ptr *C.byte
 	if len(bytes) > 0 {
@@ -487,14 +487,6 @@ func ptrOrNil(bytes []byte) *C.byte {
 //
 // PublicKey
 //
-
-func (pt *P1Affine) asPtr() *C.blst_p1_affine {
-	if pt != nil {
-		return &pt.cgo
-	}
-
-	return nil
-}
 
 func (pk *P1Affine) From(s *Scalar) *P1Affine {
 	C.blst_sk_to_pk2_in_g1(nil, &pk.cgo, &s.cgo)
@@ -604,7 +596,7 @@ func (sig *P2Affine) AggregateVerify(sigGroupcheck bool,
 
 // Aggregate verify with compressed signature and public keys
 // Uses a dummy signature to get the correct type
-func (_ *P2Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
+func (*P2Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
 	pks [][]byte, pksVerify bool, msgs []Message, dst []byte,
 	optional ...bool) bool { // useHash bool, usePksAsAugs bool
 
@@ -810,7 +802,7 @@ func (sig *P2Affine) FastAggregateVerify(sigGroupcheck bool,
 	return sig.Verify(sigGroupcheck, pkAff, false, msg, dst, optional...)
 }
 
-func (_ *P2Affine) MultipleAggregateVerify(sigs []*P2Affine,
+func (*P2Affine) MultipleAggregateVerify(sigs []*P2Affine,
 	sigsGroupcheck bool, pks []*P1Affine, pksVerify bool,
 	msgs []Message, dst []byte, randFn func(*Scalar), randBits int,
 	optional ...interface{}) bool { // useHash
@@ -1096,14 +1088,6 @@ func (agg *P2Aggregate) coreAggregate(getter aggGetterP2, groupcheck bool,
 // PublicKey
 //
 
-func (pt *P2Affine) asPtr() *C.blst_p2_affine {
-	if pt != nil {
-		return &pt.cgo
-	}
-
-	return nil
-}
-
 func (pk *P2Affine) From(s *Scalar) *P2Affine {
 	C.blst_sk_to_pk2_in_g2(nil, &pk.cgo, &s.cgo)
 	return pk
@@ -1212,7 +1196,7 @@ func (sig *P1Affine) AggregateVerify(sigGroupcheck bool,
 
 // Aggregate verify with compressed signature and public keys
 // Uses a dummy signature to get the correct type
-func (_ *P1Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
+func (*P1Affine) AggregateVerifyCompressed(sig []byte, sigGroupcheck bool,
 	pks [][]byte, pksVerify bool, msgs []Message, dst []byte,
 	optional ...bool) bool { // useHash bool, usePksAsAugs bool
 
@@ -1418,7 +1402,7 @@ func (sig *P1Affine) FastAggregateVerify(sigGroupcheck bool,
 	return sig.Verify(sigGroupcheck, pkAff, false, msg, dst, optional...)
 }
 
-func (_ *P1Affine) MultipleAggregateVerify(sigs []*P1Affine,
+func (*P1Affine) MultipleAggregateVerify(sigs []*P1Affine,
 	sigsGroupcheck bool, pks []*P2Affine, pksVerify bool,
 	msgs []Message, dst []byte, randFn func(*Scalar), randBits int,
 	optional ...interface{}) bool { // useHash
@@ -1771,7 +1755,7 @@ func (p1 *P1Affine) InG1() bool {
 	return bool(C.blst_p1_affine_in_g1(&p1.cgo))
 }
 
-func (_ *P1Affine) BatchUncompress(in [][]byte) []*P1Affine {
+func (*P1Affine) BatchUncompress(in [][]byte) []*P1Affine {
 	// Allocate space for all of the resulting points. Later we'll save pointers
 	// and return those so that the result could be used in other functions,
 	// such as MultipleAggregateVerify.
@@ -2578,7 +2562,7 @@ func (p2 *P2Affine) InG2() bool {
 	return bool(C.blst_p2_affine_in_g2(&p2.cgo))
 }
 
-func (_ *P2Affine) BatchUncompress(in [][]byte) []*P2Affine {
+func (*P2Affine) BatchUncompress(in [][]byte) []*P2Affine {
 	// Allocate space for all of the resulting points. Later we'll save pointers
 	// and return those so that the result could be used in other functions,
 	// such as MultipleAggregateVerify.
@@ -3547,12 +3531,28 @@ func (e1 *P1Affine) Equals(e2 *P1Affine) bool {
 	return bool(C.blst_p1_affine_is_equal(&e1.cgo, &e2.cgo))
 }
 
+func (pt *P1Affine) asPtr() *C.blst_p1_affine {
+	if pt != nil {
+		return &pt.cgo
+	}
+
+	return nil
+}
+
 func (e1 *P1) Equals(e2 *P1) bool {
 	return bool(C.blst_p1_is_equal(&e1.cgo, &e2.cgo))
 }
 
 func (e1 *P2Affine) Equals(e2 *P2Affine) bool {
 	return bool(C.blst_p2_affine_is_equal(&e1.cgo, &e2.cgo))
+}
+
+func (pt *P2Affine) asPtr() *C.blst_p2_affine {
+	if pt != nil {
+		return &pt.cgo
+	}
+
+	return nil
 }
 
 func (e1 *P2) Equals(e2 *P2) bool {
