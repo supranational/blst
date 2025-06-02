@@ -663,6 +663,7 @@ mul_by_1_plus_i_mod_384x:
 .type	sgn0_pty_mod_384,%function
 .align	5
 sgn0_pty_mod_384:
+	hint	#34
 	ldp	@a[0],@a[1],[$r_ptr]
 	ldp	@a[2],@a[3],[$r_ptr,#16]
 	ldp	@a[4],@a[5],[$r_ptr,#32]
@@ -700,6 +701,7 @@ sgn0_pty_mod_384:
 .type	sgn0_pty_mod_384x,%function
 .align	5
 sgn0_pty_mod_384x:
+	hint	#34
 	ldp	@a[0],@a[1],[$r_ptr]
 	ldp	@a[2],@a[3],[$r_ptr,#16]
 	ldp	@a[4],@a[5],[$r_ptr,#32]
@@ -788,6 +790,7 @@ $code.=<<___;
 .type	vec_select_$sz,%function
 .align	5
 vec_select_$sz:
+	hint	#34
 	dup	v6.2d, $n_ptr
 	ld1	{@v[0].2d, @v[1].2d, @v[2].2d}, [$a_ptr],#48
 	cmeq	v6.2d, v6.2d, #0
@@ -820,6 +823,7 @@ $code.=<<___;
 .type	vec_select_32,%function
 .align	5
 vec_select_32:
+	hint	#34
 	dup	v6.2d, $n_ptr
 	ld1	{v0.2d, v1.2d}, [$a_ptr]
 	cmeq	v6.2d, v6.2d, #0
@@ -847,6 +851,7 @@ $code.=<<___;
 .type	vec_prefetch,%function
 .align	5
 vec_prefetch:
+	hint	#34
 	add	$end, $end, $inp
 	sub	$end, $end, #1
 	mov	$step, #64
@@ -891,6 +896,7 @@ $code.=<<___;
 .type	vec_is_zero_16x,%function
 .align	5
 vec_is_zero_16x:
+	hint	#34
 	ld1	{v0.2d}, [$inp], #16
 	lsr	$len, $len, #4
 	sub	$len, $len, #1
@@ -922,6 +928,7 @@ $code.=<<___;
 .type	vec_is_equal_16x,%function
 .align	5
 vec_is_equal_16x:
+	hint	#34
 	ld1	{v0.2d}, [$inp1], #16
 	ld1	{v1.2d}, [$inp2], #16
 	lsr	$len, $len, #4
