@@ -5,7 +5,7 @@
 
 .align	5
 _ct_inverse_mod_383:
-.long	3573752639
+	hint	#25
 	stp	x29, x30, [sp,#-16*__SIZEOF_POINTER__]!
 	add	x29, sp, #0
 	stp	x19, x20, [sp,#2*__SIZEOF_POINTER__]
@@ -431,7 +431,7 @@ _ct_inverse_mod_383:
 	ldp	x25, x26, [x29,#8*__SIZEOF_POINTER__]
 	ldp	x27, x28, [x29,#10*__SIZEOF_POINTER__]
 	ldr	x29, [sp],#16*__SIZEOF_POINTER__
-.long	3573752767
+	hint	#29
 	ret
 
 

@@ -49,6 +49,7 @@
 .endef
 .p2align	6
 blst_sha256_block_armv8:
+	hint	#34
 .Lv8_entry:
 	stp	x29,x30,[sp,#-2*__SIZEOF_POINTER__]!
 	add	x29,sp,#0
@@ -191,6 +192,7 @@ blst_sha256_block_armv8:
 .endef
 .p2align	4
 blst_sha256_block_data_order:
+	hint	#34
 	adrp	x16,__blst_platform_cap
 	ldr	w16,[x16,#:lo12:__blst_platform_cap]
 	tst	w16,#1
@@ -1042,6 +1044,7 @@ blst_sha256_block_data_order:
 .endef
 .p2align	4
 blst_sha256_emit:
+	hint	#34
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
 #ifndef	__AARCH64EB__
@@ -1072,6 +1075,7 @@ blst_sha256_emit:
 .endef
 .p2align	4
 blst_sha256_bcopy:
+	hint	#34
 .Loop_bcopy:
 	ldrb	w3,[x1],#1
 	sub	x2,x2,#1
@@ -1087,6 +1091,7 @@ blst_sha256_bcopy:
 .endef
 .p2align	4
 blst_sha256_hcopy:
+	hint	#34
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
 	stp	x4,x5,[x0]

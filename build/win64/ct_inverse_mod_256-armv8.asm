@@ -7,7 +7,7 @@ __SIZEOF_POINTER__ SETA 64/8
 	EXPORT	|ct_inverse_mod_256|[FUNC]
 	ALIGN	32
 |ct_inverse_mod_256| PROC
-	DCDU	3573752639
+	hint	#25
 	stp	x29, x30, [sp,#-10*__SIZEOF_POINTER__]!
 	add	x29, sp, #0
 	stp	x19, x20, [sp,#2*__SIZEOF_POINTER__]
@@ -543,7 +543,7 @@ __SIZEOF_POINTER__ SETA 64/8
 	ldp	x23, x24, [x29,#6*__SIZEOF_POINTER__]
 	ldp	x25, x26, [x29,#8*__SIZEOF_POINTER__]
 	ldr	x29, [sp],#10*__SIZEOF_POINTER__
-	DCDU	3573752767
+	hint	#29
 	ret
 	ENDP
 

@@ -49,6 +49,7 @@ __SIZEOF_POINTER__ SETA 64/8
 	EXPORT	|blst_sha256_block_armv8|[FUNC]
 	ALIGN	64
 |blst_sha256_block_armv8| PROC
+	hint	#34
 |$Lv8_entry|
 	stp	x29,x30,[sp,#-2*__SIZEOF_POINTER__]!
 	add	x29,sp,#0
@@ -189,6 +190,7 @@ __SIZEOF_POINTER__ SETA 64/8
 	EXPORT	|blst_sha256_block_data_order|[FUNC]
 	ALIGN	16
 |blst_sha256_block_data_order| PROC
+	hint	#34
 	adrp	x16,__blst_platform_cap
 	ldr	w16,[x16,__blst_platform_cap]
 	tst	w16,#1
@@ -1038,6 +1040,7 @@ __SIZEOF_POINTER__ SETA 64/8
 	EXPORT	|blst_sha256_emit|[FUNC]
 	ALIGN	16
 |blst_sha256_emit| PROC
+	hint	#34
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
  if :lnot::def:	__AARCH64EB__
@@ -1066,6 +1069,7 @@ __SIZEOF_POINTER__ SETA 64/8
 	EXPORT	|blst_sha256_bcopy|[FUNC]
 	ALIGN	16
 |blst_sha256_bcopy| PROC
+	hint	#34
 |$Loop_bcopy|
 	ldrb	w3,[x1],#1
 	sub	x2,x2,#1
@@ -1079,6 +1083,7 @@ __SIZEOF_POINTER__ SETA 64/8
 	EXPORT	|blst_sha256_hcopy|[FUNC]
 	ALIGN	16
 |blst_sha256_hcopy| PROC
+	hint	#34
 	ldp	x4,x5,[x1]
 	ldp	x6,x7,[x1,#16]
 	stp	x4,x5,[x0]

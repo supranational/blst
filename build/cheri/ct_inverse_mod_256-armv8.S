@@ -1,3 +1,11 @@
+#if defined(__ARM_FEATURE_PAC_DEFAULT) && __ARM_FEATURE_PAC_DEFAULT==2
+# define PACI_HINT 27
+# define AUTI_HINT 31
+#else
+# define PACI_HINT 25
+# define AUTI_HINT 29
+#endif
+
 .text
 
 .globl	ct_inverse_mod_256
@@ -5,7 +13,7 @@
 .type	ct_inverse_mod_256, %function
 .align	5
 ct_inverse_mod_256:
-	.inst	0xd503233f
+	hint	#PACI_HINT
 	stp	c29, c30, [csp,#-10*__SIZEOF_POINTER__]!
 	add	c29, csp, #0
 	stp	c19, c20, [csp,#2*__SIZEOF_POINTER__]
@@ -541,7 +549,7 @@ ct_inverse_mod_256:
 	ldp	c23, c24, [c29,#6*__SIZEOF_POINTER__]
 	ldp	c25, c26, [c29,#8*__SIZEOF_POINTER__]
 	ldr	c29, [csp],#10*__SIZEOF_POINTER__
-	.inst	0xd50323bf
+	hint	#AUTI_HINT
 	ret
 .size	ct_inverse_mod_256,.-ct_inverse_mod_256
 
@@ -878,3 +886,13 @@ __inner_loop_62_256:
 
 	ret
 .size	__inner_loop_62_256,.-__inner_loop_62_256
+
+#if defined(__ARM_FEATURE_BTI_DEFAULT) || defined(__ARM_FEATURE_PAC_DEFAULT)
+.section	.note.GNU-stack,"",@progbits
+.section	.note.gnu.property,"a",@note
+	.long	4,2f-1f,5
+	.byte	0x47,0x4E,0x55,0
+1:	.long	0xc0000000,4,3
+.align  3
+2:
+#endif
