@@ -7,9 +7,6 @@
 #include "fields.h"
 #include "point.h"
 
-/*
- * Infinite point among inputs would be devastating. Shall we change it?
- */
 #define POINTS_TO_AFFINE_IMPL(prefix, ptype, bits, field) \
 static void ptype##s_to_affine(ptype##_affine dst[], \
                                const ptype *const points[], size_t npoints) \
@@ -25,27 +22,36 @@ static void ptype##s_to_affine(ptype##_affine dst[], \
 \
         point = *points ? *points++ : point+1; \
         acc = (vec##bits *)dst; \
-        vec_copy(acc++, point->Z, sizeof(vec##bits)); \
-        for (i = 1; i < delta; i++, acc++) \
-            point = *points ? *points++ : point+1, \
-            mul_##field(acc[0], acc[-1], point->Z); \
+        vec_select(acc++, BLS12_381_Rx.p, point->Z, sizeof(vec##bits), \
+                          vec_is_zero(point->Z, sizeof(point->Z))); \
+        for (i = 1; i < delta; i++, acc++) { \
+            point = *points ? *points++ : point+1; \
+            vec_select(acc[0], BLS12_381_Rx.p, point->Z, sizeof(vec##bits), \
+                               vec_is_zero(point->Z, sizeof(point->Z))); \
+            mul_##field(acc[0], acc[0], acc[-1]); \
+        } \
 \
         --acc; reciprocal_##field(acc[0], acc[0]); \
 \
         walkback = points-1, p = point, --delta, dst += delta; \
         for (i = 0; i < delta; i++, acc--, dst--) { \
+            bool_t is_inf = vec_is_zero(p->Z, sizeof(p->Z)); \
             mul_##field(acc[-1], acc[-1], acc[0]);  /* 1/Z        */\
             sqr_##field(ZZ, acc[-1]);               /* 1/Z^2      */\
             mul_##field(ZZZ, ZZ, acc[-1]);          /* 1/Z^3      */\
-            mul_##field(acc[-1], p->Z, acc[0]);     \
+            vec_select(acc[-1], BLS12_381_Rx.p, p->Z, sizeof(vec##bits), \
+                                is_inf); \
+            mul_##field(acc[-1], acc[-1], acc[0]);  \
             mul_##field(dst->X,  p->X, ZZ);         /* X = X'/Z^2 */\
             mul_##field(dst->Y,  p->Y, ZZZ);        /* Y = Y'/Z^3 */\
+            vec_czero(dst, sizeof(*dst), is_inf); \
             p = (p == *walkback) ? *--walkback : p-1; \
         } \
         sqr_##field(ZZ, acc[0]);                    /* 1/Z^2      */\
         mul_##field(ZZZ, ZZ, acc[0]);               /* 1/Z^3      */\
         mul_##field(dst->X, p->X, ZZ);              /* X = X'/Z^2 */\
         mul_##field(dst->Y, p->Y, ZZZ);             /* Y = Y'/Z^3 */\
+        vec_czero(dst, sizeof(*dst), vec_is_zero(p->Z, sizeof(p->Z))); \
         ++delta, dst += delta, npoints -= delta; \
     } \
 } \
