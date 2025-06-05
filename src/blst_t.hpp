@@ -88,6 +88,9 @@ public:
     inline blst_384_t(int a) : blst_384_t((uint64_t)a) {}
 
 #if defined(__CUDACC__) || defined(__HIPCC__)
+# if __cplusplus < 201402L && _MSVC_LANG-0 < 201402L
+#  error "C++ >= 14 is required to compile <blst>/src/blst_t.hpp for CUDA"
+# endif
     template<typename... Ts>
     constexpr blst_384_t(limb_t a0, Ts... arr)
     {
@@ -303,7 +306,6 @@ public:
     inline blst_384_t& operator/=(const blst_384_t& a)
     {   return *this *= a.reciprocal();   }
 
-#ifndef NDEBUG
     inline blst_384_t(const char *hexascii)
     {   limbs_from_hexascii(val, sizeof(val), hexascii); to();   }
 
@@ -312,8 +314,8 @@ public:
     friend inline bool operator!=(const blst_384_t& a, const blst_384_t& b)
     {   return !vec_is_equal(a, b, sizeof(vec384));   }
 
-# if defined(_GLIBCXX_IOSTREAM) || defined(_IOSTREAM_) // non-standard
-    friend std::ostream& operator<<(std::ostream& os, const blst_384_t& obj)
+    template<class OStream, typename Traits = typename OStream::traits_type>
+    friend OStream& operator<<(OStream& os, const blst_384_t& obj)
     {
         unsigned char be[sizeof(obj)];
         char buf[2+2*sizeof(obj)+1], *str = buf;
@@ -327,8 +329,6 @@ public:
 
         return os << buf;
     }
-# endif
-#endif
 };
 
 template<const size_t N, const vec256 MOD, const limb_t M0,
@@ -366,6 +366,9 @@ public:
     inline blst_256_t(int a) : blst_256_t((uint64_t)a) {}
 
 #if defined(__CUDACC__) || defined(__HIPCC__)
+# if __cplusplus < 201402L && _MSVC_LANG-0 < 201402L
+#  error "C++ >= 14 is required to compile <blst>/src/blst_t.hpp for CUDA"
+# endif
     template<typename... Ts>
     constexpr blst_256_t(limb_t a0, Ts... arr)
     {
@@ -513,7 +516,7 @@ public:
 
     inline blst_256_t& operator>>=(unsigned r)
     {   lshift_mod_256(val, val, r, MOD);           return *this;   }
-    friend inline blst_256_t operator>>(blst_256_t a, unsigned r)
+    friend inline blst_256_t operator>>(const blst_256_t& a, unsigned r)
     {
         blst_256_t ret;
         lshift_mod_256(ret, a, r, MOD);
@@ -644,7 +647,6 @@ public:
     inline blst_256_t& operator/=(const blst_256_t& a)
     {   return *this *= a.reciprocal();   }
 
-#ifndef NDEBUG
     inline blst_256_t(const char *hexascii)
     {   limbs_from_hexascii(val, sizeof(val), hexascii); to();   }
 
@@ -653,8 +655,8 @@ public:
     friend inline bool operator!=(const blst_256_t& a, const blst_256_t& b)
     {   return !vec_is_equal(a, b, sizeof(vec256));   }
 
-# if defined(_GLIBCXX_IOSTREAM) || defined(_IOSTREAM_) // non-standard
-    friend std::ostream& operator<<(std::ostream& os, const blst_256_t& obj)
+    template<class OStream, typename Traits = typename OStream::traits_type>
+    friend OStream& operator<<(OStream& os, const blst_256_t& obj)
     {
         unsigned char be[sizeof(obj)];
         char buf[2+2*sizeof(obj)+1], *str=buf;
@@ -668,7 +670,5 @@ public:
 
         return os << buf;
     }
-# endif
-#endif
 };
 #endif
