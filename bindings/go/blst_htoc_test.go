@@ -82,7 +82,7 @@ func jsonG1HashToCurve(t *testing.T, fname string) {
 	for _, v := range vectorsArr {
 		testMap, ok := v.(map[string]interface{})
 		if !ok {
-			t.Errorf("Could not cast vector to map")
+			t.Error("Could not cast vector to map")
 		}
 
 		msg := []byte(testMap["msg"].(string))
@@ -95,7 +95,7 @@ func jsonG1HashToCurve(t *testing.T, fname string) {
 		}
 
 		if !p1Hashed.Equals(p1Expected) {
-			t.Errorf("hashed != expected")
+			t.Error("hashed != expected")
 		}
 	}
 }
@@ -162,7 +162,7 @@ func jsonG2HashToCurve(t *testing.T, fname string) {
 	for _, v := range vectorsArr {
 		testMap, ok := v.(map[string]interface{})
 		if !ok {
-			t.Errorf("Could not cast vector to map")
+			t.Error("Could not cast vector to map")
 		}
 
 		msg := []byte(testMap["msg"].(string))
@@ -175,7 +175,7 @@ func jsonG2HashToCurve(t *testing.T, fname string) {
 		}
 
 		if !p2Hashed.Equals(p2Expected) {
-			t.Errorf("hashed != expected")
+			t.Error("hashed != expected")
 		}
 	}
 }
