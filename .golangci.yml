@@ -22,6 +22,7 @@ linters:
     - varnamelen
     - whitespace
     - wsl
+    - wsl_v5
     # auto-generation artefact
     - dupl
     # maybe some day...
@@ -32,7 +33,7 @@ linters:
     - nonamedreturns
     - perfsprint
     - testpackage
-    # 78 active linters remaining including gosec, gosimple, govet, etc.
+    # 81 active linters remaining including gosec, gosimple, govet, etc.
   settings:
     revive:
       enable-all-rules: true
