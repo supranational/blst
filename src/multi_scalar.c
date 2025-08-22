@@ -208,7 +208,7 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
 \
     nbits -= window; \
     z = is_zero(nbits); \
-    wval = (get_wval_limb(scalar, nbits - (z^1), wbits + (z^1)) << z) & wmask; \
+    wval = (get_wval_limb(scalar, nbits - (z^1), window + (z^1)) << z) & wmask; \
     wval = booth_encode(wval, wbits); \
     ptype##_gather_booth_wbits(&scratch[0], row, wbits, wval); \
     row += nwin; \
@@ -238,7 +238,7 @@ static void ptype##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
         if (j == scratch_sz) \
             ptype##s_accumulate(ret, scratch, j), j = 0; \
         scalar = *scalar_s ? *scalar_s++ : scalar+nbytes; \
-        wval = (get_wval_limb(scalar, 0, wbits) << 1) & wmask; \
+        wval = (get_wval_limb(scalar, 0, window) << 1) & wmask; \
         wval = booth_encode(wval, wbits); \
         ptype##_gather_booth_wbits(&scratch[j], row, wbits, wval); \
     } \
