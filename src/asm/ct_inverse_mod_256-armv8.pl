@@ -63,7 +63,7 @@ def ct_inverse_mod_256(inp, mod):
         v += mod
     if v < 0:
         v += mod
-    elif v == 1<<512
+    elif v == 1<<512:
         v -= mod
 
     return v & (2**512 - 1) # to be reduced % mod

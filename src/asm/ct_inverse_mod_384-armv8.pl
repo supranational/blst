@@ -44,7 +44,7 @@ def ct_inverse_mod_384(inp, mod):
         if b < 0:
             b, f1, g1 = -b, -f1, -g1
 
-        # __smul_767x63
+        # __smul_768x63
         u, v = u*f0 + v*g0, u*f1 + v*g1
 
     if 768 % k:
@@ -58,8 +58,13 @@ def ct_inverse_mod_384(inp, mod):
 
         v = u*f1 + v*g1
 
+    mod <<= 768 - mod.bit_length()  # align to the left
     if v < 0:
-        v += mod << (768 - mod.bit_length())    # left aligned
+        v += mod
+    if v < 0:
+        v += mod
+    elif v == 1<<768:
+        v -= mod
 
     return v & (2**768 - 1) # to be reduced % mod
 ___
