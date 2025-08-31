@@ -80,18 +80,23 @@ POINTS_TO_AFFINE_IMPL(blst_p2, POINTonE2, 384x, fp2)
 
 #define SCRATCH_SZ(ptype) (sizeof(ptype)==sizeof(POINTonE1) ? 8192 : 4096)
 
+/* The intermediate infinity points are encoded as [0, 0, 1]. */
+
 #define PRECOMPUTE_WBITS_IMPL(prefix, ptype, bits, field, one) \
 static void ptype##_precompute_row_wbits(ptype row[], size_t wbits, \
                                          const ptype##_affine *point) \
 { \
     size_t i, j, n = (size_t)1 << (wbits-1); \
+    bool_t inf = vec_is_zero(point, sizeof(*point)); \
                                           /* row[-1] is implicit infinity */\
     vec_copy(&row[0], point, sizeof(*point));           /* row[0]=p*1     */\
     vec_copy(&row[0].Z, one, sizeof(row[0].Z));                             \
     ptype##_double(&row[1],  &row[0]);                  /* row[1]=p*(1+1) */\
+    vec_select(&row[1].Z, one, &row[1].Z, sizeof(row[1].Z), inf);           \
     for (i = 2, j = 1; i < n; i += 2, j++) \
         ptype##_add_affine(&row[i], &row[i-1], point),  /* row[2]=p*(2+1) */\
-        ptype##_double(&row[i+1], &row[j]);             /* row[3]=p*(2+2) */\
+        ptype##_double(&row[i+1], &row[j]),             /* row[3]=p*(2+2) */\
+        vec_select(&row[i+1].Z, one, &row[i+1].Z, sizeof(row[i+1].Z), inf); \
 }                                                       /* row[4] ...     */\
 \
 static void ptype##s_to_affine_row_wbits(ptype##_affine dst[], ptype src[], \
