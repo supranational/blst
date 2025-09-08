@@ -29,7 +29,7 @@ env GOARCH=arm CC=arm-linux-gnueabi-gcc CGO_ENABLED=1 go test -c
 ## Usage
 There are two primary modes of operation that can be chosen based on type definitions in the application.
 
-For minimal-pubkey-size operations:
+For minimal-pubkey-size operations the application would define core types as:
 ```
 type PublicKey = blst.P1Affine
 type Signature = blst.P2Affine
@@ -44,8 +44,6 @@ type Signature = blst.P1Affine
 type AggregateSignature = blst.P1Aggregate
 type AggregatePublicKey = blst.P2Aggregate
 ```
-
-TODO - structures and possibly methods
 
 A complete example for generating a key, signing a message, and verifying the message:
 ```
@@ -82,3 +80,47 @@ func main() {
 ```
 
 See the tests for further examples of usage.
+
+## Core Methods
+
+### SecretKey Methods
+- `KeyGen(ikm []byte, optional ...[]byte) *SecretKey` - Derive the secret key scalar from secret input key material, optionally application-specific
+- `Serialize() []byte` - Serialize the secret key to bytes
+- `Deserialize(data []byte) *SecretKey` - Deserialize secret key from bytes
+- `Zeroize()` - Securely zero out the secret key
+
+### PublicKey (P1Affine in minimal-pubkey-size) Methods
+- `From(sk *SecretKey) *PublicKey` - Derive public key from secret key
+- `Compress() []byte` - Serialize public key to compressed format
+- `Uncompress(data []byte) *PublicKey` - Decompress public key from bytes
+- `Serialize() []byte` - Serialize public key to uncompressed format
+- `Deserialize(data []byte) *PublicKey` - Deserialize public key from bytes
+
+### Signature (P2Affine in minimal-pubkey-size) Methods
+- `Sign(sk *SecretKey, msg []byte, dst []byte, ...interface{}) *Signature` - Sign a message
+- `Compress() []byte` - Serialize signature to compressed format
+- `Uncompress(data []byte) *Signature` - Decompress signature from bytes
+- `BatchUncompress(compressedSigs [][]byte) []*Signature` - Efficiently uncompress multiple signatures
+- `Serialize() []byte` - Serialize public key to uncompressed format
+- `Deserialize(data []byte) *Signature` - Deserialize public key from bytes
+- `Verify(sigCheck bool, pk *PublicKey, pkCheck bool, msg []byte, dst []byte, ...interface{}) bool` - Verify a signature
+- `VerifyCompressed(sig []byte, sigCheck bool, pk []byte, msgCheck bool, msg []byte, dst []byte, ...interface{}) bool` - Verify a serialized signature in compressed format
+- `AggregateVerify(sigCheck bool, pks []*PublicKey, msgCheck bool, msgs [][]byte, dst []byte) bool` - Verify an aggregated signature for multiple messages
+- `AggregateVerifyCompressed(sig []byte, sigCheck bool, pks [][]byte, msgCheck bool, msgs [][]byte, dst []byte) bool` - Verify an aggregated serialized signature in compressed format
+- `FastAggregateVerify(sigCheck bool, pks []*PublicKey, msg []byte, dst []byte) bool` - Fast verify for same message
+- `MultipleAggregateVerify(sigs []*Signature, sigCheck bool, pks []*PublicKey, msgCheck bool, msgs [][]byte, dst []byte, randFn func(*Scalar), randBits int) bool` - Verify multiple signatures
+
+### Aggregate Methods
+- `AggregatePublicKey.Aggregate(pks []*PublicKey, check bool)` - Aggregate multiple public keys
+- `AggregateSignature.Aggregate(sigs []*Signature, check bool)` - Aggregate multiple signatures
+- `AggregateSignature.AggregateCompressed(compressedSigs [][]byte, check bool)` - Aggregate muliple serialized signatures in compressed format
+- `AggregatePublicKey.ToAffine() *PublicKey` - Convert aggregate to affine form
+- `AggrefateSignature.ToAffine() *Signature` - Convert aggregate to affine form
+
+## Utility Functions
+- `HashToG1(msg []byte, dst []byte, optional... []byte) *P1` - Hash message [with optional augmentation] to G1 point
+- `HashToG2(msg []byte, dst []byte, optional... []byte) *P2` - Hash message [with optional augmentation] to G2 point
+- `P1Generator() *P1` - Get G1 generator point
+- `P2Generator() *P2` - Get G2 generator point
+- `Uniq(msgs [][]byte)` - Check messages for uniqueness
+- `SetMaxProcs(procs int)` - Set maximum number of threads for parallel operations
