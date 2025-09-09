@@ -38,6 +38,7 @@ force-adx = []
 no-threads = []
 # Add support for serializing SecretKey, not suitable for production.
 serde-secret = ["serde"]
+arbitrary = ["dep:arbitrary"]
 
 [build-dependencies]
 cc = "1.0"
@@ -45,6 +46,7 @@ cc = "1.0"
 glob = "0.3"
 
 [dependencies]
+arbitrary = { version = "1.3", features = ["derive"], optional = true }
 zeroize = { version = "^1.1", features = ["zeroize_derive"] }
 serde = { version = "1.0.152", optional = true }
 
