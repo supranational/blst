@@ -19,7 +19,7 @@ use core::ptr;
 use zeroize::Zeroize;
 
 #[cfg(feature = "std")]
-use std::sync::{atomic::*, mpsc::channel, Arc};
+use std::sync::{atomic::*, mpsc::sync_channel, Arc};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -190,11 +190,10 @@ impl blst_fp12 {
             }
         }
 
-        let (tx, rx) = channel();
         let counter = Arc::new(AtomicUsize::new(0));
-
         let stride = core::cmp::min((n_elems + n_workers - 1) / n_workers, 16);
         n_workers = core::cmp::min((n_elems + stride - 1) / stride, n_workers);
+        let (tx, rx) = sync_channel(n_workers);
         for _ in 0..n_workers {
             let tx = tx.clone();
             let counter = counter.clone();
@@ -1199,11 +1198,10 @@ macro_rules! sig_variant_impl {
                 // TODO - check msg uniqueness?
 
                 let pool = mt::da_pool();
-                let (tx, rx) = channel();
                 let counter = Arc::new(AtomicUsize::new(0));
                 let valid = Arc::new(AtomicBool::new(true));
-
                 let n_workers = core::cmp::min(pool.max_count(), n_elems);
+                let (tx, rx) = sync_channel(n_workers);
                 for _ in 0..n_workers {
                     let tx = tx.clone();
                     let counter = counter.clone();
@@ -1321,11 +1319,10 @@ macro_rules! sig_variant_impl {
                 // TODO - check msg uniqueness?
 
                 let pool = mt::da_pool();
-                let (tx, rx) = channel();
                 let counter = Arc::new(AtomicUsize::new(0));
                 let valid = Arc::new(AtomicBool::new(true));
-
                 let n_workers = core::cmp::min(pool.max_count(), n_elems);
+                let (tx, rx) = sync_channel(n_workers);
                 for _ in 0..n_workers {
                     let tx = tx.clone();
                     let counter = counter.clone();
