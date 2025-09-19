@@ -8,11 +8,8 @@
 /*
  * These templates, blst_384_t and blst_256_t, allow to instantiate slim
  * C++ shims to blst assembly with arbitrary moduli. Well, not literally
- * arbitrary, as there are limitations. Most notably blst_384_t can not
- * actually accommodate 384-bit moduli, only 383 and narrower. This is
- * because of ct_inverse_mod_383's limitation. Though if you abstain
- * from the reciprocal() method, even 384-bit modulus would work. As for
- * blst_256_t, modulus has to be not larger than 2^256-2^192-1.
+ * arbitrary, as there is a limitation, specifically 256-bit modulus has
+ * to be not larger than 2^256-2^192-1.
  */
 
 #ifdef __GNUC__
@@ -30,6 +27,8 @@ extern "C" {
 #ifdef __GNUC__
 # pragma GCC diagnostic pop
 #endif
+
+#include <cstdint>
 
 static inline void vec_left_align(limb_t *out, const limb_t *inp, size_t N)
 {
@@ -286,12 +285,11 @@ public:
     blst_384_t reciprocal() const
     {
         static const blst_384_t MODx{MOD, true};
-        static const blst_384_t RRx4 = *reinterpret_cast<const blst_384_t*>(RR)<<2;
         union { vec768 x; vec384 r[2]; } temp;
 
-        ct_inverse_mod_383(temp.x, val, MOD, MODx);
+        ct_inverse_mod_384(temp.x, val, MOD, MODx);
         redc_mont_384(temp.r[0], temp.x, MOD, M0);
-        mul_mont_384(temp.r[0], temp.r[0], RRx4, MOD, M0);
+        mul_mont_384(temp.r[0], temp.r[0], RR, MOD, M0);
 
         return *reinterpret_cast<blst_384_t*>(temp.r[0]);
     }
@@ -515,11 +513,11 @@ public:
     }
 
     inline blst_256_t& operator>>=(unsigned r)
-    {   lshift_mod_256(val, val, r, MOD);           return *this;   }
+    {   rshift_mod_256(val, val, r, MOD);           return *this;   }
     friend inline blst_256_t operator>>(const blst_256_t& a, unsigned r)
     {
         blst_256_t ret;
-        lshift_mod_256(ret, a, r, MOD);
+        rshift_mod_256(ret, a, r, MOD);
         return ret;
     }
 

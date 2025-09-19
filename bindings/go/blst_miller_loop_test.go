@@ -33,6 +33,6 @@ func TestMillerLoopN(t *testing.T) {
     }
 
     if !naive.Equals(Fp12MillerLoopN(qs, ps)) {
-        t.Errorf("failed self-consistency Fp12MillerLoopN test")
+        t.Error("failed self-consistency Fp12MillerLoopN test")
     }
 }
