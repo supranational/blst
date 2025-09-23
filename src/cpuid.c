@@ -136,23 +136,28 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvReserved)
  * generates calls to them as it recognizes corresponding patterns.
  */
 #pragma function(memcpy)
-void *memcpy(unsigned char *dst, const unsigned char *src, size_t n)
+/* Use standard prototypes to avoid conflicts with <string.h> declarations. */
+void *memcpy(void *dest, const void *src, size_t n)
 {
-    void *ret = dst;
+    unsigned char *d = (unsigned char *)dest;
+    const unsigned char *s = (const unsigned char *)src;
+    void *ret = dest;
 
     while(n--)
-        *dst++ = *src++;
+        *d++ = *s++;
 
     return ret;
 }
 
 #pragma function(memset)
-void *memset(unsigned char *dst, int c, size_t n)
+/* Use standard prototype to avoid conflicts with <string.h> declarations. */
+void *memset(void *dest, int c, size_t n)
 {
-    void *ret = dst;
+    unsigned char *d = (unsigned char *)dest;
+    void *ret = dest;
 
     while(n--)
-        *dst++ = (unsigned char)c;
+         *d++ = (unsigned char)c;
 
     return ret;
 }
