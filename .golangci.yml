@@ -26,6 +26,7 @@ linters:
     # auto-generation artefact
     - dupl
     # maybe some day...
+    - godoclint
     - godox
     - maintidx
     # maybe some day in tests...
@@ -33,7 +34,7 @@ linters:
     - nonamedreturns
     - perfsprint
     - testpackage
-    # 81 active linters remaining including gosec, gosimple, govet, etc.
+    # 83 active linters remaining including gosec, gosimple, govet, etc.
   settings:
     revive:
       enable-all-rules: true
@@ -61,6 +62,8 @@ linters:
         - name: line-length-limit       # similar to 'lll' above
           disabled: true
         - name: max-public-structs
+          disabled: true
+        - name: package-directory-mismatch
           disabled: true
         - name: receiver-naming
           disabled: true
