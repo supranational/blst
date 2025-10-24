@@ -550,6 +550,43 @@ int blst_scalar_from_be_bytes(pow256 out, const unsigned char *bytes, size_t n)
     return (int)(ret^1);
 }
 
+void blst_fp_from_le_bytes(vec384 out, const unsigned char *bytes, size_t n)
+{
+    size_t rem = n ? ((n - 1) % 48 + 1) : 0;
+    vec384 digit;
+
+    vec_zero(out, sizeof(vec384));
+
+    n -= rem;
+    limbs_from_le_bytes(out, bytes += n, rem);
+    mul_mont_384(out, BLS12_381_RR, out, BLS12_381_P, p0);
+
+    while (n) {
+        limbs_from_le_bytes(digit, bytes -= 48, 48);
+        add_mod_384(out, out, digit, BLS12_381_P);
+        mul_mont_384(out, BLS12_381_RR, out, BLS12_381_P, p0);
+        n -= 48;
+    }
+}
+
+void blst_fp_from_be_bytes(vec384 out, const unsigned char *bytes, size_t n)
+{
+    size_t rem = n ? ((n - 1) % 48 + 1) : 0;
+    vec384 digit;
+
+    vec_zero(out, sizeof(vec384));
+
+    limbs_from_be_bytes(out, bytes, rem);
+    mul_mont_384(out, BLS12_381_RR, out, BLS12_381_P, p0);
+
+    while (n -= rem) {
+        limbs_from_be_bytes(digit, bytes += rem, 48);
+        add_mod_384(out, out, digit, BLS12_381_P);
+        mul_mont_384(out, BLS12_381_RR, out, BLS12_381_P, p0);
+        rem = 48;
+    }
+}
+
 /*
  * Single-short SHA-256 hash function.
  */
