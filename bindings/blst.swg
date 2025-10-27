@@ -246,14 +246,14 @@ Py_ssize_t PyLong_AsNativeBytes(PyObject* v, void* buffer, Py_ssize_t n_bytes,
     static PyObject* as_memory(blst_p1_affine dst[],
                                const blst::P1* const points[], size_t npoints)
     {   blst_p1s_to_affine(dst, (const blst_p1 *const*)points, npoints);
-        return NULL;    // ignored by 'argout' typemap above
+        return Py_None; // ignored by 'argout' typemap above
     }
 }
 %extend blst::P2_Affines {
     static PyObject* as_memory(blst_p2_affine dst[],
                                const blst::P2* const points[], size_t npoints)
     {   blst_p2s_to_affine(dst, (const blst_p2 *const*)points, npoints);
-        return NULL;    // ignored by 'argout' typemap above
+        return Py_None; // ignored by 'argout' typemap above
     }
 }
 %nodefault blst::P1_Affines;
@@ -376,10 +376,10 @@ import java.nio.file.*;
                 System.loadLibrary("$module");
             } catch (UnsatisfiedLinkError e) {
                 String[] cmd = System.getProperty("sun.java.command").split("/");
-        	if (!"$imclassname".equals(cmd[cmd.length-1]))
+                if (!"$imclassname".equals(cmd[cmd.length-1]))
                     // suppress exception if 'main' below is executed
                     throw new RuntimeException(e.getMessage());
-	    }
+            }
         } else {
             // unpack shared library into a temporary directory and load it
             try {
