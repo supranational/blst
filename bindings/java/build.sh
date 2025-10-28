@@ -45,7 +45,7 @@ if [ ! -f blst_wrap.cpp -o "$TOP"/blst.swg -nt blst_wrap.cpp \
                         -o "$TOP"/blst.h   -nt blst_wrap.cpp \
                         -o ! -f $PKG/blst.java ]; then
     (set -x; swig -c++ -java -package $JAVA_PACKAGE -outdir $PKG \
-                  -o blst_wrap.cpp "$TOP"/blst.swg)
+                  -D__BLST_BYTES_T__ -o blst_wrap.cpp "$TOP"/blst.swg)
 fi
 
 if [ ! -f $PKG/blst.class -o $PKG/blst.java -nt $PKG/blst.class ]; then
@@ -77,6 +77,7 @@ if [ ! -f $SO_NAME -o blst_wrap.cpp -nt $SO_NAME \
          awk '{ if($2=="__cplusplus" && $3<"2011") print "-std=c++11"; }'`
     (set -x; ${CXX} ${STD} -shared -o $SO_NAME -fPIC -fvisibility=hidden \
                     -I"$JAVA_HOME"/include -I"$JNI_MD" -I"$TOP" \
+                    -D__BLST_BYTES_T__ \
                     -O -Wall -Wno-unused-function blst_wrap.cpp \
                     $LIBBLST_A ${LDFLAGS})
 fi

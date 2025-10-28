@@ -548,6 +548,19 @@ import java.nio.file.*;
 %typemap(javain) (const byte *STRING, size_t LENGTH) "$javainput"
 %typemap(freearg)(const byte *STRING, size_t LENGTH) ""
 
+%typemap(jni)    blst::bytes_t "jbyteArray"
+%typemap(jtype)  blst::bytes_t "byte[]"
+%typemap(jstype) blst::bytes_t "byte[]"
+%typemap(javain) blst::bytes_t "$javainput"
+%typemap(freearg)blst::bytes_t ""
+%typemap(in)     blst::bytes_t %{
+    $1.ptr = (const byte*)JCALL(GetByteArrayElements, $input, 0);
+    $1.len = JCALL(GetArrayLength, $input);
+%}
+%typemap(argout) blst::bytes_t  %{
+    JCALL(ReleaseByteArrayElements, $input, (jbyte *)$1.ptr, JNI_ABORT);
+%}
+
 #elif defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_V8)
 
 %header %{
@@ -731,6 +744,8 @@ import java.nio.file.*;
 %ignore nullptr;
 %ignore None;
 %ignore C_bytes;
+%ignore bytes_t;
+%feature("novaluewrapper") bytes_t;
 %catches(BLST_ERROR) P1(const byte* in, size_t len);
 %catches(BLST_ERROR) P1_Affine(const byte* in, size_t len);
 %catches(BLST_ERROR) aggregate(const P1_Affine& in);

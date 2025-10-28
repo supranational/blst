@@ -43,6 +43,16 @@ static const app__string_view None;
 # pragma GCC diagnostic pop
 #endif
 
+#ifdef __BLST_BYTES_T__
+struct bytes_t {
+    const byte* ptr;
+    size_t len;
+
+    bytes_t() = default;
+    bytes_t(const byte* p, size_t l) : ptr{p}, len{l} {}
+};
+#endif
+
 class P1_Affine;
 class P1;
 class P2_Affine;
@@ -223,15 +233,21 @@ public:
     bool is_inf() const   { return blst_p1_affine_is_inf(&point);   }
     bool is_equal(const P1_Affine& p) const
     {   return blst_p1_affine_is_equal(&point, &p.point);   }
+#ifdef __BLST_BYTES_T__
+    BLST_ERROR core_verify(const P2_Affine& pk, bool hash_or_encode,
+                           bytes_t msg, const std::string& DST = "",
+                           bytes_t aug = {nullptr, 0}) const;
+#else
     BLST_ERROR core_verify(const P2_Affine& pk, bool hash_or_encode,
                            const byte* msg, size_t msg_len,
                            const std::string& DST = "",
                            const byte* aug = nullptr, size_t aug_len = 0) const;
-#if __cplusplus >= 201703L
+# if __cplusplus >= 201703L
     BLST_ERROR core_verify(const P2_Affine& pk, bool hash_or_encode,
                            const app__string_view msg,
                            const std::string& DST = "",
                            const app__string_view aug = None) const;
+# endif
 #endif
     static P1_Affine generator()
     {   return P1_Affine(blst_p1_affine_generator());   }
@@ -293,6 +309,20 @@ public:
     {   blst_sign_pk_in_g2(&point, &point, &sk.key); return this;   }
     P1* sign_with(const Scalar& scalar)
     {   blst_sign_pk_in_g2(&point, &point, scalar); return this;   }
+#ifdef __BLST_BYTES_T__
+    P1* hash_to(bytes_t msg, const std::string& DST = "",
+                bytes_t aug = {nullptr, 0})
+    {   blst_hash_to_g1(&point, msg.ptr, msg.len, C_bytes(DST.data()), DST.size(),
+                                aug.ptr, aug.len);
+        return this;
+    }
+    P1* encode_to(bytes_t msg, const std::string& DST = "",
+                  bytes_t aug = {nullptr, 0})
+    {   blst_encode_to_g1(&point, msg.ptr, msg.len, C_bytes(DST.data()), DST.size(),
+                                  aug.ptr, aug.len);
+        return this;
+    }
+#else
     P1* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
                 const byte* aug = nullptr, size_t aug_len = 0)
@@ -307,7 +337,7 @@ public:
                                   aug, aug_len);
         return this;
     }
-#if __cplusplus >= 201703L
+# if __cplusplus >= 201703L
     P1* hash_to(const app__string_view msg, const std::string& DST = "",
                 const app__string_view aug = None)
     {   return hash_to(C_bytes(msg.data()), msg.size(), DST,
@@ -318,6 +348,7 @@ public:
     {   return encode_to(C_bytes(msg.data()), msg.size(), DST,
                          C_bytes(aug.data()), aug.size());
     }
+# endif
 #endif
     P1* mult(const byte* scalar, size_t nbits)
     {   blst_p1_mult(&point, &point, scalar, nbits); return this;   }
@@ -521,15 +552,21 @@ public:
     bool is_inf() const   { return blst_p2_affine_is_inf(&point);   }
     bool is_equal(const P2_Affine& p) const
     {   return blst_p2_affine_is_equal(&point, &p.point);   }
+#ifdef __BLST_BYTES_T__
+    BLST_ERROR core_verify(const P1_Affine& pk, bool hash_or_encode,
+                           bytes_t msg, const std::string& DST = "",
+                           bytes_t aug = {nullptr, 0}) const;
+#else
     BLST_ERROR core_verify(const P1_Affine& pk, bool hash_or_encode,
                            const byte* msg, size_t msg_len,
                            const std::string& DST = "",
                            const byte* aug = nullptr, size_t aug_len = 0) const;
-#if __cplusplus >= 201703L
+# if __cplusplus >= 201703L
     BLST_ERROR core_verify(const P1_Affine& pk, bool hash_or_encode,
                            const app__string_view msg,
                            const std::string& DST = "",
                            const app__string_view aug = None) const;
+# endif
 #endif
     static P2_Affine generator()
     {   return P2_Affine(blst_p2_affine_generator());   }
@@ -591,6 +628,21 @@ public:
     {   blst_sign_pk_in_g1(&point, &point, &sk.key); return this;   }
     P2* sign_with(const Scalar& scalar)
     {   blst_sign_pk_in_g1(&point, &point, scalar); return this;   }
+#ifdef __BLST_BYTES_T__
+    P2* hash_to(const byte* msg, size_t msg_len,
+                const std::string& DST = "",
+                bytes_t aug = {nullptr, 0})
+    {   blst_hash_to_g2(&point, msg, msg_len, C_bytes(DST.data()), DST.size(),
+                                aug.ptr, aug.len);
+        return this;
+    }
+    P2* encode_to(bytes_t msg, const std::string& DST = "",
+                  bytes_t aug = {nullptr, 0})
+    {   blst_encode_to_g2(&point, msg.ptr, msg.len, C_bytes(DST.data()), DST.size(),
+                                  aug.ptr, aug.len);
+        return this;
+    }
+#else
     P2* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
                 const byte* aug = nullptr, size_t aug_len = 0)
@@ -605,7 +657,7 @@ public:
                                   aug, aug_len);
         return this;
     }
-#if __cplusplus >= 201703L
+# if __cplusplus >= 201703L
     P2* hash_to(const app__string_view msg, const std::string& DST = "",
                 const app__string_view aug = None)
     {   return hash_to(C_bytes(msg.data()), msg.size(), DST,
@@ -616,6 +668,7 @@ public:
     {   return encode_to(C_bytes(msg.data()), msg.size(), DST,
                          C_bytes(aug.data()), aug.size());
     }
+# endif
 #endif
     P2* mult(const byte* scalar, size_t nbits)
     {   blst_p2_mult(&point, &point, scalar, nbits); return this;   }
@@ -796,6 +849,26 @@ inline P2 P2_Affine::to_jacobian() const { P2 ret(*this); return ret; }
 inline P1 G1() { return P1::generator();  }
 inline P2 G2() { return P2::generator();  }
 
+#ifdef __BLST_BYTES_T__
+inline BLST_ERROR P1_Affine::core_verify(const P2_Affine& pk,
+                                         bool hash_or_encode,
+                                         bytes_t msg, const std::string& DST,
+                                         bytes_t aug) const
+{   return blst_core_verify_pk_in_g2(pk, &point, hash_or_encode,
+                                         msg.ptr, msg.len,
+                                         C_bytes(DST.data()), DST.size(),
+                                         aug.ptr, aug.len);
+}
+inline BLST_ERROR P2_Affine::core_verify(const P1_Affine& pk,
+                                         bool hash_or_encode,
+                                         bytes_t msg, const std::string& DST,
+                                         bytes_t aug) const
+{   return blst_core_verify_pk_in_g1(pk, &point, hash_or_encode,
+                                         msg.ptr, msg.len,
+                                         C_bytes(DST.data()), DST.size(),
+                                         aug.ptr, aug.len);
+}
+#else
 inline BLST_ERROR P1_Affine::core_verify(const P2_Affine& pk,
                                          bool hash_or_encode,
                                          const byte* msg, size_t msg_len,
@@ -816,7 +889,7 @@ inline BLST_ERROR P2_Affine::core_verify(const P1_Affine& pk,
                                          C_bytes(DST.data()), DST.size(),
                                          aug, aug_len);
 }
-#if __cplusplus >= 201703L
+# if __cplusplus >= 201703L
 inline BLST_ERROR P1_Affine::core_verify(const P2_Affine& pk,
                                          bool hash_or_encode,
                                          const app__string_view msg,
@@ -833,6 +906,7 @@ inline BLST_ERROR P2_Affine::core_verify(const P1_Affine& pk,
 {   return core_verify(pk, hash_or_encode, C_bytes(msg.data()), msg.size(), DST,
                                            C_bytes(aug.data()), aug.size());
 }
+# endif
 #endif
 
 class PT {
@@ -904,6 +978,30 @@ public:
     ~Pairing() { delete[] blst_pairing_get_dst(*this); }
 #endif
 
+#ifdef __BLST_BYTES_T__
+    BLST_ERROR aggregate(const P1_Affine* pk, const P2_Affine* sig,
+                         bytes_t msg, bytes_t aug = {nullptr, 0})
+    {   return blst_pairing_aggregate_pk_in_g1(*this, *pk, *sig,
+                         msg.ptr, msg.len, aug.ptr, aug.len);
+    }
+    BLST_ERROR aggregate(const P2_Affine* pk, const P1_Affine* sig,
+                         bytes_t msg, bytes_t aug = {nullptr, 0})
+    {   return blst_pairing_aggregate_pk_in_g2(*this, *pk, *sig,
+                         msg.ptr, msg.len, aug.ptr, aug.len);
+    }
+    BLST_ERROR mul_n_aggregate(const P1_Affine* pk, const P2_Affine* sig,
+                               const byte* scalar, size_t nbits,
+                               bytes_t msg, bytes_t aug = {nullptr, 0})
+    {   return blst_pairing_mul_n_aggregate_pk_in_g1(*this, *pk, *sig,
+                               scalar, nbits, msg.ptr, msg.len, aug.ptr, aug.len);
+    }
+    BLST_ERROR mul_n_aggregate(const P2_Affine* pk, const P1_Affine* sig,
+                               const byte* scalar, size_t nbits,
+                               bytes_t msg, bytes_t aug = {nullptr, 0})
+    {   return blst_pairing_mul_n_aggregate_pk_in_g2(*this, *pk, *sig,
+                               scalar, nbits, msg.ptr, msg.len, aug.ptr, aug.len);
+    }
+#else
     BLST_ERROR aggregate(const P1_Affine* pk, const P2_Affine* sig,
                          const byte* msg, size_t msg_len,
                          const byte* aug = nullptr, size_t aug_len = 0)
@@ -930,7 +1028,7 @@ public:
     {   return blst_pairing_mul_n_aggregate_pk_in_g2(*this, *pk, *sig,
                                scalar, nbits, msg, msg_len, aug, aug_len);
     }
-#if __cplusplus >= 201703L
+# if __cplusplus >= 201703L
     BLST_ERROR aggregate(const P1_Affine* pk, const P2_Affine* sig,
                          const app__string_view msg,
                          const app__string_view aug = None)
@@ -959,6 +1057,7 @@ public:
                                C_bytes(msg.data()), msg.size(),
                                C_bytes(aug.data()), aug.size());
     }
+# endif
 #endif
     void commit()
     {   blst_pairing_commit(*this);   }
