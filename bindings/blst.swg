@@ -137,6 +137,45 @@ Py_ssize_t PyLong_AsNativeBytes(PyObject* v, void* buffer, Py_ssize_t n_bytes,
 %}
 %typemap(freearg) (const byte *STRING, size_t LENGTH) ""
 
+%typemap(in) blst::bytes_t %{
+    if ($input == Py_None) {
+        $1.ptr = NULL;
+        $1.len = 0;
+    } else if (PyBytes_Check($input)) {
+        char *buf;
+        Py_ssize_t nbytes;
+
+        if (PyBytes_AsStringAndSize($input, &buf, &nbytes) < 0)
+            SWIG_exception_fail(SWIG_ValueError, "in method '$symname'");
+
+        $1.ptr = (byte*)buf;
+        $1.len = nbytes;
+    } else if (PyByteArray_Check($input)) {
+        $1.ptr = (byte*)PyByteArray_AsString($input);
+        $1.len = PyByteArray_Size($input);
+#ifdef Py_USING_UNICODE
+    } else if (PyUnicode_Check($input)) {
+        char *buf;
+        Py_ssize_t nbytes;
+        PyObject *obj = PyUnicode_AsUTF8String($input);
+
+        if (obj == NULL || PyBytes_AsStringAndSize(obj, &buf, &nbytes) < 0)
+            SWIG_exception_fail(SWIG_ValueError, "in method '$symname'");
+
+        auto ptr = alloca(nbytes);
+        memcpy(ptr, buf, nbytes);
+        $1.ptr = (byte*)ptr;
+        $1.len = nbytes;
+        Py_DECREF(obj);
+#endif
+    } else {
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                            "expecting 'bytes' or 'bytearray'");
+    }
+%}
+%typemap(freearg)   blst::bytes_t ""
+%typemap(typecheck) blst::bytes_t ""
+
 // let users use Python 'int', 'bytes' and 'bytearray' as scalars
 %typemap(in) (const byte* scalar, size_t nbits) %{
     if (PyBytes_Check($input)) {
@@ -663,6 +702,27 @@ import java.nio.file.*;
     }
 %}
 %typemap(freearg) (const byte *STRING, size_t LENGTH) ""
+
+%typemap(in) blst::bytes_t %{
+    if ($input->IsArrayBufferView()) {
+        auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
+        auto buf = av->Buffer();
+        $1.ptr = (byte*)buf->GetData() + av->ByteOffset();
+        $1.len = av->ByteLength();
+    } else if ($input->IsString()) {
+        auto str = v8::Local<v8::String>::Cast($input);
+        $1.len = SWIGV8_UTF8_LENGTH(str);
+        $1.ptr = (byte*)alloca($1.len);
+        SWIGV8_WRITE_UTF8(str, (char *)$1.ptr, $1.len);
+    } else if ($input->IsNull()) {
+        $1.ptr = nullptr;
+        $1.len = 0;
+    } else {
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                            "expecting <Buffer> or <String>");
+    }
+%}
+%typemap(freearg) blst::bytes_t ""
 
 // return |this|
 %typemap(out) SELF* OUTPUT %{ (void)$1; $result = args.Holder(); %}
