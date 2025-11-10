@@ -268,3 +268,28 @@ jobs:
                 dotnet run -c Release
             fi
         fi
+
+    - uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/zig
+          ~/zig-x86_64-linux-*
+          ~/.wasmtime
+        key: ${{ runner.os }}-zig-github
+
+    - name: Zig
+      run: |
+        ver=0.15.2
+        base_dir=zig-x86_64-linux-$ver
+        if [ ! -d ~/$base_dir ]; then
+            curl -sSf https://ziglang.org/download/$ver/$base_dir.tar.xz | unxz -c | tar xf - --directory ~
+        fi
+        if [ -x ~/$base_dir/zig ]; then
+            PATH=~/$base_dir:$PATH
+            zig build test --summary new
+            if [ ! -d ~/.wasmtime ]; then
+                curl https://wasmtime.dev/install.sh -sSf | bash
+            fi
+            PATH=~/.wasmtime/bin:$PATH
+            zig build test -Dtarget=wasm32-wasi -fwasmtime --summary new
+        fi
