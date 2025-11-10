@@ -70,3 +70,6 @@ bindings/node.js
 bindings/emscripten
 bin/
 obj/
+
+zig-out
+.zig-cache
