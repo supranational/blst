@@ -37,6 +37,9 @@ pub fn build(b: *std.Build) void {
                        .flags = cflags
                     }),
     }
+    if (target.result.os.tag == .windows) {
+        lib.linkLibC();
+    }
 
     const tests = b.addTest(.{
         .root_module = b.createModule(.{

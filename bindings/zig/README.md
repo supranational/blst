@@ -12,4 +12,4 @@ and add an equivalent of the following line to your build.zig prior to `b.instal
 ```
 exe.root_module.addImport("blst", b.dependency("blst", .{}).module("blst"));
 ```
-You should now be able to `@import("blst")` in your application code. The abovementioned fetch command can be used to update the reference.
+You should now be able to `@import("blst")` in your application code. The abovementioned fetch command can be used to update the git reference.
