@@ -88,6 +88,86 @@ pub const SecretKey = struct {
     }
 };
 
+pub const PT = c.blst_fp12;
+
+pub const Pairing = struct {
+    ctx: []u64 = &[_]u64{},
+    allocator: std.mem.Allocator,
+
+    pub fn init(hash_or_encode: bool, DST: []const u8,
+                allocator: std.mem.Allocator) !Pairing {
+        const nlimbs = (c.blst_pairing_sizeof() + @sizeOf(u64) - 1) / @sizeOf(u64);
+        const buffer = try allocator.alloc(u64, nlimbs);
+
+        c.blst_pairing_init(@ptrCast(buffer), hash_or_encode, &DST[0], DST.len);
+
+        return Pairing{
+            .ctx = buffer,
+            .allocator = allocator,
+        };
+    }
+
+    pub fn deinit(self: *Pairing) void {
+        self.allocator.free(self.ctx);
+        self.ctx = &[_]u64{};
+    }
+
+    pub fn aggregate(self: *Pairing, pk: anytype, sig: anytype,
+                     msg: []const u8, aug: ?[]const u8) ERROR {
+        const opt = aug orelse &[_]u8{};
+        var err: c.BLST_ERROR = undefined;
+
+        switch(@TypeOf(pk)) {
+            *const P1_Affine, *P1_Affine => {
+                const sigp : [*c]const c.blst_p2_affine = switch(@TypeOf(sig)) {
+                    @TypeOf(null) => null,
+                    else => &sig.point,
+                };
+                err = c.blst_pairing_aggregate_pk_in_g1(@ptrCast(self.ctx),
+                                                        &pk.point, sigp,
+                                                        @ptrCast(msg), msg.len,
+                                                        @ptrCast(opt), opt.len);
+            },
+            *const P2_Affine, *P2_Affine => {
+                const sigp : [*c]const c.blst_p1_affine = switch(@TypeOf(sig)) {
+                    @TypeOf(null) => null,
+                    else => &sig.point,
+                };
+                err = c.blst_pairing_aggregate_pk_in_g2(@ptrCast(self.ctx),
+                                                        &pk.point, sigp,
+                                                        @ptrCast(msg), msg.len,
+                                                        @ptrCast(opt), opt.len);
+            },
+            else => |T| @compileError("expected type '*const blst.P1_Affine' "
+                                      ++ "or '*const blst.P2_Affine', found '"
+                                      ++ @typeName(T) ++ "'"),
+        }
+
+        return @as(ERROR, @enumFromInt(err));
+    }
+
+    pub fn commit(self: *Pairing) void {
+        c.blst_pairing_commit(@ptrCast(self.ctx));
+    }
+
+    pub fn merge(self: *Pairing, second: *const Pairing) ERROR {
+        return c.blst_pairing_merge(@ptrCast(self.ctx), @ptrCast(second.ctx));
+    }
+
+    pub fn finalverify(self: *Pairing, optional: ?*const PT) bool {
+        return c.blst_pairing_finalverify(@ptrCast(self.ctx), optional);
+    }
+
+    pub fn raw_aggregate(self: *Pairing, q: *const P2_Affine,
+                                         p: *const P1_Affine) void {
+        c.blst_pairing_raw_aggregate(@ptrCast(self.ctx), q, p);
+    }
+
+    pub fn as_fp12(self: *Pairing) *const PT {
+        return c.blst_pairing_as_fp12(@ptrCast(self.ctx));
+    }
+};
+
 const FP_BYTES = 384/8;
 pub const P1_COMPRESS_BYTES  = FP_BYTES;
 pub const P1_SERIALIZE_BYTES = FP_BYTES*2;
@@ -111,7 +191,7 @@ pub const P1_Affine = struct {
 
                 var ret : P1_Affine = undefined;
                 const err = ret.deserialize(in);
-                return if (err == ERROR.SUCCESS) ret else err.as_error();
+                return if (err == .SUCCESS) ret else err.as_error();
             },
         }
         unreachable;
@@ -119,12 +199,12 @@ pub const P1_Affine = struct {
 
     pub fn deserialize(self: *P1_Affine, in: []const u8) ERROR {
         if (in.len == 0) {
-            return ERROR.BAD_ENCODING;
+            return .BAD_ENCODING;
         }
         const expected = @as(usize, if (in[0]&0x80 != 0) P1_COMPRESS_BYTES
                                     else                 P1_SERIALIZE_BYTES);
         if (in.len != expected) {
-            return ERROR.BAD_ENCODING;
+            return .BAD_ENCODING;
         }
         const err = c.blst_p1_deserialize(&self.point, &in[0]);
         return @as(ERROR, @enumFromInt(err));
@@ -208,7 +288,7 @@ pub const P1 = struct {
 
                 var ret : P1 = undefined;
                 const err = ret.deserialize(in);
-                return if (err == ERROR.SUCCESS) ret else err.as_error();
+                return if (err == .SUCCESS) ret else err.as_error();
             },
         }
         unreachable;
@@ -216,12 +296,12 @@ pub const P1 = struct {
 
     pub fn deserialize(self: *P1, in: []const u8) ERROR {
         if (in.len == 0) {
-            return ERROR.BAD_ENCODING;
+            return .BAD_ENCODING;
         }
         const expected = @as(usize, if (in[0]&0x80 != 0) P1_COMPRESS_BYTES
                                     else                 P1_SERIALIZE_BYTES);
         if (in.len != expected) {
-            return ERROR.BAD_ENCODING;
+            return .BAD_ENCODING;
         }
         const err = c.blst_p1_deserialize(@ptrCast(&self.point), &in[0]);
         if (err == c.BLST_SUCCESS) {
@@ -249,9 +329,7 @@ pub const P1 = struct {
     }
 
     pub fn dup(self: *const P1) P1 {
-        return P1 {
-            .point = self.point,
-        };
+        return self.*;
     }
 
     pub fn on_curve(self: *const P1) bool {

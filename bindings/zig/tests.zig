@@ -13,7 +13,7 @@ test "sign/verify" {
 
     // on the "sender" side...
 
-    const pk_for_wire  = blst.P1.public_key(&SK).serialize();
+    const pk_for_wire  = (try blst.P1.from(&SK)).serialize();
     const sig_for_wire = blst.P2.hash_to(msg, DST, &pk_for_wire).sign_with(&SK).serialize();
 
     // ... and now on the "receiver" side...
@@ -23,7 +23,16 @@ test "sign/verify" {
 
     const ret = sig.core_verify(&pk, true, msg, DST, &pk_for_wire);
 
-    try std.testing.expectEqual(ret, blst.ERROR.SUCCESS);
+    try std.testing.expectEqual(ret, .SUCCESS);
+
+    // ... the same thing through Pairing interface.
+
+    var ctx = try blst.Pairing.init(true, DST, std.testing.allocator);
+    defer ctx.deinit();
+
+    try std.testing.expectEqual(ctx.aggregate(&pk, &sig, msg, &pk_for_wire), .SUCCESS);
+    ctx.commit();
+    try std.testing.expectEqual(ctx.finalverify(null), true);
 
     std.debug.print("OK\n", .{});
 }
