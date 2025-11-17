@@ -6,20 +6,17 @@
 #ifndef __BLST_HPP__
 #define __BLST_HPP__
 
+#if !defined(SWIG) && __cplusplus < 201103L \
+                   && (!defined(_MSVC_LANG) || _MSVC_LANG < 201103L)
+# error "C++11 or later is required to compile <blst>/bindings/blst.hpp"
+#endif
+
 #include <string>
 #include <cstring>
 #include <vector>
 #include <memory>
 
 namespace blst {
-
-#if __cplusplus < 201103L && !defined(nullptr)
-# ifdef __GNUG__
-#  define nullptr __null
-# elif !defined(_MSVC_LANG) || _MSVC_LANG < 201103L
-#  define nullptr 0
-# endif
-#endif
 
 #ifdef __clang__
 # pragma GCC diagnostic push
