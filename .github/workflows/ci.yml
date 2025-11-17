@@ -46,7 +46,7 @@ jobs:
     - name: Install Wasmtime
       if: ${{ runner.os == 'Linux' }}
       shell: bash
-      run: [ -d ~/.wasmtime/bin ] || (curl https://wasmtime.dev/install.sh -sSf | bash)
+      run: if [ ! -d ~/.wasmtime/bin ]; then curl https://wasmtime.dev/install.sh -sSf | bash; fi
 
     - name: Rust
       shell: bash
