@@ -33,6 +33,7 @@ jobs:
           ~/.cargo/registry
           **/Cargo.lock
           **/bindings/rust/target
+          ~/.wasmtime
         key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ steps.get-date.outputs.date }}
 
     - name: Environment
@@ -42,21 +43,14 @@ jobs:
         sysctl hw 2>/dev/null && echo --- || true
         env | sort
 
-    - name: Install Rust
-      if: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' }}
+    - name: Install Wasmtime
+      if: ${{ runner.os == 'Linux' }}
       shell: bash
-      run: |
-        if ! which cargo > /dev/null 2>&1; then
-            curl -sSf -o rustup-init.exe https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe
-            ./rustup-init.exe --profile minimal --component clippy -y
-        fi
+      run: [ -d ~/.wasmtime/bin ] || (curl https://wasmtime.dev/install.sh -sSf | bash)
 
     - name: Rust
       shell: bash
       run: |
-        if [ -d "$HOME/.cargo/bin" ] && ! which cargo > /dev/null 2>&1; then
-            export PATH="$HOME/.cargo/bin:$PATH"
-        fi
         rustc --version --verbose
         export CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
         cd bindings/rust
@@ -85,15 +79,16 @@ jobs:
         env BLST_TEST_NO_STD= \
             CARGO_TARGET_${triplet}_RUNNER="bash ulimit-s $stack_size" \
             cargo test --release
-        if [ $RUNNER_OS = "Linux" ]; then
+        if [ -x ~/.wasmtime/bin/wasmtime ]; then
             echo '--- test wasm32-wasip1'
             echo
             rustup target add wasm32-wasip1
-            curl https://wasmtime.dev/install.sh -sSf | bash
             env CARGO_TARGET_WASM32_WASIP1_RUNNER=~/.wasmtime/bin/wasmtime \
                 cargo test --release --target=wasm32-wasip1
             cargo clean -p blst --release --target=wasm32-wasip1
             echo
+        fi
+        if [ $RUNNER_OS = "Linux" ]; then
             if [ `uname -p` = "x86_64" ]; then
                 echo '--- test -mlvi-hardening'
                 echo
@@ -161,6 +156,7 @@ jobs:
         rm -rf target/*/{debug,release}/incremental
         rm -rf ~/.cargo/registry/src
         rm -rf ~/.cargo/registry/index/*/.cache
+        mkdir -p ~/.wasmtime
 
     - name: Go
       if: ${{ runner.os != 'Windows' || runner.arch != 'ARM64' }}
