@@ -1,40 +1,11 @@
 #!/usr/bin/env python3
 
-import os
-import sys
-import subprocess
-import re
+import os, re, sys, subprocess
 
-here = re.split(r'/(?=[^/]*$)', sys.argv[0])
-if len(here) > 1:
-    os.chdir(here[0])
-
-
-def newer(*files):
-    assert len(files) > 1
-    rh = files[-1]
-    if not os.path.exists(rh):
-        return True
-    for lh in files[:-1]:
-        if os.stat(lh).st_mtime > os.stat(rh).st_mtime:
-            return True
-    return False
-
-
-if newer("../blst.h", "c.zig"):
-    print("generating c.zig...") or sys.stdout.flush()
-    ret = subprocess.run(["zig", "translate-c", "../blst.h", "-D__BLST_ZIG__"],
-                         capture_output=True, text=True)
-    with open("c.zig", "w") as fd:
-        print("// automatically generated with 'zig translate-c'", file=fd)
-        for line in ret.stdout.splitlines():
-            if "no file" in line:
-                break
-            elif not line.startswith("pub const _"):
-                print(line, file=fd)
-
-print("generating root.zig...") or sys.stdout.flush()
 root_zig = """
+// Copyright Supranational LLC
+// SPDX-License-Identifier: Apache-2.0
+
 const std = @import("std");
 
 pub const c = @import("c.zig");
@@ -393,6 +364,35 @@ pub const P1 = struct {
     }
 };
 """
+here = re.split(r'/(?=[^/]*$)', sys.argv[0])
+if len(here) > 1:
+    os.chdir(here[0])
+
+
+def newer(*files):
+    assert len(files) > 1
+    rh = files[-1]
+    if not os.path.exists(rh):
+        return True
+    for lh in files[:-1]:
+        if os.stat(lh).st_mtime > os.stat(rh).st_mtime:
+            return True
+    return False
+
+
+if newer("../blst.h", "c.zig"):
+    print("generating c.zig...") or sys.stdout.flush()
+    ret = subprocess.run(["zig", "translate-c", "../blst.h", "-D__BLST_ZIG__"],
+                         capture_output=True, text=True)
+    with open("c.zig", "w") as fd:
+        print("// automatically generated with 'zig translate-c'", file=fd)
+        for line in ret.stdout.splitlines():
+            if "no file" in line:
+                break
+            elif not line.startswith("pub const _"):
+                print(line, file=fd)
+
+print("generating root.zig...") or sys.stdout.flush()
 
 
 def xchg_1vs2(matchobj):
