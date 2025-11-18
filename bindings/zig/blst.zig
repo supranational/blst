@@ -85,9 +85,9 @@ pub const Pairing = struct {
         const opt = aug orelse &[_]u8{};
         var err: c.BLST_ERROR = undefined;
 
-        switch(@TypeOf(pk)) {
+        switch (@TypeOf(pk)) {
             *const P1_Affine, *P1_Affine => {
-                const sigp : [*c]const c.blst_p2_affine = switch(@TypeOf(sig)) {
+                const sigp : [*c]const c.blst_p2_affine = switch (@TypeOf(sig)) {
                     @TypeOf(null) => null,
                     else => &sig.point,
                 };
@@ -97,7 +97,7 @@ pub const Pairing = struct {
                                                         @ptrCast(opt), opt.len);
             },
             *const P2_Affine, *P2_Affine => {
-                const sigp : [*c]const c.blst_p1_affine = switch(@TypeOf(sig)) {
+                const sigp : [*c]const c.blst_p1_affine = switch (@TypeOf(sig)) {
                     @TypeOf(null) => null,
                     else => &sig.point,
                 };
@@ -152,7 +152,7 @@ pub const P1_Affine = struct {
             *P1  => return in.to_affine(),
             P1   => @compileError("expected type '*const blst.P1', found 'blst.P1'"),
             else => |T| {
-                switch(@typeInfo(T)) {
+                switch (@typeInfo(T)) {
                     .pointer => { const s: []const u8 = in; _ = s; },
                     else     => @compileError("expected type '[]const u8', found '" ++ @typeName(T) ++ "'"),
                 }
@@ -249,7 +249,7 @@ pub const P1 = struct {
             *P1_Affine  => return in.to_jacobian(),
             P1_Affine   => @compileError("expected type '*const blst.P1_Affine', found 'blst.P1_Affine'"),
             else        => |T| {
-                switch(@typeInfo(T)) {
+                switch (@typeInfo(T)) {
                     .pointer => { const s: []const u8 = in; _ = s; },
                     else     => @compileError("expected type '[]const u8', found '" ++ @typeName(T) ++ "'"),
                 }
@@ -371,7 +371,7 @@ pub const P2_Affine = struct {
             *P2  => return in.to_affine(),
             P2   => @compileError("expected type '*const blst.P2', found 'blst.P2'"),
             else => |T| {
-                switch(@typeInfo(T)) {
+                switch (@typeInfo(T)) {
                     .pointer => { const s: []const u8 = in; _ = s; },
                     else     => @compileError("expected type '[]const u8', found '" ++ @typeName(T) ++ "'"),
                 }
@@ -468,7 +468,7 @@ pub const P2 = struct {
             *P2_Affine  => return in.to_jacobian(),
             P2_Affine   => @compileError("expected type '*const blst.P2_Affine', found 'blst.P2_Affine'"),
             else        => |T| {
-                switch(@typeInfo(T)) {
+                switch (@typeInfo(T)) {
                     .pointer => { const s: []const u8 = in; _ = s; },
                     else     => @compileError("expected type '[]const u8', found '" ++ @typeName(T) ++ "'"),
                 }
