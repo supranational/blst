@@ -36,3 +36,16 @@ test "sign/verify" {
 
     std.debug.print("OK\n", .{});
 }
+
+test "uniq" {
+    const msgs = &[_][]const u8 {
+        "three", "two", "one", "three",
+    };
+
+    var ctx = try blst.Uniq.init(msgs.len, std.testing.allocator);
+    defer ctx.deinit();
+
+    for (msgs, 1..) |msg, next| {
+        try std.testing.expectEqual(ctx.is_uniq(msg), next < msgs.len);
+    }
+}

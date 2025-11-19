@@ -139,6 +139,32 @@ pub const Pairing = struct {
     }
 };
 
+pub const Uniq = struct {
+    tree: []u64 = &[_]u64{},
+    allocator: std.mem.Allocator,
+
+    pub fn init(n: usize, allocator: std.mem.Allocator) !Uniq {
+        const nlimbs = (c.blst_uniq_sizeof(n) + @sizeOf(u64) - 1) / @sizeOf(u64);
+        const buffer = try allocator.alloc(u64, nlimbs);
+
+        c.blst_uniq_init(@ptrCast(buffer));
+
+        return Uniq{
+            .tree = buffer,
+            .allocator = allocator,
+        };
+    }
+
+    pub fn deinit(self: *Uniq) void {
+        self.allocator.free(self.tree);
+        self.tree = &[_]u64{};
+    }
+
+    pub fn is_uniq(self: *Uniq, msg: []const u8) bool {
+        return c.blst_uniq_test(@ptrCast(self.tree), @ptrCast(msg), msg.len);
+    }
+};
+
 const FP_BYTES = 384/8;
 pub const P1_COMPRESS_BYTES  = FP_BYTES;
 pub const P1_SERIALIZE_BYTES = FP_BYTES*2;
