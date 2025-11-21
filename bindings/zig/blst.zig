@@ -131,7 +131,7 @@ pub const Pairing = struct {
 
     pub fn raw_aggregate(self: *Pairing, q: *const P2_Affine,
                                          p: *const P1_Affine) void {
-        c.blst_pairing_raw_aggregate(@ptrCast(self.ctx), q, p);
+        c.blst_pairing_raw_aggregate(@ptrCast(self.ctx), &q.point, &p.point);
     }
 
     pub fn as_fp12(self: *Pairing) *const PT {
@@ -230,7 +230,7 @@ pub const P1_Affine = struct {
     }
 
     pub fn in_group(self: *const P1_Affine) bool {
-        return c.blst_p1_affine_in_group(&self.point);
+        return c.blst_p1_affine_in_g1(&self.point);
     }
 
     pub fn is_inf(self: *const P1_Affine) bool {
@@ -334,7 +334,7 @@ pub const P1 = struct {
     }
 
     pub fn in_group(self: *const P1) bool {
-        return c.blst_p1_in_group(&self.point);
+        return c.blst_p1_in_g1(&self.point);
     }
 
     pub fn is_inf(self: *const P1) bool {
@@ -346,7 +346,7 @@ pub const P1 = struct {
     }
 
     pub fn aggregate(self: *P1, p: *const P1_Affine) !void {
-        if (!c.blst_p1_affine_in_g1(p)) {
+        if (!c.blst_p1_affine_in_g1(&p.point)) {
             return Error.POINT_NOT_IN_GROUP;
         }
         c.blst_p1_add_or_double_affine(&self.point, &self.point, &p.point);
@@ -449,7 +449,7 @@ pub const P2_Affine = struct {
     }
 
     pub fn in_group(self: *const P2_Affine) bool {
-        return c.blst_p2_affine_in_group(&self.point);
+        return c.blst_p2_affine_in_g2(&self.point);
     }
 
     pub fn is_inf(self: *const P2_Affine) bool {
@@ -553,7 +553,7 @@ pub const P2 = struct {
     }
 
     pub fn in_group(self: *const P2) bool {
-        return c.blst_p2_in_group(&self.point);
+        return c.blst_p2_in_g2(&self.point);
     }
 
     pub fn is_inf(self: *const P2) bool {
@@ -565,7 +565,7 @@ pub const P2 = struct {
     }
 
     pub fn aggregate(self: *P2, p: *const P2_Affine) !void {
-        if (!c.blst_p2_affine_in_g2(p)) {
+        if (!c.blst_p2_affine_in_g2(&p.point)) {
             return Error.POINT_NOT_IN_GROUP;
         }
         c.blst_p2_add_or_double_affine(&self.point, &self.point, &p.point);

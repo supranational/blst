@@ -1,6 +1,6 @@
 # blst for [Zig](https://ziglang.org/)
 
-The object-oriented interface is modeled after [C++ interface](../blst.hpp), but for the moment of this writing is a subset of it, sufficient to produce and verify individual and aggregated signatures.
+The object-oriented interface is modeled after [C++ interface](../blst.hpp), but for the moment of this writing is a subset of it, sufficient to produce and verify individual and aggregated signatures. See [tests.zig](tests.zig) for usage examples.
 
 ## Adding dependency to your project
 
