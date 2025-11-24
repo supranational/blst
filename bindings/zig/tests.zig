@@ -46,13 +46,8 @@ fn box(allocator: std.mem.Allocator, src: []const u8) ![]u8 {
 }
 
 test "aggregateverify" {
-    const allocator = std.testing.allocator;
+    const mem = std.testing.allocator;
     const N = 3;
-    var msgs: [N][]const u8 = undefined;
-
-    for (0..N) |i| {
-        msgs[i] = try std.fmt.allocPrint(allocator, "assertion{}", .{i});
-    }
 
     const password = [_]u8{'*'} ** 32;
     var SK = blst.SecretKey{};
@@ -63,17 +58,24 @@ test "aggregateverify" {
     const DST = "MY-DST";
     var pks: [N][]const u8 = undefined;
     var sigs: [N][]const u8 = undefined;
+    var msgs: [N][]const u8 = undefined;
 
     for (0..N) |i| {
+        msgs[i] = try std.fmt.allocPrint(mem, "assertion{}", .{i});
         SK.keygen(&password, msgs[i]);
-        pks[i] = try box(allocator, &(try blst.P1.from(&SK)).serialize());
-        sigs[i] = try box(allocator, &blst.P2.hash_to(msgs[i], DST, null).sign_with(&SK).serialize());
+        pks[i] = try box(mem, &(try blst.P1.from(&SK)).serialize());
+        sigs[i] = try box(mem, &blst.P2.hash_to(msgs[i], DST, null).sign_with(&SK).serialize());
     }
 
     // ... basic scheme on the "receiver" side.
 
-    var uniq = try blst.Uniq.init(msgs.len, std.testing.allocator);
+    var uniq = try blst.Uniq.init(msgs.len, mem);
     defer uniq.deinit();
+
+    // The basic scheme requires messages to be checked for uniqueness.
+    for (0..N) |i| {
+        try std.testing.expectEqual(uniq.is_uniq(msgs[i]), true);
+    }
 
     var aggregated = try blst.P2.from(sigs[0]);
     try std.testing.expectEqual(aggregated.in_group(), true);
@@ -81,11 +83,9 @@ test "aggregateverify" {
         try aggregated.aggregate(&try blst.P2_Affine.from(sigs[i]));
     }
 
-    var ctx = try blst.Pairing.init(true, DST, std.testing.allocator);
+    var ctx = try blst.Pairing.init(true, DST, mem);
     defer ctx.deinit();
 
-    // The basic scheme requires messages to be checked for uniqueness.
-    try std.testing.expectEqual(uniq.is_uniq(msgs[0]), true);
     // The below .aggregate() method doesn't vet public keys with
     // rationale that application would cache the results of the
     // group checks. Hence they need to be vetted separately.
@@ -94,7 +94,6 @@ test "aggregateverify" {
     try std.testing.expectEqual(ctx.aggregate(&pk, &aggregated.to_affine(), msgs[0], null),
                                 .SUCCESS);
     for (1..N) |i| {
-        try std.testing.expectEqual(uniq.is_uniq(msgs[i]), true);
         pk = try blst.P1_Affine.from(pks[i]);
         try std.testing.expectEqual(pk.in_group(), true);
         try std.testing.expectEqual(ctx.aggregate(&pk, null, msgs[i], null),
@@ -105,8 +104,8 @@ test "aggregateverify" {
     try std.testing.expectEqual(ctx.finalverify(null), true);
 
     for (0..N) |i| {
-        allocator.free(pks[i]);
-        allocator.free(sigs[i]);
-        allocator.free(msgs[i]);
+        mem.free(pks[i]);
+        mem.free(sigs[i]);
+        mem.free(msgs[i]);
     }
 }

@@ -46,20 +46,20 @@ pub const ERROR = enum(c.BLST_ERROR) {
 };
 
 pub const SecretKey = struct {
-    key: c.blst_scalar = c.blst_scalar{},
+    key: c.scalar = c.scalar{},
 
     pub fn keygen(self: *SecretKey, IKM: []const u8, info: ?[]const u8) void {
         const opt = info orelse &[_]u8{};
-        c.blst_keygen(&self.key, @ptrCast(IKM), IKM.len,
-                                 @ptrCast(opt), opt.len);
+        c.keygen(&self.key, @ptrCast(IKM), IKM.len,
+                            @ptrCast(opt), opt.len);
     }
 
     pub fn deinit(self: *SecretKey) void {
-        self.key = c.blst_scalar{};
+        self.key = c.scalar{};
     }
 };
 
-pub const PT = c.blst_fp12;
+pub const PT = c.fp12;
 
 pub const Pairing = struct {
     ctx: []u64 = &[_]u64{},
@@ -67,10 +67,10 @@ pub const Pairing = struct {
 
     pub fn init(hash_or_encode: bool, DST: []const u8,
                 allocator: std.mem.Allocator) !Pairing {
-        const nlimbs = (c.blst_pairing_sizeof() + @sizeOf(u64) - 1) / @sizeOf(u64);
+        const nlimbs = (c.pairing_sizeof() + @sizeOf(u64) - 1) / @sizeOf(u64);
         const buffer = try allocator.alloc(u64, nlimbs);
 
-        c.blst_pairing_init(@ptrCast(buffer), hash_or_encode, &DST[0], DST.len);
+        c.pairing_init(@ptrCast(buffer), hash_or_encode, &DST[0], DST.len);
 
         return Pairing{
             .ctx = buffer,
@@ -90,24 +90,24 @@ pub const Pairing = struct {
 
         switch (@TypeOf(pk)) {
             *const P1_Affine, *P1_Affine => {
-                const sigp : [*c]const c.blst_p2_affine = switch (@TypeOf(sig)) {
+                const sigp : [*c]const c.p2_affine = switch (@TypeOf(sig)) {
                     @TypeOf(null) => null,
                     else => &sig.point,
                 };
-                err = c.blst_pairing_aggregate_pk_in_g1(@ptrCast(self.ctx),
-                                                        &pk.point, sigp,
-                                                        @ptrCast(msg), msg.len,
-                                                        @ptrCast(opt), opt.len);
+                err = c.pairing_aggregate_pk_in_g1(@ptrCast(self.ctx),
+                                                   &pk.point, sigp,
+                                                   @ptrCast(msg), msg.len,
+                                                   @ptrCast(opt), opt.len);
             },
             *const P2_Affine, *P2_Affine => {
-                const sigp : [*c]const c.blst_p1_affine = switch (@TypeOf(sig)) {
+                const sigp : [*c]const c.p1_affine = switch (@TypeOf(sig)) {
                     @TypeOf(null) => null,
                     else => &sig.point,
                 };
-                err = c.blst_pairing_aggregate_pk_in_g2(@ptrCast(self.ctx),
-                                                        &pk.point, sigp,
-                                                        @ptrCast(msg), msg.len,
-                                                        @ptrCast(opt), opt.len);
+                err = c.pairing_aggregate_pk_in_g2(@ptrCast(self.ctx),
+                                                   &pk.point, sigp,
+                                                   @ptrCast(msg), msg.len,
+                                                   @ptrCast(opt), opt.len);
             },
             else => |T| @compileError("expected type '*const blst.P1_Affine' "
                                       ++ "or '*const blst.P2_Affine', found '"
@@ -118,24 +118,24 @@ pub const Pairing = struct {
     }
 
     pub fn commit(self: *Pairing) void {
-        c.blst_pairing_commit(@ptrCast(self.ctx));
+        c.pairing_commit(@ptrCast(self.ctx));
     }
 
     pub fn merge(self: *Pairing, second: *const Pairing) ERROR {
-        return c.blst_pairing_merge(@ptrCast(self.ctx), @ptrCast(second.ctx));
+        return c.pairing_merge(@ptrCast(self.ctx), @ptrCast(second.ctx));
     }
 
     pub fn finalverify(self: *Pairing, optional: ?*const PT) bool {
-        return c.blst_pairing_finalverify(@ptrCast(self.ctx), optional);
+        return c.pairing_finalverify(@ptrCast(self.ctx), optional);
     }
 
     pub fn raw_aggregate(self: *Pairing, q: *const P2_Affine,
                                          p: *const P1_Affine) void {
-        c.blst_pairing_raw_aggregate(@ptrCast(self.ctx), &q.point, &p.point);
+        c.pairing_raw_aggregate(@ptrCast(self.ctx), &q.point, &p.point);
     }
 
     pub fn as_fp12(self: *Pairing) *const PT {
-        return c.blst_pairing_as_fp12(@ptrCast(self.ctx));
+        return c.pairing_as_fp12(@ptrCast(self.ctx));
     }
 };
 
@@ -144,10 +144,10 @@ pub const Uniq = struct {
     allocator: std.mem.Allocator,
 
     pub fn init(n: usize, allocator: std.mem.Allocator) !Uniq {
-        const nlimbs = (c.blst_uniq_sizeof(n) + @sizeOf(u64) - 1) / @sizeOf(u64);
+        const nlimbs = (c.uniq_sizeof(n) + @sizeOf(u64) - 1) / @sizeOf(u64);
         const buffer = try allocator.alloc(u64, nlimbs);
 
-        c.blst_uniq_init(@ptrCast(buffer));
+        c.uniq_init(@ptrCast(buffer));
 
         return Uniq{
             .tree = buffer,
@@ -161,7 +161,7 @@ pub const Uniq = struct {
     }
 
     pub fn is_uniq(self: *Uniq, msg: []const u8) bool {
-        return c.blst_uniq_test(@ptrCast(self.tree), @ptrCast(msg), msg.len);
+        return c.uniq_test(@ptrCast(self.tree), @ptrCast(msg), msg.len);
     }
 };
 
@@ -173,7 +173,7 @@ pub const P2_SERIALIZE_BYTES = FP_BYTES*4;
 """
 p1_zig = """
 pub const P1_Affine = struct {
-    point : c.blst_p1_affine = c.blst_p1_affine{},
+    point : c.p1_affine = c.p1_affine{},
 
     pub fn from(in: anytype) !P1_Affine {
         switch (@TypeOf(in)) {
@@ -203,71 +203,69 @@ pub const P1_Affine = struct {
         if (in.len != expected) {
             return .BAD_ENCODING;
         }
-        const err = c.blst_p1_deserialize(&self.point, &in[0]);
+        const err = c.p1_deserialize(&self.point, &in[0]);
         return @as(ERROR, @enumFromInt(err));
     }
 
     pub fn serialize(self: *const P1_Affine) [P1_SERIALIZE_BYTES]u8 {
         var ret : [P1_SERIALIZE_BYTES]u8 = undefined;
-        c.blst_p1_affine_serialize(&ret[0], &self.point);
+        c.p1_affine_serialize(&ret[0], &self.point);
         return ret;
     }
 
     pub fn compress(self: *const P1_Affine) [P1_COMPRESS_BYTES]u8 {
         var ret : [P1_COMPRESS_BYTES]u8 = undefined;
-        c.blst_p1_affine_compress(&ret[0], &self.point);
+        c.p1_affine_compress(&ret[0], &self.point);
         return ret;
     }
 
     pub fn dup(self: *const P1_Affine) P1_Affine {
-        return P1_Affine {
-            .point = self.point,
-        };
+        return self.*;
     }
 
     pub fn on_curve(self: *const P1_Affine) bool {
-        return c.blst_p1_affine_on_curve(&self.point);
+        return c.p1_affine_on_curve(&self.point);
     }
 
     pub fn in_group(self: *const P1_Affine) bool {
-        return c.blst_p1_affine_in_g1(&self.point);
+        return c.p1_affine_in_g1(&self.point);
     }
 
     pub fn is_inf(self: *const P1_Affine) bool {
-        return c.blst_p1_affine_is_inf(&self.point);
+        return c.p1_affine_is_inf(&self.point);
     }
 
     pub fn is_equal(self: *const P1_Affine, p: *const P1_Affine) bool {
-        return c.blst_p1_affine_is_equal(&self.point, &p.point);
+        return c.p1_affine_is_equal(&self.point, &p.point);
     }
 
     pub fn core_verify(self: *const P1_Affine, pk: *const P2_Affine,
                        hash_or_encode: bool, msg: []const u8, DST: []const u8,
                        aug: ?[]const u8) ERROR {
         const opt = aug orelse &[_]u8{};
-        const err = c.blst_core_verify_pk_in_g2(&pk.point, &self.point,
-                                                hash_or_encode,
-                                                @ptrCast(msg), msg.len,
-                                                @ptrCast(DST), DST.len,
-                                                @ptrCast(opt), opt.len);
+        const err = c.core_verify_pk_in_g2(&pk.point, &self.point,
+                                           hash_or_encode,
+                                           @ptrCast(msg), msg.len,
+                                           @ptrCast(DST), DST.len,
+                                           @ptrCast(opt), opt.len);
         return @as(ERROR, @enumFromInt(err));
     }
 
     pub fn generator() P1_Affine {
         return P1_Affine {
-            .point = c.blst_p1_affine_generator().*,
+            .point = c.p1_affine_generator().*,
         };
     }
 
     pub fn to_jacobian(self: *const P1_Affine) P1 {
         var ret : P1 = undefined;
-        c.blst_p1_from_affine(&ret.point, &self.point);
+        c.p1_from_affine(&ret.point, &self.point);
         return ret;
     }
 };
 
 pub const P1 = struct {
-    point : c.blst_p1 = c.blst_p1{},
+    point : c.p1 = c.p1{},
 
     pub fn from(in: anytype) !P1 {
         switch (@TypeOf(in)) {
@@ -300,28 +298,28 @@ pub const P1 = struct {
         if (in.len != expected) {
             return .BAD_ENCODING;
         }
-        const err = c.blst_p1_deserialize(@ptrCast(&self.point), &in[0]);
+        const err = c.p1_deserialize(@ptrCast(&self.point), &in[0]);
         if (err == c.BLST_SUCCESS) {
-            c.blst_p1_from_affine(&self.point, @ptrCast(&self.point));
+            c.p1_from_affine(&self.point, @ptrCast(&self.point));
         }
         return @as(ERROR, @enumFromInt(err));
     }
 
     pub fn serialize(self: *const P1) [P1_SERIALIZE_BYTES]u8 {
         var ret : [P1_SERIALIZE_BYTES]u8 = undefined;
-        c.blst_p1_serialize(&ret[0], &self.point);
+        c.p1_serialize(&ret[0], &self.point);
         return ret;
     }
 
     pub fn compress(self: *const P1) [P1_COMPRESS_BYTES]u8 {
         var ret : [P1_COMPRESS_BYTES]u8 = undefined;
-        c.blst_p1_compress(&ret[0], &self.point);
+        c.p1_compress(&ret[0], &self.point);
         return ret;
     }
 
     pub fn public_key(sk: *const SecretKey) P1 {
         var ret : P1 = undefined;
-        c.blst_sk_to_pk_in_g1(&ret.point, &sk.key);
+        c.sk_to_pk_in_g1(&ret.point, &sk.key);
         return ret;
     }
 
@@ -330,35 +328,35 @@ pub const P1 = struct {
     }
 
     pub fn on_curve(self: *const P1) bool {
-        return c.blst_p1_on_curve(&self.point);
+        return c.p1_on_curve(&self.point);
     }
 
     pub fn in_group(self: *const P1) bool {
-        return c.blst_p1_in_g1(&self.point);
+        return c.p1_in_g1(&self.point);
     }
 
     pub fn is_inf(self: *const P1) bool {
-        return c.blst_p1_is_inf(&self.point);
+        return c.p1_is_inf(&self.point);
     }
 
     pub fn is_equal(self: *const P1, p: *const P1) bool {
-        return c.blst_p1_is_equal(&self.point, &p.point);
+        return c.p1_is_equal(&self.point, &p.point);
     }
 
     pub fn aggregate(self: *P1, p: *const P1_Affine) !void {
-        if (!c.blst_p1_affine_in_g1(&p.point)) {
+        if (!c.p1_affine_in_g1(&p.point)) {
             return Error.POINT_NOT_IN_GROUP;
         }
-        c.blst_p1_add_or_double_affine(&self.point, &self.point, &p.point);
+        c.p1_add_or_double_affine(&self.point, &self.point, &p.point);
     }
 
     pub fn hash_to(msg: []const u8, DST: []const u8, aug: ?[]const u8) P1 {
         const opt = aug orelse &[_]u8{};
         var ret : P1 = undefined;
 
-        c.blst_hash_to_g1(&ret.point, @ptrCast(msg), msg.len,
-                                      @ptrCast(DST), DST.len,
-                                      @ptrCast(opt), opt.len);
+        c.hash_to_g1(&ret.point, @ptrCast(msg), msg.len,
+                                 @ptrCast(DST), DST.len,
+                                 @ptrCast(opt), opt.len);
         return ret;
     }
 
@@ -366,26 +364,26 @@ pub const P1 = struct {
         const opt = aug orelse &[_]u8{};
         var ret : P1 = undefined;
 
-        c.blst_encode_to_g1(&ret.point, @ptrCast(msg), msg.len,
-                                        @ptrCast(DST), DST.len,
-                                        @ptrCast(opt), opt.len);
+        c.encode_to_g1(&ret.point, @ptrCast(msg), msg.len,
+                                   @ptrCast(DST), DST.len,
+                                   @ptrCast(opt), opt.len);
         return ret;
     }
 
     pub fn sign_with(self: *const P1, sk: *const SecretKey) *P1 {
-        c.blst_sign_pk_in_g2(@constCast(&self.point), &self.point, &sk.key);
+        c.sign_pk_in_g2(@constCast(&self.point), &self.point, &sk.key);
         return @constCast(self);
     }
 
     pub fn to_affine(self: *const P1) P1_Affine {
         var ret : P1_Affine = undefined;
-        c.blst_p1_to_affine(&ret.point, &self.point);
+        c.p1_to_affine(&ret.point, &self.point);
         return ret;
     }
 
     pub fn generator() P1 {
         return P1 {
-            .point = c.blst_p1_generator().*,
+            .point = c.p1_generator().*,
         };
     }
 };
@@ -411,14 +409,21 @@ if newer("../blst.h", "c.zig"):
     ret = subprocess.run(["zig", "translate-c", "../blst.h", "-D__BLST_ZIG__"],
                          capture_output=True, text=True)
     with open("c.zig", "w") as fd:
+        pubs = []
         print("// automatically generated with 'zig translate-c'", file=fd)
         for line in ret.stdout.splitlines():
             if "no file" in line:
                 break
             elif not line.startswith("pub const _"):
-                print(line, file=fd)
-
-print("generating root.zig...") or sys.stdout.flush()
+                m = re.match(r'^pub ([\w\s]+? blst_(\w+).*)', line)
+                if m:
+                    print(m.group(1), file=fd)
+                    pubs.append(m.group(2))
+                else:
+                    print(line, file=fd)
+        print("// reexport symbols without blst_ prefix", file=fd)
+        for pub in pubs:
+            print("pub const {0} = blst_{0};".format(pub), file=fd)
 
 
 def xchg_1vs2(matchobj):
@@ -428,6 +433,7 @@ def xchg_1vs2(matchobj):
         return matchobj.group(1) + '1'
 
 
+print("generating blst.zig...") or sys.stdout.flush()
 with open("blst.zig", "w") as fd:
     print("//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", file=fd)
     print("// DO NOT EDIT THIS FILE!!!",                         file=fd)
