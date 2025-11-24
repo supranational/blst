@@ -21,15 +21,15 @@ pub const Error = error {
     Unknown,
 };
 
-pub const ERROR = enum(c.BLST_ERROR) {
-    SUCCESS            = c.BLST_SUCCESS,
-    BAD_ENCODING       = c.BLST_BAD_ENCODING,
-    POINT_NOT_ON_CURVE = c.BLST_POINT_NOT_ON_CURVE,
-    POINT_NOT_IN_GROUP = c.BLST_POINT_NOT_IN_GROUP,
-    AGGR_TYPE_MISMATCH = c.BLST_AGGR_TYPE_MISMATCH,
-    VERIFY_FAIL        = c.BLST_VERIFY_FAIL,
-    PK_IS_INFINITY     = c.BLST_PK_IS_INFINITY,
-    BAD_SCALAR         = c.BLST_BAD_SCALAR,
+pub const ERROR = enum(c.ERROR) {
+    SUCCESS            = c.SUCCESS,
+    BAD_ENCODING       = c.BAD_ENCODING,
+    POINT_NOT_ON_CURVE = c.POINT_NOT_ON_CURVE,
+    POINT_NOT_IN_GROUP = c.POINT_NOT_IN_GROUP,
+    AGGR_TYPE_MISMATCH = c.AGGR_TYPE_MISMATCH,
+    VERIFY_FAIL        = c.VERIFY_FAIL,
+    PK_IS_INFINITY     = c.PK_IS_INFINITY,
+    BAD_SCALAR         = c.BAD_SCALAR,
 
     pub fn as_error(self: ERROR) Error {
         return switch (self) {
@@ -86,7 +86,7 @@ pub const Pairing = struct {
     pub fn aggregate(self: *Pairing, pk: anytype, sig: anytype,
                      msg: []const u8, aug: ?[]const u8) ERROR {
         const opt = aug orelse &[_]u8{};
-        var err: c.BLST_ERROR = undefined;
+        var err: c.ERROR = undefined;
 
         switch (@TypeOf(pk)) {
             *const P1_Affine, *P1_Affine => {
@@ -299,7 +299,7 @@ pub const P1 = struct {
             return .BAD_ENCODING;
         }
         const err = c.p1_deserialize(@ptrCast(&self.point), &in[0]);
-        if (err == c.BLST_SUCCESS) {
+        if (err == c.SUCCESS) {
             c.p1_from_affine(&self.point, @ptrCast(&self.point));
         }
         return @as(ERROR, @enumFromInt(err));
@@ -516,7 +516,7 @@ pub const P2 = struct {
             return .BAD_ENCODING;
         }
         const err = c.p2_deserialize(@ptrCast(&self.point), &in[0]);
-        if (err == c.BLST_SUCCESS) {
+        if (err == c.SUCCESS) {
             c.p2_from_affine(&self.point, @ptrCast(&self.point));
         }
         return @as(ERROR, @enumFromInt(err));

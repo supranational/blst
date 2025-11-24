@@ -1,13 +1,13 @@
 // automatically generated with 'zig translate-c'
-pub const BLST_SUCCESS: c_int = 0;
-pub const BLST_BAD_ENCODING: c_int = 1;
-pub const BLST_POINT_NOT_ON_CURVE: c_int = 2;
-pub const BLST_POINT_NOT_IN_GROUP: c_int = 3;
-pub const BLST_AGGR_TYPE_MISMATCH: c_int = 4;
-pub const BLST_VERIFY_FAIL: c_int = 5;
-pub const BLST_PK_IS_INFINITY: c_int = 6;
-pub const BLST_BAD_SCALAR: c_int = 7;
-pub const BLST_ERROR = c_uint;
+const BLST_SUCCESS: c_int = 0;
+const BLST_BAD_ENCODING: c_int = 1;
+const BLST_POINT_NOT_ON_CURVE: c_int = 2;
+const BLST_POINT_NOT_IN_GROUP: c_int = 3;
+const BLST_AGGR_TYPE_MISMATCH: c_int = 4;
+const BLST_VERIFY_FAIL: c_int = 5;
+const BLST_PK_IS_INFINITY: c_int = 6;
+const BLST_BAD_SCALAR: c_int = 7;
+const BLST_ERROR = c_uint;
 pub const byte = u8;
 pub const limb_t = u64;
 const blst_scalar = extern struct {
@@ -269,6 +269,15 @@ extern fn blst_fp_from_le_bytes(ret: [*c]blst_fp, in: [*c]const byte, len: usize
 extern fn blst_fp_from_be_bytes(ret: [*c]blst_fp, in: [*c]const byte, len: usize) void;
 extern fn blst_sha256(out: [*c]byte, msg: [*c]const byte, msg_len: usize) void;
 // reexport symbols without blst_ prefix
+pub const SUCCESS = BLST_SUCCESS;
+pub const BAD_ENCODING = BLST_BAD_ENCODING;
+pub const POINT_NOT_ON_CURVE = BLST_POINT_NOT_ON_CURVE;
+pub const POINT_NOT_IN_GROUP = BLST_POINT_NOT_IN_GROUP;
+pub const AGGR_TYPE_MISMATCH = BLST_AGGR_TYPE_MISMATCH;
+pub const VERIFY_FAIL = BLST_VERIFY_FAIL;
+pub const PK_IS_INFINITY = BLST_PK_IS_INFINITY;
+pub const BAD_SCALAR = BLST_BAD_SCALAR;
+pub const ERROR = BLST_ERROR;
 pub const scalar = blst_scalar;
 pub const fr = blst_fr;
 pub const fp = blst_fp;
