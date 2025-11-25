@@ -29,12 +29,12 @@ pub fn build(b: *std.Build) void {
     switch (target.result.cpu.arch) {
         .aarch64,
         .x86_64  => lib.addCSourceFiles(.{
-                       .files = cfiles,
-                       .flags = cflags[0..cflags.len-1]
+                        .files = cfiles,
+                        .flags = cflags[0 .. cflags.len-1],
                     }),
         else     => lib.addCSourceFiles(.{
-                       .files = cfiles[0..cfiles.len-1],
-                       .flags = cflags
+                        .files = cfiles[0 .. cfiles.len-1],
+                        .flags = cflags,
                     }),
     }
     if (target.result.os.tag == .windows) {
@@ -46,8 +46,8 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("bindings/zig/tests.zig"),
             .target = target,
             .optimize = optimize,
-            .imports = &.{ .{ .name = "blst", .module = mod } },
-	}),
+            .imports = &.{.{ .name = "blst", .module = mod }},
+        }),
     });
 
     b.step("test", "Run test[s]").dependOn(&b.addRunArtifact(tests).step);

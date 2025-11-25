@@ -10,7 +10,7 @@ const std = @import("std");
 
 pub const c = @import("c.zig");
 
-pub const Error = error {
+pub const Error = error{
     BAD_ENCODING,
     POINT_NOT_ON_CURVE,
     POINT_NOT_IN_GROUP,
@@ -90,7 +90,7 @@ pub const Pairing = struct {
 
         switch (@TypeOf(pk)) {
             *const P1_Affine, *P1_Affine => {
-                const sigp : [*c]const c.p2_affine = switch (@TypeOf(sig)) {
+                const sigp: [*c]const c.p2_affine = switch (@TypeOf(sig)) {
                     @TypeOf(null) => null,
                     else => &sig.point,
                 };
@@ -100,7 +100,7 @@ pub const Pairing = struct {
                                                    @ptrCast(opt), opt.len);
             },
             *const P2_Affine, *P2_Affine => {
-                const sigp : [*c]const c.p1_affine = switch (@TypeOf(sig)) {
+                const sigp: [*c]const c.p1_affine = switch (@TypeOf(sig)) {
                     @TypeOf(null) => null,
                     else => &sig.point,
                 };
@@ -173,7 +173,7 @@ pub const P2_SERIALIZE_BYTES = FP_BYTES*4;
 """
 p1_zig = """
 pub const P1_Affine = struct {
-    point : c.p1_affine = c.p1_affine{},
+    point: c.p1_affine = c.p1_affine{},
 
     pub fn from(in: anytype) !P1_Affine {
         switch (@TypeOf(in)) {
@@ -186,7 +186,7 @@ pub const P1_Affine = struct {
                     else     => @compileError("expected type '[]const u8', found '" ++ @typeName(T) ++ "'"),
                 }
 
-                var ret : P1_Affine = undefined;
+                var ret: P1_Affine = undefined;
                 const err = ret.deserialize(in);
                 return if (err == .SUCCESS) ret else err.as_error();
             },
@@ -208,13 +208,13 @@ pub const P1_Affine = struct {
     }
 
     pub fn serialize(self: *const P1_Affine) [P1_SERIALIZE_BYTES]u8 {
-        var ret : [P1_SERIALIZE_BYTES]u8 = undefined;
+        var ret: [P1_SERIALIZE_BYTES]u8 = undefined;
         c.p1_affine_serialize(&ret[0], &self.point);
         return ret;
     }
 
     pub fn compress(self: *const P1_Affine) [P1_COMPRESS_BYTES]u8 {
-        var ret : [P1_COMPRESS_BYTES]u8 = undefined;
+        var ret: [P1_COMPRESS_BYTES]u8 = undefined;
         c.p1_affine_compress(&ret[0], &self.point);
         return ret;
     }
@@ -252,20 +252,20 @@ pub const P1_Affine = struct {
     }
 
     pub fn generator() P1_Affine {
-        return P1_Affine {
+        return P1_Affine{
             .point = c.p1_affine_generator().*,
         };
     }
 
     pub fn to_jacobian(self: *const P1_Affine) P1 {
-        var ret : P1 = undefined;
+        var ret: P1 = undefined;
         c.p1_from_affine(&ret.point, &self.point);
         return ret;
     }
 };
 
 pub const P1 = struct {
-    point : c.p1 = c.p1{},
+    point: c.p1 = c.p1{},
 
     pub fn from(in: anytype) !P1 {
         switch (@TypeOf(in)) {
@@ -281,7 +281,7 @@ pub const P1 = struct {
                     else     => @compileError("expected type '[]const u8', found '" ++ @typeName(T) ++ "'"),
                 }
 
-                var ret : P1 = undefined;
+                var ret: P1 = undefined;
                 const err = ret.deserialize(in);
                 return if (err == .SUCCESS) ret else err.as_error();
             },
@@ -306,19 +306,19 @@ pub const P1 = struct {
     }
 
     pub fn serialize(self: *const P1) [P1_SERIALIZE_BYTES]u8 {
-        var ret : [P1_SERIALIZE_BYTES]u8 = undefined;
+        var ret: [P1_SERIALIZE_BYTES]u8 = undefined;
         c.p1_serialize(&ret[0], &self.point);
         return ret;
     }
 
     pub fn compress(self: *const P1) [P1_COMPRESS_BYTES]u8 {
-        var ret : [P1_COMPRESS_BYTES]u8 = undefined;
+        var ret: [P1_COMPRESS_BYTES]u8 = undefined;
         c.p1_compress(&ret[0], &self.point);
         return ret;
     }
 
     pub fn public_key(sk: *const SecretKey) P1 {
-        var ret : P1 = undefined;
+        var ret: P1 = undefined;
         c.sk_to_pk_in_g1(&ret.point, &sk.key);
         return ret;
     }
@@ -352,7 +352,7 @@ pub const P1 = struct {
 
     pub fn hash_to(msg: []const u8, DST: []const u8, aug: ?[]const u8) P1 {
         const opt = aug orelse &[_]u8{};
-        var ret : P1 = undefined;
+        var ret: P1 = undefined;
 
         c.hash_to_g1(&ret.point, @ptrCast(msg), msg.len,
                                  @ptrCast(DST), DST.len,
@@ -362,7 +362,7 @@ pub const P1 = struct {
 
     pub fn encode_to(msg: []const u8, DST: []const u8, aug: ?[]const u8) P1 {
         const opt = aug orelse &[_]u8{};
-        var ret : P1 = undefined;
+        var ret: P1 = undefined;
 
         c.encode_to_g1(&ret.point, @ptrCast(msg), msg.len,
                                    @ptrCast(DST), DST.len,
@@ -376,13 +376,13 @@ pub const P1 = struct {
     }
 
     pub fn to_affine(self: *const P1) P1_Affine {
-        var ret : P1_Affine = undefined;
+        var ret: P1_Affine = undefined;
         c.p1_to_affine(&ret.point, &self.point);
         return ret;
     }
 
     pub fn generator() P1 {
-        return P1 {
+        return P1{
             .point = c.p1_generator().*,
         };
     }
