@@ -5,9 +5,9 @@
  */
 
 #if (defined(__GNUC__) || defined(__clang__) || defined(__SUNPRO_C)) && !defined(_WIN32)
-__attribute__((visibility("hidden")))
+__attribute__((visibility("hidden"), common))
 #endif
-int __blst_platform_cap = 0;
+int __blst_platform_cap;
 
 #if defined(__x86_64__) || defined(__x86_64) || (defined(_M_X64) && !defined(_M_ARM64EC))
 
