@@ -61,7 +61,7 @@ fn bench_verify_multi_aggregate(c: &mut Criterion) {
     let seed = [0u8; 32];
     let mut rng = ChaCha20Rng::from_seed(seed);
 
-    let num_sigs = vec![8, 16, 32, 64, 128];
+    let num_sigs = [8, 16, 32, 64, 128];
     let pks_per_sig = 3;
 
     for n in num_sigs.iter() {
@@ -81,8 +81,6 @@ fn bench_verify_multi_aggregate(c: &mut Criterion) {
                 .collect();
             let pks_i =
                 sks_i.iter().map(|sk| sk.sk_to_pk()).collect::<Vec<_>>();
-            let pks_refs_i: Vec<&PublicKey> =
-                pks_i.iter().map(|pk| pk).collect();
 
             // Create random message for pks to all sign
             let msg_len = (rng.next_u64() & 0x3F) + 1;
@@ -96,9 +94,7 @@ fn bench_verify_multi_aggregate(c: &mut Criterion) {
                 .collect::<Vec<Signature>>();
 
             // Aggregate signature
-            let sig_refs_i =
-                sigs_i.iter().map(|s| s).collect::<Vec<&Signature>>();
-            let agg_i = match AggregateSignature::aggregate(&sig_refs_i, false)
+            let agg_i = match AggregateSignature::aggregate_iter(&sigs_i, false)
             {
                 Ok(agg_i) => agg_i,
                 Err(err) => panic!("aggregate failure: {:?}", err),
@@ -107,7 +103,7 @@ fn bench_verify_multi_aggregate(c: &mut Criterion) {
 
             // aggregate public keys and push into vec
             let agg_pk_i =
-                match AggregatePublicKey::aggregate(&pks_refs_i, false) {
+                match AggregatePublicKey::aggregate_iter(&pks_i, false) {
                     Ok(agg_pk_i) => agg_pk_i,
                     Err(err) => panic!("aggregate failure: {:?}", err),
                 };
@@ -157,26 +153,18 @@ fn bench_fast_aggregate_verify(c: &mut Criterion) {
     let mut msg = vec![0u8; msg_len as usize];
     rng.fill_bytes(&mut msg);
 
-    let sizes = vec![8, 16, 32, 64, 128];
+    let sizes = [8, 16, 32, 64, 128];
 
     let bds: Vec<_> = (0..sizes[sizes.len() - 1])
         .map(|_| gen_bench_data_for_msg(&mut rng, &msg))
         .collect();
 
-    for size in sizes.iter() {
-        let pks_refs = bds
-            .iter()
-            .take(*size)
-            .map(|s| &s.pk)
-            .collect::<Vec<&PublicKey>>();
+    for size in sizes {
+        let pks_refs = bds[..size].iter().map(|s| &s.pk).collect::<Vec<_>>();
 
-        let sig_refs = bds
-            .iter()
-            .take(*size)
-            .map(|s| &s.sig)
-            .collect::<Vec<&Signature>>();
+        let sig_refs = bds[..size].iter().map(|s| &s.sig);
 
-        let agg = match AggregateSignature::aggregate(&sig_refs, false) {
+        let agg = match AggregateSignature::aggregate_iter(sig_refs, false) {
             Ok(agg) => agg,
             Err(err) => panic!("aggregate failure: {:?}", err),
         };
@@ -196,7 +184,7 @@ fn bench_fast_aggregate_verify(c: &mut Criterion) {
             &agg_ver,
             |b, (a, p, m, d)| {
                 b.iter(|| {
-                    let result = a.fast_aggregate_verify(true, &m, &d, &p);
+                    let result = a.fast_aggregate_verify(true, m, d, p);
                     assert_eq!(result, BLST_ERROR::BLST_SUCCESS);
                 });
             },
@@ -224,33 +212,27 @@ fn bench_aggregate_verify(c: &mut Criterion) {
     let seed = [0u8; 32];
     let mut rng = ChaCha20Rng::from_seed(seed);
 
-    let sizes = vec![8, 16, 32, 64, 128];
+    let sizes = [8, 16, 32, 64, 128];
     // [10, 50, 100, 300, 1000, 4000];
 
     let bds: Vec<_> = (0..sizes[sizes.len() - 1])
         .map(|_| gen_bench_data(&mut rng))
         .collect();
 
-    for size in sizes.iter() {
-        let msgs_refs = bds
+    for size in sizes {
+        let msgs_refs = bds[..size]
             .iter()
-            .take(*size)
             .map(|s| s.msg.as_slice())
             .collect::<Vec<&[u8]>>();
 
-        let pks_refs = bds
+        let pks_refs = bds[..size]
             .iter()
-            .take(*size)
             .map(|s| &s.pk)
             .collect::<Vec<&PublicKey>>();
 
-        let sig_refs = bds
-            .iter()
-            .take(*size)
-            .map(|s| &s.sig)
-            .collect::<Vec<&Signature>>();
+        let sig_refs = bds[..size].iter().map(|s| &s.sig);
 
-        let agg = match AggregateSignature::aggregate(&sig_refs, false) {
+        let agg = match AggregateSignature::aggregate_iter(sig_refs, false) {
             Ok(agg) => agg,
             Err(err) => panic!("aggregate failure: {:?}", err),
         };
@@ -262,7 +244,7 @@ fn bench_aggregate_verify(c: &mut Criterion) {
             &agg_ver,
             |b, (a, p, m, d)| {
                 b.iter(|| {
-                    let result = a.aggregate_verify(true, &m, &d, &p, false);
+                    let result = a.aggregate_verify(true, m, d, p, false);
                     assert_eq!(result, BLST_ERROR::BLST_SUCCESS);
                 });
             },
@@ -278,36 +260,34 @@ fn bench_aggregate(c: &mut Criterion) {
     let seed = [0u8; 32];
     let mut rng = ChaCha20Rng::from_seed(seed);
 
-    let sizes: [usize; 6] = [10, 50, 100, 300, 1000, 4000];
+    let sizes = [10, 50, 100, 300, 1000, 4000];
 
     let bds: Vec<_> = (0..4000).map(|_| gen_bench_data(&mut rng)).collect();
 
-    for size in sizes.iter() {
-        let sig_refs = bds
-            .iter()
-            .take(*size)
-            .map(|s| &s.sig)
-            .collect::<Vec<&Signature>>();
-
+    for size in sizes {
         group.bench_with_input(
             BenchmarkId::new("aggregate_signature", size),
-            &sig_refs,
-            |b, s| {
-                b.iter(|| AggregateSignature::aggregate(&s, false));
+            &bds,
+            |b, bds| {
+                b.iter(|| {
+                    AggregateSignature::aggregate_iter(
+                        bds[..size].iter().map(|s| &s.sig),
+                        false,
+                    )
+                });
             },
         );
 
-        let pks_refs = bds
-            .iter()
-            .take(*size)
-            .map(|s| &s.pk)
-            .collect::<Vec<&PublicKey>>();
-
         group.bench_with_input(
             BenchmarkId::new("aggregate_public_key", size),
-            &pks_refs,
-            |b, p| {
-                b.iter(|| AggregatePublicKey::aggregate(&p, false));
+            &bds,
+            |b, bds| {
+                b.iter(|| {
+                    AggregatePublicKey::aggregate_iter(
+                        bds[..size].iter().map(|s| &s.pk),
+                        false,
+                    )
+                });
             },
         );
     }
