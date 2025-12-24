@@ -10,7 +10,7 @@
 # In general Montgomery multiplication algorithm can handle one of the
 # inputs being non-reduced and capped by 1<<radix_width, 1<<256 in this
 # case, rather than the modulus. Whether or not mul_mont_sparse_256, a
-# *taylored* implementation of the algorithm, can handle such input can
+# *tailored* implementation of the algorithm, can handle such input can
 # be circumstantial. For example, in most general case it depends on
 # similar "bit sparsity" of individual limbs of the second, fully reduced
 # multiplicand. If you can't make such assumption about the limbs, then

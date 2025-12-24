@@ -1928,7 +1928,7 @@ close STDOUT;
 #	...
 #	mov	-8(%rbp),%rbx
 #	mov	%rbp,%rsp
-# .cfi_def_cfa_regiser	%rsp
+# .cfi_def_cfa_register	%rsp
 #	pop	%rbp		# recognized by Windows
 # .cfi_pop	%rbp
 # .cfi_epilogue
