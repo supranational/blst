@@ -2156,6 +2156,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 		case P1Affines:
 			pointsBySlice[0] = &val[0].cgo
 			p_points = &pointsBySlice[0]
+		default: // type is already vetted
 		}
 
 		scalarsBySlice := [2]*C.byte{nil, nil}
@@ -2175,6 +2176,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 			}
 		case []*Scalar:
 			p_scalars = &scalars[0]
+		default: // type is already vetted
 		}
 
 		var ret P1
@@ -2216,6 +2218,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 						point = &val[workItem]
 					case P1Affines:
 						point = &val[workItem]
+					default: // type is already vetted
 					}
 
 					var scalar *C.byte
@@ -2232,6 +2235,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 						}
 					case []*Scalar:
 						scalar = scalars[workItem]
+					default: // type is already vetted
 					}
 
 					C.go_p1_mult_n_acc(&acc.cgo, &point.cgo.x, true,
@@ -2322,6 +2326,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 				case P1Affines:
 					pointsBySlice[0] = &val[x].cgo
 					p_points = &pointsBySlice[0]
+				default: // type is already vetted
 				}
 
 				var p_scalars **C.byte
@@ -2340,6 +2345,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 					}
 				case []*Scalar:
 					p_scalars = &scalars[x]
+				default: // type is already vetted
 				}
 
 				C.blst_p1s_tile_pippenger(&grid[workItem].point.cgo,
@@ -2963,6 +2969,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 		case P2Affines:
 			pointsBySlice[0] = &val[0].cgo
 			p_points = &pointsBySlice[0]
+		default: // type is already vetted
 		}
 
 		scalarsBySlice := [2]*C.byte{nil, nil}
@@ -2982,6 +2989,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 			}
 		case []*Scalar:
 			p_scalars = &scalars[0]
+		default: // type is already vetted
 		}
 
 		var ret P2
@@ -3023,6 +3031,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 						point = &val[workItem]
 					case P2Affines:
 						point = &val[workItem]
+					default: // type is already vetted
 					}
 
 					var scalar *C.byte
@@ -3039,6 +3048,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 						}
 					case []*Scalar:
 						scalar = scalars[workItem]
+					default: // type is already vetted
 					}
 
 					C.go_p2_mult_n_acc(&acc.cgo, &point.cgo.x, true,
@@ -3129,6 +3139,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 				case P2Affines:
 					pointsBySlice[0] = &val[x].cgo
 					p_points = &pointsBySlice[0]
+				default: // type is already vetted
 				}
 
 				var p_scalars **C.byte
@@ -3147,6 +3158,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 					}
 				case []*Scalar:
 					p_scalars = &scalars[x]
+				default: // type is already vetted
 				}
 
 				C.blst_p2s_tile_pippenger(&grid[workItem].point.cgo,
