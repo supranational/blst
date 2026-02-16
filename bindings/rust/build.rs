@@ -216,8 +216,10 @@ fn main() {
     if target_env.eq("msvc") && cc.get_compiler().is_like_msvc() {
         cc.flag("-Zl");
     }
-    cc.flag_if_supported("-mno-avx") // avoid costly transitions
-        .flag_if_supported("-fno-builtin")
+    if target_arch.eq("x86_64") {
+        cc.flag_if_supported("-mno-avx"); // avoid costly transitions
+    }
+    cc.flag_if_supported("-fno-builtin")
         .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-command-line-argument");
     if target_arch.eq("wasm32") || target_family.is_empty() {
