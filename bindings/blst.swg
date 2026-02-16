@@ -23,8 +23,8 @@
 %header %{
 #if PY_VERSION_HEX<0x030d0000
 /* Tailored polyfill, for example no need to handle |n_bytes| == 0 here */
-Py_ssize_t PyLong_AsNativeBytes(PyObject* v, void* buffer, Py_ssize_t n_bytes,
-                                int flags)
+static Py_ssize_t PyLong_AsNativeBytes(PyObject* v, void* buffer,
+                                       Py_ssize_t n_bytes, int flags)
 {
     return _PyLong_AsByteArray((PyLongObject*)v,
                                (unsigned char*)buffer, n_bytes,
@@ -35,6 +35,15 @@ Py_ssize_t PyLong_AsNativeBytes(PyObject* v, void* buffer, Py_ssize_t n_bytes,
 # define My_PYLONG_FLAGS (Py_ASNATIVEBYTES_LITTLE_ENDIAN | \
                           Py_ASNATIVEBYTES_UNSIGNED_BUFFER | \
                           Py_ASNATIVEBYTES_REJECT_NEGATIVE)
+#endif
+#if PY_VERSION_HEX<0x030e0000
+static int PyLong_GetSign(PyObject *obj, int *sign)
+{
+    if (!PyLong_Check(obj))
+        return -1;
+    *sign = _PyLong_Sign(obj);
+    return 0;
+}
 #endif
 %}
 
@@ -310,8 +319,9 @@ Py_ssize_t PyLong_AsNativeBytes(PyObject* v, void* buffer, Py_ssize_t n_bytes,
             $2 = _PyLong_NumBits(obj);
             for (size_t i = 1; i < _global_npoints; i++) {
                 size_t nbits;
+                int sign;
                 obj = PyList_GET_ITEM($input, i);
-                if (!PyLong_Check(obj) || _PyLong_Sign(obj) < 0)
+                if (PyLong_GetSign(obj, &sign) < 0 || sign < 0)
                     SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                                         "expecting all 'long's");
                 nbits = _PyLong_NumBits(obj);
