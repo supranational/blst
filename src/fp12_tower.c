@@ -785,5 +785,26 @@ void blst_bendian_from_fp12(unsigned char ret[48*12], const vec384fp12 a)
     }
 }
 
+void blst_fp12_from_bendian(vec384fp12 out, const byte in[48 * 12])
+{
+    size_t i, j;
+    const byte *in_ptr = in;
+    vec384 tmp_vec;
+
+    for (i = 0; i < 3; i++)
+    {
+        for (j = 0; j < 2; j++)
+        {
+            limbs_from_be_bytes(tmp_vec, in_ptr, sizeof(vec384));
+            mul_fp(out[j][i][0], tmp_vec, BLS12_381_RR);
+            in_ptr += 48;
+
+            limbs_from_be_bytes(tmp_vec, in_ptr, sizeof(vec384));
+            mul_fp(out[j][i][1], tmp_vec, BLS12_381_RR);
+            in_ptr += 48;
+        }
+    }
+}
+
 size_t blst_fp12_sizeof(void)
 {   return sizeof(vec384fp12);   }
