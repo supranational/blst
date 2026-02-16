@@ -247,12 +247,10 @@ jobs:
         fi
 
     - name: Emscripten
-      uses: addnab/docker-run-action@v3
+      uses: docker://emscripten/emsdk
       with:
-        registry: https://index.docker.io/v1/
-        image: emscripten/emsdk
-        options: --volume ${{ github.workspace }}:/blst --network=none
-        run: git config --global safe.directory \* && git clone -q /blst /tmp/blst && /tmp/blst/bindings/emscripten/run.me -O2
+        args: >
+          bindings/emscripten/run.me -O2
 
     - name: C#
       run: |
@@ -283,6 +281,7 @@ jobs:
         if [ -x ~/$base_dir/zig ]; then
             PATH=~/$base_dir:$PATH
             zig build test --summary new
+            echo '--- test wasm32-wasi'
             if [ ! -d ~/.wasmtime ]; then
                 curl https://wasmtime.dev/install.sh -sSf | bash
             fi
