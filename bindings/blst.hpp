@@ -305,6 +305,14 @@ public:
     }
 #ifndef SWIG
     P1* hash_to(const byte* msg, size_t msg_len,
+                const byte* DST,
+                size_t DST_len,
+                const byte* aug = nullptr, size_t aug_len = 0)
+    {   blst_hash_to_g1(&point, msg, msg_len, DST, DST_len,
+                                aug, aug_len);
+        return this;
+    }
+    P1* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
                 const byte* aug = nullptr, size_t aug_len = 0)
     {   blst_hash_to_g1(&point, msg, msg_len, C_bytes(DST.data()), DST.size(),
@@ -343,6 +351,14 @@ public:
 #endif
     static P1 generator()
     {   return P1(blst_p1_generator());   }
+    static P1_Affine uncompress(const byte in[48])
+    {
+        P1_Affine ret;
+        BLST_ERROR err = blst_p1_uncompress(ret, in);
+        if (err != BLST_SUCCESS)
+            throw err;
+        return ret;
+    }
 
 private:
     friend class P1_Affine;
@@ -607,6 +623,13 @@ public:
     }
 #ifndef SWIG
     P2* hash_to(const byte* msg, size_t msg_len,
+                const byte* DST, size_t DST_len,
+                const byte* aug = nullptr, size_t aug_len = 0)
+    {   blst_hash_to_g2(&point, msg, msg_len, DST, DST_len,
+                                aug, aug_len);
+        return this;
+    }
+    P2* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
                 const byte* aug = nullptr, size_t aug_len = 0)
     {   blst_hash_to_g2(&point, msg, msg_len, C_bytes(DST.data()), DST.size(),
@@ -646,6 +669,14 @@ public:
 #endif
     static P2 generator()
     {   return P2(blst_p2_generator());   }
+    static P2_Affine uncompress(const byte in[96])
+    {
+        P2_Affine ret;
+        BLST_ERROR err = blst_p2_uncompress(ret, in);
+        if (err != BLST_SUCCESS)
+            throw err;
+        return ret;
+    }
 
 private:
     friend class P2_Affine;
