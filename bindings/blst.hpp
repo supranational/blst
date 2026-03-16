@@ -849,6 +849,10 @@ public:
     bool in_group() const   { return blst_fp12_in_group(&value); }
     void to_bendian(byte out[48*12]) const
     {   blst_bendian_from_fp12(out, &value);   }
+    void from_bendian(const byte in[48 * 12]) const
+    {
+        blst_fp12_from_bendian(&value, in);
+    }
 
     static bool finalverify(const PT& gt1, const PT& gt2)
     {   return blst_fp12_finalverify(gt1, gt2);   }
