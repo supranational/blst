@@ -239,8 +239,8 @@ jobs:
             npm install --global typescript || true
             if which tsc > /dev/null 2>&1; then
               ( cd $node_js;
-                npm install @types/node
-                tsc runnable.ts;
+                npm install @types/node;
+                tsc runnable.ts --ignoreConfig --types node;
                 env NODE_PATH=.: node runnable.js;
               )
            fi
