@@ -273,7 +273,7 @@ jobs:
 
     - name: Zig
       run: |
-        ver=0.15.2
+        ver=0.16.0
         base_dir=zig-x86_64-linux-$ver
         if [ ! -d ~/$base_dir ]; then
             curl -sSf https://ziglang.org/download/$ver/$base_dir.tar.xz | unxz -c | tar xf - --directory ~

@@ -22,23 +22,22 @@ pub fn build(b: *std.Build) void {
     };
 
     const cflags = &[_][]const u8{
-        "-O2", "-ffreestanding", "-D__BLST_PORTABLE__",
+        "-O2",               "-ffreestanding", "-D__BLST_PORTABLE__",
         "-D__BLST_NO_ASM__",
     };
 
     switch (target.result.cpu.arch) {
-        .aarch64,
-        .x86_64  => lib.addCSourceFiles(.{
-                        .files = cfiles,
-                        .flags = cflags[0 .. cflags.len-1],
-                    }),
-        else     => lib.addCSourceFiles(.{
-                        .files = cfiles[0 .. cfiles.len-1],
-                        .flags = cflags,
-                    }),
+        .aarch64, .x86_64 => lib.root_module.addCSourceFiles(.{
+            .files = cfiles,
+            .flags = cflags[0 .. cflags.len - 1],
+        }),
+        else => lib.root_module.addCSourceFiles(.{
+            .files = cfiles[0 .. cfiles.len - 1],
+            .flags = cflags,
+        }),
     }
     if (target.result.os.tag == .windows) {
-        lib.linkLibC();
+        lib.root_module.link_libc = true;
     }
 
     const tests = b.addTest(.{
