@@ -273,18 +273,31 @@ jobs:
 
     - name: Zig
       run: |
-        ver=0.15.2
-        base_dir=zig-x86_64-linux-$ver
-        if [ ! -d ~/$base_dir ]; then
-            curl -sSf https://ziglang.org/download/$ver/$base_dir.tar.xz | unxz -c | tar xf - --directory ~
-        fi
-        if [ -x ~/$base_dir/zig ]; then
-            PATH=~/$base_dir:$PATH
-            zig build test --summary new
-            echo '--- test wasm32-wasi'
-            if [ ! -d ~/.wasmtime ]; then
-                curl https://wasmtime.dev/install.sh -sSf | bash
+        which minisign > /dev/null 2>&1 || sudo apt-get -y install minisign
+        curl https://ziglang.org/download/community-mirrors.txt -sSfo mirrors.txt && \
+        for ver in 0.14.1 0.16.0; do (
+            base_dir=zig-x86_64-linux-$ver
+            if [ ! -d ~/$base_dir ]; then
+                mirror=`shuf -n 1 mirrors.txt`
+                curl $mirror/$base_dir.tar.xz -sSfo $base_dir.tar.xz && \
+                curl https://ziglang.org/download/$ver/$base_dir.tar.xz.minisig -sSfo $base_dir.minisig && \
+                minisign -V -P "RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U" \
+                         -x $base_dir.minisig -m $base_dir.tar.xz -q || \
+                (rm -f $base_dir.* && echo "$ver download failure")
+                if [ -f $base_dir.tar.xz ]; then
+                    unxz -c $base_dir.tar.xz | tar xf - --directory ~
+                    rm $base_dir.*
+                fi
             fi
-            PATH=~/.wasmtime/bin:$PATH
-            zig build test -Dtarget=wasm32-wasi -fwasmtime --summary new
-        fi
+            if [ -x ~/$base_dir/zig ]; then
+                echo "--- test $base_dir"
+                PATH=~/$base_dir:$PATH
+                zig build test --summary new
+                echo '--- test wasm32-wasi'
+                if [ ! -d ~/.wasmtime ]; then
+                    curl https://wasmtime.dev/install.sh -sSf | bash
+                fi
+                PATH=~/.wasmtime/bin:$PATH
+                zig build test -Dtarget=wasm32-wasi -fwasmtime --summary new
+            fi
+        ); done
