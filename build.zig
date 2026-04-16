@@ -10,12 +10,6 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const lib = b.addLibrary(.{
-        .name = "blst",
-        .linkage = .static,
-        .root_module = mod,
-    });
-
     const cfiles = &[_][]const u8{
         "src/server.c",
         "build/assembly.S",
@@ -28,17 +22,17 @@ pub fn build(b: *std.Build) void {
 
     switch (target.result.cpu.arch) {
         .aarch64,
-        .x86_64  => lib.addCSourceFiles(.{
+        .x86_64  => mod.addCSourceFiles(.{
                         .files = cfiles,
                         .flags = cflags[0 .. cflags.len-1],
                     }),
-        else     => lib.addCSourceFiles(.{
+        else     => mod.addCSourceFiles(.{
                         .files = cfiles[0 .. cfiles.len-1],
                         .flags = cflags,
                     }),
     }
     if (target.result.os.tag == .windows) {
-        lib.linkLibC();
+        mod.link_libc = true;
     }
 
     const tests = b.addTest(.{
