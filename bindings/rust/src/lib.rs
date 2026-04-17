@@ -1758,7 +1758,7 @@ macro_rules! sig_variant_impl {
         #[cfg(test)]
         mod tests {
             use super::*;
-            use rand::{RngCore, SeedableRng};
+            use rand_core::{RngCore, SeedableRng};
             use rand_chacha::ChaCha20Rng;
 
             // Testing only - do not use for production
@@ -2302,7 +2302,7 @@ include!("pippenger-no_std.rs");
 #[cfg(test)]
 mod fp12_test {
     use super::*;
-    use rand::{RngCore, SeedableRng};
+    use rand_core::{RngCore, SeedableRng};
     use rand_chacha::ChaCha20Rng;
 
     #[test]
@@ -2355,7 +2355,7 @@ mod fp12_test {
 #[cfg(test)]
 mod sk_test {
     use super::*;
-    use rand::{RngCore, SeedableRng};
+    use rand_core::{RngCore, SeedableRng};
     use rand_chacha::ChaCha20Rng;
 
     #[test]
