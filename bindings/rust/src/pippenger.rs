@@ -522,12 +522,17 @@ fn breakdown(
     } else {
         nx = 2;
         wnd = window - 2;
-        while (nbits / wnd + 1) * nx < ncpus {
+        while wnd > 0 && (nbits / wnd + 1) * nx < ncpus {
             nx += 1;
-            wnd = window - num_bits(3 * nx / 2);
+            let bits = num_bits(3 * nx / 2);
+            if bits >= window {
+                break;
+            }
+            wnd = window - bits;
         }
         nx -= 1;
-        wnd = window - num_bits(3 * nx / 2);
+        let bits = num_bits(3 * nx / 2);
+        wnd = if bits >= window { 1 } else { window - bits };
     }
     let ny = nbits / wnd + 1;
     wnd = nbits / ny + 1;
