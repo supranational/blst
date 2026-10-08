@@ -433,7 +433,7 @@ public:
         vec_zero(val, sizeof(val));
 
         vec256 digit;
-        size_t rem = (n - 1) % 32 + 1;
+        size_t rem = n ? (n - 1) % 32 + 1 : 0;
         n -= rem;
 
         if (le) {
