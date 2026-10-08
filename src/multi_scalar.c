@@ -444,7 +444,12 @@ void prefix##s_tile_pippenger(ptype *ret, \
 { \
     size_t wbits, cbits; \
 \
-    if (bit0 + window > nbits)  wbits = nbits - bit0, cbits = wbits + 1; \
+    if (npoints == 0 || nbits == 0 || (nbits+7) < nbits \
+        || bit0 > nbits || window == 0) { \
+        vec_zero(ret, sizeof(*ret)); \
+        return; \
+    } \
+    if (window > nbits - bit0)  wbits = nbits - bit0, cbits = wbits + 1; \
     else                        wbits = cbits = window; \
     ptype##s_tile_pippenger(ret, points, npoints, scalars, nbits, scratch, \
                                  bit0, wbits, cbits); \
