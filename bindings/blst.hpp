@@ -376,10 +376,11 @@ public:
     }
     P1_Affines(size_t wbits, const P1_Affine points[], size_t npoints)
     {   const P1_Affine* const ptrs[2] = { points, nullptr };
-        P1_Affines(wbits, ptrs, npoints);
+        *this = P1_Affines(wbits, ptrs, npoints);
     }
     P1_Affines(size_t wbits, const std::vector<P1_Affine>& points)
-    {   P1_Affines(wbits, &points.at(0), points.size());   }
+        : P1_Affines(wbits, &points.at(0), points.size())
+    {}
 
     P1_Affines(size_t wbits, const P1* const points[], size_t npoints)
     {   size_t cap = npoints << (wbits-1);
@@ -395,10 +396,11 @@ public:
     }
     P1_Affines(size_t wbits, const P1 points[], size_t npoints)
     {   const P1* const ptrs[2] = { points, nullptr };
-        P1_Affines(wbits, ptrs, npoints);
+        *this = P1_Affines(wbits, ptrs, npoints);
     }
     P1_Affines(size_t wbits, const std::vector<P1>& points)
-    {   P1_Affines(wbits, &points.at(0), points.size());   }
+        : P1_Affines(wbits, &points.at(0), points.size())
+    {}
 
     P1_Affines(const P1* const points[], size_t npoints)
     {   this->wbits = 0;
@@ -410,10 +412,11 @@ public:
     }
     P1_Affines(const P1 points[], size_t npoints)
     {   const P1* const ptrs[2] = { points, nullptr };
-        P1_Affines(ptrs, npoints);
+        *this = P1_Affines(ptrs, npoints);
     }
     P1_Affines(const std::vector<P1>& points)
-    {   P1_Affines(&points.at(0), points.size());   }
+        : P1_Affines(&points.at(0), points.size())
+    {}
 
     P1 mult(const byte* const scalars[], size_t nbits) const
     {   P1 ret;
@@ -679,10 +682,11 @@ public:
     }
     P2_Affines(size_t wbits, const P2_Affine points[], size_t npoints)
     {   const P2_Affine* const ptrs[2] = { points, nullptr };
-        P2_Affines(wbits, ptrs, npoints);
+        *this = P2_Affines(wbits, ptrs, npoints);
     }
     P2_Affines(size_t wbits, const std::vector<P2_Affine>& points)
-    {   P2_Affines(wbits, &points.at(0), points.size());   }
+        : P2_Affines(wbits, &points.at(0), points.size())
+    {}
 
     P2_Affines(size_t wbits, const P2* const points[], size_t npoints)
     {   size_t cap = npoints << (wbits-1);
@@ -698,10 +702,11 @@ public:
     }
     P2_Affines(size_t wbits, const P2 points[], size_t npoints)
     {   const P2* const ptrs[2] = { points, nullptr };
-        P2_Affines(wbits, ptrs, npoints);
+        *this = P2_Affines(wbits, ptrs, npoints);
     }
     P2_Affines(size_t wbits, const std::vector<P2>& points)
-    {   P2_Affines(wbits, &points.at(0), points.size());   }
+        : P2_Affines(wbits, &points.at(0), points.size())
+    {}
 
     P2_Affines(const P2* const points[], size_t npoints)
     {   this->wbits = 0;
@@ -713,10 +718,11 @@ public:
     }
     P2_Affines(const P2 points[], size_t npoints)
     {   const P2* const ptrs[2] = { points, nullptr };
-        P2_Affines(ptrs, npoints);
+        *this = P2_Affines(ptrs, npoints);
     }
     P2_Affines(const std::vector<P2>& points)
-    {   P2_Affines(&points.at(0), points.size());   }
+        : P2_Affines(&points.at(0), points.size())
+    {}
 
     P2 mult(const byte* const scalars[], size_t nbits) const
     {   P2 ret;
