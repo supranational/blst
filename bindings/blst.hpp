@@ -51,6 +51,15 @@ struct bytes_t {
     }
 };
 
+template<typename T>
+class ptrs_t {
+    T* ptrs[2];
+
+public:
+    ptrs_t(T* ptr) { ptrs[0] = ptr; ptrs[1] = nullptr; }
+    operator T**() { return ptrs; }
+};
+
 class P1_Affine;
 class P1;
 class P2_Affine;
@@ -374,12 +383,14 @@ public:
                         reinterpret_cast<const blst_p1_affine *const*>(points),
                         npoints);
     }
-    P1_Affines(size_t wbits, const P1_Affine points[], size_t npoints)
-    {   const P1_Affine* const ptrs[2] = { points, nullptr };
-        P1_Affines(wbits, ptrs, npoints);
-    }
-    P1_Affines(size_t wbits, const std::vector<P1_Affine>& points)
-    {   P1_Affines(wbits, &points.at(0), points.size());   }
+    P1_Affines(size_t wbits, const P1_Affine points[], size_t npoints) :
+        P1_Affines(wbits, ptrs_t<const P1_Affine>{points}, npoints) {}
+    template<template<typename, typename...> class C>
+    P1_Affines(size_t wbits, const C<P1_Affine>& points) :
+        P1_Affines(wbits, &points.at(0), points.size()) {}
+    template<template<typename, size_t> class C, size_t N>
+    P1_Affines(size_t wbits, const C<P1_Affine, N>& points) :
+        P1_Affines(wbits, &points.at(0), points.size()) {}
 
     P1_Affines(size_t wbits, const P1* const points[], size_t npoints)
     {   size_t cap = npoints << (wbits-1);
@@ -393,12 +404,14 @@ public:
         const blst_p1_affine* const ptrs[2] = { table[cap-npoints], nullptr };
         blst_p1s_mult_wbits_precompute(table[0], wbits, ptrs, npoints);
     }
-    P1_Affines(size_t wbits, const P1 points[], size_t npoints)
-    {   const P1* const ptrs[2] = { points, nullptr };
-        P1_Affines(wbits, ptrs, npoints);
-    }
-    P1_Affines(size_t wbits, const std::vector<P1>& points)
-    {   P1_Affines(wbits, &points.at(0), points.size());   }
+    P1_Affines(size_t wbits, const P1 points[], size_t npoints) :
+        P1_Affines(wbits, ptrs_t<const P1>{points}, npoints) {}
+    template<template<typename, typename...> class C>
+    P1_Affines(size_t wbits, const C<P1>& points) :
+        P1_Affines(wbits, &points.at(0), points.size()) {}
+    template<template<typename, size_t> class C, size_t N>
+    P1_Affines(size_t wbits, const C<P1, N>& points) :
+        P1_Affines(wbits, &points.at(0), points.size()) {}
 
     P1_Affines(const P1* const points[], size_t npoints)
     {   this->wbits = 0;
@@ -408,12 +421,14 @@ public:
                            reinterpret_cast<const blst_p1 *const*>(points),
                            npoints);
     }
-    P1_Affines(const P1 points[], size_t npoints)
-    {   const P1* const ptrs[2] = { points, nullptr };
-        P1_Affines(ptrs, npoints);
-    }
-    P1_Affines(const std::vector<P1>& points)
-    {   P1_Affines(&points.at(0), points.size());   }
+    P1_Affines(const P1 points[], size_t npoints) :
+        P1_Affines(ptrs_t<const P1>{points}, npoints) {}
+    template<template<typename, typename...> class C>
+    P1_Affines(const C<P1>& points) :
+        P1_Affines(&points.at(0), points.size()) {}
+    template<template<typename, size_t> class C, size_t N>
+    P1_Affines(const C<P1, N>& points) :
+        P1_Affines(&points.at(0), points.size()) {}
 
     P1 mult(const byte* const scalars[], size_t nbits) const
     {   P1 ret;
@@ -442,10 +457,12 @@ public:
         return ret;
     }
     static std::vector<P1_Affine> from(const P1 points[], size_t npoints)
-    {   const P1* const ptrs[2] = { points, nullptr };
-        return from(ptrs, npoints);
-    }
-    static std::vector<P1_Affine> from(const std::vector<P1>& points)
+    {   return from(ptrs_t<const P1>{points}, npoints);   }
+    template<template<typename, typename...> class C>
+    static std::vector<P1_Affine> from(const C<P1>& points)
+    {   return from(&points.at(0), points.size());   }
+    template<template<typename, size_t> class C, size_t N>
+    static std::vector<P1_Affine> from(const C<P1, N>& points)
     {   return from(&points.at(0), points.size());   }
 #endif
 
@@ -462,10 +479,15 @@ public:
 #ifndef SWIG
     static P1 mult_pippenger(const P1_Affine points[], size_t npoints,
                              const byte* const scalars[], size_t nbits)
-    {   const P1_Affine* const ptrs[2] = { points, nullptr };
-        return mult_pippenger(ptrs, npoints, scalars, nbits);
+    {   return mult_pippenger(ptrs_t<const P1_Affine>{points}, npoints,
+                              scalars, nbits);
     }
-    static P1 mult_pippenger(const std::vector<P1_Affine>& points,
+    template<template<typename, typename...> class C>
+    static P1 mult_pippenger(const C<P1_Affine>& points,
+                             const byte* const scalars[], size_t nbits)
+    {   return mult_pippenger(&points.at(0), points.size(), scalars, nbits);   }
+    template<template<typename, size_t> class C, size_t N>
+    static P1 mult_pippenger(const C<P1_Affine, N>& points,
                              const byte* const scalars[], size_t nbits)
     {   return mult_pippenger(&points.at(0), points.size(), scalars, nbits);   }
 #endif
@@ -479,10 +501,12 @@ public:
     }
 #ifndef SWIG
     static P1 add(const P1_Affine points[], size_t npoints)
-    {   const P1_Affine* const ptrs[2] = { points, nullptr };
-        return add(ptrs, npoints);
-    }
-    static P1 add(const std::vector<P1_Affine>& points)
+    {   return add(ptrs_t<const P1_Affine>{points}, npoints);   }
+    template<template<typename, typename...> class C>
+    static P1 add(const C<P1_Affine>& points)
+    {   return add(&points.at(0), points.size());   }
+    template<template<typename, size_t> class C, size_t N>
+    static P1 add(const C<P1_Affine, N>& points)
     {   return add(&points.at(0), points.size());   }
 #endif
 };
@@ -677,12 +701,14 @@ public:
                         reinterpret_cast<const blst_p2_affine *const*>(points),
                         npoints);
     }
-    P2_Affines(size_t wbits, const P2_Affine points[], size_t npoints)
-    {   const P2_Affine* const ptrs[2] = { points, nullptr };
-        P2_Affines(wbits, ptrs, npoints);
-    }
-    P2_Affines(size_t wbits, const std::vector<P2_Affine>& points)
-    {   P2_Affines(wbits, &points.at(0), points.size());   }
+    P2_Affines(size_t wbits, const P2_Affine points[], size_t npoints) :
+        P2_Affines(wbits, ptrs_t<const P2_Affine>{points}, npoints) {}
+    template<template<typename, typename...> class C>
+    P2_Affines(size_t wbits, const C<P2_Affine>& points) :
+        P2_Affines(wbits, &points.at(0), points.size()) {}
+    template<template<typename, size_t> class C, size_t N>
+    P2_Affines(size_t wbits, const C<P2_Affine, N>& points) :
+        P2_Affines(wbits, &points.at(0), points.size()) {}
 
     P2_Affines(size_t wbits, const P2* const points[], size_t npoints)
     {   size_t cap = npoints << (wbits-1);
@@ -696,12 +722,14 @@ public:
         const blst_p2_affine* const ptrs[2] = { table[cap-npoints], nullptr };
         blst_p2s_mult_wbits_precompute(table[0], wbits, ptrs, npoints);
     }
-    P2_Affines(size_t wbits, const P2 points[], size_t npoints)
-    {   const P2* const ptrs[2] = { points, nullptr };
-        P2_Affines(wbits, ptrs, npoints);
-    }
-    P2_Affines(size_t wbits, const std::vector<P2>& points)
-    {   P2_Affines(wbits, &points.at(0), points.size());   }
+    P2_Affines(size_t wbits, const P2 points[], size_t npoints) :
+        P2_Affines(wbits, ptrs_t<const P2>{points}, npoints) {}
+    template<template<typename, typename...> class C>
+    P2_Affines(size_t wbits, const C<P2>& points) :
+        P2_Affines(wbits, &points.at(0), points.size()) {}
+    template<template<typename, size_t> class C, size_t N>
+    P2_Affines(size_t wbits, const C<P2, N>& points) :
+        P2_Affines(wbits, &points.at(0), points.size()) {}
 
     P2_Affines(const P2* const points[], size_t npoints)
     {   this->wbits = 0;
@@ -711,12 +739,14 @@ public:
                            reinterpret_cast<const blst_p2 *const*>(points),
                            npoints);
     }
-    P2_Affines(const P2 points[], size_t npoints)
-    {   const P2* const ptrs[2] = { points, nullptr };
-        P2_Affines(ptrs, npoints);
-    }
-    P2_Affines(const std::vector<P2>& points)
-    {   P2_Affines(&points.at(0), points.size());   }
+    P2_Affines(const P2 points[], size_t npoints) :
+        P2_Affines(ptrs_t<const P2>{points}, npoints) {}
+    template<template<typename, typename...> class C>
+    P2_Affines(const C<P2>& points) :
+        P2_Affines(&points.at(0), points.size()) {}
+    template<template<typename, size_t> class C, size_t N>
+    P2_Affines(const C<P2, N>& points) :
+        P2_Affines(&points.at(0), points.size()) {}
 
     P2 mult(const byte* const scalars[], size_t nbits) const
     {   P2 ret;
@@ -745,10 +775,12 @@ public:
         return ret;
     }
     static std::vector<P2_Affine> from(const P2 points[], size_t npoints)
-    {   const P2* const ptrs[2] = { points, nullptr };
-        return from(ptrs, npoints);
-    }
-    static std::vector<P2_Affine> from(const std::vector<P2>& points)
+    {   return from(ptrs_t<const P2>{points}, npoints);   }
+    template<template<typename, typename...> class C>
+    static std::vector<P2_Affine> from(const C<P2>& points)
+    {   return from(&points.at(0), points.size());   }
+    template<template<typename, size_t> class C, size_t N>
+    static std::vector<P2_Affine> from(const C<P2, N>& points)
     {   return from(&points.at(0), points.size());   }
 #endif
 
@@ -765,10 +797,15 @@ public:
 #ifndef SWIG
     static P2 mult_pippenger(const P2_Affine points[], size_t npoints,
                              const byte* const scalars[], size_t nbits)
-    {   const P2_Affine* const ptrs[2] = { points, nullptr };
-        return mult_pippenger(ptrs, npoints, scalars, nbits);
+    {   return mult_pippenger(ptrs_t<const P2_Affine>{points}, npoints,
+                              scalars, nbits);
     }
-    static P2 mult_pippenger(const std::vector<P2_Affine>& points,
+    template<template<typename, typename...> class C>
+    static P2 mult_pippenger(const C<P2_Affine>& points,
+                             const byte* const scalars[], size_t nbits)
+    {   return mult_pippenger(&points.at(0), points.size(), scalars, nbits);   }
+    template<template<typename, size_t> class C, size_t N>
+    static P2 mult_pippenger(const C<P2_Affine, N>& points,
                              const byte* const scalars[], size_t nbits)
     {   return mult_pippenger(&points.at(0), points.size(), scalars, nbits);   }
 #endif
@@ -782,10 +819,12 @@ public:
     }
 #ifndef SWIG
     static P2 add(const P2_Affine points[], size_t npoints)
-    {   const P2_Affine* const ptrs[2] = { points, nullptr };
-        return add(ptrs, npoints);
-    }
-    static P2 add(const std::vector<P2_Affine>& points)
+    {   return add(ptrs_t<const P2_Affine>{points}, npoints);   }
+    template<template<typename, typename...> class C>
+    static P2 add(const C<P2_Affine>& points)
+    {   return add(&points.at(0), points.size());   }
+    template<template<typename, size_t> class C, size_t N>
+    static P2 add(const C<P2_Affine, N>& points)
     {   return add(&points.at(0), points.size());   }
 #endif
 };
