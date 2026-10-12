@@ -271,7 +271,7 @@ jobs:
             base_dir=zig-x86_64-linux-$ver
             if [ ! -d ~/$base_dir ]; then
                 mirror=`shuf -n 1 mirrors.txt`
-                echo "downloading $base_dir-$ver from $mirror"
+                echo "downloading $base_dir from $mirror"
                 curl $mirror/$base_dir.tar.xz -sSfo $base_dir.tar.xz && \
                 curl https://ziglang.org/download/$ver/$base_dir.tar.xz.minisig -sSfo $base_dir.minisig && \
                 minisign -V -P "RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U" \
