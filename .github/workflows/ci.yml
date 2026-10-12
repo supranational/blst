@@ -17,17 +17,17 @@ jobs:
 
     strategy:
       matrix:
-        os: [ ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-latest ]
+        os: [ ubuntu-latest, ubuntu-26.04-arm, windows-latest, windows-11-arm, macos-latest ]
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Get date
       id: get-date
       run: echo "date=$(date -u +%Y-%m)" >> $GITHUB_OUTPUT
       shell: bash
 
-    - uses: actions/cache@v5
+    - uses: actions/cache@v6
       with:
         path: |
           ~/.cargo/registry
@@ -173,21 +173,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v6
-
-    - uses: actions/cache@v5
-      with:
-        path: ~/swig
-        key: ${{ runner.os }}-swig-github
-
-    - uses: actions/setup-java@v5
-      with:
-        distribution: temurin
-        java-version: 11
-
-    - uses: actions/setup-node@v6
-      with:
-        node-version: '20.x'
+    - uses: actions/checkout@v7
 
     - name: Environment
       run: |
@@ -195,31 +181,32 @@ jobs:
         echo ---
         env | sort
 
+    - name: Parse blst.hpp
+      run: |
+        if [ -f bindings/blst.hpp ]; then
+            c++ -std=c++11 -fsyntax-only -x c++ bindings/blst.hpp
+        fi
+
     - name: Python
       run: if [ -x bindings/python/run.me ]; then bindings/python/run.me; fi
 
+    - uses: actions/setup-java@v6
+      with:
+        distribution: temurin
+        java-version: 11
     - name: Java
       run: if [ -x bindings/java/run.me ]; then bindings/java/run.me; fi
 
+    - uses: actions/setup-node@v7
+      with:
+        node-version: '20.x'
     - name: Node.js
       run: |
         node_js=bindings/node.js
         if [ -x $node_js/run.me ]; then
-            if [ ! -x ~/swig/bin/swig ]; then
-              ( git clone --branch v4.3.0 https://github.com/swig/swig;
-                cd swig;
-                ./autogen.sh;
-                ./configure --prefix=$HOME/swig;
-                make;
-                make install;
-                (cd ~/swig/share/swig && ln -s `ls` current)
-              )
-            fi
-            env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/current \
-                $node_js/run.me
+            $node_js/run.me
             (cd $node_js; npm install node-addon-api && rm blst_wrap.cpp)
-            env PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/current \
-                $node_js/run.me
+            $node_js/run.me
         fi
     - name: node-gyp
       run: |
@@ -227,8 +214,7 @@ jobs:
         if [ -f $node_js/binding.gyp -a -f $node_js/blst_wrap.cpp ]; then
             npm install --global node-gyp || true
             if which node-gyp > /dev/null 2>&1; then
-              ( export PATH=~/swig/bin:$PATH SWIG_LIB=~/swig/share/swig/current;
-                cd $node_js;
+              ( cd $node_js;
                 node-gyp configure;
                 node-gyp build;
                 env NODE_PATH=build/Release: node runnable.js;
@@ -266,7 +252,7 @@ jobs:
             fi
         fi
 
-    - uses: actions/cache@v5
+    - uses: actions/cache@v6
       with:
         path: |
           ~/.cache/zig
@@ -274,14 +260,18 @@ jobs:
           ~/.wasmtime
         key: ${{ runner.os }}-zig-github
 
+    - name: Install Wasmtime
+      run: if [ ! -d ~/.wasmtime/bin ]; then curl https://wasmtime.dev/install.sh -sSf | bash; fi
+
     - name: Zig
       run: |
-        which minisign > /dev/null 2>&1 || sudo apt-get -y install minisign
+        which minisign > /dev/null 2>&1 || sudo apt-get -qq install minisign > /dev/null
         curl https://ziglang.org/download/community-mirrors.txt -sSfo mirrors.txt && \
-        for ver in 0.14.1 0.16.0; do (
+        for ver in 0.14.1 0.17.0; do (
             base_dir=zig-x86_64-linux-$ver
             if [ ! -d ~/$base_dir ]; then
                 mirror=`shuf -n 1 mirrors.txt`
+                echo "downloading $base_dir-$ver from $mirror"
                 curl $mirror/$base_dir.tar.xz -sSfo $base_dir.tar.xz && \
                 curl https://ziglang.org/download/$ver/$base_dir.tar.xz.minisig -sSfo $base_dir.minisig && \
                 minisign -V -P "RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U" \
@@ -293,13 +283,11 @@ jobs:
                 fi
             fi
             if [ -x ~/$base_dir/zig ]; then
+                echo
                 echo "--- test $base_dir"
                 PATH=~/$base_dir:$PATH
                 zig build test --summary new
                 echo '--- test wasm32-wasi'
-                if [ ! -d ~/.wasmtime ]; then
-                    curl https://wasmtime.dev/install.sh -sSf | bash
-                fi
                 PATH=~/.wasmtime/bin:$PATH
                 zig build test -Dtarget=wasm32-wasi -fwasmtime --summary new
             fi
