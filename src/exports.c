@@ -77,8 +77,8 @@ void blst_fr_from_scalar(vec256 ret, const pow256 a)
     } is_endian = { 1 };
 
     if ((uptr_t)ret == (uptr_t)a && is_endian.little) {
-        mul_mont_sparse_256(ret, (const limb_t *)a, BLS12_381_rRR,
-                                                    BLS12_381_r, r0);
+        mul_mont_sparse_256(ret, BLS12_381_rRR, (const limb_t *)a,
+                                 BLS12_381_r, r0);
     } else {
         vec256 out;
         limbs_from_le_bytes(out, a, 32);
