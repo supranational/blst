@@ -80,6 +80,29 @@ macro_rules! pippenger_test_mod {
                 let points = $points::from(&points);
                 assert_eq!(naive, points.add());
             }
+
+            #[test]
+            #[should_panic(expected = "scalars length mismatch")]
+            fn test_mult_scalars_len_overflow() {
+                // |nbytes * npoints| is chosen to wrap usize back to zero
+                // (2^(W-4) * 16 == 2^W) so that an overflow-safe length check
+                // is the only thing standing between a bogus |nbits| and a
+                // wild out-of-bounds read inside blst.
+                let npoints: usize = 16;
+                let nbytes: usize = usize::MAX / 16 + 1;
+                let nbits: usize = nbytes * 8;
+
+                let mut points: Vec<$point> = Vec::with_capacity(npoints);
+                unsafe { points.set_len(points.capacity()) };
+                let one = [1u8];
+                for i in 0..npoints {
+                    unsafe { $mult(&mut points[i], $generator(), &one[0], 1) };
+                }
+                let points = $points::from(&points);
+
+                let scalars = [0u8; 32];
+                let _ = points.mult(&scalars, nbits);
+            }
         }
     };
 }
