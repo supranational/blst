@@ -83,7 +83,7 @@ macro_rules! pippenger_mult_impl {
                 let npoints = self.len();
                 let nbytes = (nbits + 7) / 8;
 
-                if scalars.len() < nbytes * npoints {
+                if scalars.len() / nbytes < npoints {
                     panic!("scalars length mismatch");
                 }
 

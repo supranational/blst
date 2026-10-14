@@ -2124,7 +2124,7 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 	var scalars []*C.byte
 	switch val := scalarsIf.(type) {
 	case []byte:
-		if len(val) < npoints*nbytes {
+		if len(val)/nbytes < npoints {
 			return nil
 		}
 	case [][]byte:
@@ -2956,7 +2956,7 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 	var scalars []*C.byte
 	switch val := scalarsIf.(type) {
 	case []byte:
-		if len(val) < npoints*nbytes {
+		if len(val)/nbytes < npoints {
 			return nil
 		}
 	case [][]byte:
