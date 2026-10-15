@@ -971,7 +971,9 @@ public struct Pairing {
     public ERROR mul_n_aggregate(P2_Affine pk, P1_Affine sig,
                                                byte[] scalar, int nbits,
                                                byte[] msg, byte[] aug=null)
-    {   return blst_pairing_mul_n_aggregate_pk_in_g2(ctx, pk.point, sig.point,
+    {   if (scalar != null && (nbits < 0 || nbits > scalar.Length*8))
+            throw new Exception(ERROR.BAD_SCALAR);
+        return blst_pairing_mul_n_aggregate_pk_in_g2(ctx, pk.point, sig.point,
                                 scalar, (size_t)nbits,
                                 msg, (size_t)msg.Length,
                                 aug, (size_t)(aug!=null ? aug.Length : 0));
@@ -979,7 +981,9 @@ public struct Pairing {
     public ERROR mul_n_aggregate(P1_Affine pk, P2_Affine sig,
                                                byte[] scalar, int nbits,
                                                byte[] msg, byte[] aug=null)
-    {   return blst_pairing_mul_n_aggregate_pk_in_g1(ctx, pk.point, sig.point,
+    {   if (scalar != null && (nbits < 0 || nbits > scalar.Length*8))
+            throw new Exception(ERROR.BAD_SCALAR);
+        return blst_pairing_mul_n_aggregate_pk_in_g1(ctx, pk.point, sig.point,
                                 scalar, (size_t)nbits,
                                 msg, (size_t)msg.Length,
                                 aug, (size_t)(aug!=null ? aug.Length : 0));

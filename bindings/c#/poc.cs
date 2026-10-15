@@ -39,6 +39,31 @@ class PoC {
     if (!blst.PT.finalverify(C1, C2))
         throw new blst.Exception(blst.ERROR.VERIFY_FAIL);
 
+    // mul_n_aggregate must reject an nbits that doesn't fit the scalar,
+    // rather than letting the native code read past the scalar buffer
+    {
+        var rctx = new blst.Pairing(true, DST);
+        bool threw;
+
+        threw = false;
+        try { rctx.mul_n_aggregate(_pk, _sig, new byte[1], 256, msg, pk_for_wire); }
+        catch (blst.Exception) { threw = true; }
+        if (!threw)
+            throw new ApplicationException("mul_n_aggregate accepted nbits > 8*scalar.Length");
+
+        threw = false;
+        try { rctx.mul_n_aggregate(_pk, _sig, new byte[32], -1, msg, pk_for_wire); }
+        catch (blst.Exception) { threw = true; }
+        if (!threw)
+            throw new ApplicationException("mul_n_aggregate accepted negative nbits");
+
+        // a well-formed nbits must still be accepted
+        try { rctx.mul_n_aggregate(_pk, _sig, new byte[32], 256, msg, pk_for_wire); }
+        catch (blst.Exception e) {
+            throw new ApplicationException("mul_n_aggregate rejected a valid nbits: " + e);
+        }
+    }
+
     // test integers as scalar multiplicands
     var p = blst.G1();
     var q = p.dup().dbl().dbl().add(p);
