@@ -217,6 +217,15 @@ a = blst.P2_Affines.mult_pippenger(blst.P2_Affines.as_memory(points), scalars)
 if not a.is_equal(blst.G2().mult(total)):
     raise AssertionError("disaster")
 
+# every element of points[] list must be type-checked
+for bad in ([blst.G2(), blst.G1()], [blst.G2(), 1], []):
+    try:
+        blst.P2_Affines.as_memory(bad)
+    except (TypeError, ValueError):
+        pass
+    else:
+        raise AssertionError("disaster")
+
 ########################################################################
 # rudimentary blind signature PoC
 
