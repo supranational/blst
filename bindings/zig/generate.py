@@ -145,6 +145,7 @@ pub const Pairing = struct {
 
 pub const Uniq = struct {
     tree: []u64 = &[_]u64{},
+    n_left: usize = 0,
     allocator: std.mem.Allocator,
 
     pub fn init(n: usize, allocator: std.mem.Allocator) !Uniq {
@@ -155,6 +156,7 @@ pub const Uniq = struct {
 
         return Uniq{
             .tree = buffer,
+            .n_left = n,
             .allocator = allocator,
         };
     }
@@ -162,10 +164,15 @@ pub const Uniq = struct {
     pub fn deinit(self: *Uniq) void {
         self.allocator.free(self.tree);
         self.tree = &[_]u64{};
+        self.n_left = 0;
     }
 
     pub fn is_uniq(self: *Uniq, msg: []const u8) bool {
-        return c.uniq_test(@ptrCast(self.tree), @ptrCast(msg), msg.len);
+        if (self.n_left == 0)   // no room for another node
+            return false;
+        const ret = c.uniq_test(@ptrCast(self.tree), @ptrCast(msg), msg.len);
+        self.n_left -= @intFromBool(ret);
+        return ret;
     }
 };
 

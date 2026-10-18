@@ -109,3 +109,16 @@ test "aggregateverify" {
         mem.free(msgs[i]);
     }
 }
+
+test "uniq capacity" {
+    var buf: [256]u8 align(8) = @splat(0xaa);
+    var fba = std.heap.FixedBufferAllocator.init(&buf);
+
+    var ctx = try blst.Uniq.init(2, fba.allocator());
+    const used = fba.end_index;
+
+    try std.testing.expectEqual(ctx.is_uniq("one"), true);
+    try std.testing.expectEqual(ctx.is_uniq("two"), true);
+    try std.testing.expectEqual(ctx.is_uniq("three"), false);
+    for (buf[used..]) |b| try std.testing.expectEqual(b, 0xaa);
+}
