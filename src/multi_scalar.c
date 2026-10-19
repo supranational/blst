@@ -7,6 +7,20 @@
 #include "fields.h"
 #include "point.h"
 
+/*
+ * |wbits| is chosen at application design time and is expected to be a
+ * small windowing factor. Reject the values that would make the window
+ * table size calculation below either shift by an out-of-range amount or
+ * overflow |size_t|, so that prefix##s_mult_wbits_precompute_sizeof() and
+ * prefix##s_mult_wbits_precompute() cannot disagree about the table size.
+ */
+static int wbits_out_of_range(size_t elem_size, size_t npoints, size_t wbits)
+{
+    return wbits == 0
+        || wbits - 1 >= 8*sizeof(size_t)
+        || elem_size*npoints > ((size_t)0 - 1) >> (wbits - 1);
+}
+
 #define POINTS_TO_AFFINE_IMPL(prefix, ptype, bits, field) \
 static void ptype##s_to_affine(ptype##_affine dst[], \
                                const ptype *const points[], size_t npoints) \
@@ -194,12 +208,17 @@ static void ptype##s_precompute_wbits(ptype##_affine table[], size_t wbits, \
 } \
 \
 size_t prefix##s_mult_wbits_precompute_sizeof(size_t wbits, size_t npoints) \
-{ return (sizeof(ptype##_affine)*npoints) << (wbits-1); } \
+{ \
+    if (wbits_out_of_range(sizeof(ptype##_affine), npoints, wbits)) \
+        return 0; \
+    return (sizeof(ptype##_affine)*npoints) << (wbits-1); \
+} \
 void prefix##s_mult_wbits_precompute(ptype##_affine table[], size_t wbits, \
                                      const ptype##_affine *const points[], \
                                      size_t npoints) \
 { \
-    if (npoints > 0) \
+    if (npoints > 0 \
+        && !wbits_out_of_range(sizeof(ptype##_affine), npoints, wbits)) \
         ptype##s_precompute_wbits(table, wbits, points, npoints); \
 }
 
@@ -291,7 +310,8 @@ void prefix##s_mult_wbits(ptype *ret, const ptype##_affine table[], \
                           const byte *const scalars[], size_t nbits, \
                           ptype scratch[]) \
 { \
-    if (npoints == 0 || nbits == 0 || (nbits+7) < nbits) { \
+    if (npoints == 0 || nbits == 0 || (nbits+7) < nbits \
+        || wbits_out_of_range(sizeof(ptype##_affine), npoints, wbits)) { \
         vec_zero(ret, sizeof(*ret)); \
         return; \
     } \
