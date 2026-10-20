@@ -518,4 +518,19 @@ g2 = bytes.fromhex("93e02b6052719f607dacd3a088274f65596bd0d09920b61ab5da61bbdc7f
 if blst.G2().compress() != g2:
     raise AssertionError("disaster")
 
+########################################################################
+# long 'str' messages should not be staged on the stack
+
+import threading
+
+msg = "*" * (4 << 20)
+ret = []
+threading.stack_size(512 << 10)
+t = threading.Thread(target=lambda: ret.append(blst.P1().hash_to(msg, DST)))
+t.start()
+t.join()
+threading.stack_size(0)
+if not ret or not ret[0].is_equal(blst.P1().hash_to(msg.encode(), DST)):
+    raise AssertionError("disaster")
+
 print("OK")

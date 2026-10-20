@@ -128,16 +128,14 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
         $2 = PyByteArray_Size($input);
 #ifdef Py_USING_UNICODE
     } else if (PyUnicode_Check($input)) {
-        char *buf;
         Py_ssize_t nbytes;
-        PyObject *obj = PyUnicode_AsUTF8String($input);
+        const char *buf = PyUnicode_AsUTF8AndSize($input, &nbytes);
 
-        if (obj == NULL || PyBytes_AsStringAndSize(obj, &buf, &nbytes) < 0)
+        if (buf == NULL)
             SWIG_exception_fail(SWIG_ValueError, "in method '$symname'");
 
-        $1 = ($1_ltype)alloca($2 = nbytes);
-        memcpy($1, buf, $2);
-        Py_DECREF(obj);
+        $1 = ($1_ltype)buf;
+        $2 = nbytes;
 #endif
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
@@ -164,18 +162,14 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
         $1.len = PyByteArray_Size($input);
 #ifdef Py_USING_UNICODE
     } else if (PyUnicode_Check($input)) {
-        char *buf;
         Py_ssize_t nbytes;
-        PyObject *obj = PyUnicode_AsUTF8String($input);
+        const char *buf = PyUnicode_AsUTF8AndSize($input, &nbytes);
 
-        if (obj == NULL || PyBytes_AsStringAndSize(obj, &buf, &nbytes) < 0)
+        if (buf == NULL)
             SWIG_exception_fail(SWIG_ValueError, "in method '$symname'");
 
-        auto ptr = alloca(nbytes);
-        memcpy(ptr, buf, nbytes);
-        $1.ptr = (byte*)ptr;
+        $1.ptr = (const byte*)buf;
         $1.len = nbytes;
-        Py_DECREF(obj);
 #endif
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
@@ -186,7 +180,8 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
 %typemap(typecheck) blst::bytes_t ""
 
 // let users use Python 'int', 'bytes' and 'bytearray' as scalars
-%typemap(in) (const byte* scalar, size_t nbits) %{
+%typemap(in) (const byte* scalar, size_t nbits)
+    (std::unique_ptr<byte[]> bytes) %{
     if (PyBytes_Check($input)) {
         char *scalar;
         Py_ssize_t nbytes;
@@ -203,7 +198,8 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
         size_t nbytes;
 
         $2 = _PyLong_NumBits($input);
-        $1 = ($1_ltype)alloca(nbytes = ($2 + 7)/8);
+        bytes = std::unique_ptr<byte[]>(new byte[nbytes = ($2 + 7)/8]);
+        $1 = ($1_ltype)bytes.get();
 
         if (PyLong_AsNativeBytes($input, $1, nbytes, My_PYLONG_FLAGS) < 0)
             SWIG_exception_fail(SWIG_OverflowError, "in method '$symname'");
@@ -567,9 +563,11 @@ import java.nio.file.*;
 }
 
 // let users use 'java.math.BigInteger' as scalars
-%typemap(in) (const byte* scalar, size_t nbits) %{
+%typemap(in) (const byte* scalar, size_t nbits)
+    (std::unique_ptr<byte[]> bytes) %{
     $2 = JCALL(GetArrayLength, $input);
-    $1 = ($1_ltype)alloca($2);
+    bytes = std::unique_ptr<byte[]>(new byte[$2]);
+    $1 = ($1_ltype)bytes.get();
     JCALL(GetByteArrayRegion, $input, 0, $2, (jbyte*)$1);
     if (*(jbyte*)$1 < 0) {
         SWIG_JavaThrowException(jenv, SWIG_JavaIllegalArgumentException,
@@ -656,7 +654,8 @@ import java.nio.file.*;
 %}
 
 // let users use JavaScript <BigInt> and <Buffer> as scalars
-%typemap(in) (const byte* scalar, size_t nbits) %{
+%typemap(in) (const byte* scalar, size_t nbits)
+    (std::unique_ptr<uint64_t[]> bigint) %{
     if ($input->IsArrayBufferView()) {
         auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
         auto buf = av->Buffer();
@@ -666,7 +665,9 @@ import java.nio.file.*;
     } else if ($input->IsBigInt()) {
         auto bi = v8::Local<v8::BigInt>::Cast($input);
         int sign, word_count = bi->WordCount();
-        uint64_t* words = (uint64_t*)alloca($2 = word_count*sizeof(uint64_t));
+        bigint = std::unique_ptr<uint64_t[]>(new uint64_t[word_count]);
+        uint64_t* words = bigint.get();
+        $2 = word_count*sizeof(uint64_t);
 
         bi->ToWordsArray(&sign, &word_count, words);
         if (sign)
@@ -695,7 +696,8 @@ import java.nio.file.*;
     }
 %}
 
-%typemap(in) (const byte *STRING, size_t LENGTH) %{
+%typemap(in) (const byte *STRING, size_t LENGTH)
+    (std::unique_ptr<char[]> utf8) %{
     if ($input->IsArrayBufferView()) {
         auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
         auto buf = av->Buffer();
@@ -704,8 +706,9 @@ import java.nio.file.*;
     } else if ($input->IsString()) {
         auto str = v8::Local<v8::String>::Cast($input);
         $2 = SWIGV8_UTF8_LENGTH(str);
-        $1 = ($1_ltype)alloca($2);
-        SWIGV8_WRITE_UTF8(str, (char *)$1, $2);
+        utf8 = std::unique_ptr<char[]>(new char[$2]);
+        SWIGV8_WRITE_UTF8(str, utf8.get(), $2);
+        $1 = ($1_ltype)utf8.get();
     } else if ($input->IsNull()) {
         $1 = nullptr;
         $2 = 0;
@@ -716,7 +719,7 @@ import java.nio.file.*;
 %}
 %typemap(freearg) (const byte *STRING, size_t LENGTH) ""
 
-%typemap(in) blst::bytes_t %{
+%typemap(in) blst::bytes_t (std::unique_ptr<char[]> utf8) %{
     if ($input->IsArrayBufferView()) {
         auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
         auto buf = av->Buffer();
@@ -725,8 +728,9 @@ import java.nio.file.*;
     } else if ($input->IsString()) {
         auto str = v8::Local<v8::String>::Cast($input);
         $1.len = SWIGV8_UTF8_LENGTH(str);
-        $1.ptr = (byte*)alloca($1.len);
-        SWIGV8_WRITE_UTF8(str, (char *)$1.ptr, $1.len);
+        utf8 = std::unique_ptr<char[]>(new char[$1.len]);
+        SWIGV8_WRITE_UTF8(str, utf8.get(), $1.len);
+        $1.ptr = (byte*)utf8.get();
     } else if ($input->IsNull()) {
         $1.ptr = nullptr;
         $1.len = 0;
@@ -773,7 +777,8 @@ import java.nio.file.*;
 %}
 
 // let users use JavaScript <BigInt> and <Buffer> as scalars
-%typemap(in) (const byte* scalar, size_t nbits) %{
+%typemap(in) (const byte* scalar, size_t nbits)
+    (std::unique_ptr<uint64_t[]> bigint) %{
     if ($input.IsBuffer()) {
         auto buf = $input.As<Napi::Buffer<uint8_t>>();
         $1 = ($1_ltype)buf.Data();
@@ -785,7 +790,9 @@ import java.nio.file.*;
 
         bi.ToWords(&sign, &word_count, nullptr);
 
-        uint64_t* words = (uint64_t*)alloca($2 = word_count*sizeof(uint64_t));
+        bigint = std::unique_ptr<uint64_t[]>(new uint64_t[word_count]);
+        uint64_t* words = bigint.get();
+        $2 = word_count*sizeof(uint64_t);
 
         bi.ToWords(&sign, &word_count, words);
         if (sign)
@@ -813,17 +820,15 @@ import java.nio.file.*;
     }
 %}
 
-%typemap(in) (const byte *STRING, size_t LENGTH) %{
+%typemap(in) (const byte *STRING, size_t LENGTH) (std::string utf8) %{
     if ($input.IsBuffer()) {
         auto buf = $input.As<Napi::Buffer<uint8_t>>();
         $1 = ($1_ltype)buf.Data();
         $2 = buf.Length();
     } else if ($input.IsString()) {
-        auto str = $input.As<Napi::String>();
-        auto utf8 = str.Utf8Value();
+        utf8 = $input.As<Napi::String>().Utf8Value();
+        $1 = ($1_ltype)utf8.data();
         $2 = utf8.length();
-        $1 = ($1_ltype)alloca($2);
-        memcpy($1, utf8.data(), $2);
     } else if ($input.IsNull()) {
         $1 = nullptr;
         $2 = 0;
@@ -834,17 +839,15 @@ import java.nio.file.*;
 %}
 %typemap(freearg) (const byte *STRING, size_t LENGTH) ""
 
-%typemap(in) blst::bytes_t %{
+%typemap(in) blst::bytes_t (std::string utf8) %{
     if ($input.IsBuffer()) {
         auto buf = $input.As<Napi::Buffer<uint8_t>>();
         $1.ptr = (byte*)buf.Data();
         $1.len = buf.ByteLength();
     } else if ($input.IsString()) {
-        auto str = $input.As<Napi::String>();
-        auto utf8 = str.Utf8Value();
+        utf8 = $input.As<Napi::String>().Utf8Value();
+        $1.ptr = (const byte*)utf8.data();
         $1.len = utf8.length();
-        $1.ptr = (byte*)alloca($1.len);
-        memcpy((byte*)$1.ptr, utf8.data(), $1.len);
     } else if ($input.IsNull()) {
         $1.ptr = nullptr;
         $1.len = 0;
@@ -1045,19 +1048,6 @@ static const char *const BLST_ERROR_str [] = {
 };
 
 #define SWIG_PYTHON_STRICT_BYTE_CHAR
-
-#if defined(__GNUC__)
-# ifndef alloca
-#  define alloca(s) __builtin_alloca(s)
-# endif
-#elif defined(__sun)
-# include <alloca.h>
-#elif defined(_WIN32)
-# include <malloc.h>
-# ifndef alloca
-#  define alloca(s) _alloca(s)
-# endif
-#endif
 %}
 
 #if defined(SWIGPYTHON) || defined(SWIGPERL)
