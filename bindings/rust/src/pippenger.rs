@@ -6,7 +6,7 @@ use core::num::Wrapping;
 use core::ops::{Index, IndexMut};
 use core::slice::SliceIndex;
 use std::sync::Barrier;
-
+use core::cell::UnsafeCell;
 struct tile {
     x: usize,
     dx: usize,
@@ -19,12 +19,20 @@ struct tile {
 // *here* each Cell is written only once and by just one thread.
 #[repr(transparent)]
 struct Cell<T: ?Sized> {
-    value: T,
+    value: UnsafeCell<T>
 }
+
 unsafe impl<T: ?Sized + Sync> Sync for Cell<T> {}
+
 impl<T> Cell<T> {
     pub fn as_ptr(&self) -> *mut T {
-        &self.value as *const T as *mut T
+        self.value.get()
+    }
+}
+
+impl<T: Clone + Copy> Cell<T> {
+    fn value(&self) -> T {
+        unsafe {*self.value.get()}
     }
 }
 
@@ -220,7 +228,7 @@ macro_rules! pippenger_mult_impl {
 
                     wg.0.wait();
 
-                    let mut ret = acc[0].value;
+                    let mut ret = acc[0].value();
                     for i in 1..n_workers {
                         unsafe {
                             $add_or_double(&mut ret, &ret, acc[i].as_ptr())
