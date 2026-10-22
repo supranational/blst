@@ -307,6 +307,9 @@ func P1sToAffine(points []*P1, optional ...int) P1Affines {
     var npoints int
     if len(optional) > 0 {
         npoints = optional[0]
+        if npoints < 0 || npoints > len(points) {
+            panic("npoints mismatch")
+        }
     } else {
         npoints = len(points)
     }
@@ -366,6 +369,9 @@ func P1AffinesAdd(points []*P1Affine, optional ...int) *P1 {
     var npoints int
     if len(optional) > 0 {
         npoints = optional[0]
+        if npoints < 0 || npoints > len(points) {
+            panic("npoints mismatch")
+        }
     } else {
         npoints = len(points)
     }

@@ -664,6 +664,27 @@ func TestMultiScalarP1(t *testing.T) {
     }
 }
 
+func TestNpointsMismatchP1(t *testing.T) {
+    t.Parallel()
+    expectPanic := func(name string, f func()) {
+        defer func() {
+            if recover() == nil {
+                t.Errorf("%s: failed to reject npoints mismatch", name)
+            }
+        }()
+        f()
+    }
+    generator := P1Generator()
+    points := []*P1{generator, generator}
+    affines := []*P1Affine{generator.ToAffine(), generator.ToAffine()}
+    expectPanic("P1sToAffine", func() { P1sToAffine(points[:1], 2) })
+    expectPanic("P1AffinesAdd", func() { P1AffinesAdd(affines[:1], 2) })
+    expectPanic("P1AffinesAdd", func() { P1AffinesAdd(affines, -1) })
+    if !P1AffinesAdd(affines, 2).Equals(generator.Mult([]byte{2})) {
+        t.Error("failed P1AffinesAdd with explicit npoints")
+    }
+}
+
 func BenchmarkMultiScalarP1(b *testing.B) {
     const npoints = 200000
     scalars := make([]byte, npoints*32)
