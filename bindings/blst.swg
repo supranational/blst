@@ -225,15 +225,16 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
     (std::unique_ptr<$*1_ltype[]> points, size_t _global_npoints) %{
     if (PyList_Check($input)) {
         _global_npoints = PyList_Size($input);
+        if (_global_npoints == 0)
+            SWIG_exception_fail(SWIG_ValueError, "in method '$symname', "
+                                                 "expecting non-empty 'list'");
         points = std::unique_ptr<$*1_ltype[]>(new $*1_ltype[_global_npoints]);
-        PyObject* obj = PyList_GET_ITEM($input, 0);
-        // check the type of the 1st element
-        if (SWIG_ConvertPtr(obj, (void**)&points[0], $*1_descriptor, 0) != SWIG_OK)
-            SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
-                                                "expecting 'list' of '$*1_ltype'");
-        for (size_t i = 1; i < _global_npoints; i++) {
-            obj = PyList_GET_ITEM($input, i);
-            points[i] = ($*1_ltype)SWIG_Python_GetSwigThis(obj)->ptr;
+        // check the type of every element
+        for (size_t i = 0; i < _global_npoints; i++) {
+            PyObject* obj = PyList_GET_ITEM($input, i);
+            if (SWIG_ConvertPtr(obj, (void**)&points[i], $*1_descriptor, 0) != SWIG_OK)
+                SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                                    "expecting 'list' of '$*1_ltype'");
         }
         $1 = points.get();
         $2 = _global_npoints;
