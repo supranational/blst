@@ -207,7 +207,6 @@ public:
         if (err != BLST_SUCCESS)
             throw err;
     }
-#endif
     P1_Affine(const byte *in, size_t len)
     {   if (len == 0 || len != (in[0]&0x80 ? 48 : 96))
             throw BLST_BAD_ENCODING;
@@ -215,6 +214,8 @@ public:
         if (err != BLST_SUCCESS)
             throw err;
     }
+#endif
+    P1_Affine(bytes_t in) : P1_Affine(in.ptr, in.len) {}
     P1_Affine(const P1& jacobian);
 
     P1_Affine dup() const { return *this; }
@@ -269,7 +270,6 @@ public:
             throw err;
         blst_p1_from_affine(&point, &a);
     }
-#endif
     P1(const byte *in, size_t len)
     {   if (len == 0 || len != (in[0]&0x80 ? 48 : 96))
             throw BLST_BAD_ENCODING;
@@ -279,6 +279,8 @@ public:
             throw err;
         blst_p1_from_affine(&point, &a);
     }
+#endif
+    P1(bytes_t in) : P1(in.ptr, in.len) {}
     P1(const P1_Affine& affine) { blst_p1_from_affine(&point, affine); }
 
     P1 dup() const                      { return *this; }
@@ -300,18 +302,6 @@ public:
     {   blst_sign_pk_in_g2(&point, &point, &sk.key); return this;   }
     P1* sign_with(const Scalar& scalar)
     {   blst_sign_pk_in_g2(&point, &point, scalar); return this;   }
-    P1* hash_to(bytes_t msg, const std::string& DST = "",
-                bytes_t aug = {nullptr, 0})
-    {   blst_hash_to_g1(&point, msg.ptr, msg.len, C_bytes(DST.data()), DST.size(),
-                                aug.ptr, aug.len);
-        return this;
-    }
-    P1* encode_to(bytes_t msg, const std::string& DST = "",
-                  bytes_t aug = {nullptr, 0})
-    {   blst_encode_to_g1(&point, msg.ptr, msg.len, C_bytes(DST.data()), DST.size(),
-                                  aug.ptr, aug.len);
-        return this;
-    }
 #ifndef SWIG
     P1* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
@@ -328,6 +318,13 @@ public:
         return this;
     }
 #endif
+    P1* hash_to(bytes_t msg, const std::string& DST = "",
+                bytes_t aug = {nullptr, 0})
+    {   return hash_to(msg.ptr, msg.len, DST, aug.ptr, aug.len);   }
+    P1* encode_to(bytes_t msg, const std::string& DST = "",
+                  bytes_t aug = {nullptr, 0})
+    {   return encode_to(msg.ptr, msg.len, DST, aug.ptr, aug.len);   }
+
     P1* mult(const byte* scalar, size_t nbits)
     {   blst_p1_mult(&point, &point, scalar, nbits); return this;   }
     P1* mult(const Scalar& scalar)
@@ -524,7 +521,6 @@ public:
         if (err != BLST_SUCCESS)
             throw err;
     }
-#endif
     P2_Affine(const byte *in, size_t len)
     {   if (len == 0 || len != (in[0]&0x80 ? 96 : 192))
             throw BLST_BAD_ENCODING;
@@ -532,6 +528,8 @@ public:
         if (err != BLST_SUCCESS)
             throw err;
     }
+#endif
+    P2_Affine(bytes_t in) : P2_Affine(in.ptr, in.len) {}
     P2_Affine(const P2& jacobian);
 
     P2_Affine dup() const { return *this; }
@@ -586,7 +584,6 @@ public:
             throw err;
         blst_p2_from_affine(&point, &a);
     }
-#endif
     P2(const byte *in, size_t len)
     {   if (len == 0 || len != (in[0]&0x80 ? 96 : 192))
             throw BLST_BAD_ENCODING;
@@ -596,6 +593,8 @@ public:
             throw err;
         blst_p2_from_affine(&point, &a);
     }
+#endif
+    P2(bytes_t in) : P2(in.ptr, in.len) {}
     P2(const P2_Affine& affine) { blst_p2_from_affine(&point, affine); }
 
     P2 dup() const                      { return *this; }
@@ -617,18 +616,6 @@ public:
     {   blst_sign_pk_in_g1(&point, &point, &sk.key); return this;   }
     P2* sign_with(const Scalar& scalar)
     {   blst_sign_pk_in_g1(&point, &point, scalar); return this;   }
-    P2* hash_to(bytes_t msg, const std::string& DST = "",
-                bytes_t aug = {nullptr, 0})
-    {   blst_hash_to_g2(&point, msg.ptr, msg.len, C_bytes(DST.data()), DST.size(),
-                                aug.ptr, aug.len);
-        return this;
-    }
-    P2* encode_to(bytes_t msg, const std::string& DST = "",
-                  bytes_t aug = {nullptr, 0})
-    {   blst_encode_to_g2(&point, msg.ptr, msg.len, C_bytes(DST.data()), DST.size(),
-                                  aug.ptr, aug.len);
-        return this;
-    }
 #ifndef SWIG
     P2* hash_to(const byte* msg, size_t msg_len,
                 const std::string& DST = "",
@@ -645,6 +632,12 @@ public:
         return this;
     }
 #endif
+    P2* hash_to(bytes_t msg, const std::string& DST = "",
+                bytes_t aug = {nullptr, 0})
+    {   return hash_to(msg.ptr, msg.len, DST, aug.ptr, aug.len);   }
+    P2* encode_to(bytes_t msg, const std::string& DST = "",
+                  bytes_t aug = {nullptr, 0})
+    {   return encode_to(msg.ptr, msg.len, DST, aug.ptr, aug.len);   }
 
     P2* mult(const byte* scalar, size_t nbits)
     {   blst_p2_mult(&point, &point, scalar, nbits); return this;   }
