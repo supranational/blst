@@ -102,18 +102,22 @@ macro_rules! pippenger_mult_impl {
                 let (mut delta, mut rem) =
                     (npoints / nslices + 1, Wrapping(npoints % nslices));
                 let mut x = 0usize;
+                let mut tail = &mut ret.points[..];
                 while x < npoints {
-                    let out = &mut ret.points[x];
+
                     let inp = &points[x];
 
                     delta -= (rem == Wrapping(0)) as usize;
                     rem -= Wrapping(1);
                     x += delta;
 
+                    let (out, end) = tail.split_at_mut(delta);
+                    tail = end;
+
                     let wg = wg.clone();
                     pool.joined_execute(move || {
                         let p: [*const $point; 2] = [inp, ptr::null()];
-                        unsafe { $to_affines(out, &p[0], delta) };
+                        unsafe { $to_affines(&mut out[0], &p[0], delta) };
                         if wg.1.fetch_sub(1, Ordering::AcqRel) == 1 {
                             wg.0.wait();
                         }
