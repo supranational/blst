@@ -110,7 +110,8 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
 %}
 %typemap(freearg) const byte[ANY] ""
 
-%typemap(in) (const byte *STRING, size_t LENGTH) %{
+#ifndef __cplusplus
+%typemap(in) (const byte *STRING, size_t LENGTH) (PyObject *obj = NULL) %{
     if ($input == Py_None) {
         $1 = NULL;
         $2 = 0;
@@ -130,23 +131,24 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
     } else if (PyUnicode_Check($input)) {
         char *buf;
         Py_ssize_t nbytes;
-        PyObject *obj = PyUnicode_AsUTF8String($input);
+        obj = PyUnicode_AsUTF8String($input);
 
         if (obj == NULL || PyBytes_AsStringAndSize(obj, &buf, &nbytes) < 0)
             SWIG_exception_fail(SWIG_ValueError, "in method '$symname'");
 
-        $1 = ($1_ltype)alloca($2 = nbytes);
-        memcpy($1, buf, $2);
-        Py_DECREF(obj);
+        $1 = ($1_ltype)buf;
+        $2 = nbytes;
 #endif
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                             "expecting 'bytes' or 'bytearray'");
     }
 %}
-%typemap(freearg) (const byte *STRING, size_t LENGTH) ""
-
-%typemap(in) blst::bytes_t %{
+%typemap(freearg) (const byte *STRING, size_t LENGTH) %{
+    if (obj$argnum != NULL) Py_DECREF(obj$argnum);
+%}
+#else
+%typemap(in) blst::bytes_t (PyObject *obj = NULL) %{
     if ($input == Py_None) {
         $1.ptr = NULL;
         $1.len = 0;
@@ -166,14 +168,12 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
     } else if (PyUnicode_Check($input)) {
         char *buf;
         Py_ssize_t nbytes;
-        PyObject *obj = PyUnicode_AsUTF8String($input);
+        obj = PyUnicode_AsUTF8String($input);
 
         if (obj == NULL || PyBytes_AsStringAndSize(obj, &buf, &nbytes) < 0)
             SWIG_exception_fail(SWIG_ValueError, "in method '$symname'");
 
-        auto ptr = alloca(nbytes);
-        memcpy(ptr, buf, nbytes);
-        $1.ptr = (byte*)ptr;
+        $1.ptr = (byte*)buf;
         $1.len = nbytes;
         Py_DECREF(obj);
 #endif
@@ -182,8 +182,11 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
                                             "expecting 'bytes' or 'bytearray'");
     }
 %}
-%typemap(freearg)   blst::bytes_t ""
-%typemap(typecheck) blst::bytes_t ""
+%typemap(freearg)   blst::bytes_t %{
+    if (obj$argnum != NULL) Py_DECREF(obj$argnum);
+%}
+%typemap(typecheck, precedence=SWIG_TYPECHECK_INT8_ARRAY) blst::bytes_t ""
+#endif
 
 // let users use Python 'int', 'bytes' and 'bytearray' as scalars
 %typemap(in) (const byte* scalar, size_t nbits) %{
@@ -203,6 +206,9 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
         size_t nbytes;
 
         $2 = _PyLong_NumBits($input);
+        if ($2 > 24*8*1024)
+            SWIG_exception_fail(SWIG_ValueError, "in method '$symname', "
+                                                 "unexpectedly high value");
         $1 = ($1_ltype)alloca(nbytes = ($2 + 7)/8);
 
         if (PyLong_AsNativeBytes($input, $1, nbytes, My_PYLONG_FLAGS) < 0)
@@ -569,6 +575,11 @@ import java.nio.file.*;
 // let users use 'java.math.BigInteger' as scalars
 %typemap(in) (const byte* scalar, size_t nbits) %{
     $2 = JCALL(GetArrayLength, $input);
+    if ($2 > 24*1024) {
+        SWIG_JavaThrowException(jenv, SWIG_JavaIllegalArgumentException,
+                                      "unexpectedly high value");
+        return $null;
+    }
     $1 = ($1_ltype)alloca($2);
     JCALL(GetByteArrayRegion, $input, 0, $2, (jbyte*)$1);
     if (*(jbyte*)$1 < 0) {
@@ -618,9 +629,6 @@ import java.nio.file.*;
 #else
 # define GetData() GetContents().Data()
 #endif
-#if V8_MAJOR_VERSION >= 13
-# define Holder() This()
-#endif
 %}
 
 %typemap(throws) BLST_ERROR %{ SWIG_V8_Raise(BLST_ERROR_str[$1]); SWIG_fail; %}
@@ -666,6 +674,11 @@ import java.nio.file.*;
     } else if ($input->IsBigInt()) {
         auto bi = v8::Local<v8::BigInt>::Cast($input);
         int sign, word_count = bi->WordCount();
+
+        if (word_count > 24*1024/sizeof(uint64_t))
+            SWIG_exception_fail(SWIG_ValueError, "in method '$symname', "
+                                                 "unexpectedly high value");
+
         uint64_t* words = (uint64_t*)alloca($2 = word_count*sizeof(uint64_t));
 
         bi->ToWordsArray(&sign, &word_count, words);
@@ -695,28 +708,7 @@ import java.nio.file.*;
     }
 %}
 
-%typemap(in) (const byte *STRING, size_t LENGTH) %{
-    if ($input->IsArrayBufferView()) {
-        auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
-        auto buf = av->Buffer();
-        $1 = ($1_ltype)buf->GetData() + av->ByteOffset();
-        $2 = av->ByteLength();
-    } else if ($input->IsString()) {
-        auto str = v8::Local<v8::String>::Cast($input);
-        $2 = SWIGV8_UTF8_LENGTH(str);
-        $1 = ($1_ltype)alloca($2);
-        SWIGV8_WRITE_UTF8(str, (char *)$1, $2);
-    } else if ($input->IsNull()) {
-        $1 = nullptr;
-        $2 = 0;
-    } else {
-        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
-                                            "expecting <Buffer> or <String>");
-    }
-%}
-%typemap(freearg) (const byte *STRING, size_t LENGTH) ""
-
-%typemap(in) blst::bytes_t %{
+%typemap(in) blst::bytes_t (std::unique_ptr<byte[]> utf8) %{
     if ($input->IsArrayBufferView()) {
         auto av = v8::Local<v8::ArrayBufferView>::Cast($input);
         auto buf = av->Buffer();
@@ -725,7 +717,8 @@ import java.nio.file.*;
     } else if ($input->IsString()) {
         auto str = v8::Local<v8::String>::Cast($input);
         $1.len = SWIGV8_UTF8_LENGTH(str);
-        $1.ptr = (byte*)alloca($1.len);
+        utf8 = std::unique_ptr<byte[]>(new byte[$1.len]);
+        $1.ptr = (byte*)utf8.get();
         SWIGV8_WRITE_UTF8(str, (char *)$1.ptr, $1.len);
     } else if ($input->IsNull()) {
         $1.ptr = nullptr;
@@ -738,7 +731,7 @@ import java.nio.file.*;
 %typemap(freearg) blst::bytes_t ""
 
 // return |this|
-%typemap(out) SELF* OUTPUT %{ (void)$1; $result = args.Holder(); %}
+%typemap(out) SELF* OUTPUT %{ (void)$1; $result = args.This(); %}
 
 #elif defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_NAPI)
 
@@ -785,6 +778,10 @@ import java.nio.file.*;
 
         bi.ToWords(&sign, &word_count, nullptr);
 
+        if (word_count > 24*1024/sizeof(uint64_t))
+            SWIG_exception_fail(SWIG_ValueError, "in method '$symname', "
+                                                 "unexpectedly high value");
+
         uint64_t* words = (uint64_t*)alloca($2 = word_count*sizeof(uint64_t));
 
         bi.ToWords(&sign, &word_count, words);
@@ -813,38 +810,16 @@ import java.nio.file.*;
     }
 %}
 
-%typemap(in) (const byte *STRING, size_t LENGTH) %{
-    if ($input.IsBuffer()) {
-        auto buf = $input.As<Napi::Buffer<uint8_t>>();
-        $1 = ($1_ltype)buf.Data();
-        $2 = buf.Length();
-    } else if ($input.IsString()) {
-        auto str = $input.As<Napi::String>();
-        auto utf8 = str.Utf8Value();
-        $2 = utf8.length();
-        $1 = ($1_ltype)alloca($2);
-        memcpy($1, utf8.data(), $2);
-    } else if ($input.IsNull()) {
-        $1 = nullptr;
-        $2 = 0;
-    } else {
-        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
-                                            "expecting <Buffer> or <String>");
-    }
-%}
-%typemap(freearg) (const byte *STRING, size_t LENGTH) ""
-
-%typemap(in) blst::bytes_t %{
+%typemap(in) blst::bytes_t (std::string utf8) %{
     if ($input.IsBuffer()) {
         auto buf = $input.As<Napi::Buffer<uint8_t>>();
         $1.ptr = (byte*)buf.Data();
         $1.len = buf.ByteLength();
     } else if ($input.IsString()) {
         auto str = $input.As<Napi::String>();
-        auto utf8 = str.Utf8Value();
+        utf8 = str.Utf8Value();
+        $1.ptr = (byte*)utf8.data();
         $1.len = utf8.length();
-        $1.ptr = (byte*)alloca($1.len);
-        memcpy((byte*)$1.ptr, utf8.data(), $1.len);
     } else if ($input.IsNull()) {
         $1.ptr = nullptr;
         $1.len = 0;
