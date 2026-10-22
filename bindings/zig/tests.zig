@@ -27,16 +27,13 @@ test "sign/verify" {
 }
 
 test "uniq" {
+    const mem = std.testing.allocator;
     const msgs = &[_][]const u8 {
         "three", "two", "one", "three",
     };
 
-    var ctx = try blst.Uniq.init(msgs.len, std.testing.allocator);
-    defer ctx.deinit();
-
-    for (msgs, 1..) |msg, next| {
-        try std.testing.expectEqual(ctx.is_uniq(msg), next < msgs.len);
-    }
+    try std.testing.expectEqual(blst.uniq(msgs, mem), false);
+    try std.testing.expectEqual(blst.uniq(msgs[0..msgs.len-1], mem), true);
 }
 
 fn box(allocator: std.mem.Allocator, src: []const u8) ![]u8 {
@@ -68,9 +65,7 @@ test "aggregateverify" {
     }
 
     // ... basic scheme on the "receiver" side.
-
-    var uniq = try blst.Uniq.init(msgs.len, mem);
-    defer uniq.deinit();
+    try std.testing.expectEqual(blst.uniq(&msgs, mem), true);
 
     // The basic scheme requires messages to be checked for uniqueness.
     for (0..N) |i| {

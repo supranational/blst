@@ -143,31 +143,29 @@ pub const Pairing = struct {
     }
 };
 
-pub const Uniq = struct {
-    tree: []u64 = &[_]u64{},
-    allocator: std.mem.Allocator,
-
-    pub fn init(n: usize, allocator: std.mem.Allocator) !Uniq {
-        const nlimbs = (c.uniq_sizeof(n) + @sizeOf(u64) - 1) / @sizeOf(u64);
-        const buffer = try allocator.alloc(u64, nlimbs);
-
-        c.uniq_init(@ptrCast(buffer));
-
-        return Uniq{
-            .tree = buffer,
-            .allocator = allocator,
-        };
+pub fn uniq(msgs: []const []const u8, mem: std.mem.Allocator) !bool {
+    if (msgs.len == 0) {
+        @panic("empty array is not permitted");
+    } else if (msgs.len == 1) {
+        return true;
+    } else if (msgs.len == 2) {
+        return !std.mem.eql(u8, msgs[0], msgs[1]);
     }
 
-    pub fn deinit(self: *Uniq) void {
-        self.allocator.free(self.tree);
-        self.tree = &[_]u64{};
+    const nlimbs = (c.uniq_sizeof(msgs.len) + @sizeOf(u64) - 1) / @sizeOf(u64);
+    const buffer = try mem.alloc(u64, nlimbs);
+    defer mem.free(buffer);
+
+    c.uniq_init(@ptrCast(buffer));
+
+    for (msgs) |msg| {
+        if (!c.uniq_test(@ptrCast(buffer), @ptrCast(msg), msg.len)) {
+            return false;
+        }
     }
 
-    pub fn is_uniq(self: *Uniq, msg: []const u8) bool {
-        return c.uniq_test(@ptrCast(self.tree), @ptrCast(msg), msg.len);
-    }
-};
+    return true;
+}
 
 const FP_BYTES = 384/8;
 pub const P1_COMPRESS_BYTES  = FP_BYTES;
