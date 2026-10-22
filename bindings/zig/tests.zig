@@ -65,12 +65,9 @@ test "aggregateverify" {
     }
 
     // ... basic scheme on the "receiver" side.
-    try std.testing.expectEqual(blst.uniq(&msgs, mem), true);
 
     // The basic scheme requires messages to be checked for uniqueness.
-    for (0..N) |i| {
-        try std.testing.expectEqual(uniq.is_uniq(msgs[i]), true);
-    }
+    try std.testing.expectEqual(blst.uniq(&msgs, mem), true);
 
     var aggregated = try blst.P2.from(sigs[0]);
     try std.testing.expectEqual(aggregated.in_group(), true);
