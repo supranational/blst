@@ -956,6 +956,7 @@ typedef enum {
     BLST_AGGR_TYPE_MISMATCH,
     BLST_VERIFY_FAIL,
     BLST_PK_IS_INFINITY,
+    BLST_BAD_SCALAR,
 } BLST_ERROR;
 
 %include "blst.hpp"
@@ -1017,6 +1018,7 @@ static const char *const BLST_ERROR_str [] = {
     "BLST_ERROR: context type mismatch",
     "BLST_ERROR: verify failed",
     "BLST_ERROR: public key is infinite",
+    "BLST_ERROR: bad scalar",
 };
 
 #define SWIG_PYTHON_STRICT_BYTE_CHAR
