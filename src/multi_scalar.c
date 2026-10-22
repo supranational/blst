@@ -194,14 +194,17 @@ static void ptype##s_precompute_wbits(ptype##_affine table[], size_t wbits, \
 } \
 \
 size_t prefix##s_mult_wbits_precompute_sizeof(size_t wbits, size_t npoints) \
-{ return (sizeof(ptype##_affine)*npoints) << (wbits-1); } \
+{ \
+    if (wbits < 2 || wbits > 25 || \
+        npoints > (((size_t)0-1) >> wbits) / sizeof(ptype##_affine)) \
+        return (size_t)0-1; /* signal impossibility */ \
+\
+    return (sizeof(ptype##_affine)*npoints) << (wbits-1); \
+} \
 void prefix##s_mult_wbits_precompute(ptype##_affine table[], size_t wbits, \
                                      const ptype##_affine *const points[], \
                                      size_t npoints) \
-{ \
-    if (npoints > 0) \
-        ptype##s_precompute_wbits(table, wbits, points, npoints); \
-}
+{   ptype##s_precompute_wbits(table, wbits, points, npoints);   }
 
 #define POINTS_MULT_WBITS_IMPL(prefix, ptype, bits, field, one) \
 static void ptype##_gather_booth_wbits(ptype *p, const ptype##_affine row[], \
