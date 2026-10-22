@@ -102,7 +102,15 @@ macro_rules! pippenger_mult_impl {
                 let (mut delta, mut rem) =
                     (npoints / nslices + 1, Wrapping(npoints % nslices));
                 let mut x = 0usize;
+                
+                // Each iteration will pass a mutable reference to a point
+                // into a closure. We need to ensure that these references
+                // remain disjoint, because each one will become "protected".
+                // That means that we cannot use `&mut ret.points[x]` for each
+                // iteration; instead, we have to split off mutable references,
+                // one by one.
                 let mut tail = &mut ret.points[..];
+
                 while x < npoints {
 
                     let inp = &points[x];
@@ -110,7 +118,7 @@ macro_rules! pippenger_mult_impl {
                     delta -= (rem == Wrapping(0)) as usize;
                     rem -= Wrapping(1);
                     x += delta;
-
+                    
                     let (out, end) = tail.split_at_mut(delta);
                     tail = end;
 
