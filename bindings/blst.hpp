@@ -15,6 +15,7 @@
 #include <cstring>
 #include <vector>
 #include <memory>
+#include <stdexcept>
 
 namespace blst {
 
@@ -373,7 +374,11 @@ public:
 #ifndef SWIG
     P1_Affines() {}
     P1_Affines(size_t wbits, const P1_Affine* const points[], size_t npoints)
-    {   this->wbits = wbits;
+    {   if (wbits < 2 || wbits > 25 ||
+            npoints > (((size_t)0-1) >> wbits) / sizeof(blst_p1_affine))
+            throw std::out_of_range("invalid 'wbits' parameter");
+
+        this->wbits = wbits;
         this->npoints = npoints;
         table.resize(npoints << (wbits-1));
         blst_p1s_mult_wbits_precompute(table.at(0), wbits,
@@ -390,7 +395,11 @@ public:
         P1_Affines(wbits, &points.at(0), points.size()) {}
 
     P1_Affines(size_t wbits, const P1* const points[], size_t npoints)
-    {   size_t cap = npoints << (wbits-1);
+    {   if (wbits < 2 || wbits > 25 ||
+            npoints > (((size_t)0-1) >> wbits) / sizeof(blst_p1_affine))
+            throw std::out_of_range("invalid 'wbits' parameter");
+
+        size_t cap = npoints << (wbits-1);
 
         this->wbits = wbits;
         this->npoints = npoints;
@@ -687,7 +696,11 @@ public:
 #ifndef SWIG
     P2_Affines() {}
     P2_Affines(size_t wbits, const P2_Affine* const points[], size_t npoints)
-    {   this->wbits = wbits;
+    {   if (wbits < 2 || wbits > 25 ||
+            npoints > (((size_t)0-1) >> wbits) / sizeof(blst_p2_affine))
+            throw std::out_of_range("invalid 'wbits' parameter");
+
+        this->wbits = wbits;
         this->npoints = npoints;
         table.resize(npoints << (wbits-1));
         blst_p2s_mult_wbits_precompute(table.at(0), wbits,
@@ -704,7 +717,11 @@ public:
         P2_Affines(wbits, &points.at(0), points.size()) {}
 
     P2_Affines(size_t wbits, const P2* const points[], size_t npoints)
-    {   size_t cap = npoints << (wbits-1);
+    {   if (wbits < 2 || wbits > 25 ||
+            npoints > (((size_t)0-1) >> wbits) / sizeof(blst_p2_affine))
+            throw std::out_of_range("invalid 'wbits' parameter");
+
+        size_t cap = npoints << (wbits-1);
 
         this->wbits = wbits;
         this->npoints = npoints;
