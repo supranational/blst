@@ -35,6 +35,15 @@ ctx.aggregate(pk, sig, msg, pk_for_wire);
 ctx.commit();
 if (!ctx.finalverify()) throw "disaster";
 
+var r_1 = Buffer.from("73eda753299d7d483339d80809a1d805" +
+                      "53bda402fffe5bfeffffffff00000000", "hex").reverse();
+try {   // (r-1) + 1 = 0 (mod r)
+    new blst.Scalar(r_1).add(new blst.Scalar(Buffer.from([1])));
+    throw "disaster";
+} catch (e) {
+    if (e.message !== "BLST_ERROR: bad scalar") throw "disaster";
+}
+
 console.log("OK");
 
 function toHexString(buffer) {
