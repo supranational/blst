@@ -26,7 +26,9 @@ links = "blst"
 [features]
 # By default, compile with ADX extension if the host supports it.
 # Binary can be executed on systems similar to the host.
-default = []
+default = ["std"]
+# Use the Rust standard library and enable the thread pool on supported targets.
+std = ["dep:threadpool"]
 # Compile in portable mode, without ISA extensions.
 # Binary can be executed on all systems.
 portable = []
@@ -49,7 +51,7 @@ zeroize = { version = "^1.1", features = ["zeroize_derive"] }
 serde = { version = "1.0.152", optional = true }
 
 [target.'cfg(not(any(target_arch="wasm32", target_os="none", target_os="unknown", target_os="uefi")))'.dependencies]
-threadpool = "^1.8.1"
+threadpool = { version = "^1.8.1", optional = true }
 
 [dev-dependencies]
 rand_core = { version = "0.6", features = ["std"] }
