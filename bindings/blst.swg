@@ -175,7 +175,6 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
 
         $1.ptr = (byte*)buf;
         $1.len = nbytes;
-        Py_DECREF(obj);
 #endif
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "

@@ -518,4 +518,12 @@ g2 = bytes.fromhex("93e02b6052719f607dacd3a088274f65596bd0d09920b61ab5da61bbdc7f
 if blst.G2().compress() != g2:
     raise AssertionError("disaster")
 
+# 'str' messages are converted to UTF-8 and have to stay alive for the call
+for n in (1, 16, 100, 1000, 4096):
+    txt = "assertion" * n
+    for _ in range(8):
+        if (blst.P2().hash_to(txt, DST).compress() !=
+            blst.P2().hash_to(txt.encode(), DST).compress()):
+            raise AssertionError("disaster")
+
 print("OK")
