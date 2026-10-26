@@ -928,6 +928,9 @@ public:
     {   return new uint64_t[blst_pairing_sizeof()/sizeof(uint64_t)];   }
     void operator delete(void *ptr)
     {   delete[] static_cast<uint64_t*>(ptr);   }
+    // the context lives beyond sizeof(Pairing), member-wise copy is bogus
+    Pairing(const Pairing&) = delete;
+    Pairing& operator=(const Pairing&) = delete;
 
     Pairing(bool hash_or_encode, const std::string& DST)
     {   init(hash_or_encode, C_bytes(DST.data()), DST.size());   }
