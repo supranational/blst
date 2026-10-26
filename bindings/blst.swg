@@ -225,15 +225,18 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
     (std::unique_ptr<$*1_ltype[]> points, size_t _global_npoints) %{
     if (PyList_Check($input)) {
         _global_npoints = PyList_Size($input);
-        points = std::unique_ptr<$*1_ltype[]>(new $*1_ltype[_global_npoints]);
-        PyObject* obj = PyList_GET_ITEM($input, 0);
-        // check the type of the 1st element
-        if (SWIG_ConvertPtr(obj, (void**)&points[0], $*1_descriptor, 0) != SWIG_OK)
+
+        if (_global_npoints == 0)
             SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                                 "expecting 'list' of '$*1_ltype'");
-        for (size_t i = 1; i < _global_npoints; i++) {
-            obj = PyList_GET_ITEM($input, i);
-            points[i] = ($*1_ltype)SWIG_Python_GetSwigThis(obj)->ptr;
+
+        points = std::unique_ptr<$*1_ltype[]>(new $*1_ltype[_global_npoints]);
+        // check the type of every element
+        for (size_t i = 0; i < _global_npoints; i++) {
+            PyObject* obj = PyList_GET_ITEM($input, i);
+            if (SWIG_ConvertPtr(obj, (void**)&points[i], $*1_descriptor, 0) != SWIG_OK)
+                SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                                    "expecting 'list' of '$*1_ltype'");
         }
         $1 = points.get();
         $2 = _global_npoints;
@@ -248,7 +251,7 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
         points[0] = ($*1_ltype)bytes;
         points[1] = nullptr;
         $1 = points.get();
-        $2 = _global_npoints = nbytes / sizeof(points[0][0]);
+        $2 = _global_npoints = nbytes / sizeof(*points[0]);
     } else if (PyMemoryView_Check($input)) {    // output from to_affine()
         Py_buffer *buf = PyMemoryView_GET_BUFFER($input);
 
@@ -260,12 +263,15 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
         points[0] = ($*1_ltype)buf->buf;
         points[1] = nullptr;
         $1 = points.get();
-        $2 = _global_npoints = buf->len / sizeof(points[0][0]);
+        $2 = _global_npoints = buf->len / sizeof(*points[0]);
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting "
                                             "'list', 'bytes' or 'memoryview' "
                                             "for points[]");
     }
+    if (_global_npoints == 0)
+        SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting "
+                                            "non-empty set of points[]");
 %}
 %apply (const POINT* points[], size_t npoints) {
        (const blst::P1_Affine* const points[], size_t npoints),
@@ -320,12 +326,12 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
             SWIG_exception_fail(SWIG_IndexError, "in method '$symname', 'list' "
                                                  "length mismatch for scalars[]");
 
+        int sign;
         PyObject *obj = PyList_GET_ITEM($input, 0);
-        if (PyLong_Check(obj)) {
+        if (!(PyLong_GetSign(obj, &sign) < 0 || sign < 0)) {
             $2 = _PyLong_NumBits(obj);
             for (size_t i = 1; i < _global_npoints; i++) {
                 size_t nbits;
-                int sign;
                 obj = PyList_GET_ITEM($input, i);
                 if (PyLong_GetSign(obj, &sign) < 0 || sign < 0)
                     SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
@@ -334,12 +340,16 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
                 if (nbits > $2) $2 = nbits;
             }
 
+            if ($2 == 0)
+                SWIG_exception_fail(SWIG_ValueError, "in method '$symname', zero-length "
+                                                     "scalars, likely an error");
+
             size_t nbytes = ($2 + 7)/8;
             bytes = std::unique_ptr<byte[]>(new byte[_global_npoints*nbytes]);
             byte* scalar = bytes.get();
             for (size_t i = 0; i < _global_npoints; i++, scalar += nbytes)
-                PyLong_AsNativeBytes(PyList_GET_ITEM($input, i),
-                                     scalar, nbytes, My_PYLONG_FLAGS);
+                (void)PyLong_AsNativeBytes(PyList_GET_ITEM($input, i),
+                                           scalar, nbytes, My_PYLONG_FLAGS);
 
             scalars[0] = bytes.get();
             scalars[1] = nullptr;
@@ -381,6 +391,9 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
                                             "'list', 'bytes', 'bytearray' "
                                             "or 'memoryview' for scalars[]");
     }
+    if ($2 == 0)
+        SWIG_exception_fail(SWIG_ValueError, "in method '$symname', zero-length "
+                                             "scalars, likely an error");
 %}
 
 %typemap(out) BLST_ERROR %{
