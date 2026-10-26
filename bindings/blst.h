@@ -354,7 +354,7 @@ bool blst_fp12_finalverify(const blst_fp12 *gt1, const blst_fp12 *gt2);
 
 #ifdef __BLST_CGO__
 typedef limb_t blst_pairing;
-#elif defined(__BLST_RUST_BINDGEN__)
+#elif defined(__BLST_RUST_BINDGEN__) || defined(SWIG)
 typedef struct {} blst_pairing;
 #else
 typedef struct blst_opaque blst_pairing;

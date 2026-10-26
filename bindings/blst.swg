@@ -916,12 +916,12 @@ import java.nio.file.*;
 %ignore C_bytes;
 %ignore bytes_t;
 %feature("novaluewrapper") bytes_t;
-%catches(BLST_ERROR) P1(const byte* in, size_t len);
-%catches(BLST_ERROR) P1_Affine(const byte* in, size_t len);
+%catches(BLST_ERROR) P1(bytes_t in);
+%catches(BLST_ERROR) P1_Affine(bytes_t in);
 %catches(BLST_ERROR) aggregate(const P1_Affine& in);
 
-%catches(BLST_ERROR) P2(const byte* in, size_t len);
-%catches(BLST_ERROR) P2_Affine(const byte* in, size_t len);
+%catches(BLST_ERROR) P2(bytes_t in);
+%catches(BLST_ERROR) P2_Affine(bytes_t in);
 %catches(BLST_ERROR) aggregate(const P2_Affine& in);
 
 %catches(BLST_ERROR) blst::Scalar::add;
@@ -956,6 +956,7 @@ typedef enum {
     BLST_AGGR_TYPE_MISMATCH,
     BLST_VERIFY_FAIL,
     BLST_PK_IS_INFINITY,
+    BLST_BAD_SCALAR,
 } BLST_ERROR;
 
 %include "blst.hpp"
@@ -974,11 +975,12 @@ extern const blst::P2_Affine BLS12_381_NEG_G2;
 %ignore blst_scalar_from_uint64;
 %ignore blst_uint32_from_scalar;
 %ignore blst_uint64_from_scalar;
+%ignore blst_pairing_sizeof;
 %ignore blst_pairing_init;
 %ignore blst_pairing_get_dst;
 
 %include "blst.h"
-%include "blst_aux.h"
+
 %extend blst_pairing {
     blst_pairing(bool hash_or_encode, const byte *DST DEFNULL,
                                       size_t DST_len DEFNULL)
@@ -1017,6 +1019,7 @@ static const char *const BLST_ERROR_str [] = {
     "BLST_ERROR: context type mismatch",
     "BLST_ERROR: verify failed",
     "BLST_ERROR: public key is infinite",
+    "BLST_ERROR: bad scalar",
 };
 
 #define SWIG_PYTHON_STRICT_BYTE_CHAR
@@ -1039,7 +1042,7 @@ static const char *const BLST_ERROR_str [] = {
 %include "cdata.i"
 #endif
 
-#if SWIG_VERSION < 0x040100 && defined(SWIGJAVASCRIPT)
+#if SWIG_VERSION < 0x040100 && defined(SWIG_JAVASCRIPT_V8)
 %wrapper %{
 #ifdef NODE_MODULE
 # undef NODE_MODULE
