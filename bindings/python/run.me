@@ -217,6 +217,22 @@ a = blst.P2_Affines.mult_pippenger(blst.P2_Affines.as_memory(points), scalars)
 if not a.is_equal(blst.G2().mult(total)):
     raise AssertionError("disaster")
 
+# released or non-contiguous memoryview-s are to be rejected
+mem = memoryview(bytes(blst.P2_Affines.as_memory(points)))
+for args in [(mem[::-1], scalars),
+             (blst.P2_Affines.as_memory(points), memoryview(bytes(8*42))[::-1])]:
+    try:
+        blst.P2_Affines.mult_pippenger(*args)
+        raise AssertionError("disaster")
+    except BufferError:
+        pass
+mem.release()
+try:
+    blst.P2_Affines.mult_pippenger(mem, scalars)
+    raise AssertionError("disaster")
+except ValueError:
+    pass
+
 ########################################################################
 # rudimentary blind signature PoC
 
