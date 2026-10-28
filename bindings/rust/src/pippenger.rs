@@ -6,7 +6,7 @@ use core::num::Wrapping;
 use core::ops::{Index, IndexMut};
 use core::slice::SliceIndex;
 use std::sync::Barrier;
-
+use core::cell::UnsafeCell;
 struct tile {
     x: usize,
     dx: usize,
@@ -19,12 +19,20 @@ struct tile {
 // *here* each Cell is written only once and by just one thread.
 #[repr(transparent)]
 struct Cell<T: ?Sized> {
-    value: T,
+    value: UnsafeCell<T>
 }
+
 unsafe impl<T: ?Sized + Sync> Sync for Cell<T> {}
+
 impl<T> Cell<T> {
     pub fn as_ptr(&self) -> *mut T {
-        &self.value as *const T as *mut T
+        self.value.get()
+    }
+}
+
+impl<T: Clone + Copy> Cell<T> {
+    fn value(&self) -> T {
+        unsafe {*self.value.get()}
     }
 }
 
@@ -94,18 +102,30 @@ macro_rules! pippenger_mult_impl {
                 let (mut delta, mut rem) =
                     (npoints / nslices + 1, Wrapping(npoints % nslices));
                 let mut x = 0usize;
+                
+                // Each iteration will pass a mutable reference to a point
+                // into a closure. We need to ensure that these references
+                // remain disjoint, because each one will become "protected".
+                // That means that we cannot use `&mut ret.points[x]` for each
+                // iteration; instead, we have to split off mutable references,
+                // one by one.
+                let mut tail = &mut ret.points[..];
+
                 while x < npoints {
-                    let out = &mut ret.points[x];
+
                     let inp = &points[x];
 
                     delta -= (rem == Wrapping(0)) as usize;
                     rem -= Wrapping(1);
                     x += delta;
+                    
+                    let (out, end) = tail.split_at_mut(delta);
+                    tail = end;
 
                     let wg = wg.clone();
                     pool.joined_execute(move || {
                         let p: [*const $point; 2] = [inp, ptr::null()];
-                        unsafe { $to_affines(out, &p[0], delta) };
+                        unsafe { $to_affines(&mut out[0], &p[0], delta) };
                         if wg.1.fetch_sub(1, Ordering::AcqRel) == 1 {
                             wg.0.wait();
                         }
@@ -220,7 +240,7 @@ macro_rules! pippenger_mult_impl {
 
                     wg.0.wait();
 
-                    let mut ret = acc[0].value;
+                    let mut ret = acc[0].value();
                     for i in 1..n_workers {
                         unsafe {
                             $add_or_double(&mut ret, &ret, acc[i].as_ptr())
