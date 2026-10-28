@@ -36,6 +36,7 @@ struct bytes_t {
 
     bytes_t() = default;
     bytes_t(const byte* p, size_t l) : ptr{p}, len{l} {}
+#ifndef SWIG
     template<template<typename, typename...> class C, typename T>
     bytes_t(const C<T>& c)
     {
@@ -50,6 +51,7 @@ struct bytes_t {
         ptr = reinterpret_cast<const byte*>(c.data());
         len = c.size();
     }
+#endif
 };
 
 template<typename T>
@@ -910,32 +912,37 @@ private:
 
 class Pairing {
 private:
-    operator blst_pairing*()
-    {   return reinterpret_cast<blst_pairing *>(this);   }
-    operator const blst_pairing*() const
-    {   return reinterpret_cast<const blst_pairing *>(this);   }
+#ifdef SWIGJAVA
+     operator blst_pairing*()
+     {   return reinterpret_cast<blst_pairing *>(this);   }
+     operator const blst_pairing*() const
+     {   return reinterpret_cast<const blst_pairing *>(this);   }
 
-    void init(bool hash_or_encode, const byte* DST, size_t DST_len)
-    {   // Copy DST to heap, std::string can be volatile, especially in SWIG:-(
-        byte *dst = new byte[DST_len];
-        memcpy(dst, DST, DST_len);
-        blst_pairing_init(*this, hash_or_encode, dst, DST_len);
-    }
+public:
+#else
+    std::unique_ptr<limb_t[]> ctx;
+
+    operator blst_pairing*() const
+    {   return reinterpret_cast<blst_pairing *>(ctx.get());   }
+    operator const blst_pairing*() const
+    {   return reinterpret_cast<const blst_pairing *>(ctx.get());   }
 
 public:
 #ifndef SWIG
-    void* operator new(size_t)
-    {   return new uint64_t[blst_pairing_sizeof()/sizeof(uint64_t)];   }
-    void operator delete(void *ptr)
-    {   delete[] static_cast<uint64_t*>(ptr);   }
-
-    Pairing(bool hash_or_encode, const std::string& DST)
-    {   init(hash_or_encode, C_bytes(DST.data()), DST.size());   }
-#endif
-#ifndef SWIGJAVA
     Pairing(bool hash_or_encode, const byte* DST, size_t DST_len)
-    {   init(hash_or_encode, DST, DST_len);   }
-    ~Pairing() { delete[] blst_pairing_get_dst(*this); }
+    {   size_t sz = blst_pairing_sizeof();
+        size_t SZ = (sz + DST_len + sizeof(limb_t) - 1) / sizeof(limb_t);
+        ctx = std::unique_ptr<limb_t[]>{new limb_t[SZ]};
+        byte *dst = reinterpret_cast<byte *>(ctx.get()) + sz;
+        if (DST_len)
+            memcpy(dst, DST, DST_len);
+        blst_pairing_init(*this, hash_or_encode, dst, DST_len);
+    }
+#endif
+    Pairing(bool hash_or_encode, const std::string& DST) :
+        Pairing(hash_or_encode, C_bytes(DST.data()), DST.size()) {}
+    Pairing(const Pairing&) = delete;
+    Pairing& operator=(const Pairing&) = delete;
 #endif
 
     BLST_ERROR aggregate(const P1_Affine* pk, const P2_Affine* sig,
