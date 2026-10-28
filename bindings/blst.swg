@@ -1014,9 +1014,8 @@ extern const blst::P2_Affine BLS12_381_NEG_G2;
 }
 #endif
 
-%begin %{
+%runtime %{
 #ifdef __cplusplus
-# include <memory>
 # include "blst.hpp"
 using namespace blst;
 #else
