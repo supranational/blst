@@ -332,7 +332,7 @@ static void map_to_isogenous_E1(POINTonE1 *p, const vec384 u)
     mul_fp(x1n, x1n, Bprime_E1);        /* x1n = x1n * B                */
     mul_fp(x2n, Zuu, x1n);              /* x2n = Zuu * x1n              */
 
-    /* x denumenator                                                    */
+    /* x denominator                                                    */
     mul_fp(xd, minus_A, tv2);           /* xd = -A * tv2                */
     e1 = vec_is_zero(xd, sizeof(xd));   /* e1 = xd == 0                 */
     vec_select(xd, ZxA, xd, sizeof(xd), e1);    /*              # If xd == 0, set xd = Z*A */
