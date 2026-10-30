@@ -1991,6 +1991,9 @@ func P1sToAffine(points []*P1, optional ...int) P1Affines {
 	var npoints int
 	if len(optional) > 0 {
 		npoints = optional[0]
+		if npoints <= 0 || npoints > len(points) {
+			panic("index out of range")
+		}
 	} else {
 		npoints = len(points)
 	}
@@ -2050,6 +2053,9 @@ func P1AffinesAdd(points []*P1Affine, optional ...int) *P1 {
 	var npoints int
 	if len(optional) > 0 {
 		npoints = optional[0]
+		if npoints <= 0 || npoints > len(points) {
+			panic("index out of range")
+		}
 	} else {
 		npoints = len(points)
 	}
@@ -2823,6 +2829,9 @@ func P2sToAffine(points []*P2, optional ...int) P2Affines {
 	var npoints int
 	if len(optional) > 0 {
 		npoints = optional[0]
+		if npoints <= 0 || npoints > len(points) {
+			panic("index out of range")
+		}
 	} else {
 		npoints = len(points)
 	}
@@ -2882,6 +2891,9 @@ func P2AffinesAdd(points []*P2Affine, optional ...int) *P2 {
 	var npoints int
 	if len(optional) > 0 {
 		npoints = optional[0]
+		if npoints <= 0 || npoints > len(points) {
+			panic("index out of range")
+		}
 	} else {
 		npoints = len(points)
 	}
