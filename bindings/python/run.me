@@ -39,7 +39,10 @@ if newer("../blst.swg", "../blst.h", "../blst.hpp", "blst_wrap.cpp"):
                                    "-o", "blst_wrap.cpp", "-outdir", ".",
                                    "../blst.swg"])
 
-blst_so = "_blst"+sysconfig.get_config_var('EXT_SUFFIX')
+if sysconfig.get_config_var('EXT_SUFFIX'):
+    blst_so = "_blst" + sysconfig.get_config_var('EXT_SUFFIX')
+else:
+    blst_so = "_blst" + sysconfig.get_config_var('SHLIB_EXT').strip('"')
 
 if newer("blst_wrap.cpp", "../libblst.a", blst_so):
     print("compiling %s..." % blst_so) or sys.stdout.flush()
