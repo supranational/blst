@@ -913,10 +913,10 @@ private:
 class Pairing {
 private:
 #ifdef SWIGJAVA
-     operator blst_pairing*()
-     {   return reinterpret_cast<blst_pairing *>(this);   }
-     operator const blst_pairing*() const
-     {   return reinterpret_cast<const blst_pairing *>(this);   }
+    operator blst_pairing*()
+    {   return reinterpret_cast<blst_pairing *>(this);   }
+    operator const blst_pairing*() const
+    {   return reinterpret_cast<const blst_pairing *>(this);   }
 
 public:
 #else
