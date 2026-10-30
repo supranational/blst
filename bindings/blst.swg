@@ -221,7 +221,9 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
 
 #ifdef __cplusplus
 %typemap(in) (const POINT* points[], size_t npoints)
-    (std::unique_ptr<$*1_ltype[]> points, size_t _global_npoints) %{
+    (size_t _global_npoints,
+     std::unique_ptr<$*1_ltype[]> points,
+     Py_buffer view = {}) %{
     if (PyList_Check($input)) {
         _global_npoints = PyList_Size($input);
 
@@ -252,17 +254,24 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
         $1 = points.get();
         $2 = _global_npoints = nbytes / sizeof(*points[0]);
     } else if (PyMemoryView_Check($input)) {    // output from to_affine()
-        Py_buffer *buf = PyMemoryView_GET_BUFFER($input);
-
-        if (!PyBytes_Check(buf->obj))
+        if (!PyBytes_Check(PyMemoryView_GET_BASE($input)))
             SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                                 "expecting 'bytes' in "
                                                 "'memoryview'  for points[]");
+
+        if (PyObject_GetBuffer($input, &view, PyBUF_ND) < 0)
+            SWIG_fail;  // BufferError raised
+
+        if (view.itemsize != sizeof(*points[0]) || view.ndim != 1)
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                                "unexpected shape in "
+                                                "'memoryview'  for points[]");
+
         points = std::unique_ptr<$*1_ltype[]>(new $*1_ltype[2]);
-        points[0] = ($*1_ltype)buf->buf;
+        points[0] = ($*1_ltype)view.buf;
         points[1] = nullptr;
         $1 = points.get();
-        $2 = _global_npoints = buf->len / sizeof(*points[0]);
+        $2 = _global_npoints = view.shape[0];
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting "
                                             "'list', 'bytes' or 'memoryview' "
@@ -272,6 +281,8 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting "
                                             "non-empty set of points[]");
 %}
+%typemap(freearg) (const POINT* points[], size_t npoints)
+%{  PyBuffer_Release(&view$argnum);  %}
 %apply (const POINT* points[], size_t npoints) {
        (const blst::P1_Affine* const points[], size_t npoints),
        (const blst::P2_Affine* const points[], size_t npoints),
@@ -319,7 +330,9 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
 %nodefault blst::P2_Affines;
 
 %typemap(in) (const byte* const scalars[], size_t nbits)
-    (std::unique_ptr<byte[]> bytes, byte *scalars[2]) %{
+    (std::unique_ptr<byte[]> bytes,
+     byte *scalars[2],
+     Py_buffer view = {}) %{
     if (PyList_Check($input)) {
         if ((size_t)PyList_Size($input) != _global_npoints)
             SWIG_exception_fail(SWIG_IndexError, "in method '$symname', 'list' "
@@ -375,16 +388,24 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
         $1 = scalars;
         $2 = 8 * (PyByteArray_Size($input) / _global_npoints);
     } else if (PyMemoryView_Check($input)) {
-        Py_buffer *buf = PyMemoryView_GET_BUFFER($input);
-
-        if (!PyBytes_Check(buf->obj) && !PyByteArray_Check(buf->obj))
+        PyObject *obj = PyMemoryView_GET_BASE($input);
+        if (!PyBytes_Check(obj) && !PyByteArray_Check(obj))
             SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                                 "expecting 'bytes' in "
-                                                "'memoryview'  for points[]");
-        scalars[0] = ($*1_ltype)buf->buf;
+                                                "'memoryview'  for scalars");
+
+        if (PyObject_GetBuffer($input, &view, PyBUF_ND) < 0)
+            SWIG_fail;  // BufferError raised
+
+        if (view.ndim != 1 || (size_t)view.shape[0] < _global_npoints)
+            SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
+                                                "unexpected shape in "
+                                                "'memoryview'  for scalars");
+
+        scalars[0] = ($*1_ltype)view.buf;
         scalars[1] = nullptr;
         $1 = scalars;
-        $2 = 8 * (buf->len / _global_npoints);
+        $2 = 8 * view.itemsize;
     } else {
         SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting "
                                             "'list', 'bytes', 'bytearray' "
@@ -394,6 +415,8 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
         SWIG_exception_fail(SWIG_ValueError, "in method '$symname', zero-length "
                                              "scalars, likely an error");
 %}
+%typemap(freearg) (const byte* const scalars[], size_t nbits)
+%{  PyBuffer_Release(&view$argnum);  %}
 
 %typemap(out) BLST_ERROR %{
     if ($1 != BLST_SUCCESS) {
