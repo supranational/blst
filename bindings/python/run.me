@@ -80,6 +80,14 @@ DST = b"MY-DST"			# domain separation tag
 SK = blst.SecretKey()
 SK.keygen(b"*"*32)		# secret key
 
+# IKM shorter than 32 bytes is rejected instead of yielding a zero key
+for keygen in (blst.SecretKey().keygen, blst.SecretKey().derive_master_eip2333):
+    try:
+        keygen(b"*"*31)
+        raise AssertionError("disaster")
+    except RuntimeError:
+        pass
+
 ########################################################################
 # generate public key and signature
 
