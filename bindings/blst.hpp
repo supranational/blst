@@ -93,20 +93,30 @@ public:
 #ifndef SWIG
     void keygen(const byte* IKM, size_t IKM_len,
                 const std::string& info = "")
-    {   blst_keygen(&key, IKM, IKM_len, C_bytes(info.data()), info.size());   }
+    {   if (IKM_len < 32)
+            throw BLST_BAD_SCALAR;
+        blst_keygen(&key, IKM, IKM_len, C_bytes(info.data()), info.size());
+    }
     void keygen_v3(const byte* IKM, size_t IKM_len,
                    const std::string& info = "")
-    {   blst_keygen_v3(&key, IKM, IKM_len, C_bytes(info.data()), info.size());   }
+    {   if (IKM_len < 32)
+            throw BLST_BAD_SCALAR;
+        blst_keygen_v3(&key, IKM, IKM_len, C_bytes(info.data()), info.size());
+    }
     void keygen_v4_5(const byte* IKM, size_t IKM_len,
                      const byte* salt, size_t salt_len,
                      const std::string& info = "")
-    {   blst_keygen_v4_5(&key, IKM, IKM_len, salt, salt_len,
+    {   if (IKM_len < 32)
+            throw BLST_BAD_SCALAR;
+        blst_keygen_v4_5(&key, IKM, IKM_len, salt, salt_len,
                                C_bytes(info.data()), info.size());
     }
     void keygen_v5(const byte* IKM, size_t IKM_len,
                    const byte* salt, size_t salt_len,
                    const std::string& info = "")
-    {   blst_keygen_v5(&key, IKM, IKM_len, salt, salt_len,
+    {   if (IKM_len < 32)
+            throw BLST_BAD_SCALAR;
+        blst_keygen_v5(&key, IKM, IKM_len, salt, salt_len,
                              C_bytes(info.data()), info.size());
     }
 #endif
@@ -119,7 +129,10 @@ public:
     void keygen_v5(bytes_t IKM, bytes_t salt, const std::string& info = "")
     {   keygen_v5(IKM.ptr, IKM.len, salt.ptr, salt.len, info);   }
     void derive_master_eip2333(const byte* IKM, size_t IKM_len)
-    {   blst_derive_master_eip2333(&key, IKM, IKM_len);   }
+    {   if (IKM_len < 32)
+            throw BLST_BAD_SCALAR;
+        blst_derive_master_eip2333(&key, IKM, IKM_len);
+    }
     void derive_child_eip2333(const SecretKey& SK, unsigned int child_index)
     {   blst_derive_child_eip2333(&key, &SK.key, child_index);   }
 

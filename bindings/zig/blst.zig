@@ -48,10 +48,14 @@ pub const ERROR = enum(c.ERROR) {
 pub const SecretKey = struct {
     key: c.scalar = c.scalar{},
 
-    pub fn keygen(self: *SecretKey, IKM: []const u8, info: ?[]const u8) void {
+    pub fn keygen(self: *SecretKey, IKM: []const u8, info: ?[]const u8) ERROR {
+        if (IKM.len < 32) {
+            return .BAD_SCALAR;
+        }
         const opt = info orelse &[_]u8{};
         c.keygen(&self.key, @ptrCast(IKM), IKM.len,
                             @ptrCast(opt), opt.len);
+        return .SUCCESS;
     }
 
     pub fn deinit(self: *SecretKey) void {

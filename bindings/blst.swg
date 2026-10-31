@@ -963,6 +963,12 @@ import java.nio.file.*;
 %catches(BLST_ERROR) blst::Scalar::sub;
 %catches(BLST_ERROR) blst::Scalar::mul;
 
+%catches(BLST_ERROR) blst::SecretKey::keygen;
+%catches(BLST_ERROR) blst::SecretKey::keygen_v3;
+%catches(BLST_ERROR) blst::SecretKey::keygen_v4_5;
+%catches(BLST_ERROR) blst::SecretKey::keygen_v5;
+%catches(BLST_ERROR) blst::SecretKey::derive_master_eip2333;
+
 // methods returning |this|
 %apply SELF* OUTPUT {
     blst::P1* sign_with,    blst::P2* sign_with,

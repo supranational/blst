@@ -160,19 +160,25 @@ public struct SecretKey {
     }
 
     public void keygen(byte[] IKM, string info="")
-    {   if (key == null) key = new byte[32];
+    {   if (IKM.Length < 32)
+            throw new Exception(ERROR.BAD_SCALAR);
+        if (key == null) key = new byte[32];
         byte[] info_bytes = Encoding.UTF8.GetBytes(info);
         blst_keygen(key, IKM, (size_t)IKM.Length,
                          info_bytes, (size_t)info_bytes.Length);
     }
     public void keygen_v3(byte[] IKM, string info="")
-    {   if (key == null) key = new byte[32];
+    {   if (IKM.Length < 32)
+            throw new Exception(ERROR.BAD_SCALAR);
+        if (key == null) key = new byte[32];
         byte[] info_bytes = Encoding.UTF8.GetBytes(info);
         blst_keygen_v3(key, IKM, (size_t)IKM.Length,
                             info_bytes, (size_t)info_bytes.Length);
     }
     public void keygen_v4_5(byte[] IKM, string salt, string info="")
-    {   if (key == null) key = new byte[32];
+    {   if (IKM.Length < 32)
+            throw new Exception(ERROR.BAD_SCALAR);
+        if (key == null) key = new byte[32];
         byte[] salt_bytes = Encoding.UTF8.GetBytes(salt);
         byte[] info_bytes = Encoding.UTF8.GetBytes(info);
         blst_keygen_v4_5(key, IKM, (size_t)IKM.Length,
@@ -180,7 +186,9 @@ public struct SecretKey {
                               info_bytes, (size_t)info_bytes.Length);
     }
     public void keygen_v5(byte[] IKM, byte[] salt, string info="")
-    {   if (key == null) key = new byte[32];
+    {   if (IKM.Length < 32)
+            throw new Exception(ERROR.BAD_SCALAR);
+        if (key == null) key = new byte[32];
         byte[] info_bytes = Encoding.UTF8.GetBytes(info);
         blst_keygen_v5(key, IKM, (size_t)IKM.Length,
                             salt, (size_t)salt.Length,
@@ -189,7 +197,9 @@ public struct SecretKey {
     public void keygen_v5(byte[] IKM, string salt, string info="")
     {   keygen_v5(IKM, Encoding.UTF8.GetBytes(salt), info);   }
     public void derive_master_eip2333(byte[] IKM)
-    {   if (key == null) key = new byte[32];
+    {   if (IKM.Length < 32)
+            throw new Exception(ERROR.BAD_SCALAR);
+        if (key == null) key = new byte[32];
         blst_derive_master_eip2333(key, IKM, (size_t)IKM.Length);
     }
     public SecretKey(SecretKey master, uint child_index)
