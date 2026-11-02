@@ -526,8 +526,18 @@ void blst_pairing_raw_aggregate(PAIRING *ctx, const POINTonE2_affine *q,
         return;
 
     n = ctx->nelems;
-    vec_copy(ctx->Q + n, q, sizeof(*q));
-    vec_copy(ctx->P + n, p, sizeof(*p));
+    if (vec_is_zero(q, sizeof(*q))) {
+        /*
+         * Lines through infinite |q| are zero and would wipe the whole
+         * product. Substitute the pair with (generator, infinity), which
+         * is the same identity after the final exponentiation.
+         */
+        vec_copy(ctx->Q + n, &BLS12_381_G2, sizeof(*q));
+        vec_zero(ctx->P + n, sizeof(*p));
+    } else {
+        vec_copy(ctx->Q + n, q, sizeof(*q));
+        vec_copy(ctx->P + n, p, sizeof(*p));
+    }
     if (++n == N_MAX) {
         if (ctx->ctrl & AGGR_GT_SET) {
             vec384fp12 GT;

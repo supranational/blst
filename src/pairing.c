@@ -425,16 +425,25 @@ void blst_miller_loop_n(vec384fp12 out, const POINTonE2_affine *const Qs[],
     size_t i, j;
 
     for (i = 0, j = 0; j < n; j++) {
+        bool_t inf;
+
         Qptr = *Qs ? *Qs++ : Qptr+1;
         Pptr = *Ps ? *Ps++ : Pptr+1;
+        inf = vec_is_zero(Qptr, sizeof(*Qptr));
 
         /* Move common expression from line evaluation to line_by_Px2.  */
         add_fp(Px2[i].X, Pptr->X, Pptr->X);
         neg_fp(Px2[i].X, Px2[i].X);
         add_fp(Px2[i].Y, Pptr->Y, Pptr->Y);
 
-        vec_copy(Q[i].X, Qptr->X, 2*sizeof(Q[i].X));
-        vec_copy(T[i].X, Qptr->X, 2*sizeof(T[i].X));
+        /*
+         * Lines through infinite Q are zero and would wipe the whole
+         * product. Substitute the pair with (generator, infinity), which
+         * is the same identity after the final exponentiation.
+         */
+        vec_czero(&Px2[i], sizeof(Px2[i]), inf);
+        vec_select(Q[i].X, BLS12_381_G2.X, Qptr->X, 2*sizeof(Q[i].X), inf);
+        vec_copy(T[i].X, Q[i].X, 2*sizeof(T[i].X));
         vec_copy(T[i].Z, BLS12_381_Rx.p2, sizeof(T[i].Z));
 
         if (++i == MILLER_LOOP_N_MAX || j == n-1) {
@@ -462,7 +471,18 @@ void blst_final_exp(vec384fp12 ret, const vec384fp12 f)
 {   final_exp(ret, f);   }
 
 void blst_precompute_lines(vec384fp6 Qlines[68], const POINTonE2_affine *Q)
-{   precompute_lines(Qlines, Q);   }
+{
+    if (vec_is_zero(Q, sizeof(*Q))) {
+        size_t i;
+
+        /* unity lines, |miller_loop_lines| returns one for any |P| */
+        vec_zero(Qlines, 68*sizeof(Qlines[0]));
+        for (i = 0; i < 68; i++)
+            vec_copy(Qlines[i][0], BLS12_381_Rx.p2, sizeof(Qlines[i][0]));
+    } else {
+        precompute_lines(Qlines, Q);
+    }
+}
 
 void blst_miller_loop_lines(vec384fp12 ret, const vec384fp6 Qlines[68],
                                             const POINTonE1_affine *P)

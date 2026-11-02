@@ -2357,6 +2357,56 @@ mod fp12_test {
             blst_fp12::miller_loop_n(qs.as_slice(), ps.as_slice())
         );
     }
+
+    #[test]
+    fn infinite_q() {
+        let g1 = unsafe { *blst_p1_affine_generator() };
+        let g2 = unsafe { *blst_p2_affine_generator() };
+        let inf = blst_p2_affine::default();
+        let mut neg = blst_p2::default();
+        unsafe {
+            blst_p2_from_affine(&mut neg, &g2);
+            blst_p2_cneg(&mut neg, true);
+        }
+        let mut neg_g2 = blst_p2_affine::default();
+        unsafe { blst_p2_to_affine(&mut neg_g2, &neg) };
+
+        let dst = [];
+        // cover the Pairing's internal flush at 8 pairs from both sides
+        for npairs in [2usize, 7, 8, 9, 16, 17] {
+            for pos in 0..npairs {
+                let mut qs = vec![g2; npairs];
+                for q in qs.iter_mut().skip(1).step_by(2) {
+                    *q = neg_g2;
+                }
+                qs[pos] = inf;
+                let ps = vec![g1; npairs];
+
+                let naive = qs.iter().fold(blst_fp12::default(), |acc, q| {
+                    acc * blst_fp12::miller_loop(q, &g1)
+                });
+
+                assert_eq!(
+                    naive.final_exp(),
+                    blst_fp12::miller_loop_n(&qs, &ps).final_exp()
+                );
+
+                let mut pairing = Pairing::new(true, &dst);
+                for q in qs.iter() {
+                    pairing.raw_aggregate(q, &g1);
+                }
+                assert_eq!(naive.final_exp(), pairing.as_fp12().final_exp());
+            }
+        }
+
+        let mut lines: [blst_fp6; 68] = unsafe { core::mem::zeroed() };
+        let mut out = blst_fp12::default();
+        unsafe {
+            blst_precompute_lines(lines.as_mut_ptr(), &inf);
+            blst_miller_loop_lines(&mut out, lines.as_ptr(), &g1);
+        }
+        assert_eq!(out, blst_fp12::default());
+    }
 }
 
 #[cfg(test)]
