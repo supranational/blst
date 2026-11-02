@@ -7,24 +7,21 @@ use core::ops::{Index, IndexMut};
 use core::slice::SliceIndex;
 use std::sync::Barrier;
 
-struct tile {
-    x: usize,
-    dx: usize,
-    y: usize,
-    dy: usize,
-}
-
 // Minimalist core::cell::Cell stand-in, but with Sync marker, which
 // makes it possible to pass it to multiple threads. It works, because
 // *here* each Cell is written only once and by just one thread.
 #[repr(transparent)]
 struct Cell<T: ?Sized> {
-    value: T,
+    value: core::cell::UnsafeCell<T>,
 }
 unsafe impl<T: ?Sized + Sync> Sync for Cell<T> {}
-impl<T> Cell<T> {
+impl<T: Copy> Cell<T> {
     pub fn as_ptr(&self) -> *mut T {
-        &self.value as *const T as *mut T
+        self.value.get()
+    }
+
+    pub fn get(&self) -> T {
+        unsafe { *self.value.get() }
     }
 }
 
@@ -73,17 +70,20 @@ macro_rules! pippenger_mult_impl {
             }
 
             pub fn from(points: &[$point]) -> Self {
+                use core::slice::from_raw_parts_mut;
+
                 let npoints = points.len();
                 let mut ret = Self {
                     points: Vec::with_capacity(npoints),
                 };
                 unsafe { ret.points.set_len(npoints) };
+                let out = &mut ret.points[..];
 
                 let pool = mt::da_pool();
                 let ncpus = pool.max_count();
                 if ncpus < 2 || npoints < 768 {
                     let p: [*const $point; 2] = [&points[0], ptr::null()];
-                    unsafe { $to_affines(&mut ret.points[0], &p[0], npoints) };
+                    unsafe { $to_affines(&mut out[0], &p[0], out.len()) };
                     return ret;
                 }
 
@@ -95,17 +95,21 @@ macro_rules! pippenger_mult_impl {
                     (npoints / nslices + 1, Wrapping(npoints % nslices));
                 let mut x = 0usize;
                 while x < npoints {
-                    let out = &mut ret.points[x];
-                    let inp = &points[x];
-
                     delta -= (rem == Wrapping(0)) as usize;
                     rem -= Wrapping(1);
+
+                    //let out = &mut out[x..x + delta];
+                    // It's unfortunate that we have to resort to an equivalent
+                    // from_raw_parts_mut in order to get BorrowSanitize lower
+                    // its guard...
+                    let out = unsafe { from_raw_parts_mut(&mut out[x], delta) };
+                    let inp = &points[x..x + delta];
                     x += delta;
 
                     let wg = wg.clone();
                     pool.joined_execute(move || {
-                        let p: [*const $point; 2] = [inp, ptr::null()];
-                        unsafe { $to_affines(out, &p[0], delta) };
+                        let p: [*const $point; 2] = [&inp[0], ptr::null()];
+                        unsafe { $to_affines(&mut out[0], &p[0], out.len()) };
                         if wg.1.fetch_sub(1, Ordering::AcqRel) == 1 {
                             wg.0.wait();
                         }
@@ -173,19 +177,19 @@ macro_rules! pippenger_mult_impl {
                         Vec::with_capacity(n_workers);
                     #[allow(clippy::uninit_vec)]
                     unsafe { acc.set_len(acc.capacity()) };
-                    let acc = &acc[..];
 
                     let wg = Arc::new((
                         Barrier::new(2),
                         AtomicUsize::new(n_workers),
                         AtomicUsize::new(0),
+                        acc,
                     ));
 
                     for i in 0..n_workers {
                         let wg = wg.clone();
 
                         pool.joined_execute(move || {
-                            let acc = acc[i].as_ptr();
+                            let acc = wg.3[i].as_ptr();
                             let mut tmp = <$point>::default();
                             let mut first = true;
 
@@ -220,10 +224,10 @@ macro_rules! pippenger_mult_impl {
 
                     wg.0.wait();
 
-                    let mut ret = acc[0].value;
+                    let mut ret = wg.3[0].get();
                     for i in 1..n_workers {
                         unsafe {
-                            $add_or_double(&mut ret, &ret, acc[i].as_ptr())
+                            $add_or_double(&mut ret, &ret, wg.3[i].as_ptr())
                         };
                     }
 
@@ -233,9 +237,16 @@ macro_rules! pippenger_mult_impl {
                 let (nx, ny, window) =
                     breakdown(nbits, pippenger_window_size(npoints), ncpus);
 
+                struct tile {
+                    x: usize,
+                    dx: usize,
+                    y: usize,
+                    dy: usize,
+                    point: Cell<$point>,
+                }
+
                 // |grid[]| holds "coordinates" and place for result
-                let mut grid: Vec<(tile, Cell<$point>)> =
-                    Vec::with_capacity(nx * ny);
+                let mut grid: Vec<tile> = Vec::with_capacity(nx * ny);
                 #[allow(clippy::uninit_vec)]
                 unsafe { grid.set_len(grid.capacity()) };
                 let dx = npoints / nx;
@@ -243,38 +254,34 @@ macro_rules! pippenger_mult_impl {
                 let mut total = 0usize;
 
                 while total < nx {
-                    grid[total].0.x = total * dx;
-                    grid[total].0.dx = dx;
-                    grid[total].0.y = y;
-                    grid[total].0.dy = nbits - y;
+                    grid[total].x = total * dx;
+                    grid[total].dx = dx;
+                    grid[total].y = y;
+                    grid[total].dy = nbits - y;
                     total += 1;
                 }
-                grid[total - 1].0.dx = npoints - grid[total - 1].0.x;
+                grid[total - 1].dx = npoints - grid[total - 1].x;
                 while y != 0 {
                     y -= window;
                     for i in 0..nx {
-                        grid[total].0.x = grid[i].0.x;
-                        grid[total].0.dx = grid[i].0.dx;
-                        grid[total].0.y = y;
-                        grid[total].0.dy = window;
+                        grid[total].x = grid[i].x;
+                        grid[total].dx = grid[i].dx;
+                        grid[total].y = y;
+                        grid[total].dy = window;
                         total += 1;
                     }
                 }
-                let grid = &grid[..];
-
                 let points = &self[..];
                 let sz = unsafe { $scratch_sizeof(0) / 8 };
 
                 let mut row_sync: Vec<AtomicUsize> = Vec::with_capacity(ny);
                 row_sync.resize_with(ny, Default::default);
-                let row_sync = Arc::new(row_sync);
-                let counter = Arc::new(AtomicUsize::new(0));
+                let grid = Arc::new((AtomicUsize::new(0), grid, row_sync));
                 let n_workers = core::cmp::min(ncpus, total);
                 let (tx, rx) = sync_channel(n_workers);
                 for _ in 0..n_workers {
                     let tx = tx.clone();
-                    let counter = counter.clone();
-                    let row_sync = row_sync.clone();
+                    let grid = grid.clone();
 
                     pool.joined_execute(move || {
                         let mut scratch = vec![0u64; sz << (window - 1)];
@@ -283,20 +290,21 @@ macro_rules! pippenger_mult_impl {
                         let mut s: [*const u8; 2] = [ptr::null(), ptr::null()];
 
                         loop {
-                            let work = counter.fetch_add(1, Ordering::Relaxed);
+                            let work = grid.0.fetch_add(1, Ordering::Relaxed);
                             if work >= total {
                                 break;
                             }
-                            let x = grid[work].0.x;
-                            let y = grid[work].0.y;
+
+                            let x = grid.1[work].x;
+                            let y = grid.1[work].y;
 
                             p[0] = &points[x];
                             s[0] = &scalars[x * nbytes];
                             unsafe {
                                 $tile_mult(
-                                    grid[work].1.as_ptr(),
+                                    grid.1[work].point.as_ptr(),
                                     &p[0],
-                                    grid[work].0.dx,
+                                    grid.1[work].dx,
                                     &s[0],
                                     nbits,
                                     &mut scratch[0],
@@ -304,8 +312,7 @@ macro_rules! pippenger_mult_impl {
                                     window,
                                 );
                             }
-                            if row_sync[y / window]
-                                .fetch_add(1, Ordering::AcqRel)
+                            if grid.2[y / window].fetch_add(1, Ordering::AcqRel)
                                 == nx - 1
                             {
                                 tx.send(y).expect("disaster");
@@ -320,13 +327,13 @@ macro_rules! pippenger_mult_impl {
                 for _ in 0..ny {
                     let mut y = rx.recv().unwrap();
                     rows[y / window] = true;
-                    while grid[row].0.y == y {
-                        while row < total && grid[row].0.y == y {
+                    while grid.1[row].y == y {
+                        while row < total && grid.1[row].y == y {
                             unsafe {
                                 $add_or_double(
                                     &mut ret,
                                     &ret,
-                                    grid[row].1.as_ptr(),
+                                    grid.1[row].point.as_ptr(),
                                 );
                             }
                             row += 1;
