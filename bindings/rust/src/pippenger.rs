@@ -70,20 +70,17 @@ macro_rules! pippenger_mult_impl {
             }
 
             pub fn from(points: &[$point]) -> Self {
-                use core::slice::from_raw_parts_mut;
-
                 let npoints = points.len();
                 let mut ret = Self {
                     points: Vec::with_capacity(npoints),
                 };
                 unsafe { ret.points.set_len(npoints) };
-                let out = &mut ret.points[..];
 
                 let pool = mt::da_pool();
                 let ncpus = pool.max_count();
                 if ncpus < 2 || npoints < 768 {
                     let p: [*const $point; 2] = [&points[0], ptr::null()];
-                    unsafe { $to_affines(&mut out[0], &p[0], out.len()) };
+                    unsafe { $to_affines(&mut ret.points[0], &p[0], npoints) };
                     return ret;
                 }
 
@@ -98,12 +95,17 @@ macro_rules! pippenger_mult_impl {
                     delta -= (rem == Wrapping(0)) as usize;
                     rem -= Wrapping(1);
 
-                    //let out = &mut out[x..x + delta];
-                    // It's unfortunate that we have to resort to an equivalent
-                    // from_raw_parts_mut in order to get BorrowSanitize lower
-                    // its guard...
-                    let out = unsafe { from_raw_parts_mut(&mut out[x], delta) };
                     let inp = &points[x..x + delta];
+                    //let out = &mut ret.points[x..x + delta];
+                    // It's unfortunate that we have to resort to an equivalent
+                    // from_raw_parts_mut in order to get BorrowSanitizer lower
+                    // its guard...
+                    let out = unsafe {
+                        core::slice::from_raw_parts_mut(
+                            ret.points.as_mut_ptr().add(x),
+                            delta,
+                        )
+                    };
                     x += delta;
 
                     let wg = wg.clone();
