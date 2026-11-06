@@ -5,7 +5,7 @@ test "sign/verify" {
     const password: [32]u8 = @splat('*');
 
     var SK = blst.SecretKey{};
-    SK.keygen(&password, null);
+    try SK.keygen(&password, null);
     defer SK.deinit();
 
     const msg = "assertion";
@@ -59,7 +59,7 @@ test "aggregateverify" {
 
     for (0..N) |i| {
         msgs[i] = try std.fmt.allocPrint(mem, "assertion{}", .{i});
-        SK.keygen(&password, msgs[i]);
+        try SK.keygen(&password, msgs[i]);
         pks[i] = try box(mem, &(try blst.P1.from(&SK)).serialize());
         sigs[i] = try box(mem, &blst.P2.hash_to(msgs[i], DST, null).sign_with(&SK).serialize());
     }

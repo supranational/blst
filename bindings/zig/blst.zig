@@ -48,7 +48,10 @@ pub const ERROR = enum(c.ERROR) {
 pub const SecretKey = struct {
     key: c.scalar = c.scalar{},
 
-    pub fn keygen(self: *SecretKey, IKM: []const u8, info: ?[]const u8) void {
+    pub fn keygen(self: *SecretKey, IKM: []const u8, info: ?[]const u8) !void {
+        if (IKM.len < 32) {
+            return Error.BAD_SCALAR;
+        }
         const opt = info orelse &[_]u8{};
         c.keygen(&self.key, @ptrCast(IKM), IKM.len,
                             @ptrCast(opt), opt.len);
@@ -63,13 +66,13 @@ pub const PT = c.fp12;
 
 pub const Pairing = struct {
     ctx: []u64 = &[_]u64{},
-    allocator: std.mem.Allocator,
+    mem: std.mem.Allocator,
 
     pub fn init(hash_or_encode: bool, DST: []const u8,
-                allocator: std.mem.Allocator) !Pairing {
+                mem: std.mem.Allocator) !Pairing {
         const sz = c.pairing_sizeof();
         const nlimbs = (sz + DST.len + @sizeOf(u64) - 1) / @sizeOf(u64);
-        const buffer = try allocator.alloc(u64, nlimbs);
+        const buffer = try mem.alloc(u64, nlimbs);
         const dst = std.mem.sliceAsBytes(buffer)[sz..sz + DST.len];
 
         @memcpy(dst, DST);
@@ -78,12 +81,12 @@ pub const Pairing = struct {
 
         return Pairing{
             .ctx = buffer,
-            .allocator = allocator,
+            .mem = mem,
         };
     }
 
     pub fn deinit(self: *Pairing) void {
-        self.allocator.free(self.ctx);
+        self.mem.free(self.ctx);
         self.ctx = &[_]u64{};
     }
 
