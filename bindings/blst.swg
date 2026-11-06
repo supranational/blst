@@ -959,6 +959,12 @@ import java.nio.file.*;
 %catches(BLST_ERROR) P2_Affine(bytes_t in);
 %catches(BLST_ERROR) aggregate(const P2_Affine& in);
 
+%catches(BLST_ERROR) keygen;
+%catches(BLST_ERROR) keygen_v3;
+%catches(BLST_ERROR) keygen_v4_5;
+%catches(BLST_ERROR) keygen_v5;
+%catches(BLST_ERROR) derive_master_eip2333;
+
 %catches(BLST_ERROR) blst::Scalar::add;
 %catches(BLST_ERROR) blst::Scalar::sub;
 %catches(BLST_ERROR) blst::Scalar::mul;
