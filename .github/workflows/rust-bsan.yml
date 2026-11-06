@@ -1,0 +1,55 @@
+name: rust-bsan
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'bindings/rust/src/*.rs'
+      - '.github/workflows/rust-bsan.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'bindings/rust/src/*.rs'
+  schedule:
+    - cron: '42 17 * * 6'
+  workflow_dispatch:
+
+jobs:
+  rust-bsan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Environment
+      run: |
+        lscpu
+        echo ---
+        env | sort
+
+    - name: Calculate the cache key
+      id: cache-key
+      run: |
+         KEY=`(echo "${{ github.sha }}" && \
+               docker manifest inspect ghcr.io/borrowsanitizer/bsan:experimental) \
+              | sha1sum | awk '{print $1}'`
+         echo "value=$KEY" >> $GITHUB_OUTPUT
+
+    - uses: actions/cache@v6
+      id: cache
+      with:
+        path: .last-manifest
+        key: last-manifest-${{ steps.cache-key.outputs.value }}
+
+    - uses: actions/checkout@v7
+      if: steps.cache.outputs.cache-hit != 'true'
+
+    - name: BorrowSanitizer
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        ( cd bindings/rust && \
+          sed "s/^crit/#crit/" Cargo.toml > Cargo.$$.toml && \
+          mv Cargo.$$.toml Cargo.toml )
+        docker run --volume `pwd`:/pwd \
+                   --rm ghcr.io/borrowsanitizer/bsan:experimental \
+                   sh -c "cd /pwd/bindings/rust && cargo bsan test"
+        touch .last-manifest
