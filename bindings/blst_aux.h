@@ -113,6 +113,14 @@ size_t blst_fp12_sizeof(void);
 void blst_fp_from_le_bytes(blst_fp *ret, const byte *in, size_t len);
 void blst_fp_from_be_bytes(blst_fp *ret, const byte *in, size_t len);
 
+void blst_p1_affine_serialize_eip2537(byte out[128], const blst_p1_affine *in);
+void blst_p1_serialize_eip2537(byte out[128], const blst_p1 *in);
+BLST_ERROR blst_p1_deserialize_eip2537(blst_p1_affine *out, const byte in[128]);
+
+void blst_p2_affine_serialize_eip2537(byte out[256], const blst_p2_affine *in);
+void blst_p2_serialize_eip2537(byte out[256], const blst_p2 *in);
+BLST_ERROR blst_p2_deserialize_eip2537(blst_p2_affine *out, const byte in[256]);
+
 /*
  * Single-shot SHA-256 hash function.
  */
