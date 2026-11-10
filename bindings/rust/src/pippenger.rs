@@ -189,6 +189,7 @@ macro_rules! pippenger_mult_impl {
 
                     for i in 0..n_workers {
                         let wg = wg.clone();
+                        let inp = SendPtr(self.as_ptr());
 
                         pool.joined_execute(move || {
                             let acc = wg.3[i].as_ptr();
@@ -202,7 +203,7 @@ macro_rules! pippenger_mult_impl {
                                 }
 
                                 unsafe {
-                                    $from_affine(&mut tmp, &self[work]);
+                                    $from_affine(&mut tmp, inp.0.add(work));
                                     let scalar = &scalars[nbytes * work];
                                     if first {
                                         $mult(acc, &tmp, scalar, nbits);
@@ -375,6 +376,7 @@ macro_rules! pippenger_mult_impl {
                 for _ in 0..n_workers {
                     let tx = tx.clone();
                     let counter = counter.clone();
+                    let inp = SendPtr(self.as_ptr());
 
                     pool.joined_execute(move || {
                         let mut acc = <$point>::default();
@@ -387,11 +389,11 @@ macro_rules! pippenger_mult_impl {
                             if work >= npoints {
                                 break;
                             }
-                            p[0] = &self[work];
                             if work + chunk > npoints {
                                 chunk = npoints - work;
                             }
                             unsafe {
+                                p[0] = inp.0.add(work);
                                 let mut t = MaybeUninit::<$point>::uninit();
                                 $add(t.as_mut_ptr(), &p[0], chunk);
                                 $add_or_double(&mut acc, &acc, t.as_ptr());
