@@ -25,6 +25,9 @@ impl<T: Copy> Cell<T> {
     }
 }
 
+struct SendMutPtr<T>(*mut T);
+unsafe impl<T> Send for SendMutPtr<T> {}
+
 macro_rules! pippenger_mult_impl {
     (
         $points:ident,
@@ -95,27 +98,27 @@ macro_rules! pippenger_mult_impl {
                     delta -= (rem == Wrapping(0)) as usize;
                     rem -= Wrapping(1);
 
-                    let inp = &points[x..x + delta];
+                    //let inp = &points[x..x + delta];
                     //let out = &mut ret.points[x..x + delta];
-                    // It's unfortunate that we have to resort to an equivalent
-                    // from_raw_parts_mut in order to get BorrowSanitizer lower
-                    // its guard...
-                    let out = unsafe {
-                        core::slice::from_raw_parts_mut(
-                            ret.points.as_mut_ptr().add(x),
-                            delta,
-                        )
-                    };
-                    x += delta;
+                    // It's unfortunate that we have to resort to passing
+                    // raw pointers instead in order to get BorrowSanitizer
+                    // lower its guard...
+                    let inp = SendPtr(points.as_ptr());
+                    let out = SendMutPtr(ret.points.as_mut_ptr());
 
                     let wg = wg.clone();
                     pool.joined_execute(move || {
-                        let p: [*const $point; 2] = [&inp[0], ptr::null()];
-                        unsafe { $to_affines(&mut out[0], &p[0], out.len()) };
+                        unsafe {
+                            let p: [*const $point; 2] =
+                                [inp.0.add(x), ptr::null()];
+                            $to_affines(out.0.add(x), &p[0], delta)
+                        };
                         if wg.1.fetch_sub(1, Ordering::AcqRel) == 1 {
                             wg.0.wait();
                         }
                     });
+
+                    x += delta;
                 }
                 wg.0.wait();
 
