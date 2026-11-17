@@ -25,6 +25,9 @@ impl<T: Copy> Cell<T> {
     }
 }
 
+struct SendMutPtr<T>(*mut T);
+unsafe impl<T> Send for SendMutPtr<T> {}
+
 macro_rules! pippenger_mult_impl {
     (
         $points:ident,
@@ -95,27 +98,27 @@ macro_rules! pippenger_mult_impl {
                     delta -= (rem == Wrapping(0)) as usize;
                     rem -= Wrapping(1);
 
-                    let inp = &points[x..x + delta];
+                    //let inp = &points[x..x + delta];
                     //let out = &mut ret.points[x..x + delta];
-                    // It's unfortunate that we have to resort to an equivalent
-                    // from_raw_parts_mut in order to get BorrowSanitizer lower
-                    // its guard...
-                    let out = unsafe {
-                        core::slice::from_raw_parts_mut(
-                            ret.points.as_mut_ptr().add(x),
-                            delta,
-                        )
-                    };
-                    x += delta;
+                    // It's unfortunate that we have to resort to passing
+                    // raw pointers instead of subslices in order to get
+                    // BorrowSanitizer lower its guard...
+                    let inp = SendPtr(points.as_ptr());
+                    let out = SendMutPtr(ret.points.as_mut_ptr());
 
                     let wg = wg.clone();
                     pool.joined_execute(move || {
-                        let p: [*const $point; 2] = [&inp[0], ptr::null()];
-                        unsafe { $to_affines(&mut out[0], &p[0], out.len()) };
+                        unsafe {
+                            let p: [*const $point; 2] =
+                                [inp.0.add(x), ptr::null()];
+                            $to_affines(out.0.add(x), &p[0], delta)
+                        };
                         if wg.1.fetch_sub(1, Ordering::AcqRel) == 1 {
                             wg.0.wait();
                         }
                     });
+
+                    x += delta;
                 }
                 wg.0.wait();
 
@@ -189,6 +192,8 @@ macro_rules! pippenger_mult_impl {
 
                     for i in 0..n_workers {
                         let wg = wg.clone();
+                        let inp = SendPtr(self.as_ptr());
+                        let scalars = SendPtr(scalars.as_ptr());
 
                         pool.joined_execute(move || {
                             let acc = wg.3[i].as_ptr();
@@ -202,8 +207,8 @@ macro_rules! pippenger_mult_impl {
                                 }
 
                                 unsafe {
-                                    $from_affine(&mut tmp, &self[work]);
-                                    let scalar = &scalars[nbytes * work];
+                                    $from_affine(&mut tmp, inp.0.add(work));
+                                    let scalar = scalars.0.add(nbytes * work);
                                     if first {
                                         $mult(acc, &tmp, scalar, nbits);
                                         first = false;
@@ -284,6 +289,8 @@ macro_rules! pippenger_mult_impl {
                 for _ in 0..n_workers {
                     let tx = tx.clone();
                     let grid = grid.clone();
+                    let points = SendPtr(points.as_ptr());
+                    let scalars = SendPtr(scalars.as_ptr());
 
                     pool.joined_execute(move || {
                         let mut scratch = vec![0u64; sz << (window - 1)];
@@ -300,9 +307,9 @@ macro_rules! pippenger_mult_impl {
                             let x = grid.1[work].x;
                             let y = grid.1[work].y;
 
-                            p[0] = &points[x];
-                            s[0] = &scalars[x * nbytes];
                             unsafe {
+                                p[0] = points.0.add(x);
+                                s[0] = scalars.0.add(x * nbytes);
                                 $tile_mult(
                                     grid.1[work].point.as_ptr(),
                                     &p[0],
@@ -375,6 +382,7 @@ macro_rules! pippenger_mult_impl {
                 for _ in 0..n_workers {
                     let tx = tx.clone();
                     let counter = counter.clone();
+                    let inp = SendPtr(self.as_ptr());
 
                     pool.joined_execute(move || {
                         let mut acc = <$point>::default();
@@ -387,11 +395,11 @@ macro_rules! pippenger_mult_impl {
                             if work >= npoints {
                                 break;
                             }
-                            p[0] = &self[work];
                             if work + chunk > npoints {
                                 chunk = npoints - work;
                             }
                             unsafe {
+                                p[0] = inp.0.add(work);
                                 let mut t = MaybeUninit::<$point>::uninit();
                                 $add(t.as_mut_ptr(), &p[0], chunk);
                                 $add_or_double(&mut acc, &acc, t.as_ptr());
@@ -442,6 +450,7 @@ macro_rules! pippenger_mult_impl {
                     let counter = counter.clone();
                     let valid = valid.clone();
                     let wg = wg.clone();
+                    let points = SendPtr(self.as_ptr());
 
                     pool.joined_execute(move || {
                         while valid.load(Ordering::Relaxed) {
@@ -450,7 +459,7 @@ macro_rules! pippenger_mult_impl {
                                 break;
                             }
 
-                            if check(&self[work]).is_err() {
+                            if check(unsafe { &*points.0.add(work) }).is_err() {
                                 valid.store(false, Ordering::Relaxed);
                                 break;
                             }

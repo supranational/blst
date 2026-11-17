@@ -91,6 +91,9 @@ mod mt {
     }
 }
 
+struct SendPtr<T>(*const T);
+unsafe impl<T> Send for SendPtr<T> {}
+
 include!("bindings.rs");
 
 impl PartialEq for blst_p1 {
@@ -198,6 +201,8 @@ impl blst_fp12 {
         for _ in 0..n_workers {
             let tx = tx.clone();
             let counter = counter.clone();
+            let q = SendPtr(q.as_ptr());
+            let p = SendPtr(p.as_ptr());
 
             pool.joined_execute(move || {
                 let mut acc = blst_fp12::default();
@@ -211,9 +216,9 @@ impl blst_fp12 {
                         break;
                     }
                     let n = core::cmp::min(n_elems - work, stride);
-                    qs[0] = &q[work];
-                    ps[0] = &p[work];
                     unsafe {
+                        qs[0] = q.0.add(work);
+                        ps[0] = p.0.add(work);
                         blst_miller_loop_n(tmp.as_mut_ptr(), &qs[0], &ps[0], n);
                         acc *= tmp.assume_init();
                     }
