@@ -97,35 +97,31 @@ static void HKDF_Expand(unsigned char *OKM, size_t L,
 #endif
                         HMAC_SHA256_CTX *ctx)
 {
-#if !defined(__STDC_VERSION__) || __STDC_VERSION__<199901 \
-                               || defined(__STDC_NO_VLA__)
-    unsigned char *info_prime = alloca(info_len + 2 + 1);
-#else
-    unsigned char info_prime[info_len + 2 + 1];
-#endif
+    unsigned char info_prime[2 + 1];    /* [I2OSP(L, 2) ||] counter */
+    size_t n = 0;
 
     HMAC_init(ctx, PRK, 32);
 
-    if (info_len != 0)
-        sha256_bcopy(info_prime, info, info_len);
 #ifndef __BLST_HKDF_TESTMODE__
     if (info_fixup) {
         /* Section 2.3 KeyGen in BLS-signature draft */
-        info_prime[info_len + 0] = (unsigned char)(L >> 8);
-        info_prime[info_len + 1] = (unsigned char)(L);
-        info_len += 2;
+        info_prime[0] = (unsigned char)(L >> 8);
+        info_prime[1] = (unsigned char)(L);
+        n = 2;
     }
 #endif
-    info_prime[info_len] = 1;   /* counter */
-    HMAC_update(ctx, info_prime, info_len + 1);
+    info_prime[n] = 1;          /* counter */
+    HMAC_update(ctx, info, info_len);
+    HMAC_update(ctx, info_prime, n + 1);
     HMAC_final(ctx->tail.c, ctx);
     while (L > 32) {
         sha256_hcopy((unsigned int *)OKM, (const unsigned int *)ctx->tail.c);
         OKM += 32; L -= 32;
-        ++info_prime[info_len]; /* counter */
+        ++info_prime[n];        /* counter */
         HMAC_init(ctx, NULL, 0);
         HMAC_update(ctx, ctx->tail.c, 32);
-        HMAC_update(ctx, info_prime, info_len + 1);
+        HMAC_update(ctx, info, info_len);
+        HMAC_update(ctx, info_prime, n + 1);
         HMAC_final(ctx->tail.c, ctx);
     }
     sha256_bcopy(OKM, ctx->tail.c, L);
