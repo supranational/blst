@@ -220,6 +220,17 @@ a = blst.P2_Affines.mult_pippenger(blst.P2_Affines.as_memory(points), scalars)
 if not a.is_equal(blst.G2().mult(total)):
     raise AssertionError("disaster")
 
+# None is not a point, must not reach C as a NULL entry in points[]
+for (Affines, G) in [(blst.P1_Affines, blst.G1()), (blst.P2_Affines, blst.G2())]:
+    for call in [lambda: Affines.add([G.to_affine(), None]),
+                 lambda: Affines.mult_pippenger([G.to_affine(), None], [1, 1]),
+                 lambda: Affines.as_memory([G, None])]:
+        try:
+            call()
+        except TypeError:
+            continue
+        raise AssertionError("disaster")
+
 ########################################################################
 # rudimentary blind signature PoC
 
