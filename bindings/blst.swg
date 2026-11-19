@@ -235,7 +235,8 @@ static int PyLong_GetSign(PyObject *obj, int *sign)
         // check the type of every element
         for (size_t i = 0; i < _global_npoints; i++) {
             PyObject* obj = PyList_GET_ITEM($input, i);
-            if (SWIG_ConvertPtr(obj, (void**)&points[i], $*1_descriptor, 0) != SWIG_OK)
+            if (SWIG_ConvertPtr(obj, (void**)&points[i], $*1_descriptor, 0) != SWIG_OK
+                || points[i] == nullptr)    // None
                 SWIG_exception_fail(SWIG_TypeError, "in method '$symname', "
                                                     "expecting 'list' of '$*1_ltype'");
         }

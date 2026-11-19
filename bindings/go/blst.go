@@ -1997,6 +1997,11 @@ func P1sToAffine(points []*P1, optional ...int) P1Affines {
 	} else {
 		npoints = len(points)
 	}
+	for _, point := range points[:npoints] {
+		if point == nil {
+			panic("nil pointer in points[]")
+		}
+	}
 	ret := make([]P1Affine, npoints)
 	_cgoCheckPointer := func(...interface{}) {}
 	C.blst_p1s_to_affine(&ret[0].cgo, (**C.blst_p1)(unsafe.Pointer(&points[0])),
@@ -2059,6 +2064,11 @@ func P1AffinesAdd(points []*P1Affine, optional ...int) *P1 {
 	} else {
 		npoints = len(points)
 	}
+	for _, point := range points[:npoints] {
+		if point == nil {
+			panic("nil pointer in points[]")
+		}
+	}
 	var ret P1
 	_cgoCheckPointer := func(...interface{}) {}
 	C.blst_p1s_add(&ret.cgo, (**C.blst_p1_affine)(unsafe.Pointer(&points[0])),
@@ -2114,6 +2124,11 @@ func P1AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P1 {
 	switch val := pointsIf.(type) {
 	case []*P1Affine:
 		npoints = len(val)
+		for _, point := range val {
+			if point == nil {
+				panic("nil pointer in points[]")
+			}
+		}
 	case []P1Affine:
 		npoints = len(val)
 	case P1Affines:
@@ -2835,6 +2850,11 @@ func P2sToAffine(points []*P2, optional ...int) P2Affines {
 	} else {
 		npoints = len(points)
 	}
+	for _, point := range points[:npoints] {
+		if point == nil {
+			panic("nil pointer in points[]")
+		}
+	}
 	ret := make([]P2Affine, npoints)
 	_cgoCheckPointer := func(...interface{}) {}
 	C.blst_p2s_to_affine(&ret[0].cgo, (**C.blst_p2)(unsafe.Pointer(&points[0])),
@@ -2897,6 +2917,11 @@ func P2AffinesAdd(points []*P2Affine, optional ...int) *P2 {
 	} else {
 		npoints = len(points)
 	}
+	for _, point := range points[:npoints] {
+		if point == nil {
+			panic("nil pointer in points[]")
+		}
+	}
 	var ret P2
 	_cgoCheckPointer := func(...interface{}) {}
 	C.blst_p2s_add(&ret.cgo, (**C.blst_p2_affine)(unsafe.Pointer(&points[0])),
@@ -2952,6 +2977,11 @@ func P2AffinesMult(pointsIf interface{}, scalarsIf interface{}, nbits int) *P2 {
 	switch val := pointsIf.(type) {
 	case []*P2Affine:
 		npoints = len(val)
+		for _, point := range val {
+			if point == nil {
+				panic("nil pointer in points[]")
+			}
+		}
 	case []P2Affine:
 		npoints = len(val)
 	case P2Affines:

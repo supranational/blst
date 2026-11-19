@@ -668,6 +668,29 @@ func TestMultiScalarP2(t *testing.T) {
     }
 }
 
+func TestNilPointsP2(t *testing.T) {
+    t.Parallel()
+    generator := P2Generator()
+    affine := generator.ToAffine()
+    expectPanic := func(name string, f func()) {
+        defer func() {
+            if recover() == nil {
+                t.Errorf("%s failed to reject nil point", name)
+            }
+        }()
+        f()
+    }
+    expectPanic("P2sToAffine", func() {
+        P2sToAffine([]*P2{generator, nil})
+    })
+    expectPanic("P2AffinesAdd", func() {
+        P2AffinesAdd([]*P2Affine{affine, nil})
+    })
+    expectPanic("P2AffinesMult", func() {
+        P2AffinesMult([]*P2Affine{affine, nil}, []byte{1, 1}, 8)
+    })
+}
+
 func BenchmarkMultiScalarP2(b *testing.B) {
     const npoints = 200000
     scalars := make([]byte, npoints*32)
