@@ -174,3 +174,32 @@ static void div_by_z(limb_t val[])
     }
     /* remainder is in low half of val[], quotient is in high */
 }
+
+static void eip2537_from_fp(unsigned char out[64], const vec384 in)
+{
+    vec384 temp;
+
+    from_fp(temp, in);
+
+    bytes_zero(out, 16);
+    be_bytes_from_limbs(out + 16, temp, sizeof(vec384));
+}
+
+static bool_t fp_from_eip2537(vec384 ret, const unsigned char in[64])
+{
+    vec512 out;
+    vec384 temp;
+
+    limbs_from_be_bytes(out, in, sizeof(vec512));
+
+    if (!vec_is_zero(out + 48/sizeof(out[0]), 16))
+        return 0;
+
+    add_fp(temp, out, ZERO_384);    /* less than modulus? */
+    if (!vec_is_equal(temp, out, sizeof(temp)))
+        return 0;
+
+    mul_fp(ret, temp, BLS12_381_RR);
+
+    return 1;
+}
