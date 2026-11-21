@@ -63,6 +63,12 @@ mod mt {
             })
         }
     }
+
+    pub struct SendPtr<T>(pub *const T);
+    unsafe impl<T> Send for SendPtr<T> {}
+
+    pub struct SendMutPtr<T>(pub *mut T);
+    unsafe impl<T> Send for SendMutPtr<T> {}
 }
 
 #[cfg(all(feature = "no-threads", feature = "std"))]
@@ -79,6 +85,13 @@ mod mt {
         pub fn max_count(&self) -> usize {
             1
         }
+
+        pub fn execute<'scope, F>(&self, job: F)
+        where
+            F: FnOnce() + 'scope,
+        {
+            job()
+        }
     }
 
     impl ThreadPoolExt for EmptyPool {
@@ -89,10 +102,10 @@ mod mt {
             job()
         }
     }
-}
 
-struct SendPtr<T>(*const T);
-unsafe impl<T> Send for SendPtr<T> {}
+    pub struct SendPtr<T>(pub *const T);
+    pub struct SendMutPtr<T>(pub *mut T);
+}
 
 include!("bindings.rs");
 
@@ -201,10 +214,10 @@ impl blst_fp12 {
         for _ in 0..n_workers {
             let tx = tx.clone();
             let counter = counter.clone();
-            let q = SendPtr(q.as_ptr());
-            let p = SendPtr(p.as_ptr());
+            let q = mt::SendPtr(q.as_ptr());
+            let p = mt::SendPtr(p.as_ptr());
 
-            pool.joined_execute(move || {
+            pool.execute(move || {
                 let mut acc = blst_fp12::default();
                 let mut tmp = MaybeUninit::<blst_fp12>::uninit();
                 let mut qs: [*const _; 2] = [ptr::null(), ptr::null()];
