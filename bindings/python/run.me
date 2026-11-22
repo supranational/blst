@@ -34,10 +34,10 @@ if newer("../blst.h", "../libblst.a"):
         subprocess.check_call(["sh"] + cmd, cwd="..")
 
 if newer("../blst.swg", "../blst.h", "../blst.hpp", "blst_wrap.cpp"):
-    print("swig-ing...") or sys.stdout.flush()
-    subprocess.check_call(["swig", "-c++", "-python", "-O",
-                                   "-o", "blst_wrap.cpp", "-outdir", ".",
-                                   "../blst.swg"])
+    cmd = ["swig", "-c++", "-python", "-O", "-outdir", ".",
+                   "-o", "blst_wrap.cpp", "../blst.swg"]
+    print(" ".join(["+"] + cmd))
+    subprocess.check_call(cmd)
 
 if sysconfig.get_config_var('EXT_SUFFIX'):
     blst_so = "_blst" + sysconfig.get_config_var('EXT_SUFFIX')
@@ -45,7 +45,6 @@ else:
     blst_so = "_blst" + sysconfig.get_config_var('SHLIB_EXT').strip('"')
 
 if newer("blst_wrap.cpp", "../libblst.a", blst_so):
-    print("compiling %s..." % blst_so) or sys.stdout.flush()
     if sysconfig.get_config_var('MACHDEP') == 'darwin':
         cmd = ["c++", "-bundle", "-undefined", "dynamic_lookup",
                "-arch", "arm64", "-arch", "x86_64"]
