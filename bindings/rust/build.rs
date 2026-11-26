@@ -43,16 +43,16 @@ fn main() {
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     let target_family = env::var("CARGO_CFG_TARGET_FAMILY").unwrap_or_default();
 
-    let target_no_std = target_os.eq("none")
+    let target_no_std = !cfg!(feature = "std")
+        || target_os.eq("none")
         || (target_os.eq("unknown") && target_arch.eq("wasm32"))
         || target_os.eq("uefi")
         || env::var("BLST_TEST_NO_STD").is_ok();
 
-    if !target_no_std {
-        println!("cargo:rustc-cfg=feature=\"std\"");
-        if target_arch.eq("wasm32") || target_os.eq("unknown") {
-            println!("cargo:rustc-cfg=feature=\"no-threads\"");
-        }
+    // wasm32 and unknown-OS targets can have std but no usable OS threads, so
+    // force the single-threaded path even when std is available.
+    if !target_no_std && (target_arch.eq("wasm32") || target_os.eq("unknown")) {
+        println!("cargo:rustc-cfg=feature=\"no-threads\"");
     }
     println!("cargo:rerun-if-env-changed=BLST_TEST_NO_STD");
 
