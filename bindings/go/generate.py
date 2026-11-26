@@ -81,7 +81,7 @@ fin.close()
 
 # These are strings that overlap with the mapping names but we don't
 # actually want to change. The second value should be a unique string.
-dont_touch = (('Fp12', 'foo1234'),)
+dont_touch = (('Fp12', 'foo1234'), ('2537', 'bar1234'))
 
 # We're going to swap these names to get from min-pk to min-sig
 mapping = [('P1', 'P2'),
