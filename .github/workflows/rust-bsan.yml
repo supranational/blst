@@ -3,7 +3,7 @@ name: rust-bsan
 on:
   push:
     branches:
-      - master 
+      - '**'
     paths:
       - 'bindings/rust/src/*.rs'
       - '.github/workflows/rust-bsan.yml'
@@ -26,10 +26,12 @@ jobs:
         echo ---
         env | sort
 
+    - uses: actions/checkout@v7
+
     - name: Calculate the cache key
       id: cache-key
       run: |
-         KEY=`(echo "${{ github.sha }}" && \
+         KEY=`(echo "${{ hashFiles('bindings/rust/src/*.rs') }}" && \
                docker manifest inspect ghcr.io/borrowsanitizer/bsan:latest) \
               | sha1sum | awk '{print $1}'`
          echo "value=$KEY" >> $GITHUB_OUTPUT
@@ -39,9 +41,6 @@ jobs:
       with:
         path: .last-manifest
         key: last-manifest-${{ steps.cache-key.outputs.value }}
-
-    - uses: actions/checkout@v7
-      if: steps.cache.outputs.cache-hit != 'true'
 
     - name: BorrowSanitizer
       if: steps.cache.outputs.cache-hit != 'true'

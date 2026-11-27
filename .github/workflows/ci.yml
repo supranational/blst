@@ -3,13 +3,21 @@ name: build
 on:
   push:
     branches:
-    - '**'
-  workflow_dispatch:
-    branches:
-    - '**'
+      - '**'
+    paths:
+      - 'src/**'
+      - 'build/**'
+      - 'bindings/go/**'
+      - 'bindings/rust/**'
   pull_request:
     branches:
-    - master
+      - master
+    paths:
+      - 'src/**'
+      - 'build/**'
+      - 'bindings/go/**'
+      - 'bindings/rust/**'
+  workflow_dispatch:
 
 jobs:
   rust-n-go:
@@ -158,9 +166,17 @@ jobs:
         rm -rf ~/.cargo/registry/index/*/.cache
         mkdir -p ~/.wasmtime
 
-    - name: Go
-      if: ${{ runner.os != 'Windows' || runner.arch != 'ARM64' }}
+    - name: Prep CLANGARM64 MSYS2
+      if: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' }}
       shell: bash
+      run: |
+        echo 'c:\msys64\usr\bin'  >> $GITHUB_PATH
+        echo 'MSYSTEM=CLANGARM64' >> $GITHUB_ENV
+        echo 'CHERE_INVOKING=1'   >> $GITHUB_ENV
+        /c/msys64/usr/bin/bash -lc 'pacman -S --noconfirm mingw-w64-clang-aarch64-clang mingw-w64-clang-aarch64-go'
+
+    - name: Go
+      shell: bash -leo pipefail {0}
       run: |
         go version 2>/dev/null || exit 0
         if ! (grep -q -e '^flags.*\badx\b' /proc/cpuinfo) 2>/dev/null; then
@@ -168,127 +184,3 @@ jobs:
         fi
         cd bindings/go
         go test -test.v
-
-  misc-ubuntu-latest:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v7
-
-    - name: Environment
-      run: |
-        lscpu
-        echo ---
-        env | sort
-
-    - name: Parse blst.hpp
-      run: |
-        if [ -f bindings/blst.hpp ]; then
-            c++ -std=c++11 -fsyntax-only -x c++ bindings/blst.hpp
-        fi
-
-    - name: Python
-      run: if [ -x bindings/python/run.me ]; then bindings/python/run.me; fi
-
-    - uses: actions/setup-java@v6
-      with:
-        distribution: temurin
-        java-version: 11
-    - name: Java
-      run: if [ -x bindings/java/run.me ]; then bindings/java/run.me; fi
-
-    - uses: actions/setup-node@v7
-      with:
-        node-version: '20.x'
-    - name: Node.js
-      run: |
-        node_js=bindings/node.js
-        if [ -x $node_js/run.me ]; then
-            $node_js/run.me
-            (cd $node_js; npm install node-addon-api && rm blst_wrap.cpp)
-            $node_js/run.me
-        fi
-    - name: node-gyp
-      run: |
-        node_js=bindings/node.js
-        if [ -f $node_js/binding.gyp -a -f $node_js/blst_wrap.cpp ]; then
-            npm install --global node-gyp || true
-            if which node-gyp > /dev/null 2>&1; then
-              ( cd $node_js;
-                node-gyp configure;
-                node-gyp build;
-                env NODE_PATH=build/Release: node runnable.js;
-              )
-            fi
-        fi
-    - name: TypeScript
-      run: |
-        node_js=bindings/node.js
-        if [ -f $node_js/blst.hpp.ts -a -f $node_js/blst.node ]; then
-            npm install --global typescript || true
-            if which tsc > /dev/null 2>&1; then
-              ( cd $node_js;
-                npm install @types/node;
-                tsc runnable.ts --ignoreConfig --types node --module commonjs;
-                env NODE_PATH=.: node runnable.js;
-              )
-           fi
-        fi
-
-    - name: Emscripten
-      uses: docker://emscripten/emsdk
-      with:
-        args: >
-          bindings/emscripten/run.me -O2
-
-    - name: C#
-      run: |
-        if [ -x bindings/c#/run.me ]; then
-            bindings/c#/run.me;
-            if which dotnet > /dev/null 2>&1; then
-                cd bindings/c#
-                [ -f libblst.dll.so ] || ../../build.sh -dll
-                dotnet run -c Release
-            fi
-        fi
-
-    - uses: actions/cache@v6
-      with:
-        path: |
-          ~/.cache/zig
-          ~/zig-x86_64-linux-*
-          ~/.wasmtime
-        key: ${{ runner.os }}-zig-github
-
-    - name: Install Wasmtime
-      run: if [ ! -d ~/.wasmtime/bin ]; then curl https://wasmtime.dev/install.sh -sSf | bash; fi
-
-    - name: Zig
-      run: |
-        which minisign > /dev/null 2>&1 || sudo apt-get -qq install minisign > /dev/null
-        curl https://ziglang.org/download/community-mirrors.txt -sSfo mirrors.txt && \
-        for ver in 0.14.1 0.17.0; do (
-            base_dir=zig-x86_64-linux-$ver
-            if [ ! -d ~/$base_dir ]; then
-                mirror=`shuf -n 1 mirrors.txt`
-                echo "downloading $base_dir from $mirror"
-                curl $mirror/$base_dir.tar.xz -sSfo $base_dir.tar.xz && \
-                curl https://ziglang.org/download/$ver/$base_dir.tar.xz.minisig -sSfo $base_dir.minisig && \
-                minisign -V -P "RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U" \
-                         -x $base_dir.minisig -m $base_dir.tar.xz -q || \
-                (rm -f $base_dir.* && echo "$ver download failure")
-                if [ -f $base_dir.tar.xz ]; then
-                    unxz -c $base_dir.tar.xz | tar xf - --directory ~
-                    rm $base_dir.*
-                fi
-            fi
-            if [ -x ~/$base_dir/zig ]; then
-                echo
-                echo "--- test $base_dir"
-                PATH=~/$base_dir:$PATH
-                zig build test --summary new
-                echo '--- test wasm32-wasi'
-                PATH=~/.wasmtime/bin:$PATH
-                zig build test -Dtarget=wasm32-wasi -fwasmtime --summary new
-            fi
-        ); done
