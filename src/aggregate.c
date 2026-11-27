@@ -567,11 +567,8 @@ BLST_ERROR blst_aggregate_in_g1(POINTonE1 *out, const POINTonE1 *in,
     if (ret != BLST_SUCCESS)
         return ret;
 
-    if (vec_is_zero(P, sizeof(POINTonE1_affine))) {
-        if (in == NULL)
-            vec_zero(out, sizeof(*out));
-        return BLST_SUCCESS;
-    }
+    if (vec_is_zero(P, sizeof(POINTonE1_affine)))
+        return BLST_PK_IS_INFINITY;
 
     vec_copy(P->Z, BLS12_381_Rx.p, sizeof(P->Z));
 
@@ -597,11 +594,8 @@ BLST_ERROR blst_aggregate_in_g2(POINTonE2 *out, const POINTonE2 *in,
     if (ret != BLST_SUCCESS)
         return ret;
 
-    if (vec_is_zero(P, sizeof(POINTonE2_affine))) {
-        if (in == NULL)
-            vec_zero(out, sizeof(*out));
-        return BLST_SUCCESS;
-    }
+    if (vec_is_zero(P, sizeof(POINTonE2_affine)))
+        return BLST_PK_IS_INFINITY;
 
     vec_copy(P->Z, BLS12_381_Rx.p, sizeof(P->Z));
 
