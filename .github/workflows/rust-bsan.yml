@@ -39,8 +39,8 @@ jobs:
     - uses: actions/cache@v6
       id: cache
       with:
-        path: .last-manifest
-        key: last-manifest-${{ steps.cache-key.outputs.value }}
+        path: .bsan-manifest
+        key: BorrowSanitizer-${{ steps.cache-key.outputs.value }}
 
     - name: BorrowSanitizer
       if: steps.cache.outputs.cache-hit != 'true'
@@ -49,4 +49,4 @@ jobs:
         docker run --volume `pwd`:/pwd \
                    --rm ghcr.io/borrowsanitizer/bsan:latest \
                    sh -c "cd /pwd/bindings/rust && cargo bsan test"
-        touch .last-manifest
+        touch .bsan-manifest

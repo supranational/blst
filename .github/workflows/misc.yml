@@ -100,7 +100,7 @@ jobs:
           ~/.cache/zig
           ~/zig-x86_64-linux-*
           ~/.wasmtime
-        key: ${{ runner.os }}-zig-github
+        key: ${{ runner.os }}-${{ runner.arch }}-zig-0.14-0.17
 
     - name: Install Wasmtime
       run: if [ ! -d ~/.wasmtime/bin ]; then curl https://wasmtime.dev/install.sh -sSf | bash; fi
